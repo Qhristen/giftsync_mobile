@@ -1,11 +1,11 @@
 import Button from '@/components/ui/Button';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
-import { setCredentials } from '@/store/slices/authSlice';
+import { exchangeIdToken } from '@/store/slices/authSlice';
 import { setOccasions } from '@/store/slices/occasionSlice';
 import { fetchGoogleBirthdays } from '@/utils/calendar';
 import { Ionicons } from '@expo/vector-icons';
-import * as Google from 'expo-auth-session/providers/google';
+import { GoogleSignin, statusCodes, } from '@react-native-google-signin/google-signin';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
@@ -22,18 +22,23 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useDispatch } from 'react-redux';
 
+import { GOOGLE_CLIENT_ID } from '@/utils/constants';
+import { toast } from 'sonner-native';
+
 const { width, height } = Dimensions.get('window');
 
 export default function WelcomeScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
     const dispatch = useDispatch();
+    const [isSigningIn, setIsSigningIn] = React.useState(false);
 
-    const [request, response, promptAsync] = Google.useAuthRequest({
-        androidClientId: 'YOUR_ANDROID_CLIENT_ID', // Replace with actual client ID
-        iosClientId: 'YOUR_IOS_CLIENT_ID', // Replace with actual client ID
-        webClientId: 'YOUR_WEB_CLIENT_ID', // Replace with actual client ID
-    });
+    useEffect(() => {
+        GoogleSignin.configure({
+            webClientId: GOOGLE_CLIENT_ID,
+            offlineAccess: true,
+        });
+    }, []);
 
     // Animation values
     const logoScale = useSharedValue(0);
@@ -79,61 +84,44 @@ export default function WelcomeScreen() {
         ],
     }));
 
+    const handleGoogleLogin = async () => {
+        if (isSigningIn) return;
+        setIsSigningIn(true);
+        try {
+            await GoogleSignin.hasPlayServices();
+            // Using One Tap as requested
+            const userInfo = await GoogleSignin.signIn();
+            const idToken = userInfo.data?.idToken;
+            console.log('Google Sign-In ID Token:', idToken);
 
+            if (userInfo.type === 'success' && idToken) {
+                // Exchange idToken for backend tokens via Redux thunk
+                await dispatch(exchangeIdToken({ idToken }) as any).unwrap();
 
-    useEffect(() => {
-        const handleResponse = async () => {
-            if (response?.type === 'success') {
-                const { authentication } = response;
-
-                // Fetch birthdays from Google Calendar
+                // Fetch birthdays from Google Calendar (optional)
                 const birthdays = await fetchGoogleBirthdays();
                 dispatch(setOccasions(birthdays));
 
-                dispatch(setCredentials({
-                    user: {
-                        id: 'google-user-id',
-                        name: 'Google User',
-                        email: 'user@gmail.com',
-                        tier: 'free',
-                    },
-                    token: authentication?.accessToken || 'mock-token',
-                }));
                 router.replace('/(tabs)');
+            } else if (userInfo.type !== 'cancelled') {
+               toast.error('Failed to retrieve Google ID Token.');
             }
-        };
-
-        handleResponse();
-    }, [response]);
-
-    const handleGoogleLogin = async () => {
-        // For development/demo purposes, we can bypass the prompt if it fails to load or just mock it.
-        // In a real scenario, this would call promptAsync()
-        if (request) {
-            promptAsync();
-        } else {
-            // Fallback for development if client IDs are not provided
-            console.log('Google Sign-In mocking for development...');
-
-            // Even in mock mode, try to fetch mock birthdays or use some defaults
-            const mockBirthdays = [
-                { id: 'm1', name: 'Alex Johnson', type: 'Birthday', date: 'March 25', countdown: 'in 2d', dotColor: 'red' },
-                { id: 'm2', name: 'Sarah Connor', type: 'Birthday', date: 'April 10', countdown: 'in 18d', dotColor: 'red' },
-            ];
-            dispatch(setOccasions(mockBirthdays));
-
-            dispatch(setCredentials({
-                user: {
-                    id: 'mock-google-id',
-                    name: 'Demo User',
-                    email: 'demo@gmail.com',
-                    tier: 'free',
-                },
-                token: 'mock-token',
-            }));
-            router.replace('/(tabs)');
+        } catch (error: any) {
+            if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+                // user cancelled the login flow
+            } else if (error.code === statusCodes.IN_PROGRESS) {
+                // operation (e.g. sign in) is in progress already
+            } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+               toast.error( 'Play services not available or outdated.');
+            } else {
+                console.log('Sign-in error:', error);
+               toast.error(error.message || 'An unexpected error occurred during Google Sign-In.');
+            }
+        } finally {
+            setIsSigningIn(false);
         }
     };
+
 
     return (
         <View style={styles.container}>
@@ -167,13 +155,14 @@ export default function WelcomeScreen() {
 
             <Animated.View entering={FadeInDown.delay(450).duration(400)} style={[styles.footer, { padding: spacing.xl }]}>
                 <Button
-                        title="Sign In with Google"
-                        onPress={handleGoogleLogin}
-                        variant="secondary"
-                        style={styles.googleBtn}
-                        color='#0000'
-                        leftIcon={<Ionicons name="logo-google" size={20} color={colors.primary} style={{ marginRight: 8 }} />}
-                    />
+                    title="Sign In with Google"
+                    onPress={handleGoogleLogin}
+                    variant="secondary"
+                    isLoading={isSigningIn}
+                    style={styles.googleBtn}
+                    color='#000000'
+                    leftIcon={<Ionicons name="logo-google" size={20} color={colors.primary} style={{ marginRight: 8 }} />}
+                />
             </Animated.View>
         </View>
     );
@@ -230,6 +219,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: '#FFFFFF',
-       
+
     },
 });

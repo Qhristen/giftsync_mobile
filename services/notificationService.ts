@@ -1,7 +1,7 @@
+import Constants from "expo-constants";
+import * as Device from "expo-device";
 import * as Linking from "expo-linking";
 import * as Notifications from "expo-notifications";
-import * as Device from "expo-device";
-import Constants from "expo-constants";
 import { Platform } from "react-native";
 import { toast } from "sonner-native";
 
@@ -342,95 +342,69 @@ class NotificationService {
 
       // Map screen names to deep link paths
       switch (screen) {
-        case 'ListingDetail':
-          if (parsedParams.id) {
-            deepLinkPath = `marketplace/listing/${parsedParams.id}`;
-          } else {
-            console.warn("⚠️ ListingDetail requires an id param");
-            return;
-          }
-          break;
+        case 'Shop':
+        case 'ShopHome':
         case 'MarketplaceHome':
-          deepLinkPath = 'marketplace';
-          break;
-        case 'CreateSellListing':
-          deepLinkPath = 'marketplace/create';
-          break;
-        case 'HousingHome':
-          deepLinkPath = 'housing';
-          break;
-        case 'ApartmentDetail':
+        case 'ListingDetail':
+        case 'ProductDetail':
           if (parsedParams.id) {
-            deepLinkPath = `housing/apartment/${parsedParams.id}`;
+            deepLinkPath = `shop/${parsedParams.id}`;
           } else {
-            return;
+            deepLinkPath = 'shop';
           }
           break;
-        case 'RoommateDetail':
+        case 'Occasions':
+        case 'OccasionsHome':
+          deepLinkPath = 'occasions';
+          break;
+        case 'OccasionDetail':
           if (parsedParams.id) {
-            deepLinkPath = `housing/roommate/${parsedParams.id}`;
+            deepLinkPath = `occasions/${parsedParams.id}`;
           } else {
-            return;
+            deepLinkPath = 'occasions';
           }
           break;
-        case 'SocialsFeed':
-          deepLinkPath = 'socials';
+        case 'Orders':
+        case 'OrderHistory':
+          deepLinkPath = 'orders';
           break;
-        case 'PostDetail':
-          if (parsedParams.id) {
-            deepLinkPath = `socials/post/${parsedParams.id}`;
-          } else {
-            return;
-          }
-          break;
-        case 'NewsHome':
-          deepLinkPath = 'news';
-          break;
-        case 'ArticleDetail':
-          if (parsedParams.id) {
-            deepLinkPath = `news/${parsedParams.id}`;
-          } else {
-            return;
-          }
+        case 'Wallet':
+        case 'WalletHome':
+        case 'TransactionHistory':
+          deepLinkPath = 'wallet';
           break;
         case 'Profile':
           deepLinkPath = 'profile';
           break;
         case 'EditProfile':
+        case 'Settings':
           deepLinkPath = 'profile/edit';
           break;
-        case 'Settings':
-          deepLinkPath = 'settings';
+        case 'Addresses':
+          deepLinkPath = 'profile/addresses';
           break;
-        case 'Chat':
-          if (parsedParams.id) {
-            deepLinkPath = `chat/${parsedParams.id}`;
-          } else {
-            return;
-          }
-          break;
-        case 'WalletHome':
-          deepLinkPath = 'wallet';
-          break;
-        case 'TransactionHistory':
-          deepLinkPath = 'wallet/transactions';
-          break;
-        case 'TransactionDetail':
-          if (parsedParams.id) {
-            deepLinkPath = `wallet/transactions/${parsedParams.id}`;
-          } else {
-            return;
-          }
+        case 'Legal':
+          deepLinkPath = 'profile/legal';
           break;
         case 'Notifications':
           deepLinkPath = 'notifications';
           break;
-        case 'PublicProfile':
-          if (parsedParams.userId) {
-            deepLinkPath = `u/${parsedParams.userId}`;
-          } else {
-            return;
-          }
+        case 'Checkout':
+          deepLinkPath = 'checkout';
+          break;
+        case 'CheckoutDelivery':
+          deepLinkPath = 'checkout/delivery';
+          break;
+        case 'CheckoutPayment':
+          deepLinkPath = 'checkout/payment';
+          break;
+        case 'CheckoutConfirmation':
+          deepLinkPath = 'checkout/confirmation';
+          break;
+        case 'Home':
+        case 'MainTabs':
+        case 'Welcome':
+          deepLinkPath = '/';
           break;
         default:
           console.warn(`⚠️ Unknown screen: ${screen}`);
@@ -463,29 +437,20 @@ class NotificationService {
    */
   private handleCustomAction(action: string, data: NotificationData): void {
     switch (action) {
+      case "view_product":
       case "view_listing":
-        if (data.listingId) {
-          this.navigateToScreen('ListingDetail', { id: data.listingId });
+        if (data.productId || data.listingId) {
+          this.navigateToScreen('ProductDetail', { id: data.productId || data.listingId });
         }
         break;
-      case "view_transaction":
-        if (data.transactionId) {
-          this.navigateToScreen('TransactionDetail', { id: data.transactionId });
+      case "view_occasion":
+        if (data.occasionId) {
+          this.navigateToScreen('OccasionDetail', { id: data.occasionId });
         }
         break;
-      case "open_chat":
-        if (data.chatId) {
-          this.navigateToScreen('Chat', { id: data.chatId });
-        }
-        break;
-      case "view_post":
-        if (data.postId) {
-          this.navigateToScreen('PostDetail', { id: data.postId });
-        }
-        break;
-      case "view_article":
-        if (data.articleId) {
-          this.navigateToScreen('ArticleDetail', { id: data.articleId });
+      case "view_order":
+        if (data.orderId) {
+          this.navigateToScreen('Orders', { id: data.orderId });
         }
         break;
       case "open_wallet":
@@ -507,7 +472,7 @@ class NotificationService {
    */
   async sendNotification(
     title: string = "Test Notification",
-    body: string = "This is a test from your Cribins!",
+    body: string = "This is a test from your GiftSync!",
     data?: NotificationData
   ): Promise<boolean> {
     if (!this.expoPushToken) {

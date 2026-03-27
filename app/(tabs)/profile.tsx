@@ -2,26 +2,29 @@ import ConfirmDeleteSheet from '@/components/sheets/ConfirmDeleteSheet';
 import CurrencyPickerSheet from '@/components/sheets/CurrencyPickerSheet';
 import ThemePickerSheet from '@/components/sheets/ThemePickerSheet';
 import Avatar from '@/components/ui/Avatar';
-import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
 import { RootState } from '@/store';
+import { logoutUser } from '@/store/slices/authSlice';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 export default function ProfileScreen() {
     const router = useRouter();
     const { colors, spacing, scheme } = useTheme();
+    const dispatch = useDispatch();
     const themeSheet = useBottomSheet();
     const currencySheet = useBottomSheet();
     const logoutSheet = useBottomSheet();
     const deleteUserSheet = useBottomSheet();
+
+    const { user } = useSelector((state: RootState) => state.auth);
     const coins = useSelector((state: RootState) => state.wallet.coins);
     const [currency, setCurrency] = useState('NGN');
 
@@ -56,10 +59,9 @@ export default function ProfileScreen() {
             <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
                 {/* Profile Hero */}
                 <View style={[styles.hero, { padding: spacing.xl }]}>
-                    <Avatar name="Alex Johnson" size={100} />
-                    <Typography variant="h2" style={{ marginTop: spacing.md }}>Alex Johnson</Typography>
-                    <Typography variant="body" color={colors.textSecondary}>alex@example.com</Typography>
-                    {/* <Badge label={`${coins} Coins`} variant="amber" style={{ marginTop: spacing.sm }} /> */}
+                    <Avatar name={user?.name || 'User'} uri={user?.picture} size={100} />
+                    <Typography variant="h2" style={{ marginTop: spacing.md }}>{user?.name || 'Guest'}</Typography>
+                    <Typography variant="body" color={colors.textSecondary}>{user?.email || ''}</Typography>
                 </View>
 
                 {/* Coin Wallet Card */}
@@ -140,7 +142,8 @@ export default function ProfileScreen() {
                 title="Sign Out"
                 description="Are you sure you want to sign out of GiftSync?"
                 confirmLabel="Sign Out"
-                onConfirm={() => {
+                onConfirm={async () => {
+                    await dispatch(logoutUser() as any);
                     logoutSheet.close();
                     router.replace('/(auth)/welcome');
                 }}
