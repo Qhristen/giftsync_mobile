@@ -1,13 +1,20 @@
 import { useTheme } from '@/hooks/useTheme';
-import BottomSheet, {
+import {
     BottomSheetBackdrop,
     BottomSheetBackdropProps,
+    BottomSheetModal,
     BottomSheetScrollView,
     BottomSheetView,
 } from '@gorhom/bottom-sheet';
-import React, { forwardRef, useMemo } from 'react';
+import React, { forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
 
-export type BottomSheetRef = BottomSheet;
+export interface BottomSheetRef {
+    expand: () => void;
+    close: () => void;
+    snapToIndex: (index: number) => void;
+    present: () => void;
+    dismiss: () => void;
+}
 
 interface Props {
     snapPoints: (string | number)[];
@@ -15,12 +22,24 @@ interface Props {
     scrollable?: boolean;
     onClose?: () => void;
     index?: number;
+    keyboardBehavior?: 'extend' | 'fillParent' | 'interactive';
+    keyboardBlurBehavior?: 'none' | 'restore';
+    android_keyboardInputMode?: 'adjustResize' | 'adjustPan';
 }
 
 const BottomSheetWrapper = forwardRef<BottomSheetRef, Props>(
-    ({ snapPoints, children, scrollable = false, onClose, index = -1 }, ref) => {
+    ({ snapPoints, children, scrollable = false, onClose, index = -1, keyboardBehavior = 'fillParent', keyboardBlurBehavior = 'restore', android_keyboardInputMode = 'adjustResize' }, ref) => {
         const { colors, spacing } = useTheme();
         const Container = scrollable ? BottomSheetScrollView : BottomSheetView;
+        const modalRef = useRef<BottomSheetModal>(null);
+
+        useImperativeHandle(ref, () => ({
+            expand: () => modalRef.current?.present(),
+            close: () => modalRef.current?.dismiss(),
+            snapToIndex: (i: number) => modalRef.current?.snapToIndex(i),
+            present: () => modalRef.current?.present(),
+            dismiss: () => modalRef.current?.dismiss(),
+        }), []);
 
         const renderBackdrop = useMemo(
             () => (props: BottomSheetBackdropProps) => (
@@ -35,20 +54,21 @@ const BottomSheetWrapper = forwardRef<BottomSheetRef, Props>(
         );
 
         return (
-            <BottomSheet
-                ref={ref}
-                index={index}
+            <BottomSheetModal
+                ref={modalRef}
+                index={Math.max(0, index)}
                 snapPoints={snapPoints}
                 enablePanDownToClose
                 backdropComponent={renderBackdrop}
                 backgroundStyle={{ backgroundColor: colors.surface }}
                 handleIndicatorStyle={{ backgroundColor: colors.border, width: 40 }}
-                onChange={(idx) => {
-                    if (idx === -1) onClose?.();
-                }}
+                keyboardBehavior={keyboardBehavior}
+                keyboardBlurBehavior={keyboardBlurBehavior}
+                android_keyboardInputMode={android_keyboardInputMode}
+                onDismiss={onClose}
             >
                 <Container style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.xl }}>{children}</Container>
-            </BottomSheet>
+            </BottomSheetModal>
         );
     }
 );

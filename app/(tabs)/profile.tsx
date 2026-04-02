@@ -8,24 +8,24 @@ import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
 import { RootState } from '@/store';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { logoutUser } from '@/store/slices/authSlice';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
 
 export default function ProfileScreen() {
     const router = useRouter();
     const { colors, spacing, scheme } = useTheme();
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const themeSheet = useBottomSheet();
     const currencySheet = useBottomSheet();
     const logoutSheet = useBottomSheet();
     const deleteUserSheet = useBottomSheet();
 
-    const { user } = useSelector((state: RootState) => state.auth);
-    const coins = useSelector((state: RootState) => state.wallet.coins);
+    const { user } = useAppSelector((state: RootState) => state.auth);
+    const coins = useAppSelector((state: RootState) => state.wallet.coins);
     const [currency, setCurrency] = useState('NGN');
 
     const sections = [
@@ -59,7 +59,7 @@ export default function ProfileScreen() {
             <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
                 {/* Profile Hero */}
                 <View style={[styles.hero, { padding: spacing.xl }]}>
-                    <Avatar name={user?.name || 'User'} uri={user?.picture} size={100} />
+                    <Avatar name={user?.name || 'User'} uri={user?.avatarUrl} size={100} />
                     <Typography variant="h2" style={{ marginTop: spacing.md }}>{user?.name || 'Guest'}</Typography>
                     <Typography variant="body" color={colors.textSecondary}>{user?.email || ''}</Typography>
                 </View>
@@ -143,7 +143,7 @@ export default function ProfileScreen() {
                 description="Are you sure you want to sign out of GiftSync?"
                 confirmLabel="Sign Out"
                 onConfirm={async () => {
-                    await dispatch(logoutUser() as any);
+                    await dispatch(logoutUser());
                     logoutSheet.close();
                     router.replace('/(auth)/welcome');
                 }}

@@ -1,121 +1,201 @@
 import Avatar from '@/components/ui/Avatar';
 import Badge from '@/components/ui/Badge';
+import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
-import { RootState } from '@/store';
+import { useGetOccasionDetailQuery } from '@/store/api/occasionApi';
+import { useGetRecommendationsQuery } from '@/store/api/productApi';
+import { getCountdown } from '@/utils/dateUtils';
 import { Ionicons } from '@expo/vector-icons';
+import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
-import { Dimensions, FlatList, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Dimensions, Pressable, StyleSheet, View } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { useSelector } from 'react-redux';
-import { toast } from 'sonner-native';
 
 const { width } = Dimensions.get('window');
-
-const RECOMMENDED_GIFTS = [
-    { id: 'g1', name: 'Digital Art Frame', price: 'NGN 85,000', image: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&q=80&w=400' },
-    { id: 'g2', name: 'Gourmet Coffee Set', price: 'NGN 25,000', image: 'https://images.unsplash.com/photo-1498622205843-c15e21932386?auto=format&fit=crop&q=80&w=400' },
-    { id: 'g3', name: 'Luxury Watch', price: 'NGN 150,000', image: 'https://images.unsplash.com/photo-1524805444758-089113d48a6d?auto=format&fit=crop&q=80&w=400' },
-];
 
 export default function OccasionDetailScreen() {
     const { id } = useLocalSearchParams();
     const router = useRouter();
     const { colors, spacing } = useTheme();
 
-    const occasions = useSelector((state: RootState) => state.occasions.items);
-    const occasion = occasions.find(o => o.id === id) || {
-        id: '1',
-        name: 'Jamie Doe',
-        type: 'Birthday',
-        date: 'March 25',
-        countdown: 'in 3 days',
-        dotColor: 'green',
-        avatarUrl: undefined,
-    };
+    const { data: occasion, isLoading, error } = useGetOccasionDetailQuery(id as string, { skip: !id });
+
+    const { data: recs = [], isLoading: isRecsLoading, refetch: refetchRecs } = useGetRecommendationsQuery(
+        { occasionId: occasion?.id as string },
+        { skip: !occasion?.id }
+    );
+
+
+    if (isLoading) {
+        return (
+            <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center' }]}>
+                <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+        );
+    }
+
+    if (!occasion || error) {
+        return (
+            <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
+                <Typography>Occasion not found</Typography>
+                <Button title="Go Back" onPress={() => router.back()} style={{ marginTop: 16 }} />
+            </View>
+        );
+    }
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            {/* Header Area */}
-            <View style={[styles.headerBg, { backgroundColor: colors.primary }]}>
-                <View style={[styles.header, { top: spacing.xl, paddingHorizontal: spacing.xl }]}>
-                    <Pressable onPress={() => router.back()} style={styles.iconBtn}>
-                        <Ionicons name="arrow-back" size={24} color="#FFF" />
-                    </Pressable>
-                    <Typography variant="h4" color="#FFF">Occasion Details</Typography>
-                    <Pressable style={styles.iconBtn}>
-                        <Ionicons name="create-outline" size={24} color="#FFF" />
-                    </Pressable>
-                </View>
-
-                <Animated.View entering={FadeInDown.duration(500)} style={styles.heroContent}>
-                    <Avatar uri={occasion.avatarUrl} name={occasion.name} size="xl" />
-                    <Typography variant="h1" color="#FFF" style={{ marginTop: 16 }}>{occasion.name}</Typography>
-                    <Badge label={`${occasion.type} • ${occasion.date}`} variant="primary" style={{ marginTop: 8, alignSelf: 'center' }} />
-                    <Typography variant="h2" color="#FFF" style={{ marginTop: 24 }}>{occasion.countdown}</Typography>
-                </Animated.View>
-            </View>
 
             <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
-                <Animated.View entering={FadeInUp.delay(200).duration(500)} style={[styles.content, { padding: spacing.xl }]}>
-
-                    {/* Action Cards */}
-                    <View style={styles.actionGrid}>
-                        <Card style={[styles.actionCard, { backgroundColor: colors.primarySoft }]} onPress={() => router.push('/checkout')}>
-                            <Ionicons name="gift" size={32} color={colors.primary} />
-                            <Typography variant="bodyBold" style={{ marginTop: 12 }}>Send a Gift</Typography>
-                            <Typography variant="caption" color={colors.textSecondary} style={{ marginTop: 4 }}>
-                                Find the perfect present instantly
-                            </Typography>
-                        </Card>
-                        <Card style={[styles.actionCard, { backgroundColor: colors.surfaceRaised }]} onPress={() => toast('AI Gift Generator', {
-                            description: 'Spend 5 coins to generate highly personalized AI gifts?',
-                            action: {
-                                label: 'Generate',
-                                onClick: () => {
-                                    // Handle logic for generating gifts
-                                    console.log('Generating AI gifts...');
-                                }
-                            }
-                        })}>
-                            <Ionicons name="sparkles" size={32} color={colors.textPrimary} />
-                            <Typography variant="bodyBold" style={{ marginTop: 12 }}>Ask AI Ideas</Typography>
-                            <Typography variant="caption" color={colors.textSecondary} style={{ marginTop: 4 }}>
-                                Get curated ideas for 5 coins
-                            </Typography>
-                        </Card>
+                {/* Header Area */}
+                <View style={[styles.headerBg, { backgroundColor: colors.primary }]}>
+                    <View style={[styles.header, { top: spacing.xl, paddingHorizontal: spacing.xl }]}>
+                        <Pressable onPress={() => router.back()} style={styles.iconBtn}>
+                            <Ionicons name="arrow-back" size={24} color="#FFF" />
+                        </Pressable>
+                        <Typography variant="h4" color="#FFF">Occasion Details</Typography>
+                        <Pressable style={styles.iconBtn}>
+                            <Ionicons name="create-outline" size={24} color="#FFF" />
+                        </Pressable>
                     </View>
 
-                    {/* AI Gift Recommendations */}
-                    <View style={{ marginTop: spacing.xl * 1.5 }}>
-                        <View style={styles.sectionHeader}>
-                            <Typography variant="h3">AI Recommendations</Typography>
-                            <Typography variant="label" color={colors.primary}>View all</Typography>
-                        </View>
-                        <Typography variant="body" color={colors.textSecondary} style={{ marginBottom: spacing.md }}>
-                            Based on {occasion.name}'s past preferences and trending {occasion.type.toLowerCase()} gifts.
-                        </Typography>
+                    <Animated.View entering={FadeInDown.duration(500)} style={styles.heroContent}>
+                        <Avatar uri={occasion.contactAvatar} name={occasion.contactName} size="xl" />
+                        <Typography variant="h1" color="#FFF" style={{ marginTop: 16 }}>{occasion.contactName}</Typography>
+                        <Badge label={occasion.type} variant="primary" style={{ marginTop: 8, alignSelf: 'center', backgroundColor: 'rgba(255,255,255,0.2)' }} />
+                    </Animated.View>
+                </View>
+                <Animated.View entering={FadeInUp.delay(200).duration(500)} style={[styles.content, { padding: spacing.xl }]}>
 
-                        <FlatList
-                            data={RECOMMENDED_GIFTS}
+                    {/* Premium Occasion Summary Card */}
+                    <Card style={[styles.premiumCard, { backgroundColor: colors.surfaceRaised }]}>
+                        <View style={styles.detailRow}>
+                            <View style={[styles.detailIconBg, { backgroundColor: colors.primary + '15' }]}>
+                                <Ionicons name="calendar-clear-outline" size={24} color={colors.primary} />
+                            </View>
+                            <View style={{ flex: 1, marginLeft: 16 }}>
+                                <Typography variant="caption" color={colors.textSecondary}>Date of Occasion</Typography>
+                                <Typography variant="h4" style={{ marginTop: 2 }}>
+                                    {new Date(occasion.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                                </Typography>
+                                <Typography variant="bodyBold" color={colors.primary} style={{ marginTop: 4 }}>
+                                    {getCountdown(occasion.date)}
+                                </Typography>
+                            </View>
+                        </View>
+
+                        <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+                        {/* <View style={styles.detailRow}>
+                            <View style={[styles.detailIconBg, { backgroundColor: colors.secondary + '15' }]}>
+                                <Ionicons name="gift-outline" size={24} color={colors.secondary} />
+                            </View>
+                            <View style={{ flex: 1, marginLeft: 16 }}>
+                                <Typography variant="caption" color={colors.textSecondary}>Recurrence</Typography>
+                                <Typography variant="bodyBold" style={{ marginTop: 2 }}>
+                                    {occasion.recursYearly ? 'Repeats Yearly' : 'One-time Occasion'}
+                                </Typography>
+                            </View>
+                        </View> */}
+
+                        {occasion.notes && (
+                            <>
+                                <View style={[styles.divider, { backgroundColor: colors.border }]} />
+                                <View style={styles.detailRow}>
+                                    <View style={[styles.detailIconBg, { backgroundColor: colors.primary + '15' }]}>
+                                        <Ionicons name="document-text-outline" size={24} color={colors.primary} />
+                                    </View>
+                                    <View style={{ flex: 1, marginLeft: 16 }}>
+                                        <Typography variant="caption" color={colors.textSecondary}>Notes & Preferences</Typography>
+                                        <Typography variant="body" style={{ marginTop: 2, lineHeight: 22 }}>
+                                            {occasion.notes}
+                                        </Typography>
+                                    </View>
+                                </View>
+                            </>
+                        )}
+                    </Card>
+
+                    {/* Premium Action Banner */}
+                    <Animated.View entering={FadeInUp.delay(400).duration(500)} style={{ marginTop: 32 }}>
+                        <Typography variant="h3" style={{ marginBottom: 16 }}>Find the Perfect Gift</Typography>
+                        <Card style={[styles.collectionCard, { backgroundColor: '#1A1A1A' }]} onPress={() => router.push({
+                            pathname: '/checkout',
+                            params: { occasionId: occasion.id }
+                        })}>
+                            <Image
+                                source={{ uri: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&q=80&w=800' }}
+                                style={[StyleSheet.absoluteFillObject, { opacity: 0.5 }]}
+                                contentFit="cover"
+                            />
+                            <View style={styles.collectionOverlay}>
+                                <View>
+                                    <Typography variant="h2" color="#FFFFFF">The {occasion.type} Edit</Typography>
+                                    <Typography variant="body" color="#FFFFFF" style={{ opacity: 0.8, marginTop: 4 }}>
+                                        Exclusive gifts curated for {occasion.contactName}
+                                    </Typography>
+                                </View>
+                                <View style={[styles.exploreBtn, { backgroundColor: colors.primary }]}>
+                                    <Typography variant="bodyBold" color="#FFFFFF">Explore Collection</Typography>
+                                    <Ionicons name="arrow-forward" size={20} color="#FFFFFF" style={{ marginLeft: 8 }} />
+                                </View>
+                            </View>
+                        </Card>
+                    </Animated.View>
+
+                    <View style={[styles.sectionHeader, { paddingTop: spacing['4xl'] }]}>
+                        <Typography variant="h4">
+                            {`Picked for ${occasion.contactName}`}
+                        </Typography>
+                        <Pressable onPress={() => router.push('/(tabs)/shop')}><Typography variant="label" color={colors.primary}>See all →</Typography></Pressable>
+                    </View>
+
+                    {isRecsLoading ? (
+                        <View style={{ padding: spacing.xl, alignItems: 'center' }}>
+                            <ActivityIndicator size="small" color={colors.primary} />
+                        </View>
+                    ) : recs.length > 0 ? (
+                        <FlashList
+                            data={recs}
                             horizontal
                             showsHorizontalScrollIndicator={false}
-                            contentContainerStyle={{ gap: 16, paddingRight: spacing.xl, paddingBottom: spacing.sm }}
+                            contentContainerStyle={{ paddingTop: spacing.md }}
                             keyExtractor={(item) => item.id}
                             renderItem={({ item }) => (
-                                <Card style={styles.recCard} onPress={() => router.push(`/(tabs)/shop/${item.id}`)}>
-                                    <Image source={{ uri: item.image }} style={styles.recImage} contentFit="cover" />
+                                <Card style={styles.recCard} onPress={() => router.push({ pathname: '/shop/[id]', params: { id: item.id } })}>
+                                    <Image
+                                        source={{ uri: item.imageUrls?.[0] }}
+                                        style={styles.recImage}
+                                        contentFit="cover"
+                                    />
                                     <View style={{ padding: 12 }}>
                                         <Typography variant="bodyBold" numberOfLines={1}>{item.name}</Typography>
-                                        <Typography variant="label" color={colors.primary} style={{ marginTop: 4 }}>{item.price}</Typography>
+                                        <Typography variant="caption" color={colors.textSecondary}>{item.business?.name}</Typography>
+                                        <View style={styles.recFooter}>
+                                            <Typography variant="label" color={colors.primary}>{item.currency} {item.price}</Typography>
+                                            <Ionicons name="heart-outline" size={20} color={colors.textMuted} />
+                                        </View>
+                                        <Button
+                                            title="Send as Gift →"
+                                            size="sm"
+                                            style={{ marginTop: 12 }}
+                                            onPress={() => router.push({ pathname: '/shop/[id]', params: { id: item.id, occasionId: occasion.id } })}
+                                        />
                                     </View>
                                 </Card>
                             )}
                         />
-                    </View>
+                    ) : (
+                        <View style={{ padding: spacing.xl, alignItems: 'center' }}>
+                            <Typography variant="body" color={colors.textSecondary}>No recommendations found.</Typography>
+                        </View>
+                    )}
+
                 </Animated.View>
             </ScrollView>
         </View >
@@ -129,8 +209,8 @@ const styles = StyleSheet.create({
     headerBg: {
         paddingTop: 60,
         paddingBottom: 40,
-        borderBottomLeftRadius: 40,
-        borderBottomRightRadius: 40,
+        // borderBottomLeftRadius: 40,
+        // borderBottomRightRadius: 40,
     },
     header: {
         position: 'absolute',
@@ -152,31 +232,67 @@ const styles = StyleSheet.create({
         marginTop: 60,
     },
     content: {
-        marginTop: -20,
+        marginTop: -30,
     },
-    actionGrid: {
+    premiumCard: {
+        padding: 0,
+        borderRadius: 24,
+        overflow: 'hidden',
+        marginTop: 60,
+    },
+    detailRow: {
         flexDirection: 'row',
-        gap: 16,
-        marginTop: 24,
+        padding: 24,
+        alignItems: 'center',
     },
-    actionCard: {
+    detailIconBg: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    divider: {
+        height: 1,
+        width: '100%',
+    },
+    collectionCard: {
+        height: 200,
+        padding: 0,
+        borderRadius: 24,
+        overflow: 'hidden',
+    },
+    collectionOverlay: {
         flex: 1,
-        padding: 20,
-        alignItems: 'flex-start',
+        padding: 24,
+        justifyContent: 'space-between',
+    },
+    exploreBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        alignSelf: 'flex-start',
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 100,
     },
     sectionHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 8,
     },
     recCard: {
-        width: 160,
+        width: 220,
         padding: 0,
-        overflow: 'hidden',
+        marginRight: 16,
     },
     recImage: {
         width: '100%',
         height: 140,
+    },
+    recFooter: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 4,
     },
 });

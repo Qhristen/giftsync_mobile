@@ -3,34 +3,43 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
+import { useGetProductByIdQuery } from '@/store/api/productApi';
 import { Ionicons } from '@expo/vector-icons';
+import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Dimensions, FlatList, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Dimensions, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 
 const { width } = Dimensions.get('window');
 
-// Mock Data
-const ITEM_DETAILS = {
-    id: '1',
-    name: 'Premium Leather Wallet',
-    price: 'NGN 12,500',
-    description: "Crafted from full-grain genuine leather, this minimalist wallet combines elegance with everyday functionality. Features RFID protection, 6 card slots, and a sleek profile that slides easily into any pocket.",
-    vendor: { name: 'Amani Leather', avatar: null, rating: 4.8, reviews: 124 },
-    images: [
-        'https://images.unsplash.com/photo-1627123424574-724758594e93?auto=format&fit=crop&q=80&w=800',
-        'https://images.unsplash.com/photo-1559564257-2e1d70e0a5cc?auto=format&fit=crop&q=80&w=800',
-    ],
-    features: ['100% Full-grain leather', 'RFID Blocking', '6 Card Slots', 'Gift Box Included']
-};
-
 export default function ShopItemDetailScreen() {
-    const { id } = useLocalSearchParams();
+    const { id, occasionId } = useLocalSearchParams();
     const router = useRouter();
     const { colors, spacing } = useTheme();
     const [activeIndex, setActiveIndex] = useState(0);
+
+    const { data: product, isLoading, error } = useGetProductByIdQuery(id as string);
+
+    if (isLoading) {
+        return (
+            <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
+                <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+        );
+    }
+
+    if (error || !product) {
+        return (
+            <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center', padding: spacing.xl }]}>
+                <Typography variant="h3" color={colors.error} style={{ textAlign: 'center', marginBottom: spacing.md }}>
+                    Product not found.
+                </Typography>
+                <Button title="Go Back" onPress={() => router.back()} />
+            </View>
+        );
+    }
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -43,24 +52,32 @@ export default function ShopItemDetailScreen() {
                 </Pressable>
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 90 }}>
+            <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
                 {/* Image Gallery */}
                 <Animated.View entering={FadeInDown.duration(500)}>
-                    <FlatList
-                        data={ITEM_DETAILS.images}
-                        horizontal
-                        pagingEnabled
-                        showsHorizontalScrollIndicator={false}
-                        onMomentumScrollEnd={(e) => {
-                            setActiveIndex(Math.round(e.nativeEvent.contentOffset.x / width));
-                        }}
-                        keyExtractor={(_, i) => i.toString()}
-                        renderItem={({ item }) => (
-                            <Image source={{ uri: item }} style={{ width, height: width * 1.1 }} contentFit="cover" />
-                        )}
-                    />
+                    {product.imageUrls && product.imageUrls.length > 0 ? (
+                        <View style={{ width, height: width * 1.1 }}>
+                            <FlashList
+                                data={product.imageUrls}
+                                horizontal
+                                pagingEnabled
+                                showsHorizontalScrollIndicator={false}
+                                onMomentumScrollEnd={(e) => {
+                                    setActiveIndex(Math.round(e.nativeEvent.contentOffset.x / width));
+                                }}
+                                keyExtractor={(_, i) => i.toString()}
+                                renderItem={({ item }) => (
+                                    <Image source={{ uri: item as string }} style={{ width, height: width * 1.1 }} contentFit="cover" />
+                                )}
+                            />
+                        </View>
+                    ) : (
+                        <View style={{ width, height: width * 1.1, backgroundColor: colors.surfaceRaised, justifyContent: 'center', alignItems: 'center' }}>
+                            <Ionicons name="image-outline" size={48} color={colors.textMuted} />
+                        </View>
+                    )}
                     <View style={styles.pagination}>
-                        {ITEM_DETAILS.images.map((_, i) => (
+                        {product.imageUrls?.map((_, i) => (
                             <View
                                 key={i}
                                 style={[
@@ -77,54 +94,55 @@ export default function ShopItemDetailScreen() {
                 <Animated.View entering={FadeInUp.delay(200).duration(500)} style={[styles.details, { padding: spacing.xl, backgroundColor: colors.surface }]}>
                     <View style={styles.titleRow}>
                         <View style={{ flex: 1 }}>
-                            <Typography variant="h2">{ITEM_DETAILS.name}</Typography>
-                            <Typography variant="h3" color={colors.primary} style={{ marginTop: 4 }}>{ITEM_DETAILS.price}</Typography>
+                            <Typography variant="h2">{product.name}</Typography>
+                            <Typography variant="h3" color={colors.primary} style={{ marginTop: 4 }}>{product.currency} {product.price}</Typography>
                         </View>
                         <View style={[styles.ratingBadge, { backgroundColor: colors.surfaceRaised }]}>
                             <Ionicons name="star" size={16} color="#FFD700" />
-                            <Typography variant="bodyBold" style={{ marginLeft: 4 }}>{ITEM_DETAILS.vendor.rating}</Typography>
+                            <Typography variant="bodyBold" style={{ marginLeft: 4 }}>{product.ratingAvg || 0}</Typography>
                         </View>
                     </View>
 
                     <Card variant="outline" style={[styles.vendorCard, { borderColor: colors.border, marginTop: spacing.lg }]}>
-                        <Avatar name={ITEM_DETAILS.vendor.name} size="md" />
+                        <Avatar name={product.business?.name || 'Vendor'} size="md" />
                         <View style={{ flex: 1, marginLeft: 12 }}>
-                            <Typography variant="bodyBold">Sold by {ITEM_DETAILS.vendor.name}</Typography>
-                            <Typography variant="caption" color={colors.textSecondary}>{ITEM_DETAILS.vendor.reviews} Reviews</Typography>
+                            <Typography variant="bodyBold">Sold by {product.business?.name}</Typography>
+                            <Typography variant="caption" color={colors.textSecondary}>{product.ratingCount || 0} Reviews</Typography>
                         </View>
                         <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
                     </Card>
 
                     <View style={{ marginTop: spacing.xl }}>
-                        <Typography variant="h4" style={{ marginBottom: spacing.sm }}>Description</Typography>
+                        <Typography variant="h4" style={{ marginBottom: spacing.sm }}>Category</Typography>
                         <Typography variant="body" color={colors.textSecondary} style={{ lineHeight: 24 }}>
-                            {ITEM_DETAILS.description}
+                            {product.category}
                         </Typography>
                     </View>
 
-                    <View style={{ marginTop: spacing.xl }}>
-                        <Typography variant="h4" style={{ marginBottom: spacing.md }}>Key Features</Typography>
-                        {ITEM_DETAILS.features.map((feature, idx) => (
-                            <View key={idx} style={styles.featureItem}>
-                                <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
-                                <Typography variant="body" color={colors.textSecondary} style={{ marginLeft: 12 }}>
-                                    {feature}
-                                </Typography>
+                    {product.tags && product.tags.length > 0 && (
+                        <View style={{ marginTop: spacing.xl }}>
+                            <Typography variant="h4" style={{ marginBottom: spacing.md }}>Tags</Typography>
+                            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                                {product.tags.map((tag, idx) => (
+                                    <View key={idx} style={[styles.ratingBadge, { backgroundColor: colors.surfaceRaised }]}>
+                                        <Typography variant="caption" color={colors.textPrimary}>{tag}</Typography>
+                                    </View>
+                                ))}
                             </View>
-                        ))}
-                    </View>
+                        </View>
+                    )}
                 </Animated.View>
-            </ScrollView>
-
             <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
                 <Button
                     title="Send as Gift"
                     variant="primary"
                     style={{ flex: 1 }}
                     leftIcon={<Ionicons name="gift-outline" size={20} color="#FFF" style={{ marginRight: 8 }} />}
-                    onPress={() => router.push({ pathname: '/checkout', params: { itemId: id } })}
+                    onPress={() => router.push({ pathname: '/checkout', params: { itemId: id, ...(occasionId ? { occasionId: occasionId as string } : {}) } })}
                 />
             </View>
+            </ScrollView>
+
         </View>
     );
 }
@@ -189,9 +207,10 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     footer: {
-        position: 'absolute',
-        bottom: 0,
+        // position: 'absolute',
+        // bottom: 60,
         width: '100%',
+        // height: 200,
         padding: 24,
         // borderTopWidth: 1,
         // elevation: 10,

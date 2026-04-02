@@ -4,81 +4,129 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
+import { useGetUnreadCountQuery } from '@/store/api/notificationApi';
+import { useGetMonthlyOccasionsQuery, useGetUpcomingOccasionsQuery } from '@/store/api/occasionApi';
+import { useGetRecommendationsQuery } from '@/store/api/productApi';
+import { useGetProfileQuery } from '@/store/api/userApi';
+import { getCountdown } from '@/utils/dateUtils';
 import { Ionicons } from '@expo/vector-icons';
+import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { Dimensions, FlatList, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Dimensions, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 const { width } = Dimensions.get('window');
-
-const mockUpcoming = [
-    { id: '1', name: 'Jamie Doe', type: 'Birthday', countdown: 'in 3 days', date: 'March 25' },
-    { id: '2', name: 'Sam Smith', type: 'Anniversary', countdown: 'in 12 days', date: 'April 03' },
-];
-
-const mockRecs = [
-    { id: '1', name: 'Floral Bouquet', price: 'NGN 15,000', vendor: 'Bloom Lagos', image: 'https://images.unsplash.com/photo-1522673607200-164883efbfc1?auto=format&fit=crop&q=80&w=400' },
-    { id: '2', name: 'Luxury Hamper', price: 'NGN 45,000', vendor: 'GiftCo', image: 'https://images.unsplash.com/photo-1612470659132-841857908b8c?auto=format&fit=crop&q=80&w=400' },
-    { id: '3', name: 'Personalised Mug', price: 'NGN 5,000', vendor: 'Print Shop', image: 'https://images.unsplash.com/photo-1542156822-6924d1a71965?auto=format&fit=crop&q=80&w=400' },
-];
 
 export default function HomeScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
 
+    const { data: profile, isLoading: isProfileLoading, refetch: refetchProfile } = useGetProfileQuery();
+    const { data: upcoming = [], isLoading: isUpcomingLoading, refetch: refetchUpcoming } = useGetUpcomingOccasionsQuery();
+    const { data: unreadCount, refetch: refetchUnreadCount } = useGetUnreadCountQuery();
+
+    const currentMonth = new Date().getMonth() + 1;
+    const currentYear = new Date().getFullYear();
+    const { data: monthly = [], isLoading: isMonthlyLoading, refetch: refetchMonthly } = useGetMonthlyOccasionsQuery({
+        month: currentMonth,
+        year: currentYear
+    });
+
+    // Use the first upcoming occasion for specific recommendations, otherwise generic
+    const firstUpcoming = upcoming[0];
+    const { data: recs = [], isLoading: isRecsLoading, refetch: refetchRecs } = useGetRecommendationsQuery(
+        firstUpcoming ? { occasionId: firstUpcoming.id } : {},
+        { skip: isUpcomingLoading }
+    );
+
+
+    const onRefresh = React.useCallback(() => {
+        refetchProfile();
+        refetchUpcoming();
+        refetchUnreadCount();
+        refetchMonthly();
+        refetchRecs();
+    }, [refetchProfile, refetchUpcoming, refetchUnreadCount, refetchMonthly, refetchRecs]);
+
+    const isLoading = isProfileLoading || isUpcomingLoading;
+
+    if (isLoading) {
+        return (
+            <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center' }]}>
+                <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+        );
+    }
+
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+            <ScrollView
+                contentContainerStyle={{ paddingBottom: 100 }}
+                showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl refreshing={false} onRefresh={onRefresh} tintColor={colors.primary} />
+                }
+            >
                 {/* Header */}
                 <Animated.View entering={FadeInDown.duration(600)} style={[styles.header, { padding: spacing.xl }]}>
                     <View>
-                        <Typography variant="body" color={colors.textSecondary}>Good morning, Alex 👋</Typography>
+                        <Typography variant="body" color={colors.textSecondary}>
+                            Good morning, {profile?.name?.split(' ')[0] || 'Alex'} 👋
+                        </Typography>
                         <Typography variant="h1">GiftSync</Typography>
                     </View>
                     <View style={styles.headerIcons}>
-                        <Pressable style={[styles.iconBtn, { backgroundColor: colors.surfaceRaised }]} onPress={() => router.push('/notifications')}>
+                        <Pressable
+                            style={[styles.iconBtn, { backgroundColor: colors.surfaceRaised }]}
+                            onPress={() => router.push('/notifications')}
+                        >
                             <Ionicons name="notifications-outline" size={24} color={colors.textPrimary} />
-                            <View style={[styles.badge, { backgroundColor: colors.primary }]} />
+                            {unreadCount && unreadCount.count > 0 && (
+                                <View style={[styles.badge, { backgroundColor: colors.primary }]} />
+                            )}
                         </Pressable>
-                        {/* <Avatar name="Alex" size="sm" /> */}
                     </View>
                 </Animated.View>
 
                 {/* Hero Carousel */}
-                <Animated.View entering={FadeInDown.delay(200).duration(600)}>
-                    <FlatList
-                        data={mockUpcoming}
-                        horizontal
-                        pagingEnabled
-                        showsHorizontalScrollIndicator={false}
-                        keyExtractor={(item) => item.id}
-                        renderItem={({ item }) => (
-                            <View style={{ width, paddingHorizontal: spacing.xl }}>
-                                <Card variant="elevated" style={[styles.heroCard, { backgroundColor: colors.primary }]}>
-                                    <View style={styles.heroHeader}>
-                                        <Avatar name={item.name} size="lg" />
-                                        <View>
-                                            <Typography variant="h3" color="#FFFFFF">{item.name}</Typography>
-                                            <Typography variant="body" color="#FFFFFF" style={{ opacity: 0.9 }}>{item.type}</Typography>
+                {upcoming.length > 0 && (
+                    <Animated.View entering={FadeInDown.delay(200).duration(600)}>
+                        <FlashList
+                            data={upcoming}
+                            horizontal
+                            pagingEnabled
+                            showsHorizontalScrollIndicator={false}
+                            // estimatedItemSize={width}
+                            keyExtractor={(item) => item.id}
+                            renderItem={({ item }) => (
+                                <View style={{ width, paddingHorizontal: spacing.xl }}>
+                                    <Card variant="elevated" style={[styles.heroCard, { backgroundColor: colors.primary }]}>
+                                        <View style={styles.heroHeader}>
+                                            <Avatar uri={item.contactAvatar} name={item.contactName} size="lg" />
+                                            <View>
+                                                <Typography variant="h3" color="#FFFFFF">{item.contactName}</Typography>
+                                                <Typography variant="body" color="#FFFFFF" style={{ opacity: 0.9 }}>{item.type}</Typography>
+                                            </View>
                                         </View>
-                                    </View>
-                                    <View style={styles.heroFooter}>
-                                        <Typography variant="h2" color="#FFFFFF">{item.countdown}</Typography>
-                                        <Button
-                                            title="Get a Gift →"
-                                            variant="secondary"
-                                            size="sm"
-
-                                            onPress={() => router.push({ pathname: '/checkout', params: { contactId: item.id, occasionId: 'birthday' } })}
-                                        />
-                                    </View>
-                                </Card>
-                            </View>
-                        )}
-                    />
-                </Animated.View>
+                                        <View style={styles.heroFooter}>
+                                            <Typography variant="h2" color="#FFFFFF">{getCountdown(item.date)}</Typography>
+                                            <Button
+                                                title="Get a Gift →"
+                                                variant="secondary"
+                                                size="sm"
+                                                onPress={() => router.push({
+                                                    pathname: '/(tabs)/shop',
+                                                })}
+                                            />
+                                        </View>
+                                    </Card>
+                                </View>
+                            )}
+                        />
+                    </Animated.View>
+                )}
 
                 {/* Quick Actions */}
                 <Animated.View entering={FadeInDown.delay(400).duration(600)} style={[styles.quickActions, { padding: spacing.xl }]}>
@@ -98,47 +146,66 @@ export default function HomeScreen() {
                 </Animated.View>
 
                 {/* This Month's Occasions */}
-                <Animated.View entering={FadeInDown.delay(500).duration(600)} style={{ paddingHorizontal: spacing.xl }}>
-                    <Typography variant="h4" style={{ marginBottom: spacing.md }}>This Month</Typography>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
-                        {['Sam Birthay', 'April Anniversary', 'Sarah Graduation', 'Mother Day'].map((occ, idx) => (
-                            <Badge key={idx} label={occ} outline variant="primary" />
-                        ))}
-                    </ScrollView>
-                </Animated.View>
+                {monthly.length > 0 && (
+                    <Animated.View entering={FadeInDown.delay(500).duration(600)} style={{ paddingHorizontal: spacing.xl }}>
+                        <Typography variant="h4" style={{ marginBottom: spacing.md }}>This Month</Typography>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
+                            {monthly.map((occ) => (
+                                <Badge key={occ.id} label={occ.contactName ?? ""} outline variant="primary" />
+                            ))}
+                        </ScrollView>
+                    </Animated.View>
+                )}
 
                 {/* AI Recommendations */}
                 <Animated.View entering={FadeInDown.delay(600).duration(600)} style={{ marginTop: 32 }}>
                     <View style={[styles.sectionHeader, { paddingHorizontal: spacing.xl }]}>
-                        <Typography variant="h4">Picked for Jamie's Birthday</Typography>
-                        <Pressable><Typography variant="label" color={colors.primary}>See all →</Typography></Pressable>
+                        <Typography variant="h4">
+                            {firstUpcoming ? `Picked for ${firstUpcoming.contactName}` : 'Recommendations'}
+                        </Typography>
+                        <Pressable onPress={() => router.push('/(tabs)/shop')}><Typography variant="label" color={colors.primary}>See all →</Typography></Pressable>
                     </View>
-                    <FlatList
-                        data={mockRecs}
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={{ paddingHorizontal: spacing.xl, gap: 16, paddingTop: spacing.md }}
-                        keyExtractor={(item) => item.id}
-                        renderItem={({ item }) => (
-                            <Card style={styles.recCard} onPress={() => router.push(`/(tabs)/shop/${item.id}`)}>
-                                <Image source={{ uri: item.image }} style={styles.recImage} contentFit="cover" />
-                                <View style={{ padding: 12 }}>
-                                    <Typography variant="bodyBold" numberOfLines={1}>{item.name}</Typography>
-                                    <Typography variant="caption" color={colors.textSecondary}>{item.vendor}</Typography>
-                                    <View style={styles.recFooter}>
-                                        <Typography variant="label" color={colors.primary}>{item.price}</Typography>
-                                        <Ionicons name="heart-outline" size={20} color={colors.textMuted} />
-                                    </View>
-                                    <Button
-                                        title="Send as Gift →"
-                                        size="sm"
-                                        style={{ marginTop: 12 }}
-                                        onPress={() => { }}
+
+                    {isRecsLoading ? (
+                        <View style={{ padding: spacing.xl, alignItems: 'center' }}>
+                            <ActivityIndicator size="small" color={colors.primary} />
+                        </View>
+                    ) : recs.length > 0 ? (
+                        <FlashList
+                            data={recs}
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            contentContainerStyle={{ paddingVertical: spacing.md, gap: 16, paddingTop: spacing.md }}
+                            keyExtractor={(item) => item.id}
+                            renderItem={({ item }) => (
+                                <Card style={styles.recCard}>
+                                    <Image
+                                        source={{ uri: item.imageUrls?.[0] }}
+                                        style={styles.recImage}
+                                        contentFit="cover"
                                     />
-                                </View>
-                            </Card>
-                        )}
-                    />
+                                    <View style={{ padding: 12 }}>
+                                        <Typography variant="bodyBold" numberOfLines={1}>{item.name}</Typography>
+                                        <Typography variant="caption" color={colors.textSecondary}>{item.business?.name}</Typography>
+                                        <View style={styles.recFooter}>
+                                            <Typography variant="label" color={colors.primary}>{item.currency} {item.price}</Typography>
+                                            <Ionicons name="heart-outline" size={20} color={colors.textMuted} />
+                                        </View>
+                                        <Button
+                                            title="Send as Gift →"
+                                            size="sm"
+                                            style={{ marginTop: 12 }}
+                                            onPress={() => router.push({ pathname: `/(tabs)/shop/[id]`, params: { occasionId: firstUpcoming?.id, id: item.id } })}
+                                        />
+                                    </View>
+                                </Card>
+                            )}
+                        />
+                    ) : (
+                        <View style={{ padding: spacing.xl, alignItems: 'center' }}>
+                            <Typography variant="body" color={colors.textSecondary}>No recommendations found.</Typography>
+                        </View>
+                    )}
                 </Animated.View>
             </ScrollView>
         </View>
@@ -215,6 +282,7 @@ const styles = StyleSheet.create({
     recCard: {
         width: 220,
         padding: 0,
+        marginRight: 16,
     },
     recImage: {
         width: '100%',

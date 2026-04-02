@@ -1,6 +1,7 @@
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/theme';
 import { Ionicons } from '@expo/vector-icons';
+import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import React, { useState } from 'react';
 import { Pressable, StyleProp, StyleSheet, Text, TextInput, View, ViewStyle } from 'react-native';
 
@@ -19,6 +20,7 @@ interface Props {
     rightIcon?: React.ReactNode;
     autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
     style?: StyleProp<ViewStyle>;
+    isBottomSheet?: boolean;
 }
 
 const Input: React.FC<Props> = ({
@@ -36,6 +38,7 @@ const Input: React.FC<Props> = ({
     rightIcon,
     autoCapitalize = 'sentences',
     style,
+    isBottomSheet = false,
 }) => {
     const { colors, spacing } = useTheme();
     const [isFocused, setIsFocused] = useState(false);
@@ -60,21 +63,39 @@ const Input: React.FC<Props> = ({
             )}
             <View style={containerStyles}>
                 {leftIcon && <View style={styles.leftIcon}>{leftIcon}</View>}
-                <TextInput
-                    style={[styles.input, { color: colors.textPrimary, textAlignVertical: multiline ? 'top' : 'center' }]}
-                    placeholder={placeholder}
-                    placeholderTextColor={colors.textMuted}
-                    value={value}
-                    onChangeText={onChangeText}
-                    onSubmitEditing={onSubmitEditing}
-                    onFocus={() => setIsFocused(true)}
-                    onBlur={() => setIsFocused(false)}
-                    secureTextEntry={secureTextEntry && !showPassword}
-                    keyboardType={keyboardType}
-                    multiline={multiline}
-                    numberOfLines={numberOfLines}
-                    autoCapitalize={autoCapitalize}
-                />
+                {isBottomSheet ? (
+                    <BottomSheetTextInput
+                        style={[styles.input, { color: colors.textPrimary, textAlignVertical: multiline ? 'top' : 'center' }]}
+                        placeholder={placeholder}
+                        placeholderTextColor={colors.textMuted}
+                        value={value}
+                        onChangeText={onChangeText}
+                        onSubmitEditing={onSubmitEditing}
+                        onFocus={() => setIsFocused(true)}
+                        onBlur={() => setIsFocused(false)}
+                        secureTextEntry={secureTextEntry && !showPassword}
+                        keyboardType={keyboardType}
+                        multiline={multiline}
+                        numberOfLines={numberOfLines}
+                        autoCapitalize={autoCapitalize}
+                    />
+                ) : (
+                    <TextInput
+                        style={[styles.input, { color: colors.textPrimary, textAlignVertical: multiline ? 'top' : 'center' }]}
+                        placeholder={placeholder}
+                        placeholderTextColor={colors.textMuted}
+                        value={value}
+                        onChangeText={onChangeText}
+                        onSubmitEditing={onSubmitEditing}
+                        onFocus={() => setIsFocused(true)}
+                        onBlur={() => setIsFocused(false)}
+                        secureTextEntry={secureTextEntry && !showPassword}
+                        keyboardType={keyboardType}
+                        multiline={multiline}
+                        numberOfLines={numberOfLines}
+                        autoCapitalize={autoCapitalize}
+                    />
+                )}
                 {secureTextEntry ? (
                     <Pressable onPress={() => setShowPassword(!showPassword)} style={styles.rightIcon}>
                         <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={20} color={colors.textMuted} />

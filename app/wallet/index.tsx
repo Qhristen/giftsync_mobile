@@ -5,21 +5,26 @@ import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
 import { RootState } from '@/store';
+import { useGetCoinPackagesQuery } from '@/store/api/walletApi';
 import { addCoins } from '@/store/slices/walletSlice';
+import { CoinPackage } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
+import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'sonner-native';
 
-const COIN_PACKAGES = [
-    { id: '1', amount: 10, price: 'NGN 1,000', label: 'Starter', icon: 'star-outline', color: '#10B981' },
-    { id: '2', amount: 50, price: 'NGN 4,500', label: 'Value', icon: 'flash-outline', color: '#3B82F6', popular: true },
-    { id: '3', amount: 100, price: 'NGN 8,000', label: 'Pro', icon: 'diamond-outline', color: '#8B5CF6' },
-    { id: '4', amount: 500, price: 'NGN 35,000', label: 'Ultimate', icon: 'rocket-outline', color: '#EF4444' },
-];
+const packageStyles: Record<number, { icon: string; color: string }> = {
+    0: { icon: 'star-outline', color: '#10B981' },
+    1: { icon: 'flash-outline', color: '#3B82F6' },
+    2: { icon: 'diamond-outline', color: '#8B5CF6' },
+    3: { icon: 'rocket-outline', color: '#EF4444' },
+};
+
+const getPackageStyle = (index: number) => packageStyles[index % 4];
 
 export default function WalletTopUpScreen() {
     const router = useRouter();
@@ -27,10 +32,20 @@ export default function WalletTopUpScreen() {
     const dispatch = useDispatch();
     const coins = useSelector((state: RootState) => state.wallet.coins);
 
-    const [selectedPackage, setSelectedPackage] = useState<typeof COIN_PACKAGES[0] | null>(null);
+    const { data: coinPackages = [], isLoading } = useGetCoinPackagesQuery();
+
+    const [selectedPackage, setSelectedPackage] = useState<CoinPackage | null>(null);
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('paystack');
     const [isPurchasing, setIsPurchasing] = useState(false);
     const paymentSheet = useBottomSheet();
+
+    const formatPrice = (price: number, currency: string) => {
+        return new Intl.NumberFormat('en-NG', {
+            style: 'currency',
+            currency: currency || 'NGN',
+            minimumFractionDigits: 0,
+        }).format(price);
+    };
 
     const handlePurchase = () => {
         if (!selectedPackage || !selectedPaymentMethod) return;
@@ -40,11 +55,11 @@ export default function WalletTopUpScreen() {
         setIsPurchasing(true);
         // Simulate network call
         setTimeout(() => {
-            dispatch(addCoins(selectedPackage.amount));
+            dispatch(addCoins(selectedPackage.coinAmount));
             setIsPurchasing(false);
             paymentSheet.close();
             toast.success('Success!', {
-                description: `You have successfully purchased ${selectedPackage.amount} Coins via ${paymentName}!`,
+                description: `You have successfully purchased ${selectedPackage.coinAmount} Coins via ${paymentName}!`,
                 action: {
                     label: 'Great',
                     onClick: () => router.back()
@@ -77,59 +92,72 @@ export default function WalletTopUpScreen() {
             </Animated.View>
 
             {/* Packages */}
-            <FlatList
-                data={COIN_PACKAGES}
-                keyExtractor={(item) => item.id}
-                contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: 100 }}
-                ListHeaderComponent={
-                    <Typography variant="h4" style={{ marginBottom: spacing.md, marginTop: spacing.xs }}>
-                        Select Package
-                    </Typography>
-                }
-                renderItem={({ item, index }) => {
-                    const isSelected = selectedPackage?.id === item.id;
-                    return (
-                        <Animated.View entering={FadeInDown.delay(index * 100 + 200).duration(400)}>
-                            <Pressable onPress={() => setSelectedPackage(item)}>
-                                <Card
-                                    style={[
-                                        styles.packageCard,
-                                        {
-                                            borderColor: isSelected ? colors.primary : 'transparent',
-                                            borderWidth: 2,
-                                            backgroundColor: colors.surface,
-                                            marginBottom: spacing.md,
-                                        }
-                                    ]}
-                                >
-                                    <View style={[styles.iconBox, { backgroundColor: item.color + '1A' }]}>
-                                        <Ionicons name={item.icon as any} size={24} color={item.color} />
-                                    </View>
-                                    <View style={{ flex: 1, marginLeft: 16 }}>
-                                        <Typography variant="bodyBold">{item.amount} Coins</Typography>
-                                        <Typography variant="caption" color={colors.textSecondary}>{item.label} Pack</Typography>
-                                    </View>
-                                    <View style={{ alignItems: 'flex-end' }}>
-                                        <Typography variant="label" color={colors.primary}>{item.price}</Typography>
-                                        {item.popular && (
-                                            <View style={[styles.popularBadge, { backgroundColor: '#F59E0B20' }]}>
-                                                <Typography variant="caption" color="#D97706" style={{ fontSize: 10, fontFamily: 'DMSans_700Bold' }}>
-                                                    POPULAR
-                                                </Typography>
-                                            </View>
-                                        )}
-                                    </View>
-                                </Card>
-                            </Pressable>
-                        </Animated.View>
-                    );
-                }}
-            />
+            <View style={{ flex: 1 }}>
+                {isLoading ? (
+                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                        <ActivityIndicator size="large" color={colors.primary} />
+                    </View>
+                ) : (
+                    <FlashList
+                        data={coinPackages}
+                        // estimatedItemSize={80}
+                        keyExtractor={(item) => String(item.id)}
+                        contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: 150 }}
+                        ListHeaderComponent={
+                            <Typography variant="h4" style={{ marginBottom: spacing.md, marginTop: spacing.xs }}>
+                                Select Package
+                            </Typography>
+                        }
+                        renderItem={({ item, index }) => {
+                            const isSelected = selectedPackage?.id === item.id;
+                            const style = getPackageStyle(index);
+                            const isPopular = item.isPopular;
+
+                            return (
+                                <Animated.View entering={FadeInDown.delay(index * 100 + 200).duration(400)}>
+                                    <Card
+                                        onPress={() => setSelectedPackage(item)}
+                                        style={[
+                                            styles.packageCard,
+                                            {
+                                                borderColor: isSelected ? colors.primary : 'transparent',
+                                                borderWidth: 2,
+                                                backgroundColor: colors.surface,
+                                                marginBottom: spacing.md,
+                                            }
+                                        ]}
+                                    >
+                                        <View style={[styles.iconBox, { backgroundColor: style.color + '1A' }]}>
+                                            <Ionicons name={style.icon as any} size={24} color={style.color} />
+                                        </View>
+                                        <View style={{ flex: 1, marginLeft: 16 }}>
+                                            <Typography variant="bodyBold">{item.coinAmount} Coins</Typography>
+                                            <Typography variant="caption" color={colors.textSecondary}>{item.label}</Typography>
+                                        </View>
+                                        <View style={{ alignItems: 'flex-end' }}>
+                                            <Typography variant="label" color={colors.primary}>
+                                                {formatPrice(item.price, item.currency)}
+                                            </Typography>
+                                            {isPopular && (
+                                                <View style={[styles.popularBadge, { backgroundColor: '#F59E0B20' }]}>
+                                                    <Typography variant="caption" color="#D97706" style={{ fontSize: 10, fontFamily: 'DMSans_700Bold' }}>
+                                                        POPULAR
+                                                    </Typography>
+                                                </View>
+                                            )}
+                                        </View>
+                                    </Card>
+                                </Animated.View>
+                            );
+                        }}
+                    />
+                )}
+            </View>
 
             {/* Footer */}
-            <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
+            <View pointerEvents="box-none" style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
                 <Button
-                    title={selectedPackage ? `Pay ${selectedPackage.price}` : 'Select a package'}
+                    title={selectedPackage ? `Pay ${formatPrice(selectedPackage.price, selectedPackage.currency)}` : 'Select a package'}
                     variant="primary"
                     disabled={!selectedPackage}
                     onPress={() => paymentSheet.open()}
@@ -142,7 +170,7 @@ export default function WalletTopUpScreen() {
                 selectedMethod={selectedPaymentMethod}
                 onSelectMethod={setSelectedPaymentMethod}
                 onConfirm={handlePurchase}
-                confirmButtonText={selectedPackage ? `Confirm ${selectedPackage.price}` : 'Confirm Purchase'}
+                confirmButtonText={selectedPackage ? `Confirm ${formatPrice(selectedPackage.price, selectedPackage.currency)}` : 'Confirm Purchase'}
                 isProcessing={isPurchasing}
             />
         </View>

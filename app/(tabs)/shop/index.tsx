@@ -4,27 +4,27 @@ import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
+import { useGetMonthlyOccasionsQuery } from '@/store/api/occasionApi';
+import { useGetProductsQuery } from '@/store/api/productApi';
 import { spacing } from '@/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import React from 'react';
-import { Dimensions, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import React, { useState } from 'react';
+import { ActivityIndicator, Dimensions, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
 const { width } = Dimensions.get('window');
-
-const mockProducts = [
-    { id: '1', name: 'Premium Leather Wallet', price: 'NGN 12,500', vendor: 'Amani Leather', image: 'https://images.unsplash.com/photo-1627123424574-724758594e93?auto=format&fit=crop&q=80&w=400', rating: 4.8 },
-    { id: '2', name: 'Artisan Scented Candle', price: 'NGN 8,000', vendor: 'Home Scents', image: 'https://images.unsplash.com/photo-1603006905003-be475563bc59?auto=format&fit=crop&q=80&w=400', rating: 4.5 },
-    { id: '3', name: 'Gourmet Chocolate Box', price: 'NGN 15,000', vendor: 'Choco Delights', image: 'https://images.unsplash.com/photo-1549007994-cb92caef72bc?auto=format&fit=crop&q=80&w=400', rating: 4.9 },
-    { id: '4', name: 'Custom Photo Frame', price: 'NGN 6,500', vendor: 'Decor Plus', image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?auto=format&fit=crop&q=80&w=400', rating: 4.2 },
-];
 
 export default function ShopScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
+    const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
     const giftSheet = useBottomSheet();
-
+    const { data: productsData, isLoading, error } = useGetProductsQuery(undefined);
+    const { data: monthlyOccasions = [] } = useGetMonthlyOccasionsQuery({
+        month: new Date().getMonth() + 1,
+        year: new Date().getFullYear()
+    });
     const categories = ['All', 'Personalised', 'Experiences', 'Jewelry', 'Flowers', 'Tech'];
 
     return (
@@ -73,44 +73,57 @@ export default function ShopScreen() {
                 {/* Product Grid */}
                 <View style={[styles.section, { paddingHorizontal: spacing.xl }]}>
                     <Typography variant="h4" style={{ marginBottom: spacing.md }}>Trending Gifts</Typography>
-                    <View style={styles.grid}>
-                        {mockProducts.map((product) => (
-                            <Card
-                                key={product.id}
-                                style={styles.productCard}
-                                onPress={() => router.push(`/(tabs)/shop/${product.id}`)}
-                            >
-                                <Image source={{ uri: product.image }} style={styles.productImage} contentFit="cover" />
-                                <View style={{ padding: 12 }}>
-                                    <Typography variant="bodyBold" numberOfLines={1}>{product.name}</Typography>
-                                    <Typography variant="caption" color={colors.textSecondary}>{product.vendor}</Typography>
-                                    <View style={styles.productFooter}>
-                                        <Typography variant="label" color={colors.primary}>{product.price}</Typography>
-                                        <View style={styles.rating}>
-                                            <Ionicons name="star" size={14} color="#F59E0B" />
-                                            <Typography variant="caption">{product.rating}</Typography>
+                    {isLoading ? (
+                        <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 24 }} />
+                    ) : error ? (
+                        <Typography variant="body" color={colors.error} style={{ textAlign: 'center', marginTop: 24 }}>
+                            Failed to load products.
+                        </Typography>
+                    ) : (
+                        <View style={styles.grid}>
+                            {productsData?.items?.map((product) => (
+                                <Card
+                                    key={product.id}
+                                    style={styles.productCard}
+                                    onPress={() => router.push(`/(tabs)/shop/${product.id}`)}
+                                >
+                                    <Image source={{ uri: product.imageUrls?.[0] }} style={styles.productImage} contentFit="cover" />
+                                    <View style={{ padding: 12 }}>
+                                        <Typography variant="bodyBold" numberOfLines={1}>{product.name}</Typography>
+                                        <Typography variant="caption" color={colors.textSecondary}>{product.business?.name}</Typography>
+                                        <View style={styles.productFooter}>
+                                            <Typography variant="label" color={colors.primary}>{product.currency} {product.price}</Typography>
+                                            <View style={styles.rating}>
+                                                <Ionicons name="star" size={14} color="#F59E0B" />
+                                                <Typography variant="caption">{product.ratingAvg || 0}</Typography>
+                                            </View>
                                         </View>
+                                        <Button
+                                            title="Send Gift"
+                                            size="sm"
+                                            style={{ marginTop: 12 }}
+                                            onPress={() => {
+                                                setSelectedProductId(product.id);
+                                                giftSheet.open();
+                                            }}
+                                        />
                                     </View>
-                                    <Button
-                                        title="Send Gift"
-                                        size="sm"
-                                        style={{ marginTop: 12 }}
-                                        onPress={() => giftSheet.open()}
-                                    />
-                                </View>
-                            </Card>
-                        ))}
-                    </View>
+                                </Card>
+                            ))}
+                        </View>
+                    )}
                 </View>
             </ScrollView>
 
             {/* Gift Picker Sheet Placeholder */}
             <GiftOptionsSheet
                 ref={giftSheet.ref}
-                occasions={[]}
-                onSelect={() => {
+                occasions={monthlyOccasions}
+                onSelect={(occasion) => {
                     giftSheet.close();
-                    router.push('/checkout');
+                    if (selectedProductId) {
+                        router.push({ pathname: '/checkout', params: { occasionId: occasion.id, productId: selectedProductId } });
+                    }
                 }}
             />
         </View>

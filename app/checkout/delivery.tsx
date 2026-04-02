@@ -72,7 +72,7 @@ export default function DeliveryScreen() {
                     </View>
                     <Switch
                         value={checkout.includesPremiumPackaging}
-                        onValueChange={(val) => dispatch(setDeliveryDetails({ includesPremiumPackaging: val }))}
+                        onValueChange={(val) => { dispatch(setDeliveryDetails({ includesPremiumPackaging: val })); }}
                         trackColor={{ false: colors.border, true: colors.primary }}
                     />
                 </Card>

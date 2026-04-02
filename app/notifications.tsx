@@ -1,9 +1,10 @@
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { Ionicons } from '@expo/vector-icons';
+import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 const INITIAL_NOTIFICATIONS = [
@@ -43,8 +44,9 @@ export default function NotificationsScreen() {
                 </Pressable>
             </View>
 
-            <FlatList
+            <FlashList
                 data={notifications}
+                estimatedItemSize={90}
                 keyExtractor={(item) => item.id}
                 contentContainerStyle={{ paddingBottom: spacing.xl }}
                 renderItem={({ item, index }) => {

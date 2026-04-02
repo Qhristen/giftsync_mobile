@@ -7,10 +7,10 @@ import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import { Pressable, ScrollView, SectionList, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Pressable, ScrollView, SectionList, StyleSheet, View } from 'react-native';
 
 import { RootState } from '@/store';
-import { addOccasion } from '@/store/slices/occasionSlice';
+import { useCreateOccasionMutation, useGetMonthlyOccasionsQuery, useGetUpcomingOccasionsQuery } from '@/store/api/occasionApi';
 import { spendCoins } from '@/store/slices/walletSlice';
 import { Ionicons } from '@expo/vector-icons';
 import { useDispatch, useSelector } from 'react-redux';
@@ -19,15 +19,30 @@ import { toast } from 'sonner-native';
 export default function OccasionsScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
-    const occasions = useSelector((state: RootState) => state.occasions.items);
+
+    // API Hooks
+    const [selectedMonthIndex, setSelectedMonthIndex] = useState(new Date().getMonth());
+    const currentYear = new Date().getFullYear();
+
+    const { data: upcomingOccasions = [], isLoading: isUpcomingLoading, refetch: refetchUpcoming } = useGetUpcomingOccasionsQuery();
+    const { data: monthlyOccasions = [], isLoading, refetch } = useGetMonthlyOccasionsQuery({
+        month: selectedMonthIndex + 1,
+        year: currentYear
+    });
+
+    const [createOccasion, { isLoading: isCreating, error }] = useCreateOccasionMutation();
+
     const { coins } = useSelector((state: RootState) => state.wallet);
     const dispatch = useDispatch();
-    const [selectedMonth, setSelectedMonth] = useState(new Date().toLocaleString('default', { month: 'long' }));
+
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const selectedMonthName = months[selectedMonthIndex];
+
     const createSheetRef = useRef<BottomSheetRef>(null);
     const scrollRef = useRef<ScrollView>(null);
     const [scrollWidth, setScrollWidth] = useState(0);
     const monthLayouts = useRef<Record<string, { x: number; width: number }>>({});
-  
+
     const centerMonth = (month: string) => {
         const layout = monthLayouts.current[month];
         if (layout && scrollRef.current && scrollWidth) {
@@ -38,10 +53,10 @@ export default function OccasionsScreen() {
 
     useEffect(() => {
         const timer = setTimeout(() => {
-            centerMonth(selectedMonth);
+            centerMonth(selectedMonthName);
         }, 100);
         return () => clearTimeout(timer);
-    }, [selectedMonth, scrollWidth]);
+    }, [selectedMonthIndex, scrollWidth]);
 
     const handleOpenCreateSheet = () => {
         if (coins < 1) {
@@ -53,28 +68,34 @@ export default function OccasionsScreen() {
         createSheetRef.current?.expand();
     };
 
-    const handleCreateSubmit = (data: OccasionFormData) => {
-        dispatch(spendCoins(1));
-        dispatch(addOccasion({
-            id: Date.now().toString(),
-            name: data.name,
-            type: data.type,
-            date: data.date,
-            countdown: 'in 365d',
-            dotColor: 'green',
-        }));
-        createSheetRef.current?.close();
-        toast.success('Success', {
-            description: 'Occasion created successfully!'
-        });
+    const handleCreateSubmit = async (data: OccasionFormData) => {
+        try {
+            await createOccasion({
+                type: data.type,
+                date: data.date,
+                notes: data.notes,
+                contactAvatar: data.contactAvatar,
+                contactName: data.contactName,
+                contactNumber: data.contactNumber,
+                dotColor: 'blue', // Default color
+            }).unwrap();
+
+            dispatch(spendCoins(1));
+            createSheetRef.current?.close();
+            toast.success('Success', {
+                description: 'Occasion created successfully!'
+            });
+        } catch (err) {
+            toast.error('Error', {
+                description: 'Failed to create occasion. Please try again.'
+            });
+        }
     };
 
-    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-
-    const sections = [
-        { title: 'Upcoming this month', data: occasions.filter(o => o.date.includes(selectedMonth)) },
-        { title: 'Other Occasions', data: occasions.filter(o => !o.date.includes(selectedMonth)) },
-    ];
+  const sections = [
+    { title: `Upcoming in ${selectedMonthName}`, data: monthlyOccasions },
+    { title: 'Other Occasions', data: upcomingOccasions.filter(o => new Date(o.date).getMonth() !== selectedMonthIndex) },
+];
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -89,23 +110,23 @@ export default function OccasionsScreen() {
                     onLayout={(e) => setScrollWidth(e.nativeEvent.layout.width)}
                     contentContainerStyle={{ paddingHorizontal: spacing.xl, gap: 12, paddingVertical: spacing.md }}
                 >
-                    {months.map((m) => (
+                    {months.map((m, idx) => (
                         <Pressable
                             key={m}
                             onLayout={(e) => {
                                 const { x, width } = e.nativeEvent.layout;
                                 monthLayouts.current[m] = { x, width };
                                 // Handle initial mount centering
-                                if (m === selectedMonth) centerMonth(m);
+                                if (idx === selectedMonthIndex) centerMonth(m);
                             }}
-                            onPress={() => setSelectedMonth(m)}
+                            onPress={() => setSelectedMonthIndex(idx)}
                             style={({ pressed }) => [
                                 styles.monthBtn,
-                                { backgroundColor: selectedMonth === m ? colors.primary : colors.surfaceRaised },
+                                { backgroundColor: selectedMonthIndex === idx ? colors.primary : colors.surfaceRaised },
                                 pressed && { opacity: 0.8 },
                             ]}
                         >
-                            <Typography variant="label" color={selectedMonth === m ? '#FFFFFF' : colors.textPrimary}>{m}</Typography>
+                            <Typography variant="label" color={selectedMonthIndex === idx ? '#FFFFFF' : colors.textPrimary}>{m}</Typography>
                         </Pressable>
                     ))}
                 </ScrollView>
@@ -123,14 +144,14 @@ export default function OccasionsScreen() {
                         ]}
                     >
                         <View style={[styles.dot, { backgroundColor: item.dotColor === 'red' ? colors.primary : item.dotColor === 'blue' ? colors.secondary : colors.success }]} />
-                        <Avatar uri={item.avatarUrl} name={item.name} size="sm" />
+                        <Avatar uri={item.contactAvatar} name={item.contactName} size="sm" />
                         <View style={styles.itemContent}>
-                            <Typography variant="bodyBold">{item.name}</Typography>
+                            <Typography variant="bodyBold">{item.contactName}</Typography>
                             <Typography variant="caption" color={colors.textSecondary}>
-                                {item.type} • {item.date}
+                                {item.type} • {new Date(item.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                             </Typography>
                         </View>
-                        <Badge label={item.countdown} size="xs" variant="amber" />
+                        <Badge label={item.source === 'google' ? 'Sync' : 'Custom'} size="xs" variant={item.source === 'google' ? 'primary' : 'amber'} />
                         <Button
                             title="Plan"
                             size="sm"
@@ -162,7 +183,11 @@ export default function OccasionsScreen() {
                 <Ionicons name="add" size={32} color="#FFFFFF" />
             </Pressable>
 
-            <CreateOccasionSheet ref={createSheetRef} onSubmit={handleCreateSubmit} />
+            <CreateOccasionSheet
+                ref={createSheetRef}
+                onSubmit={handleCreateSubmit}
+                isLoading={isCreating}
+            />
         </View>
     );
 }

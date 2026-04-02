@@ -7,21 +7,27 @@ import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
 import { RootState } from '@/store';
+import { useGetOccasionDetailQuery } from '@/store/api/occasionApi';
+import { useGetProductByIdQuery } from '@/store/api/productApi';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 
 export default function CheckoutEntry() {
     const router = useRouter();
     const dispatch = useDispatch();
     const { colors, spacing } = useTheme();
-    const params = useLocalSearchParams();
+    const { occasionId, productId } = useLocalSearchParams<{ occasionId: string; productId: string }>();
     const checkout = useSelector((state: RootState) => state.checkout);
 
     const contactSheet = useBottomSheet();
     const occasionSheet = useBottomSheet();
+
+    const { data: occasion, isLoading: isOccasionLoading } = useGetOccasionDetailQuery(occasionId as string, { skip: !occasionId });
+    const { data: product, isLoading: isProductLoading } = useGetProductByIdQuery(productId as string, { skip: !productId });
 
     const handleNext = () => {
         router.push('/checkout/delivery');
@@ -41,35 +47,55 @@ export default function CheckoutEntry() {
                 {/* Recipient Card */}
                 <Typography variant="label" style={{ marginBottom: spacing.sm }}>Recipient & Occasion</Typography>
                 <Card variant="outline" style={styles.contextCard}>
-                    <View style={styles.contextRow}>
-                        <Avatar name="Alex Johnson" size="lg" />
-                        <View style={{ flex: 1 }}>
-                            <Typography variant="bodyBold">Alex Johnson</Typography>
-                            <Typography variant="caption" color={colors.textSecondary}>Partner</Typography>
-                        </View>
-                        <Button title="Edit" size="sm" variant="ghost" onPress={() => contactSheet.open()} />
-                    </View>
-                    <View style={[styles.divider, { backgroundColor: colors.border }]} />
-                    <View style={styles.contextRow}>
-                        <Ionicons name="calendar-outline" size={24} color={colors.primary} />
-                        <View style={{ flex: 1 }}>
-                            <Typography variant="bodyMedium">Birthday</Typography>
-                            <Typography variant="caption" color={colors.textSecondary}>March 25, 2026</Typography>
-                        </View>
-                        <Button title="Edit" size="sm" variant="ghost" onPress={() => occasionSheet.open()} />
-                    </View>
+                    {isOccasionLoading ? (
+                        <ActivityIndicator />
+                    ) : (
+                        <>
+                            <View style={styles.contextRow}>
+                                <Avatar name={occasion?.contactName || 'Select Contact'} uri={occasion?.contactAvatar} size="lg" />
+                                <View style={{ flex: 1 }}>
+                                    <Typography variant="bodyBold">{occasion?.contactName || 'Select Contact'}</Typography>
+                                    {occasion && <Typography variant="caption" color={colors.textSecondary}>{occasion.type}</Typography>}
+                                </View>
+                                <Button title={occasion ? "Edit" : "Select"} size="sm" variant="ghost" onPress={() => contactSheet.open()} />
+                            </View>
+                            <View style={[styles.divider, { backgroundColor: colors.border }]} />
+                            <View style={styles.contextRow}>
+                                <Ionicons name="calendar-outline" size={24} color={colors.primary} />
+                                <View style={{ flex: 1 }}>
+                                    <Typography variant="bodyMedium">{occasion?.type || 'Select Occasion'}</Typography>
+                                    {occasion && <Typography variant="caption" color={colors.textSecondary}>
+                                        {new Date(occasion.date).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
+                                    </Typography>}
+                                </View>
+                                <Button title={occasion ? "Edit" : "Select"} size="sm" variant="ghost" onPress={() => occasionSheet.open()} />
+                            </View>
+                        </>
+                    )}
                 </Card>
 
                 {/* Gift Card */}
                 <Typography variant="label" style={{ marginTop: spacing.xl, marginBottom: spacing.sm }}>Selected Gift</Typography>
                 <Card variant="outline" style={styles.giftCard}>
-                    <View style={styles.giftImagePlaceholder} />
-                    <View style={{ flex: 1 }}>
-                        <Typography variant="bodyBold">Premium Leather Wallet</Typography>
-                        <Typography variant="caption" color={colors.textSecondary}>Color: Brown</Typography>
-                        <Typography variant="label" color={colors.primary} style={{ marginTop: 4 }}>NGN 12,500</Typography>
-                    </View>
-                    <Button title="Change" size="sm" variant="ghost" onPress={() => router.push('/(tabs)/shop')} />
+                    {isProductLoading ? (
+                        <ActivityIndicator />
+                    ) : (
+                        <>
+                            {product?.imageUrls?.[0] ? (
+                                <Image source={{ uri: product.imageUrls[0] }} style={styles.giftImagePlaceholder} contentFit="cover" />
+                            ) : (
+                                <View style={styles.giftImagePlaceholder} />
+                            )}
+                            <View style={{ flex: 1 }}>
+                                <Typography variant="bodyBold">{product?.name || 'Select a Gift'}</Typography>
+                                {product && <Typography variant="caption" color={colors.textSecondary}>Provider: {product.business?.name}</Typography>}
+                                <Typography variant="label" color={colors.primary} style={{ marginTop: 4 }}>
+                                    {product ? `${product.currency} ${product.price}` : '---'}
+                                </Typography>
+                            </View>
+                            <Button title={product ? "Change" : "Select"} size="sm" variant="ghost" onPress={() => router.push('/(tabs)/shop')} />
+                        </>
+                    )}
                 </Card>
             </ScrollView>
 

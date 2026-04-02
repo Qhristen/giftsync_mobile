@@ -5,9 +5,10 @@ import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
 import { Ionicons } from '@expo/vector-icons';
+import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 interface Order {
     id: string;
@@ -63,8 +64,9 @@ export default function OrderListScreen() {
                 </View>
             </View>
 
-            <FlatList
+            <FlashList
                 data={filteredOrders}
+                // estimatedItemSize={120}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (
                     <Card

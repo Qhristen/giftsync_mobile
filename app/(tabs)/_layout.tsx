@@ -15,9 +15,13 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderTopColor: colors.border,
-          height: 85,
-          paddingBottom: spacing.lg,
-          paddingTop: spacing.xs,
+          borderTopWidth: 0,
+          paddingBottom: spacing.xxs,
+          paddingTop: spacing.sm,
+          margin: 15,
+          borderRadius: spacing.md,
+          position: 'absolute',
+          elevation: 0,
         },
         tabBarLabelStyle: {
           fontSize: 12,

@@ -3,9 +3,10 @@ import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { Ionicons } from '@expo/vector-icons';
+import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 const SAVED_ADDRESSES = [
@@ -28,8 +29,9 @@ export default function SavedAddressesScreen() {
                 <View style={{ width: 40 }} />
             </View>
 
-            <FlatList
+            <FlashList
                 data={addresses}
+                estimatedItemSize={85}
                 keyExtractor={(item) => item.id}
                 contentContainerStyle={{ padding: spacing.xl, paddingBottom: 100 }}
                 renderItem={({ item, index }) => (

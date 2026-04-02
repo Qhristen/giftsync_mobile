@@ -1,7 +1,7 @@
 import Button from '@/components/ui/Button';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
-import { exchangeIdToken } from '@/store/slices/authSlice';
+import { useGoogleAuthMutation } from '@/store/api/authApi';
 import { setOccasions } from '@/store/slices/occasionSlice';
 import { fetchGoogleBirthdays } from '@/utils/calendar';
 import { Ionicons } from '@expo/vector-icons';
@@ -27,18 +27,18 @@ import { toast } from 'sonner-native';
 
 const { width, height } = Dimensions.get('window');
 
+GoogleSignin.configure({
+    webClientId: GOOGLE_CLIENT_ID,
+    offlineAccess: true,
+
+});
+
 export default function WelcomeScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
     const dispatch = useDispatch();
+    const [googleAuth, {error}] = useGoogleAuthMutation();
     const [isSigningIn, setIsSigningIn] = React.useState(false);
-
-    useEffect(() => {
-        GoogleSignin.configure({
-            webClientId: GOOGLE_CLIENT_ID,
-            offlineAccess: true,
-        });
-    }, []);
 
     // Animation values
     const logoScale = useSharedValue(0);
@@ -92,11 +92,10 @@ export default function WelcomeScreen() {
             // Using One Tap as requested
             const userInfo = await GoogleSignin.signIn();
             const idToken = userInfo.data?.idToken;
-            console.log('Google Sign-In ID Token:', idToken);
 
             if (userInfo.type === 'success' && idToken) {
-                // Exchange idToken for backend tokens via Redux thunk
-                await dispatch(exchangeIdToken({ idToken }) as any).unwrap();
+                // Exchange idToken for backend tokens via RTK Query mutation
+                await googleAuth({ idToken }).unwrap();
 
                 // Fetch birthdays from Google Calendar (optional)
                 const birthdays = await fetchGoogleBirthdays();
@@ -104,7 +103,7 @@ export default function WelcomeScreen() {
 
                 router.replace('/(tabs)');
             } else if (userInfo.type !== 'cancelled') {
-               toast.error('Failed to retrieve Google ID Token.');
+                toast.error('Failed to retrieve Google ID Token.');
             }
         } catch (error: any) {
             if (error.code === statusCodes.SIGN_IN_CANCELLED) {
@@ -112,10 +111,10 @@ export default function WelcomeScreen() {
             } else if (error.code === statusCodes.IN_PROGRESS) {
                 // operation (e.g. sign in) is in progress already
             } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-               toast.error( 'Play services not available or outdated.');
+                toast.error('Play services not available or outdated.');
             } else {
                 console.log('Sign-in error:', error);
-               toast.error(error.message || 'An unexpected error occurred during Google Sign-In.');
+                toast.error(error.message || 'An unexpected error occurred during Google Sign-In.');
             }
         } finally {
             setIsSigningIn(false);

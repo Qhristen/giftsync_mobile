@@ -31,16 +31,24 @@ SplashScreen.preventAutoHideAsync();
 
 import notificationService from '@/services/notificationService';
 import { RootState } from '@/store';
-import { restoreSession } from '@/store/slices/authSlice';
-import { useDispatch, useSelector } from 'react-redux';
+import { useLazyGetProfileQuery } from '@/store/api/userApi';
+import { useAppDispatch } from '@/store/hooks';
+import { logoutUser, setCredentials } from '@/store/slices/authSlice';
+import { tokenCache } from '@/utils/cache';
+import { useSelector } from 'react-redux';
+import { useRegisterDeviceTokenMutation } from '@/store/api/notificationApi';
+import { Platform } from 'react-native';
 
 function RootLayoutContent() {
   const { isDark, colors, spacing } = useTheme();
 
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const segments = useSegments();
   const router = useRouter();
   const { isLoading, isAuthenticated } = useSelector((state: RootState) => state.auth);
+
+  const [getProfile] = useLazyGetProfileQuery();
+  const [registerDeviceToken] = useRegisterDeviceTokenMutation()
 
 
   const syncDeviceToken = async () => {
@@ -49,11 +57,11 @@ function RootLayoutContent() {
 
     if (expoToken || deviceToken) {
       try {
-        // await saveDeviceToken({
-        //   token: deviceToken || expoToken || '',
-        //   expoToken: expoToken ?? "",
-        //   deviceType: Platform.OS.toString()
-        // }).unwrap();
+        await registerDeviceToken({
+          fcmToken: deviceToken as string,
+          expoToken: expoToken as string,
+          deviceType: Platform.OS.toString()
+        }).unwrap();
         console.log("✅ Device token synced with server");
       } catch (error) {
         console.error("❌ Failed to sync device token:", error);
@@ -61,10 +69,29 @@ function RootLayoutContent() {
     }
   };
 
-
   useEffect(() => {
-    dispatch(restoreSession() as any);
+
+    const checkAuthStatus = async () => {
+      try {
+        const storedAccessToken = await tokenCache.getToken('accessToken');
+        if (storedAccessToken) {
+          // Attempt to get profile - interceptors will handle refresh if access token is expired
+          const userProfile = await getProfile().unwrap();
+          dispatch(setCredentials({ user: userProfile }));
+        } else {
+          dispatch(logoutUser());
+        }
+      } catch (error) {
+        console.log('Auth check error:', error);
+        dispatch(logoutUser());
+
+      }
+    };
+
+    checkAuthStatus();
   }, []);
+
+
 
   // Initialize notification service
   useEffect(() => {

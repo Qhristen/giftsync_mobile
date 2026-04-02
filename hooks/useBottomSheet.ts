@@ -1,7 +1,5 @@
-import BottomSheet from '@gorhom/bottom-sheet';
+import { BottomSheetRef } from '@/components/ui/BottomSheetWrapper';
 import { useCallback, useRef } from 'react';
-
-export type BottomSheetRef = BottomSheet;
 
 export function useBottomSheet() {
     const ref = useRef<BottomSheetRef>(null);
