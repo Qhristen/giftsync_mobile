@@ -17,7 +17,7 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Provider } from 'react-redux';
 
@@ -29,15 +29,16 @@ import { Toaster } from 'sonner-native';
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
+import { useChatSocket } from '@/hooks/useChatSocket';
 import notificationService from '@/services/notificationService';
 import { RootState } from '@/store';
+import { useRegisterDeviceTokenMutation } from '@/store/api/notificationApi';
 import { useLazyGetProfileQuery } from '@/store/api/userApi';
 import { useAppDispatch } from '@/store/hooks';
 import { logoutUser, setCredentials } from '@/store/slices/authSlice';
 import { tokenCache } from '@/utils/cache';
+import { ActivityIndicator, Platform, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useRegisterDeviceTokenMutation } from '@/store/api/notificationApi';
-import { Platform } from 'react-native';
 
 function RootLayoutContent() {
   const { isDark, colors, spacing } = useTheme();
@@ -45,21 +46,24 @@ function RootLayoutContent() {
   const dispatch = useAppDispatch();
   const segments = useSegments();
   const router = useRouter();
+
+  useChatSocket();
+
   const { isLoading, isAuthenticated } = useSelector((state: RootState) => state.auth);
 
   const [getProfile] = useLazyGetProfileQuery();
   const [registerDeviceToken] = useRegisterDeviceTokenMutation()
 
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   const syncDeviceToken = async () => {
-    const expoToken = notificationService.getPushToken();
-    const deviceToken = notificationService.getDevicePushToken();
+    const status = await notificationService.getNotificationStatus();
 
-    if (expoToken || deviceToken) {
+    if (status.devicePushToken || status.expoPushToken) {
       try {
         await registerDeviceToken({
-          fcmToken: deviceToken as string,
-          expoToken: expoToken as string,
+          fcmToken: status.devicePushToken as string,
+          expoToken: status.expoPushToken as string,
           deviceType: Platform.OS.toString()
         }).unwrap();
         console.log("✅ Device token synced with server");
@@ -84,7 +88,8 @@ function RootLayoutContent() {
       } catch (error) {
         console.log('Auth check error:', error);
         dispatch(logoutUser());
-
+      } finally {
+        setIsCheckingAuth(false);
       }
     };
 
@@ -115,7 +120,7 @@ function RootLayoutContent() {
     return () => {
       notificationService.cleanup();
     };
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     const inAuthGroup = segments[0] === '(auth)';
@@ -129,6 +134,14 @@ function RootLayoutContent() {
     }
   }, [isAuthenticated, segments, isLoading]);
 
+
+  if (isCheckingAuth) {
+    return (
+      <View style={{ flex: 1, backgroundColor: isDark ? '#000000' : '#FFFFFF', justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
 
   return (
     <ThemeProvider value={isDark ? DarkTheme : DefaultTheme}>

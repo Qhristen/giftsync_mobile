@@ -30,7 +30,7 @@ export const productApi = baseApi.injectEndpoints({
             query: ({ businessId, data }) => ({
                 url: `/api/v1/products/business/${businessId}`,
                 method: 'POST',
-                body: data,
+                data,
             }),
             invalidatesTags: ['Products' as any],
         }),

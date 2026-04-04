@@ -15,6 +15,7 @@ interface Props {
     secureTextEntry?: boolean;
     keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad';
     multiline?: boolean;
+    editable?: boolean;
     numberOfLines?: number;
     leftIcon?: React.ReactNode;
     rightIcon?: React.ReactNode;
@@ -39,6 +40,7 @@ const Input: React.FC<Props> = ({
     autoCapitalize = 'sentences',
     style,
     isBottomSheet = false,
+    editable = true,
 }) => {
     const { colors, spacing } = useTheme();
     const [isFocused, setIsFocused] = useState(false);
@@ -78,6 +80,7 @@ const Input: React.FC<Props> = ({
                         multiline={multiline}
                         numberOfLines={numberOfLines}
                         autoCapitalize={autoCapitalize}
+                        editable={editable}
                     />
                 ) : (
                     <TextInput
@@ -94,6 +97,7 @@ const Input: React.FC<Props> = ({
                         multiline={multiline}
                         numberOfLines={numberOfLines}
                         autoCapitalize={autoCapitalize}
+                        editable={editable}
                     />
                 )}
                 {secureTextEntry ? (

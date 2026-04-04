@@ -92,6 +92,7 @@ export default function WelcomeScreen() {
             // Using One Tap as requested
             const userInfo = await GoogleSignin.signIn();
             const idToken = userInfo.data?.idToken;
+            console.log(idToken, "idToken")
 
             if (userInfo.type === 'success' && idToken) {
                 // Exchange idToken for backend tokens via RTK Query mutation

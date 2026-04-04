@@ -2,21 +2,22 @@ import { UnknownAction, combineReducers, configureStore } from '@reduxjs/toolkit
 import { setupListeners } from '@reduxjs/toolkit/query';
 import { baseApi } from './api/baseApi';
 import authReducer from './slices/authSlice';
-import checkoutReducer from './slices/checkoutSlice';
+import chatReducer from './slices/chatSlice';
 import notificationReducer from './slices/notificationSlice';
 import occasionReducer from './slices/occasionSlice';
 import onboardingReducer from './slices/onboardingSlice';
 import themeReducer from './slices/themeSlice';
 import walletReducer from './slices/walletSlice';
 
+
 const appReducer = combineReducers({
     auth: authReducer,
     theme: themeReducer,
-    checkout: checkoutReducer,
     onboarding: onboardingReducer,
     notification: notificationReducer,
     occasions: occasionReducer,
     wallet: walletReducer,
+    chat: chatReducer,
     [baseApi.reducerPath]: baseApi.reducer,
 });
 

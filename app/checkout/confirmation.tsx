@@ -2,25 +2,32 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
-import { resetCheckout } from '@/store/slices/checkoutSlice';
+import { useGetOrderByIdQuery } from '@/store/api/orderApi';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
-import { Dimensions, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Dimensions, StyleSheet, View } from 'react-native';
 import Animated, { BounceIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { useDispatch } from 'react-redux';
 
 const { width } = Dimensions.get('window');
 
 export default function ConfirmationScreen() {
     const router = useRouter();
-    const dispatch = useDispatch();
     const { colors, spacing } = useTheme();
+    const { orderId } = useLocalSearchParams<{ orderId: string }>();
+    const { data: order, isLoading } = useGetOrderByIdQuery(orderId as string, { skip: !orderId });
 
     const handleFinish = () => {
-        dispatch(resetCheckout());
         router.replace('/(tabs)');
     };
+
+    if (isLoading) {
+        return (
+            <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
+                <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+        );
+    }
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -38,7 +45,7 @@ export default function ConfirmationScreen() {
                         Order Placed! 🎁
                     </Typography>
                     <Typography variant="body" align="center" color={colors.textSecondary} style={styles.tagline}>
-                        Your gift is on its way to Alex Johnson.
+                        Your gift is on its way to {order?.recipientName || 'your recipient'}.
                     </Typography>
                 </Animated.View>
 
@@ -47,17 +54,19 @@ export default function ConfirmationScreen() {
                     <Card variant="outline" style={styles.summaryCard}>
                         <View style={styles.summaryRow}>
                             <Typography variant="caption" color={colors.textSecondary}>Order Number</Typography>
-                            <Typography variant="bodyBold">#GS-9824-7123</Typography>
+                            <Typography variant="bodyBold">#GS-{order?.id?.slice(-6).toUpperCase()}</Typography>
                         </View>
                         <View style={styles.summaryLine} />
                         <View style={styles.summaryRow}>
                             <Typography variant="caption" color={colors.textSecondary}>Delivery Date</Typography>
-                            <Typography variant="bodyBold">March 25, 2026</Typography>
+                            <Typography variant="bodyBold">
+                                {order?.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }) : '---'}
+                            </Typography>
                         </View>
                         <View style={styles.summaryLine} />
                         <View style={styles.summaryRow}>
-                            <Typography variant="caption" color={colors.textSecondary}>Shipping To</Typography>
-                            <Typography variant="bodyBold" align="right">123 Victoria Island, Lagos</Typography>
+                            <Typography variant="caption" color={colors.textSecondary}>Status</Typography>
+                            <Typography variant="bodyBold" color={colors.success}>{order?.status || 'Processing'}</Typography>
                         </View>
                     </Card>
                 </Animated.View>

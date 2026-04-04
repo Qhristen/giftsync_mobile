@@ -43,9 +43,9 @@ const OccasionPickerSheet = forwardRef<BottomSheetRef, Props>(
                                <Avatar uri={occasion.contactAvatar} name={occasion.contactName} size="sm" />
                             </View>
                             <View style={styles.itemContent}>
-                                <Typography variant="bodyBold">{occasion.type}</Typography>
+                                <Typography variant="bodyBold">{occasion.contactName}</Typography>
                                 <Typography variant="caption" color={colors.textSecondary}>
-                                    {new Date(occasion.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                    {occasion.type} - {new Date(occasion.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                                 </Typography>
                             </View>
                             {occasion.date && (

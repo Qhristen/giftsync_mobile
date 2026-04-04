@@ -1,9 +1,13 @@
+import OccasionPickerSheet from '@/components/sheets/OccasionPickerSheet';
 import Avatar from '@/components/ui/Avatar';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
+import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
+import { useGetUpcomingOccasionsQuery } from '@/store/api/occasionApi';
 import { useGetProductByIdQuery } from '@/store/api/productApi';
+import { Occasion } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
@@ -19,7 +23,9 @@ export default function ShopItemDetailScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
     const [activeIndex, setActiveIndex] = useState(0);
+    const occasionSheet = useBottomSheet();
 
+    const { data: upcomingOccasions = [] } = useGetUpcomingOccasionsQuery();
     const { data: product, isLoading, error } = useGetProductByIdQuery(id as string);
 
     if (isLoading) {
@@ -132,17 +138,31 @@ export default function ShopItemDetailScreen() {
                         </View>
                     )}
                 </Animated.View>
-            <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
-                <Button
-                    title="Send as Gift"
-                    variant="primary"
-                    style={{ flex: 1 }}
-                    leftIcon={<Ionicons name="gift-outline" size={20} color="#FFF" style={{ marginRight: 8 }} />}
-                    onPress={() => router.push({ pathname: '/checkout', params: { itemId: id, ...(occasionId ? { occasionId: occasionId as string } : {}) } })}
-                />
-            </View>
+                <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
+                    <Button
+                        title="Send as Gift"
+                        variant="primary"
+                        style={{ flex: 1 }}
+                        leftIcon={<Ionicons name="gift-outline" size={20} color="#FFF" style={{ marginRight: 8 }} />}
+                        onPress={() => {
+                            if (occasionId) {
+                                router.push({ pathname: '/checkout', params: { productId: id, occasionId: occasionId as string } });
+                            } else {
+                                occasionSheet.open();
+                            }
+                        }}
+                    />
+                </View>
             </ScrollView>
 
+            <OccasionPickerSheet
+                ref={occasionSheet.ref}
+                occasions={upcomingOccasions}
+                onSelect={(occasion: Occasion) => {
+                    occasionSheet.close();
+                    router.push({ pathname: '/checkout', params: { productId: id, occasionId: occasion.id } });
+                }}
+            />
         </View>
     );
 }

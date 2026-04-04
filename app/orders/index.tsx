@@ -4,26 +4,18 @@ import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
+import { RootState } from '@/store';
+import { useCreateConversationMutation } from '@/store/api/chatApi';
+import { useGetOrdersQuery } from '@/store/api/orderApi';
+import { useAppSelector } from '@/store/hooks';
+import { Order } from '@/types';
+import { formatDate } from '@/utils/dateUtils';
+import { formatNGN } from '@/utils/formatCurrency';
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
-
-interface Order {
-    id: string;
-    productName: string;
-    recipientName: string;
-    status: 'Processing' | 'Shipped' | 'Out for Delivery' | 'Delivered';
-    date: string;
-    price: string;
-}
-
-const mockOrders: Order[] = [
-    { id: '1', productName: 'Premium Leather Wallet', recipientName: 'Alex Johnson', status: 'Processing', date: 'March 22, 2026', price: 'NGN 14,500' },
-    { id: '2', productName: 'Gourmet Chocolate Box', recipientName: 'Sam Smith', status: 'Delivered', date: 'February 14, 2026', price: 'NGN 15,000' },
-    { id: '3', productName: 'Scented Candle', recipientName: 'Sarah Doe', status: 'Delivered', date: 'January 25, 2026', price: 'NGN 8,000' },
-];
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 export default function OrderListScreen() {
     const router = useRouter();
@@ -32,8 +24,23 @@ export default function OrderListScreen() {
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const orderSheet = useBottomSheet();
 
-    const filteredOrders = mockOrders.filter(o =>
-        activeTab === 'Active' ? (o.status !== 'Delivered') : (o.status === 'Delivered')
+    const { data: orders = [], isLoading, refetch } = useGetOrdersQuery();
+    const [createChat, { isLoading: isCreatingChat }] = useCreateConversationMutation();
+    console.log(selectedOrder, "selected")
+    const handleChat = async (orderId: string) => {
+        try {
+            const chat = await createChat({
+                orderId,
+                participantIds: [selectedOrder?.business?.userId as string]
+            }).unwrap();
+            router.push(`/chat/${chat.id}`);
+        } catch (error) {
+            console.error('Failed to create/join chat:', error);
+        }
+    };
+
+    const filteredOrders = orders.filter(o =>
+        activeTab === 'Active' ? (o.status !== 'Delivered' && o.status !== 'Cancelled') : (o.status === 'Delivered' || o.status === 'Cancelled')
     );
 
     return (
@@ -64,47 +71,69 @@ export default function OrderListScreen() {
                 </View>
             </View>
 
-            <FlashList
-                data={filteredOrders}
-                // estimatedItemSize={120}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                    <Card
-                        variant="outline"
-                        style={[styles.orderCard, { marginHorizontal: spacing.xl }]}
-                        onPress={() => {
-                            setSelectedOrder(item);
-                            orderSheet.open();
-                        }}
-                    >
-                        <View style={styles.orderTop}>
-                            <View style={styles.placeholderImage} />
-                            <View style={{ flex: 1 }}>
-                                <Typography variant="bodyBold">{item.productName}</Typography>
-                                <Typography variant="caption" color={colors.textSecondary}>To {item.recipientName}</Typography>
-                            </View>
-                            <Badge
-                                label={item.status}
-                                variant={item.status === 'Delivered' ? 'success' : 'amber'}
-                                size="xs"
-                            />
-                        </View>
-                        <View style={[styles.divider, { backgroundColor: colors.border }]} />
-                        <View style={styles.orderFooter}>
-                            <Typography variant="caption" color={colors.textMuted}>{item.date}</Typography>
-                            <Typography variant="label" color={colors.primary}>{item.price}</Typography>
-                        </View>
-                    </Card>
-                )}
-                ListEmptyComponent={<Typography align="center" style={{ marginTop: 40 }}>No orders found.</Typography>}
-                contentContainerStyle={{ gap: 16, paddingBottom: 100 }}
-            />
+            {isLoading ? (
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <ActivityIndicator size="large" color={colors.primary} />
+                </View>
+            ) : (
+                <FlashList
+                    data={filteredOrders}
+                    // estimatedItemSize={120}
+                    keyExtractor={(item) => item.id}
+                    onRefresh={refetch}
+                    refreshing={isLoading}
+                    renderItem={({ item }) => {
+                        const productName = item.item.product.name;
+                        return (
+                            <Card
+                                variant="elevated"
+                                style={[styles.orderCard, { marginHorizontal: spacing.xl, marginVertical: spacing.sm }]}
+                                onPress={() => {
+                                    setSelectedOrder(item);
+                                    orderSheet.open();
+                                }}
+                            >
+                                <View style={styles.orderTop}>
+                                    <View style={styles.placeholderImage} />
+                                    <View style={{ flex: 1 }}>
+                                        <Typography variant="bodyBold">{productName}</Typography>
+                                        <Typography variant="caption" color={colors.textSecondary}>To {item.recipientName}</Typography>
+                                    </View>
+                                    <Badge
+                                        label={item.status}
+                                        variant={item.status === 'Delivered' ? 'success' : item.status === 'Cancelled' ? 'error' : 'amber'}
+                                        size="xs"
+                                    />
+                                </View>
+                                <View style={[styles.divider, { backgroundColor: colors.border }]} />
+                                <View style={styles.orderFooter}>
+                                    <View>
+                                        <Typography variant="caption" color={colors.textMuted}>{formatDate(item.createdAt)}</Typography>
+                                        <Typography variant="label" color={colors.primary}>{formatNGN(item.total)}</Typography>
+                                    </View>
+
+                                    <Pressable
+                                        onPress={() => handleChat(item.id)}
+                                        style={[styles.cardChatBtn, { backgroundColor: colors.primary + '10' }]}
+                                    >
+                                        <Ionicons name="chatbubble-ellipses" size={16} color={colors.primary} />
+                                        <Typography variant="label" color={colors.primary} style={{ fontSize: 12 }}>Chat Vendor</Typography>
+                                    </Pressable>
+                                </View>
+                            </Card>
+                        );
+                    }}
+                    ListEmptyComponent={<Typography align="center" style={{ marginTop: 40 }}>No orders found.</Typography>}
+                    contentContainerStyle={{ paddingBottom: 100 }}
+                />
+            )}
 
             {/* Sheets */}
             <OrderDetailSheet
                 ref={orderSheet.ref}
                 order={selectedOrder}
                 onClose={() => orderSheet.close()}
+                onChat={handleChat}
             />
         </View>
     );
@@ -171,5 +200,13 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
+    },
+    cardChatBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 20,
     },
 });

@@ -92,10 +92,10 @@ export default function OccasionsScreen() {
         }
     };
 
-  const sections = [
-    { title: `Upcoming in ${selectedMonthName}`, data: monthlyOccasions },
-    { title: 'Other Occasions', data: upcomingOccasions.filter(o => new Date(o.date).getMonth() !== selectedMonthIndex) },
-];
+    const sections = [
+        { title: `Upcoming in ${selectedMonthName}`, data: monthlyOccasions },
+        { title: 'Other Occasions', data: upcomingOccasions.filter(o => new Date(o.date).getMonth() !== selectedMonthIndex) },
+    ].filter(section => section.data.length > 0);
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -151,14 +151,14 @@ export default function OccasionsScreen() {
                                 {item.type} • {new Date(item.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                             </Typography>
                         </View>
-                        <Badge label={item.source === 'google' ? 'Sync' : 'Custom'} size="xs" variant={item.source === 'google' ? 'primary' : 'amber'} />
+                        {/* <Badge label={item.source === 'google' ? 'Sync' : 'Custom'} size="xs" variant={item.source === 'google' ? 'primary' : 'amber'} />
                         <Button
                             title="Plan"
                             size="sm"
                             variant="outline"
                             onPress={() => router.push('/checkout')}
                             style={styles.planBtn}
-                        />
+                        /> */}
                     </Pressable>
                 )}
                 renderSectionHeader={({ section: { title } }) => (

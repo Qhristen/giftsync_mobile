@@ -1,139 +1,205 @@
-import ConfirmDeleteSheet from '@/components/sheets/ConfirmDeleteSheet';
+import AddressPickerSheet from '@/components/sheets/AddressPickerSheet';
+import DeliveryOptionsSheet from '@/components/sheets/DeliveryOptionsSheet';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
+import Input from '@/components/ui/Input';
 import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
-import { RootState } from '@/store';
-import { setDeliveryDetails } from '@/store/slices/checkoutSlice';
+import { useGetOccasionDetailQuery } from '@/store/api/occasionApi';
+import { useCreateOrderMutation } from '@/store/api/orderApi';
+import { useGetProductByIdQuery } from '@/store/api/productApi';
+import { Address } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
+import { ActivityIndicator, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 export default function DeliveryScreen() {
     const router = useRouter();
-    const dispatch = useDispatch();
     const { colors, spacing } = useTheme();
-    const checkout = useSelector((state: RootState) => state.checkout);
+    const { occasionId, productId } = useLocalSearchParams<{ occasionId: string; productId: string }>();
+
+    const { data: product, isLoading: isProductLoading } = useGetProductByIdQuery(productId as string, { skip: !productId });
+    const { data: occasion, isLoading: isOccasionLoading } = useGetOccasionDetailQuery(occasionId as string, { skip: !occasionId });
+
+    const [deliveryAddress, setDeliveryAddress] = React.useState<Address | null>(null);
+    const [deliveryDate, setDeliveryDate] = React.useState<string | null>(null);
+    const [deliveryTimeWindow, setDeliveryTimeWindow] = React.useState<'morning' | 'afternoon' | 'evening' | null>(null);
+    const [giftMessage, setGiftMessage] = React.useState('');
 
     const addressSheet = useBottomSheet();
-    const messageSheet = useBottomSheet();
+    const optionsSheet = useBottomSheet();
+    const [createOrder, { isLoading: isCreating }] = useCreateOrderMutation();
 
-    const handleNext = () => {
-        router.push('/checkout/payment');
+    const handleNext = async () => {
+        if (!deliveryAddress || !deliveryDate || !deliveryTimeWindow) {
+            alert('Please select an address, date, and time window.');
+            return;
+        }
+
+        try {
+            const timeWindowFormatted = deliveryTimeWindow.charAt(0).toUpperCase() + deliveryTimeWindow.slice(1);
+            const result = await createOrder({
+                productId: product?.id as string,
+                occasionId: occasion?.id as string,
+                deliveryAddressId: deliveryAddress.id as string,
+                recipientName: deliveryAddress.recipientName,
+                deliveryDate: deliveryDate,
+                deliveryTimeWindow: timeWindowFormatted,
+                giftMessage: giftMessage,
+                paymentMethod: 'coins',
+            }).unwrap();
+
+            router.push({
+                pathname: '/checkout/payment',
+                params: { orderId: result.id }
+            });
+        } catch (error) {
+            console.error('Failed to create order', error);
+            alert('Failed to create order. Please try again.');
+        }
     };
+
+    const handleAddressSelect = (address: Address) => {
+        setDeliveryAddress(address);
+        addressSheet.close();
+    };
+
+    const handleOptionsSave = (date: string, timeWindow: 'morning' | 'afternoon' | 'evening') => {
+        setDeliveryDate(date);
+        setDeliveryTimeWindow(timeWindow);
+        optionsSheet.close();
+    };
+
+    if (isProductLoading || isOccasionLoading) {
+        return (
+            <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
+                <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+        );
+    }
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            {/* Header */}
-            <View style={[styles.header, { padding: spacing.xl, paddingBottom: spacing.md }]}>
-                <Pressable onPress={() => router.back()} style={styles.backBtn}>
-                    <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
-                </Pressable>
-                <Typography variant="h2">Delivery Details</Typography>
-            </View>
+            <KeyboardAvoidingView
+                behavior={"padding"}
+                style={{ flex: 1 }}
+            >
+                {/* Header */}
+                <View style={[styles.header, { padding: spacing.xl, paddingBottom: spacing.md }]}>
+                    <Pressable onPress={() => router.back()} style={styles.backBtn}>
+                        <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+                    </Pressable>
+                    <Typography variant="h2">Delivery Details</Typography>
+                </View>
 
-            <ScrollView contentContainerStyle={[styles.content, { padding: spacing.xl }]}>
-                {/* Recipient Address */}
-                <Typography variant="label" style={{ marginBottom: spacing.sm }}>Recipient Address</Typography>
-                <Card variant="outline" style={styles.addressCard}>
-                    <View style={styles.addressInfo}>
-                        <Typography variant="bodyBold">Alex Johnson</Typography>
-                        <Typography variant="caption" color={colors.textSecondary}>
-                            123 Victoria Island, Lagos State, Nigeria. +234 810 000 0000
-                        </Typography>
-                    </View>
-                    <Button title="Change" size="sm" variant="ghost" onPress={() => addressSheet.open()} />
-                </Card>
+                <ScrollView contentContainerStyle={[styles.content, { padding: spacing.xl }]}>
+                    {/* Recipient Address */}
+                    <Typography variant="label" style={{ marginBottom: spacing.sm }}>Recipient Address</Typography>
+                    <Card variant="outline" style={styles.addressCard}>
+                        <View style={styles.addressInfo}>
+                            {deliveryAddress ? (
+                                <>
+                                    <Typography variant="bodyBold">{deliveryAddress.recipientName}</Typography>
+                                    <Typography variant="caption" color={colors.textSecondary}>
+                                        {deliveryAddress.line1}{deliveryAddress.line2 ? `, ${deliveryAddress.line2}` : ''}, {deliveryAddress.city}, {deliveryAddress.state}, {deliveryAddress.country}. {deliveryAddress.phone}
+                                    </Typography>
+                                </>
+                            ) : (
+                                <Typography variant="body" color={colors.textMuted}>Select a delivery address</Typography>
+                            )}
+                        </View>
+                        <Button title={deliveryAddress ? "Change" : "Select"} size="sm" variant="ghost" onPress={() => addressSheet.open()} />
+                    </Card>
 
-                {/* Delivery Options */}
-                <Typography variant="label" style={{ marginTop: spacing.xl, marginBottom: spacing.sm }}>Delivery Preference</Typography>
-                <Card variant="outline" style={styles.optionsCard}>
-                    <View style={styles.optionRow}>
-                        <Ionicons name="calendar-outline" size={20} color={colors.primary} />
-                        <Typography variant="body" style={{ flex: 1 }}>Delivery Date</Typography>
-                        <Typography variant="bodyBold" color={colors.primary}>March 25, 2026</Typography>
-                    </View>
-                    <View style={[styles.divider, { backgroundColor: colors.border }]} />
-                    <View style={styles.optionRow}>
-                        <Ionicons name="time-outline" size={20} color={colors.primary} />
-                        <Typography variant="body" style={{ flex: 1 }}>Time Window</Typography>
-                        <Typography variant="bodyBold" color={colors.primary}>Afternoon</Typography>
-                    </View>
-                </Card>
+                    {/* Delivery Options */}
+                    <Typography variant="label" style={{ marginTop: spacing.xl, marginBottom: spacing.sm }}>Delivery Preference</Typography>
+                    <Card variant="outline" onPress={() => optionsSheet.open()} style={styles.optionsCard}>
+                        <View style={styles.optionRow}>
+                            <Ionicons name="calendar-outline" size={20} color={colors.primary} />
+                            <Typography variant="body" style={{ flex: 1 }}>Delivery Date</Typography>
+                            <Typography variant="bodyBold" color={colors.primary}>
+                                {deliveryDate ? deliveryDate : 'Select Date'}
+                            </Typography>
+                        </View>
+                        <View style={[styles.divider, { backgroundColor: colors.border }]} />
+                        <View style={styles.optionRow}>
+                            <Ionicons name="time-outline" size={20} color={colors.primary} />
+                            <Typography variant="body" style={{ flex: 1 }}>Time Window</Typography>
+                            <Typography variant="bodyBold" color={colors.primary} style={{ textTransform: 'capitalize' }}>
+                                {deliveryTimeWindow ? deliveryTimeWindow : 'Select Time'}
+                            </Typography>
+                        </View>
+                    </Card>
 
-                {/* Premium Packaging */}
-                <Card variant="raised" style={[styles.packagingCard, { marginTop: spacing.xl }]}>
-                    <View style={{ flex: 1 }}>
-                        <Typography variant="bodyBold">Premium Packaging</Typography>
-                        <Typography variant="caption" color={colors.textSecondary}>Ribbon-wrapped box + Silk paper (+ NGN 500)</Typography>
-                    </View>
-                    <Switch
-                        value={checkout.includesPremiumPackaging}
-                        onValueChange={(val) => { dispatch(setDeliveryDetails({ includesPremiumPackaging: val })); }}
-                        trackColor={{ false: colors.border, true: colors.primary }}
+                    {/* Premium Packaging */}
+                    <Card variant="raised" style={[styles.packagingCard, { marginTop: spacing.xl }]}>
+                        <View style={{ flex: 1 }}>
+                            <Typography variant="bodyBold">Premium Packaging</Typography>
+                            <Typography variant="caption" color={colors.textSecondary}>Ribbon-wrapped box + Silk paper (+ NGN 500)</Typography>
+                        </View>
+                        <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
+                    </Card>
+
+                    {/* Gift Message */}
+                    <Typography variant="label" style={{ marginTop: spacing.xl, marginBottom: spacing.sm }}>Personal Message</Typography>
+                    <Input
+                        value={giftMessage}
+                        onChangeText={setGiftMessage}
+                        placeholder="Add a heartfelt message for the recipient..."
+                        multiline
+                        numberOfLines={4}
+                        style={{ minHeight: 100 }}
                     />
-                </Card>
 
-                {/* Gift Message */}
-                <Typography variant="label" style={{ marginTop: spacing.xl, marginBottom: spacing.sm }}>Personal Message</Typography>
-                <Card variant="outline" onPress={() => messageSheet.open()} style={styles.messageCard}>
-                    {checkout.giftMessage ? (
-                        <Typography variant="body" color={colors.textPrimary}>{checkout.giftMessage}</Typography>
-                    ) : (
-                        <Typography variant="body" color={colors.textMuted}>Add a heartfelt message for Alex...</Typography>
-                    )}
-                    <Ionicons name="create-outline" size={20} color={colors.primary} />
-                </Card>
-
-                {/* Summary Mini */}
-                <Card variant="raised" style={{ marginTop: 40, padding: 16 }}>
-                    <View style={styles.summaryRow}>
-                        <Typography variant="caption">Item Subtotal</Typography>
-                        <Typography variant="caption">NGN 12,500</Typography>
-                    </View>
-                    <View style={styles.summaryRow}>
-                        <Typography variant="caption">Delivery Fee</Typography>
-                        <Typography variant="caption">NGN 1,500</Typography>
-                    </View>
-                    {checkout.includesPremiumPackaging && (
+                    {/* Summary Mini */}
+                    <Card variant="raised" style={{ marginTop: 40, padding: 16 }}>
+                        <View style={styles.summaryRow}>
+                            <Typography variant="caption">{product?.name || 'Item'} Subtotal</Typography>
+                            <Typography variant="caption">NGN {product?.price?.toLocaleString() || '---'}</Typography>
+                        </View>
+                        <View style={styles.summaryRow}>
+                            <Typography variant="caption">Delivery Fee</Typography>
+                            <Typography variant="caption">NGN 1,500</Typography>
+                        </View>
                         <View style={styles.summaryRow}>
                             <Typography variant="caption">Packaging</Typography>
                             <Typography variant="caption">NGN 500</Typography>
                         </View>
-                    )}
-                    <View style={[styles.divider, { backgroundColor: colors.border, marginVertical: 8 }]} />
-                    <View style={styles.summaryRow}>
-                        <Typography variant="bodyBold">Estimated Total</Typography>
-                        <Typography variant="bodyBold" color={colors.primary}>NGN {14000 + (checkout.includesPremiumPackaging ? 500 : 0)}</Typography>
-                    </View>
-                </Card>
-            </ScrollView>
+                        <View style={[styles.divider, { backgroundColor: colors.border, marginVertical: 8 }]} />
+                        <View style={styles.summaryRow}>
+                            <Typography variant="bodyBold">Estimated Total</Typography>
+                            <Typography variant="bodyBold" color={colors.primary}>
+                                NGN {((Number(product?.price || 0) + 1500 + 500) || 0).toLocaleString()}
+                            </Typography>
+                        </View>
+                    </Card>
+                </ScrollView>
 
-            {/* Footer CTA */}
-            <View style={[styles.footer, { padding: spacing.xl, borderTopWidth: 1, borderTopColor: colors.border }]}>
-                <Button
-                    title="Continue to Payment →"
-                    onPress={handleNext}
-                    style={styles.submitBtn}
+                {/* Footer CTA */}
+                <View style={[styles.footer, { padding: spacing.xl, borderTopWidth: 1, borderTopColor: colors.border }]}>
+                    <Button
+                        title="Continue to Payment →"
+                        onPress={handleNext}
+                        isLoading={isCreating}
+                        style={styles.submitBtn}
+                    />
+                </View>
+
+                {/* Sheets */}
+                <AddressPickerSheet
+                    ref={addressSheet.ref}
+                    selectedAddressId={deliveryAddress?.id}
+                    onSelect={handleAddressSelect}
                 />
-            </View>
-
-            {/* Sheet Placeholders */}
-            <ConfirmDeleteSheet
-                ref={addressSheet.ref}
-                title="Change Address"
-                description="Select a different delivery address for this recipient."
-                onConfirm={() => addressSheet.close()}
-            />
-            <ConfirmDeleteSheet
-                ref={messageSheet.ref}
-                title="Gift Message"
-                description="Type your custom gift message here."
-                onConfirm={() => messageSheet.close()}
-            />
+                <DeliveryOptionsSheet
+                    ref={optionsSheet.ref}
+                    initialDate={deliveryDate}
+                    initialTimeWindow={deliveryTimeWindow}
+                    onSave={handleOptionsSave}
+                />
+            </KeyboardAvoidingView>
         </View>
     );
 }

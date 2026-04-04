@@ -1,3 +1,4 @@
+import AddressPickerSheet from '@/components/sheets/AddressPickerSheet';
 import ConfirmDeleteSheet from '@/components/sheets/ConfirmDeleteSheet';
 import CurrencyPickerSheet from '@/components/sheets/CurrencyPickerSheet';
 import ThemePickerSheet from '@/components/sheets/ThemePickerSheet';
@@ -23,9 +24,9 @@ export default function ProfileScreen() {
     const currencySheet = useBottomSheet();
     const logoutSheet = useBottomSheet();
     const deleteUserSheet = useBottomSheet();
+    const addressSheet = useBottomSheet();
 
     const { user } = useAppSelector((state: RootState) => state.auth);
-    const coins = useAppSelector((state: RootState) => state.wallet.coins);
     const [currency, setCurrency] = useState('NGN');
 
     const sections = [
@@ -33,7 +34,7 @@ export default function ProfileScreen() {
             title: 'Account',
             items: [
                 { label: 'Edit Profile', icon: 'person-outline', onPress: () => router.push('/profile/edit') },
-                { label: 'Saved Addresses', icon: 'location-outline', onPress: () => router.push('/profile/addresses') },
+                { label: 'Saved Addresses', icon: 'location-outline', onPress: () => addressSheet.open() },
             ],
         },
         {
@@ -69,7 +70,7 @@ export default function ProfileScreen() {
                     <Card variant="elevated" style={[styles.upgradeCard, { backgroundColor: colors.primary }]}>
                         <View style={{ flex: 1 }}>
                             <Typography variant="h3" color="#FFFFFF">Coin Wallet</Typography>
-                            <Typography variant="caption" color="#FFFFFF" style={{ opacity: 0.9 }}>Use coins to create occasions and get AI gifts.</Typography>
+                            <Typography variant="caption" color="#FFFFFF" style={{ opacity: 0.9 }}>Use coins to pay for services.</Typography>
                         </View>
                         <Button title="Buy Coins" variant="secondary" size="sm" onPress={() => router.push('/wallet')} />
                     </Card>
@@ -127,6 +128,13 @@ export default function ProfileScreen() {
             </ScrollView>
 
             {/* Sheets */}
+            <AddressPickerSheet
+                ref={addressSheet.ref}
+                onSelect={(addr) => {
+                    addressSheet.close();
+                    // Optionally set default or just close
+                }}
+            />
             <ThemePickerSheet ref={themeSheet.ref} />
             <CurrencyPickerSheet
                 ref={currencySheet.ref}

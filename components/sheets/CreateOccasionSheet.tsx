@@ -8,6 +8,7 @@ import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Typography from '../ui/Typography';
+import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 
 export interface OccasionFormData {
     type: string;
@@ -97,7 +98,7 @@ const CreateOccasionSheet = forwardRef<BottomSheetRef, Props>(
 
         return (
             <BottomSheetWrapper ref={ref} snapPoints={['65%', '85%']} scrollable keyboardBehavior="fillParent" android_keyboardInputMode="adjustResize">
-                <View>
+                <BottomSheetScrollView>
                     <Typography variant="h2" style={{ marginBottom: spacing.xs }}>
                         Create Occasion
                     </Typography>
@@ -106,18 +107,29 @@ const CreateOccasionSheet = forwardRef<BottomSheetRef, Props>(
                     </Typography>
 
                     <View style={styles.form}>
-                        <Pressable onPress={handlePickContact}>
-                            <View pointerEvents="none">
+                        <Pressable onPress={!contactName ? handlePickContact : undefined}>
+                            <View pointerEvents={!contactName ? 'none' : 'auto'}>
                                 <Input
                                     label="Contact"
                                     placeholder="Select a contact"
                                     value={contactNumber ? `${contactName} - ${contactNumber}` : contactName}
-                                    onChangeText={() => { }}
+                                    onChangeText={(text) => {
+                                        if (text.includes(" - ")) {
+                                            const parts = text.split(" - ");
+                                            setContactName(parts[0]);
+                                            setContactNumber(parts.slice(1).join(" - "));
+                                        } else {
+                                            setContactName(text);
+                                            setContactNumber("");
+                                        }
+                                    }}
                                     isBottomSheet
+                                    editable={false}
+                                    // editable={!!contactName}
                                     rightIcon={
-                                        <View style={{ padding: 4 }}>
+                                        <Pressable onPress={handlePickContact} style={{ padding: 4 }}>
                                             <Ionicons name="person-add-outline" size={20} color={colors.textSecondary} />
-                                        </View>
+                                        </Pressable>
                                     }
                                 />
                             </View>
@@ -187,7 +199,7 @@ const CreateOccasionSheet = forwardRef<BottomSheetRef, Props>(
                             style={{ marginTop: spacing.md }}
                         />
                     </View>
-                </View>
+                </BottomSheetScrollView>
             </BottomSheetWrapper>
         );
     }

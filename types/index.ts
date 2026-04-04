@@ -15,6 +15,8 @@ export interface Business {
   name: string;
   email: string;
   phone: string;
+  userId: string;
+  user: User;
   logoUrl: string;
   description: string;
   businessAddress: string;
@@ -52,7 +54,7 @@ export interface CreateOccasionDto {
   dotColor: string;
 }
 
-export interface UpdateOccasionDto extends Partial<CreateOccasionDto> {}
+export interface UpdateOccasionDto extends Partial<CreateOccasionDto> { }
 
 export interface Product {
   id: string;
@@ -118,4 +120,115 @@ export interface Notification {
   isRead: false;
   sentAt: string;
   createdAt: string;
+}
+
+export interface OrderItem {
+  id: string;
+  productId: string;
+  product: Product;
+  unitPrice: number;
+  quantity: number;
+  total: number;
+}
+
+export type PaymentMethod = 'paystack' | 'flutterwave' | 'card' | 'cash' | 'coins';
+export type PaymentStatus = 'pending' | 'paid' | 'failed';
+export type OrderStatus = 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
+
+export interface Order {
+  id: string;
+  recipientName: string;
+  deliveryDate: string; // ISO date (YYYY-MM-DD)
+  deliveryTimeWindow: string;
+  giftMessage: string;
+  paymentMethod: PaymentMethod;
+  paymentStatus: PaymentStatus;
+  subtotal: number;
+  deliveryFee: number;
+  packagingFee: number;
+  total: number;
+  businessId: string;
+  business: Business;
+  occasion: Occasion;
+  status: OrderStatus;
+  deliveryAddress: Address;
+  item: OrderItem;
+  createdAt: string; // ISO datetime
+}
+
+export interface Address {
+  id: string;
+  userId: string;
+  recipientName: string;
+  phone: string;
+  line1: string;
+  line2?: string;
+  city: string;
+  state: string;
+  country: string;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateAddressDto {
+  recipientName: string;
+  phone: string;
+  line1: string;
+  line2?: string;
+  city: string;
+  state: string;
+  country: string;
+  isDefault?: boolean;
+}
+
+export interface UpdateAddressDto extends Partial<CreateAddressDto> { }
+
+// ─── Chat ─────────────────────────────────────────────────────────────────────
+
+export interface ChatMessage {
+  id: string;
+  content: string;
+  conversationId: string;
+  senderId: string;
+  sender: User;
+  isRead: boolean;
+  readAt: string;
+  attachments: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Conversation {
+  id: string;
+  orderId: string;
+  order: Order;
+  lastMessagePreview: string;
+  lastMessageAt: string;
+  lastMessageSenderId: string;
+  participants: User[];
+  messages: ChatMessage[];
+  unreadCount?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ── API response wrappers ───────────────────────────────────────────────────
+
+export interface PaginatedMessagesResponse {
+  data: {
+    messages: ChatMessage[];
+    total: number;
+    page: number;
+    limit: number;
+  };
+}
+
+// ── DTOs ────────────────────────────────────────────────────────────────────
+
+export interface CreateConversationDto {
+  /** IDs of the other participants (current user is added automatically) */
+  participantIds: string[];
+  /** Optional: link the conversation to a specific order */
+  orderId?: string;
 }

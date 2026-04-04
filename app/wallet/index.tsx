@@ -5,7 +5,7 @@ import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
 import { RootState } from '@/store';
-import { useGetCoinPackagesQuery } from '@/store/api/walletApi';
+import { useGetCoinPackagesQuery, useGetWalletBalanceQuery } from '@/store/api/walletApi';
 import { addCoins } from '@/store/slices/walletSlice';
 import { CoinPackage } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
@@ -33,6 +33,8 @@ export default function WalletTopUpScreen() {
     const coins = useSelector((state: RootState) => state.wallet.coins);
 
     const { data: coinPackages = [], isLoading } = useGetCoinPackagesQuery();
+     const { data: wallet, refetch } = useGetWalletBalanceQuery()
+
 
     const [selectedPackage, setSelectedPackage] = useState<CoinPackage | null>(null);
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('paystack');
@@ -86,7 +88,7 @@ export default function WalletTopUpScreen() {
                         Current Balance
                     </Typography>
                     <Typography variant="h1" color="#FFF" style={{ marginTop: 4 }}>
-                        {coins} <Typography variant="h3" color="rgba(255,255,255,0.8)">Coins</Typography>
+                        {wallet?.balance.toLocaleString()} <Typography variant="h3" color="rgba(255,255,255,0.8)">Coins</Typography>
                     </Typography>
                 </Card>
             </Animated.View>

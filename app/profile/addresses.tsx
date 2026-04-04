@@ -1,23 +1,34 @@
+import AddressPickerSheet from '@/components/sheets/AddressPickerSheet';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
+import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
+import { useGetAddressesQuery } from '@/store/api/addressApi';
+import { Address } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import React from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-
-const SAVED_ADDRESSES = [
-    { id: '1', label: 'Home', address: '14 Chief Estate, Lekki Phase 1, Lagos', isDefault: true, icon: 'home-outline' },
-    { id: '2', label: 'Office', address: 'Flutterwave HQ, 8 Providence St, Lekki', isDefault: false, icon: 'briefcase-outline' },
-];
 
 export default function SavedAddressesScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
-    const [addresses] = useState(SAVED_ADDRESSES);
+    const { data: addresses = [], isLoading, refetch } = useGetAddressesQuery();
+    const addressSheet = useBottomSheet();
+    const [selectedAddress, setSelectedAddress] = React.useState<Address | undefined>(undefined);
+
+    const handleEdit = (addr: Address) => {
+        // Since the sheet handles its own editing state if we pass it, 
+        // but our sheet currently doesn't take an initial address to edit from outside easily 
+        // without some changes. Actually, I'll just open the sheet.
+        // The sheet in AddressPickerSheet handles 'edit' mode internally based on its own list.
+        // To trigger edit directly from this screen, we might need to expose a ref method.
+        // For now, let's just open the sheet so they can select/edit there.
+        addressSheet.open();
+    };
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -29,46 +40,65 @@ export default function SavedAddressesScreen() {
                 <View style={{ width: 40 }} />
             </View>
 
-            <FlashList
-                data={addresses}
-                estimatedItemSize={85}
-                keyExtractor={(item) => item.id}
-                contentContainerStyle={{ padding: spacing.xl, paddingBottom: 100 }}
-                renderItem={({ item, index }) => (
-                    <Animated.View entering={FadeInDown.delay(index * 100).duration(400)}>
-                        <Card style={[styles.addressCard, { backgroundColor: colors.surface }]}>
-                            <View style={[styles.iconBox, { backgroundColor: colors.surfaceRaised }]}>
-                                <Ionicons name={item.icon as any} size={24} color={colors.primary} />
-                            </View>
-                            <View style={{ flex: 1 }}>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                                    <Typography variant="bodyBold">{item.label}</Typography>
-                                    {item.isDefault && (
-                                        <View style={[styles.defaultBadge, { backgroundColor: colors.primarySoft }]}>
-                                            <Typography variant="caption" color={colors.primary} style={{ fontSize: 10 }}>DEFAULT</Typography>
-                                        </View>
-                                    )}
+            {isLoading ? (
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <ActivityIndicator color={colors.primary} size="large" />
+                </View>
+            ) : (
+                <FlashList
+                    data={addresses}
+                    // estimatedItemSize={85}
+                    keyExtractor={(item) => item.id}
+                    contentContainerStyle={{ padding: spacing.xl, paddingBottom: 100 }}
+                    ListEmptyComponent={() => (
+                        <View style={{ alignItems: 'center', marginTop: 40 }}>
+                            <Typography variant="body" color={colors.textMuted}>No addresses saved yet.</Typography>
+                        </View>
+                    )}
+                    renderItem={({ item, index }) => (
+                        <Animated.View entering={FadeInDown.delay(index * 100).duration(400)}>
+                            <Card style={[styles.addressCard, { backgroundColor: colors.surface }]}>
+                                <View style={[styles.iconBox, { backgroundColor: colors.surfaceRaised }]}>
+                                    <Ionicons name="location-outline" size={24} color={colors.primary} />
                                 </View>
-                                <Typography variant="caption" color={colors.textSecondary} style={{ marginTop: 4 }}>
-                                    {item.address}
-                                </Typography>
-                            </View>
-                            <Pressable style={{ padding: 8 }}>
-                                <Ionicons name="create-outline" size={20} color={colors.textMuted} />
-                            </Pressable>
-                        </Card>
-                    </Animated.View>
-                )}
-            />
+                                <View style={{ flex: 1 }}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                        <Typography variant="bodyBold">{item.recipientName}</Typography>
+                                        {item.isDefault && (
+                                            <View style={[styles.defaultBadge, { backgroundColor: colors.primarySoft }]}>
+                                                <Typography variant="caption" color={colors.primary} style={{ fontSize: 10 }}>DEFAULT</Typography>
+                                            </View>
+                                        )}
+                                    </View>
+                                    <Typography variant="caption" color={colors.textSecondary} style={{ marginTop: 4 }}>
+                                        {item.line1}, {item.city}, {item.state}
+                                    </Typography>
+                                </View>
+                                <Pressable style={{ padding: 8 }} onPress={() => handleEdit(item)}>
+                                    <Ionicons name="create-outline" size={20} color={colors.textMuted} />
+                                </Pressable>
+                            </Card>
+                        </Animated.View>
+                    )}
+                />
+            )}
 
             <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
                 <Button
                     title="Add New Address"
                     variant="primary"
-                    onPress={() => { }}
+                    onPress={() => addressSheet.open()}
                     leftIcon={<Ionicons name="add" size={20} color="#FFF" style={{ marginRight: 8 }} />}
                 />
             </View>
+
+            <AddressPickerSheet
+                ref={addressSheet.ref}
+                onSelect={(addr) => {
+                    addressSheet.close();
+                    // Optionally set default or just close
+                }}
+            />
         </View>
     );
 }
@@ -113,6 +143,6 @@ const styles = StyleSheet.create({
         bottom: 0,
         width: '100%',
         padding: 24,
-        borderTopWidth: 1,
+        // borderTopWidth: 1,
     },
 });

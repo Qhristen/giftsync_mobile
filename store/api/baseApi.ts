@@ -53,7 +53,7 @@ axiosInstance.interceptors.request.use(
     }
 );
 
-const refreshToken = async () => {
+export const getValidToken = async () => {
 
     const storedRefreshToken = await tokenCache.getToken('refreshToken');
 
@@ -63,7 +63,17 @@ const refreshToken = async () => {
     }
 
     try {
-        const response = await axiosInstance.post("/api/v1/auth/refresh", { refreshToken: storedRefreshToken });
+        const storedAccessToken = await tokenCache.getToken('accessToken');
+        const response = await axios.post(`${BASE_URL}/api/v1/auth/refresh`,
+            { refreshToken: storedRefreshToken },
+            {
+                headers: {
+                    Authorization: `Bearer ${storedAccessToken}`,
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                }
+            }
+        );
         await tokenCache.saveToken('accessToken', response.data.accessToken);
         await tokenCache.saveToken('refreshToken', response.data.refreshToken);
 
@@ -88,7 +98,7 @@ axiosInstance.interceptors.response.use(
 
                 // Only try to refresh if we have a token and it will expire within 24 hours
                 if (storedAccessToken && isTokenExpired(storedAccessToken)) {
-                    const newToken = await refreshToken();
+                    const newToken = await getValidToken();
                     if (newToken) {
                         axiosInstance.defaults.headers.common.Authorization = `Bearer ${newToken}`;
                         if (originalRequest && originalRequest.headers) {
@@ -97,13 +107,13 @@ axiosInstance.interceptors.response.use(
                         }
                     }
                 }
-                return Promise.reject(error);
+                throw error;
             } catch (refreshError) {
-                return Promise.reject(refreshError);
+                throw refreshError;
             }
         }
 
-        return Promise.reject(error);
+        throw error;
     }
 );
 
@@ -138,6 +148,6 @@ export const api = axiosInstance
 export const baseApi = createApi({
     reducerPath: 'api',
     baseQuery: axiosBaseQuery(),
-    tagTypes: ['Contacts', 'Occasions', 'Recommendations', 'Orders', 'Shortlist', 'UserProfile', 'Wallet', 'Notifications', 'Products'],
+    tagTypes: ['Contacts', 'Occasions', 'Recommendations', 'Orders', 'Shortlist', 'UserProfile', 'Wallet', 'Notifications', 'Products', 'Addresses', 'Chat'],
     endpoints: () => ({}),
 });

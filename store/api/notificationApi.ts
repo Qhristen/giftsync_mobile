@@ -28,7 +28,7 @@ export const notificationApi = baseApi.injectEndpoints({
       query: (data) => ({
         url: `/api/v1/notifications/tokens`,
         method: "POST",
-        body: data,
+        data,
       }),
       invalidatesTags: ["Products" as any],
     }),

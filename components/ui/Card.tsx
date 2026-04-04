@@ -24,7 +24,7 @@ const Card: React.FC<Props> = ({
         {
             backgroundColor: variant === 'raised' ? colors.surfaceRaised : colors.surface,
             borderColor: colors.border,
-            borderWidth: variant === 'outline' ? 1 : isDark ? 1 : 0,
+            borderWidth: 0,
             padding: spacing[padding],
         },
         variant === 'elevated' && !isDark && styles.shadow,

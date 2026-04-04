@@ -1,12 +1,8 @@
-import ContactPickerSheet from '@/components/sheets/ContactPickerSheet';
-import OccasionPickerSheet from '@/components/sheets/OccasionPickerSheet';
 import Avatar from '@/components/ui/Avatar';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
-import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
-import { RootState } from '@/store';
 import { useGetOccasionDetailQuery } from '@/store/api/occasionApi';
 import { useGetProductByIdQuery } from '@/store/api/productApi';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,23 +10,17 @@ import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
 
 export default function CheckoutEntry() {
     const router = useRouter();
-    const dispatch = useDispatch();
     const { colors, spacing } = useTheme();
     const { occasionId, productId } = useLocalSearchParams<{ occasionId: string; productId: string }>();
-    const checkout = useSelector((state: RootState) => state.checkout);
-
-    const contactSheet = useBottomSheet();
-    const occasionSheet = useBottomSheet();
 
     const { data: occasion, isLoading: isOccasionLoading } = useGetOccasionDetailQuery(occasionId as string, { skip: !occasionId });
     const { data: product, isLoading: isProductLoading } = useGetProductByIdQuery(productId as string, { skip: !productId });
 
     const handleNext = () => {
-        router.push('/checkout/delivery');
+        router.push({ pathname: '/checkout/delivery', params: { occasionId, productId } });
     };
 
     return (
@@ -52,23 +42,30 @@ export default function CheckoutEntry() {
                     ) : (
                         <>
                             <View style={styles.contextRow}>
-                                <Avatar name={occasion?.contactName || 'Select Contact'} uri={occasion?.contactAvatar} size="lg" />
+                                <Avatar name={occasion?.contactName || 'Recipient'} uri={occasion?.contactAvatar} size="lg" />
                                 <View style={{ flex: 1 }}>
-                                    <Typography variant="bodyBold">{occasion?.contactName || 'Select Contact'}</Typography>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                        <Typography variant="bodyBold" style={{ fontSize: 16 }}>{occasion?.contactName || 'Not Selected'}</Typography>
+                                        <View style={[styles.badge, { backgroundColor: colors.primarySoft }]}>
+                                            <Typography variant="caption" color={colors.primary} style={{ fontSize: 10 }}>RECIPIENT</Typography>
+                                        </View>
+                                    </View>
                                     {occasion && <Typography variant="caption" color={colors.textSecondary}>{occasion.type}</Typography>}
                                 </View>
-                                <Button title={occasion ? "Edit" : "Select"} size="sm" variant="ghost" onPress={() => contactSheet.open()} />
                             </View>
+
                             <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
                             <View style={styles.contextRow}>
-                                <Ionicons name="calendar-outline" size={24} color={colors.primary} />
+                                <View style={[styles.iconBox, { backgroundColor: colors.surfaceRaised }]}>
+                                    <Ionicons name="calendar" size={20} color={colors.primary} />
+                                </View>
                                 <View style={{ flex: 1 }}>
-                                    <Typography variant="bodyMedium">{occasion?.type || 'Select Occasion'}</Typography>
+                                    <Typography variant="bodyMedium" style={{ fontWeight: '600' }}>{occasion?.type || 'Occasion Date'}</Typography>
                                     {occasion && <Typography variant="caption" color={colors.textSecondary}>
                                         {new Date(occasion.date).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
                                     </Typography>}
                                 </View>
-                                <Button title={occasion ? "Edit" : "Select"} size="sm" variant="ghost" onPress={() => occasionSheet.open()} />
                             </View>
                         </>
                     )}
@@ -78,7 +75,7 @@ export default function CheckoutEntry() {
                 <Typography variant="label" style={{ marginTop: spacing.xl, marginBottom: spacing.sm }}>Selected Gift</Typography>
                 <Card variant="outline" style={styles.giftCard}>
                     {isProductLoading ? (
-                        <ActivityIndicator />
+                        <ActivityIndicator color={colors.primary} />
                     ) : (
                         <>
                             {product?.imageUrls?.[0] ? (
@@ -90,10 +87,9 @@ export default function CheckoutEntry() {
                                 <Typography variant="bodyBold">{product?.name || 'Select a Gift'}</Typography>
                                 {product && <Typography variant="caption" color={colors.textSecondary}>Provider: {product.business?.name}</Typography>}
                                 <Typography variant="label" color={colors.primary} style={{ marginTop: 4 }}>
-                                    {product ? `${product.currency} ${product.price}` : '---'}
+                                    {product ? `${product.currency} ${Number(product.price).toLocaleString()}` : '---'}
                                 </Typography>
                             </View>
-                            <Button title={product ? "Change" : "Select"} size="sm" variant="ghost" onPress={() => router.push('/(tabs)/shop')} />
                         </>
                     )}
                 </Card>
@@ -105,20 +101,9 @@ export default function CheckoutEntry() {
                     title="Looks good, Continue →"
                     onPress={handleNext}
                     style={styles.submitBtn}
+                    disabled={!occasion || !product}
                 />
             </View>
-
-            {/* Sheets */}
-            <ContactPickerSheet
-                ref={contactSheet.ref}
-                contacts={[]}
-                onSelect={() => contactSheet.close()}
-            />
-            <OccasionPickerSheet
-                ref={occasionSheet.ref}
-                occasions={[]}
-                onSelect={() => occasionSheet.close()}
-            />
         </View>
     );
 }
@@ -152,6 +137,18 @@ const styles = StyleSheet.create({
         height: 1,
         width: '100%',
         opacity: 0.1,
+    },
+    iconBox: {
+        width: 48,
+        height: 48,
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    badge: {
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 6,
     },
     giftCard: {
         flexDirection: 'row',

@@ -663,7 +663,6 @@ class NotificationService {
       try {
         devicePushToken = await Notifications.getDevicePushTokenAsync();
         this.devicePushToken = devicePushToken.data
-        console.log("📱 Device push token:", devicePushToken);
       } catch (error) {
         console.warn("⚠️ Could not get device push token:", error);
       }
