@@ -4,46 +4,52 @@ import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
 import { RootState } from '@/store';
-import { useGetOrderByIdQuery } from '@/store/api/orderApi';
-import { spendCoins } from '@/store/slices/walletSlice';
+import { useGetOrderByIdQuery, useHandlePaymentMutation } from '@/store/api/orderApi';
+import { useGetWalletBalanceQuery } from '@/store/api/walletApi';
+import { formatCurrency } from '@/utils/formatCurrency';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'sonner-native';
 
 export default function PaymentScreen() {
     const router = useRouter();
     const dispatch = useDispatch();
     const { colors, spacing } = useTheme();
     const { orderId } = useLocalSearchParams<{ orderId: string }>();
-    const { coins } = useSelector((state: RootState) => state.wallet);
-
     const { data: order, isLoading: isOrderLoading } = useGetOrderByIdQuery(orderId as string, { skip: !orderId });
-    console.log(order, "order details")
-    const [paymentMethod, setPaymentMethod] = useState('coins');
-    const [showWebView, setShowWebView] = useState(false);
-    const [isProcessing, setIsProcessing] = useState(false);
-    const promoSheet = useBottomSheet();
+    const [handlePayment] = useHandlePaymentMutation();
+    const { data: wallet, refetch } = useGetWalletBalanceQuery()
 
-    const handlePay = () => {
-        if (paymentMethod === 'coins') {
-            if (coins < (order?.total ? order.total / 1000 : 5)) { // Simplified logic
-                alert('Insufficient coins. Please top up.');
-                return;
-            }
+    const [paymentMethod, setPaymentMethod] = useState('coins');
+    const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
+    const [isProcessing, setIsProcessing] = useState(false);
+
+    const handlePay = async () => {
+        try {
             setIsProcessing(true);
-            setTimeout(() => {
-                dispatch(spendCoins(order?.total ? order.total / 1000 : 5));
-                setIsProcessing(false);
+            const response = await handlePayment({
+                orderId: order?.id as string,
+                method: paymentMethod
+            }).unwrap();
+
+            if (response.paymentUrl) {
+                setPaymentUrl(response.paymentUrl);
+                // setShowWebView(true) // will be handled by paymentUrl state
+            } else if (response.status === 'paid' || response.status === 'Processing') {
                 router.push({
                     pathname: '/checkout/confirmation',
                     params: { orderId }
                 });
-            }, 1500);
-        } else {
-            setShowWebView(true);
+            }
+        } catch (error: any) {
+            console.error('Payment Error:', error);
+            toast.error(error?.data?.message || 'Payment failed. Please try again.');
+        } finally {
+            setIsProcessing(false);
         }
     };
 
@@ -51,15 +57,16 @@ export default function PaymentScreen() {
         const { url } = newNavState;
         if (!url) return;
 
+        // Backend redirects to success or fail URLs
         if (url.includes('success') || url.includes('callback')) {
-            setShowWebView(false);
+            setPaymentUrl(null);
             router.push({
                 pathname: '/checkout/confirmation',
                 params: { orderId }
             });
         }
         if (url.includes('cancel') || url.includes('fail')) {
-            setShowWebView(false);
+            setPaymentUrl(null);
             alert('Payment failed or cancelled.');
         }
     };
@@ -88,7 +95,7 @@ export default function PaymentScreen() {
                 <Card variant="outline" style={styles.summaryCard}>
                     <View style={styles.summaryRow}>
                         <Typography variant="bodyMedium">{order?.item?.product.name || 'Gift Item'}</Typography>
-                        <Typography variant="bodyBold">NGN {order?.total?.toLocaleString()}</Typography>
+                        <Typography variant="bodyBold">{formatCurrency(order?.total ?? 0, order?.item?.product.currency)}</Typography>
                     </View>
                     <Typography variant="caption" color={colors.textSecondary}>
                         Order #{order?.id?.slice(-6).toUpperCase()}
@@ -127,7 +134,7 @@ export default function PaymentScreen() {
                     </View>
                     <View style={{ flex: 1 }}>
                         <Typography variant="bodyBold">GiftSync Coins</Typography>
-                        <Typography variant="caption" color={colors.textSecondary}>Balance: {coins} Coins</Typography>
+                        <Typography variant="caption" color={colors.textSecondary}>Balance: {wallet?.balance.toLocaleString()} Coins</Typography>
                     </View>
                     {paymentMethod === 'coins' && (
                         <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
@@ -138,21 +145,21 @@ export default function PaymentScreen() {
                 <View style={styles.breakdown}>
                     <View style={styles.breakdownRow}>
                         <Typography variant="body" color={colors.textSecondary}>Subtotal</Typography>
-                        <Typography variant="body">NGN {order?.subtotal?.toLocaleString()}</Typography>
+                        <Typography variant="body">{formatCurrency(order?.subtotal ?? 0, order?.item?.product.currency)}</Typography>
                     </View>
                     <View style={styles.breakdownRow}>
                         <Typography variant="body" color={colors.textSecondary}>Delivery</Typography>
-                        <Typography variant="body">NGN {order?.deliveryFee?.toLocaleString()}</Typography>
+                        <Typography variant="body">{formatCurrency(order?.deliveryFee ?? 0, order?.item?.product.currency)}</Typography>
                     </View>
                     {order?.packagingFee ? (
                         <View style={styles.breakdownRow}>
                             <Typography variant="body" color={colors.textSecondary}>Packaging</Typography>
-                            <Typography variant="body">NGN {order?.packagingFee?.toLocaleString()}</Typography>
+                            <Typography variant="body">{formatCurrency(order?.packagingFee ?? 0, order?.item?.product.currency)}</Typography>
                         </View>
                     ) : null}
                     <View style={styles.breakdownRow}>
                         <Typography variant="bodyBold">Total</Typography>
-                        <Typography variant="h3" color={colors.primary}>NGN {order?.total?.toLocaleString()}</Typography>
+                        <Typography variant="h3" color={colors.primary}>{formatCurrency(order?.total ?? 0, order?.item?.product.currency)}</Typography>
                     </View>
                 </View>
             </ScrollView>
@@ -168,13 +175,13 @@ export default function PaymentScreen() {
             </View>
 
             {/* Paystack WebView Modal */}
-            <Modal visible={showWebView} animationType="slide">
+            <Modal visible={!!paymentUrl} animationType="slide">
                 <View style={{ flex: 1, paddingTop: 50 }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'flex-end', padding: 16 }}>
-                        <Button title="Cancel" variant="ghost" onPress={() => setShowWebView(false)} />
+                        <Button title="Cancel" variant="ghost" onPress={() => setPaymentUrl(null)} />
                     </View>
                     <WebView
-                        source={{ uri: `https://checkout.paystack.com/mock-authorization-url?orderId=${orderId}` }}
+                        source={{ uri: paymentUrl || '' }}
                         onNavigationStateChange={handleWebViewStateChange}
                         startInLoadingState={true}
                     />

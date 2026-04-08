@@ -2,14 +2,13 @@ import { useTheme } from '@/hooks/useTheme';
 import { useCreateAddressMutation, useDeleteAddressMutation, useGetAddressesQuery, useUpdateAddressMutation } from '@/store/api/addressApi';
 import { Address } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
+import * as Contacts from 'expo-contacts';
 import React, { forwardRef, useState } from 'react';
 import { ActivityIndicator, Platform, Pressable, StyleSheet, View } from 'react-native';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Typography from '../ui/Typography';
-import * as Contacts from 'expo-contacts';
-import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 
 interface Props {
     selectedAddressId?: string;
@@ -113,8 +112,8 @@ const AddressPickerSheet = forwardRef<BottomSheetRef, Props>(
         };
 
         return (
-            <BottomSheetWrapper ref={ref} snapPoints={['80%']} scrollable>
-                <BottomSheetScrollView>
+            <BottomSheetWrapper ref={ref} snapPoints={['80%']} scrollable keyboardBehavior="interactive"
+                android_keyboardInputMode="adjustPan">
                 {mode === 'list' ? (
                     <View style={{ flex: 1, paddingBottom: spacing.xl }}>
                         <View style={styles.header}>
@@ -204,7 +203,6 @@ const AddressPickerSheet = forwardRef<BottomSheetRef, Props>(
                         </View>
                     </View>
                 )}
-                </BottomSheetScrollView>
             </BottomSheetWrapper>
         );
     }

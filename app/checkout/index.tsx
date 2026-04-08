@@ -5,10 +5,11 @@ import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { useGetOccasionDetailQuery } from '@/store/api/occasionApi';
 import { useGetProductByIdQuery } from '@/store/api/productApi';
+import { calculateDeliveryStatus } from '@/utils/dateUtils';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 export default function CheckoutEntry() {
@@ -18,6 +19,11 @@ export default function CheckoutEntry() {
 
     const { data: occasion, isLoading: isOccasionLoading } = useGetOccasionDetailQuery(occasionId as string, { skip: !occasionId });
     const { data: product, isLoading: isProductLoading } = useGetProductByIdQuery(productId as string, { skip: !productId });
+
+    const deliveryStatus = useMemo(() => {
+        if (!product || !occasion) return null;
+        return calculateDeliveryStatus(occasion.date, product.deliveryDays, occasion.contact?.name);
+    }, [product, occasion]);
 
     const handleNext = () => {
         router.push({ pathname: '/checkout/delivery', params: { occasionId, productId } });
@@ -42,10 +48,10 @@ export default function CheckoutEntry() {
                     ) : (
                         <>
                             <View style={styles.contextRow}>
-                                <Avatar name={occasion?.contactName || 'Recipient'} uri={occasion?.contactAvatar} size="lg" />
+                                <Avatar name={occasion?.contact?.name || 'Recipient'} uri={occasion?.contact?.avatar} size="lg" />
                                 <View style={{ flex: 1 }}>
                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                        <Typography variant="bodyBold" style={{ fontSize: 16 }}>{occasion?.contactName || 'Not Selected'}</Typography>
+                                        <Typography variant="bodyBold" style={{ fontSize: 16 }}>{occasion?.contact?.name || 'Not Selected'}</Typography>
                                         <View style={[styles.badge, { backgroundColor: colors.primarySoft }]}>
                                             <Typography variant="caption" color={colors.primary} style={{ fontSize: 10 }}>RECIPIENT</Typography>
                                         </View>
@@ -70,6 +76,40 @@ export default function CheckoutEntry() {
                         </>
                     )}
                 </Card>
+
+                {/* Delivery Status Card */}
+                {deliveryStatus && (
+                    <View style={{ marginTop: spacing.xl }}>
+                        <Typography variant="label" style={{ marginBottom: spacing.sm }}>Estimated Delivery</Typography>
+                        <Card
+                            variant="elevated"
+                            style={[
+                                styles.deliveryCard,
+                                { backgroundColor: deliveryStatus.canArriveOnTime ? colors.success + '15' : colors.error + '15' }
+                            ]}
+                        >
+                            <View style={[styles.deliveryIcon, { backgroundColor: deliveryStatus.canArriveOnTime ? colors.success : colors.error }]}>
+                                <Ionicons
+                                    name={deliveryStatus.canArriveOnTime ? "time-outline" : "alert-circle-outline"}
+                                    size={20}
+                                    color="#FFF"
+                                />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                                <Typography variant="bodyBold" color={deliveryStatus.canArriveOnTime ? colors.success : colors.error}>
+                                    {deliveryStatus.canArriveOnTime ? 'On-time delivery' : 'Potential Delay'}
+                                </Typography>
+                                <Typography variant="caption" color={colors.textSecondary}>
+                                    Estimated arrival: {deliveryStatus.arrivalDate}
+                                </Typography>
+                                <View style={{ height: 4 }} />
+                                <Typography variant="caption" color={colors.textSecondary}>
+                                    {deliveryStatus.recipientName}'s event is in {deliveryStatus.daysToOccasion} days. Delivery takes {deliveryStatus.deliveryDays} days.
+                                </Typography>
+                            </View>
+                        </Card>
+                    </View>
+                )}
 
                 {/* Gift Card */}
                 <Typography variant="label" style={{ marginTop: spacing.xl, marginBottom: spacing.sm }}>Selected Gift</Typography>
@@ -161,6 +201,20 @@ const styles = StyleSheet.create({
         height: 60,
         backgroundColor: '#F5F5F5',
         borderRadius: 8,
+    },
+    deliveryCard: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        padding: 16,
+        gap: 12,
+        borderRadius: 16,
+    },
+    deliveryIcon: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     footer: {
         width: '100%',

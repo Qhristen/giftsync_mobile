@@ -6,10 +6,21 @@ import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Button from '../ui/Button';
 import Typography from '../ui/Typography';
 
-const FilterSheet = forwardRef<BottomSheetRef, {}>((_, ref) => {
+export interface FilterOptions {
+    priceRange: string;
+    sortBy: string;
+}
+
+interface FilterSheetProps {
+    initialFilters?: FilterOptions;
+    onApply: (filters: FilterOptions) => void;
+}
+
+const FilterSheet = forwardRef<BottomSheetRef, FilterSheetProps>(({ initialFilters, onApply }, ref) => {
     const { colors, spacing } = useTheme();
-    const [priceRange, setPriceRange] = useState('All');
-    const [sortBy, setSortBy] = useState('Trending');
+    const [priceRange, setPriceRange] = useState(initialFilters?.priceRange || 'All');
+    const [sortBy, setSortBy] = useState(initialFilters?.sortBy || 'Trending');
+
 
     const prices = ['All', 'Under $50', '$50 - $100', 'Over $100'];
     const sorts = ['Trending', 'Price: Low to High', 'Price: High to Low', 'Newest'];
@@ -65,7 +76,10 @@ const FilterSheet = forwardRef<BottomSheetRef, {}>((_, ref) => {
                 })}
             </View>
 
-            <Button title="Apply Filters" onPress={() => (ref as any)?.current?.close()} style={{ marginTop: 'auto' }} />
+            <Button title="Apply Filters" onPress={() => {
+                onApply({ priceRange, sortBy });
+                (ref as any)?.current?.close();
+            }} style={{ marginTop: 'auto' }} />
         </BottomSheetWrapper>
     );
 });

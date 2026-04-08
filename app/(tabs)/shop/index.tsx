@@ -6,8 +6,9 @@ import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useTheme } from '@/hooks/useTheme';
-import { useGetMonthlyOccasionsQuery, useGetUpcomingOccasionsQuery } from '@/store/api/occasionApi';
-import { useGetProductsQuery } from '@/store/api/productApi';
+import { useGetUpcomingOccasionsQuery } from '@/store/api/occasionApi';
+import { useGetCategoriesQuery, useGetProductsQuery } from '@/store/api/productApi';
+import { formatCurrency } from '@/utils/formatCurrency';
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
@@ -31,17 +32,30 @@ export default function ShopScreen() {
     const [categoryLayouts, setCategoryLayouts] = useState<Record<string, { x: number; width: number }>>({});
     const giftSheet = useBottomSheet();
     const filterSheet = useBottomSheet();
+    const { data: categoriesData = [] } = useGetCategoriesQuery();
+    const categories = [{ id: 'All', name: 'All' }, ...categoriesData];
+
+    const [priceRange, setPriceRange] = useState('All');
+    const [sortBy, setSortBy] = useState('Trending');
 
     const queryParams: any = {};
-    if (activeCategory !== 'All') queryParams.category = activeCategory;
+    if (activeCategory !== 'All') queryParams.categoryId = activeCategory;
     if (debouncedSearch) queryParams.search = debouncedSearch;
+    if (sortBy !== 'Trending') queryParams.sortBy = sortBy.toLowerCase();
+
+    if (priceRange === 'Under $50') {
+        queryParams.maxPrice = 50;
+    } else if (priceRange === '$50 - $100') {
+        queryParams.minPrice = 50;
+        queryParams.maxPrice = 100;
+    } else if (priceRange === 'Over $100') {
+        queryParams.minPrice = 100;
+    }
 
     const { data: productsData, isLoading, error } = useGetProductsQuery(
         Object.keys(queryParams).length > 0 ? queryParams : undefined
     );
     const { data: upcomingOccasions = [] } = useGetUpcomingOccasionsQuery();
-
-    const categories = ['All', 'Personalised', 'Experiences', 'Jewelry', 'Flowers', 'Tech'];
 
     const banners = [
         {
@@ -152,17 +166,17 @@ export default function ShopScreen() {
                         contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: spacing.md, gap: 10 }}
                     >
                         {categories.map((cat, index) => {
-                            const isActive = activeCategory === cat;
+                            const isActive = activeCategory === cat.id;
                             return (
                                 <Pressable
-                                    key={cat}
+                                    key={cat.id}
                                     onLayout={(e) => {
                                         const layout = e.nativeEvent.layout;
-                                        setCategoryLayouts(prev => ({ ...prev, [cat]: layout }));
+                                        setCategoryLayouts(prev => ({ ...prev, [cat.id]: layout }));
                                     }}
                                     onPress={() => {
-                                        setActiveCategory(cat);
-                                        const layout = categoryLayouts[cat];
+                                        setActiveCategory(cat.id);
+                                        const layout = categoryLayouts[cat.id];
                                         if (layout && categoryScrollRef.current) {
                                             categoryScrollRef.current.scrollTo({
                                                 x: layout.x - (width / 2) + (layout.width / 2),
@@ -178,18 +192,18 @@ export default function ShopScreen() {
                                         }
                                     ]}
                                 >
-                                    <Typography variant="label" color={isActive ? '#FFFFFF' : colors.textPrimary}>{cat}</Typography>
+                                    <Typography variant="label" color={isActive ? '#FFFFFF' : colors.textPrimary}>{cat.name}</Typography>
                                 </Pressable>
                             );
                         })}
                     </ScrollView>
 
-                    <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing.md, marginBottom: spacing.md, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    {/* <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing.md, marginBottom: spacing.md, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Typography variant="h4">Trending Now</Typography>
                         <Pressable>
                             <Typography variant="label" color={colors.primary}>See All</Typography>
                         </Pressable>
-                    </View>
+                    </View> */}
                 </>
             ) : (
                 <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing.md, marginBottom: spacing.md }}>
@@ -212,10 +226,10 @@ export default function ShopScreen() {
                 >
                     <View style={styles.imageContainer}>
                         <Image source={{ uri: product.imageUrls?.[0] }} style={styles.productImageFull} contentFit="cover" />
-                        <View style={styles.ratingBadge}>
+                        {/* <View style={styles.ratingBadge}>
                             <Ionicons name="star" size={12} color="#F59E0B" />
                             <Typography variant="caption" style={{ fontWeight: 'bold' }}>{product.ratingAvg || '4.5'}</Typography>
-                        </View>
+                        </View> */}
                     </View>
 
                     <View style={styles.cardContent}>
@@ -223,7 +237,7 @@ export default function ShopScreen() {
                         <Typography variant="caption" color={colors.textSecondary} numberOfLines={1} style={{ marginTop: 2 }}>{product.business?.name || 'GiftSync Choice'}</Typography>
 
                         <View style={styles.priceRow}>
-                            <Typography variant="bodyBold" color={colors.primary}>{product.currency} {product.price}</Typography>
+                            <Typography variant="bodyBold" color={colors.primary}>{formatCurrency(product.price, product.currency)}</Typography>
                             <Pressable
                                 style={[styles.miniSendBtn, { backgroundColor: colors.primary + '15' }]}
                                 onPress={(e) => {
@@ -278,7 +292,14 @@ export default function ShopScreen() {
                 }}
             />
 
-            <FilterSheet ref={filterSheet.ref} />
+            <FilterSheet
+                ref={filterSheet.ref}
+                initialFilters={{ priceRange, sortBy }}
+                onApply={(filters) => {
+                    setPriceRange(filters.priceRange);
+                    setSortBy(filters.sortBy);
+                }}
+            />
         </View>
     );
 }
@@ -351,11 +372,11 @@ const styles = StyleSheet.create({
     newProductCard: {
         borderRadius: 20,
         overflow: 'hidden',
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.05,
-        shadowRadius: 10,
-        elevation: 3,
+        // shadowColor: "#000",
+        // shadowOffset: { width: 0, height: 6 },
+        // shadowOpacity: 0.05,
+        // shadowRadius: 10,
+        // elevation: 3,
         borderWidth: 1,
         borderColor: 'rgba(0,0,0,0.02)',
     },

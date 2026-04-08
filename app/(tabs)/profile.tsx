@@ -9,12 +9,14 @@ import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
 import { RootState } from '@/store';
+import { useDeleteAccountMutation } from '@/store/api/userApi';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { logoutUser } from '@/store/slices/authSlice';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { toast } from 'sonner-native';
 
 export default function ProfileScreen() {
     const router = useRouter();
@@ -25,6 +27,8 @@ export default function ProfileScreen() {
     const logoutSheet = useBottomSheet();
     const deleteUserSheet = useBottomSheet();
     const addressSheet = useBottomSheet();
+
+    const [deleteAccount, { isLoading: isDeleting }] = useDeleteAccountMutation();
 
     const { user } = useAppSelector((state: RootState) => state.auth);
     const [currency, setCurrency] = useState('NGN');
@@ -41,8 +45,15 @@ export default function ProfileScreen() {
             title: 'Preferences',
             items: [
                 { label: 'Appearance', icon: 'moon-outline', onPress: () => themeSheet.open(), extra: scheme },
-                { label: 'Notifications', icon: 'notifications-outline', onPress: () => router.push('/notifications') },
-                { label: 'Currency', icon: 'cash-outline', onPress: () => currencySheet.open(), extra: currency },
+                // { label: 'Notifications', icon: 'notifications-outline', onPress: () => router.push('/notifications') },
+                // { label: 'Currency', icon: 'cash-outline', onPress: () => currencySheet.open(), extra: currency },
+            ],
+        },
+        {
+            title: 'Vendors point',
+            items: [
+                { label: 'Business Info', icon: 'business-outline', onPress: () => router.push('/profile/business-info') },
+               user?.business ? { label: 'My Products', icon: 'cube-outline', onPress: () => router.push('/profile/my-products') } : {},
             ],
         },
         {
@@ -97,9 +108,9 @@ export default function ProfileScreen() {
                                         <Ionicons name={item.icon as any} size={20} color={colors.primary} />
                                     </View>
                                     <Typography variant="body" style={{ flex: 1 }}>{item.label}</Typography>
-                                    {item.extra && (
+                                    {item?.extra && (
                                         <Typography variant="caption" color={colors.textSecondary} style={{ marginRight: 8 }}>
-                                            {item.extra}
+                                            {item?.extra}
                                         </Typography>
                                     )}
                                     <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
@@ -162,9 +173,17 @@ export default function ProfileScreen() {
                 title="Delete Account"
                 description="Are you sure you want to permanently delete your account and all associated data? This action cannot be undone."
                 confirmLabel="Delete Account"
-                onConfirm={() => {
-                    deleteUserSheet.close();
-                    router.replace('/(auth)/welcome');
+                isLoading={isDeleting}
+                onConfirm={async () => {
+                    try {
+                        await deleteAccount().unwrap();
+                        toast.success('Account deleted', { description: 'Your account has been deleted.' });
+                        deleteUserSheet.close();
+                        router.replace('/(auth)/welcome');
+                        dispatch(logoutUser());
+                    } catch (error: any) {
+                        toast.error('Error', { description: error?.data?.message || 'Failed to delete account' });
+                    }
                 }}
             />
         </View>

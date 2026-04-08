@@ -4,15 +4,13 @@ import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
-import { RootState } from '@/store';
-import { useCreateConversationMutation } from '@/store/api/chatApi';
 import { useGetOrdersQuery } from '@/store/api/orderApi';
-import { useAppSelector } from '@/store/hooks';
 import { Order } from '@/types';
 import { formatDate } from '@/utils/dateUtils';
-import { formatNGN } from '@/utils/formatCurrency';
+import { formatCurrency } from '@/utils/formatCurrency';
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
@@ -25,15 +23,10 @@ export default function OrderListScreen() {
     const orderSheet = useBottomSheet();
 
     const { data: orders = [], isLoading, refetch } = useGetOrdersQuery();
-    const [createChat, { isLoading: isCreatingChat }] = useCreateConversationMutation();
-    console.log(selectedOrder, "selected")
-    const handleChat = async (orderId: string) => {
+    
+    const handleChat = async (conversationId: string) => {
         try {
-            const chat = await createChat({
-                orderId,
-                participantIds: [selectedOrder?.business?.userId as string]
-            }).unwrap();
-            router.push(`/chat/${chat.id}`);
+            router.push(`/chat/${conversationId}`);
         } catch (error) {
             console.error('Failed to create/join chat:', error);
         }
@@ -84,6 +77,8 @@ export default function OrderListScreen() {
                     refreshing={isLoading}
                     renderItem={({ item }) => {
                         const productName = item.item.product.name;
+                        const productImage = item.item.product.imageUrls?.[0];
+
                         return (
                             <Card
                                 variant="elevated"
@@ -94,10 +89,19 @@ export default function OrderListScreen() {
                                 }}
                             >
                                 <View style={styles.orderTop}>
-                                    <View style={styles.placeholderImage} />
+                                    {productImage ? (
+                                        <Image
+                                            source={{ uri: productImage }}
+                                            style={styles.orderImage}
+                                            contentFit="cover"
+                                            transition={200}
+                                        />
+                                    ) : (
+                                        <View style={styles.placeholderImage} />
+                                    )}
                                     <View style={{ flex: 1 }}>
                                         <Typography variant="bodyBold">{productName}</Typography>
-                                        <Typography variant="caption" color={colors.textSecondary}>To {item.recipientName}</Typography>
+                                        <Typography variant="caption" color={colors.textSecondary}>To {item.occasion?.contactName}</Typography>
                                     </View>
                                     <Badge
                                         label={item.status}
@@ -109,16 +113,28 @@ export default function OrderListScreen() {
                                 <View style={styles.orderFooter}>
                                     <View>
                                         <Typography variant="caption" color={colors.textMuted}>{formatDate(item.createdAt)}</Typography>
-                                        <Typography variant="label" color={colors.primary}>{formatNGN(item.total)}</Typography>
+                                        <Typography variant="label" color={colors.primary}>{formatCurrency(item.total)}</Typography>
                                     </View>
 
-                                    <Pressable
-                                        onPress={() => handleChat(item.id)}
-                                        style={[styles.cardChatBtn, { backgroundColor: colors.primary + '10' }]}
-                                    >
-                                        <Ionicons name="chatbubble-ellipses" size={16} color={colors.primary} />
-                                        <Typography variant="label" color={colors.primary} style={{ fontSize: 12 }}>Chat Vendor</Typography>
-                                    </Pressable>
+                                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                                        {item.paymentStatus !== 'paid' && item.status !== 'Cancelled' ? (
+                                            <Pressable
+                                                onPress={() => router.push({ pathname: '/checkout/payment', params: { orderId: item.id } })}
+                                                style={[styles.cardChatBtn, { backgroundColor: colors.success + '10' }]}
+                                            >
+                                                <Ionicons name="card-outline" size={16} color={colors.success} />
+                                                <Typography variant="label" color={colors.success} style={{ fontSize: 12 }}>Pay Now</Typography>
+                                            </Pressable>
+                                        ): item.conversationId &&
+                                        <Pressable
+                                            onPress={() => handleChat(item.id)}
+                                            style={[styles.cardChatBtn, { backgroundColor: colors.primary + '10' }]}
+                                        >
+                                            <Ionicons name="chatbubble-ellipses" size={16} color={colors.primary} />
+                                            <Typography variant="label" color={colors.primary} style={{ fontSize: 12 }}>Chat Vendor</Typography>
+                                        </Pressable>
+                                        }
+                                    </View>
                                 </View>
                             </Card>
                         );
@@ -184,6 +200,11 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 12,
+    },
+    orderImage: {
+        width: 48,
+        height: 48,
+        borderRadius: 8,
     },
     placeholderImage: {
         width: 48,

@@ -21,6 +21,7 @@ export interface Business {
   description: string;
   businessAddress: string;
   websiteUrl: string;
+  instagramHandle?: string;
   location: string;
   bankName: string;
   bankAccountName: string;
@@ -28,16 +29,60 @@ export interface Business {
   isVerified: boolean;
 }
 
+export interface CreateBusinessDto {
+  name: string;
+  email: string;
+  phone: string;
+  logoUrl: string;
+  description: string;
+  businessAddress: string;
+  websiteUrl: string;
+  bankName: string;
+  bankAccountName: string;
+  bankAccountNumber: string;
+}
+
+export interface UpdateBusinessDto extends Partial<CreateBusinessDto> { }
+
+export interface Contact {
+  id: string;
+  userId: string;
+  name: string;
+  phoneNumber: string;
+  email?: string;
+  avatar?: string;
+  relationship?: string;
+  interests?: string[];
+  budget?: 'LOW' | 'MID' | 'HIGH';
+  notes?: string;
+  source?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateContactDto {
+  name: string;
+  phoneNumber: string;
+  // email?: string;
+  avatar?: string;
+  relationship?: string;
+  interests?: string[];
+  budget?: 'LOW' | 'MID' | 'HIGH' | string;
+  notes?: string;
+  source?: string;
+}
+
+export interface UpdateContactDto extends Partial<CreateContactDto> { }
+
 export interface Occasion {
   id: string;
   userId: string;
+  contactId: string;
+  contact?: Contact;
   type: string;
   date: string;
   recursYearly: boolean;
   source: string;
-  contactName?: string;
-  contactNumber?: string;
-  contactAvatar?: string;
   dotColor: string;
   notes?: string;
   createdAt: string;
@@ -45,41 +90,56 @@ export interface Occasion {
 }
 
 export interface CreateOccasionDto {
+  contactId: string;
   type: string;
   date: string;
-  contactName?: string;
+  dotColor?: 'red' | 'blue' | 'green' | string;
   notes?: string;
-  contactAvatar?: string;
-  contactNumber?: string;
-  dotColor: string;
+  source?: string
 }
 
 export interface UpdateOccasionDto extends Partial<CreateOccasionDto> { }
+
+export interface Category {
+  id: string;
+  name: string;
+}
 
 export interface Product {
   id: string;
   businessId: string;
   name: string;
+  description?: string;
   price: number;
   currency: string;
   imageUrls: string[];
-  category: string;
+  category: Category;
   tags: string[];
   ratingAvg: number;
   ratingCount: number;
   isAvailable: boolean;
+  deliveryDays: number;
   business: Business;
 }
 
 export interface CreateProductDto {
   name: string;
-  description?: string;
+  description: string;
   price: number;
+  packagingFee: number;
+  deliveryFee: number;
   currency?: string;
   imageUrls: string[];
-  category: string;
+  categoryId: string;
   tags?: string[];
   isAvailable?: boolean;
+}
+
+export interface UpdateProductDto extends Partial<CreateProductDto> { }
+
+export interface RecommendationInputDto {
+  occasionId: string;
+  limit?: number;
 }
 
 export interface PaginationMeta {
@@ -117,7 +177,7 @@ export interface Notification {
   title: string;
   body: string;
   data: Record<string, string>;
-  isRead: false;
+  isRead: boolean;
   sentAt: string;
   createdAt: string;
 }
@@ -147,6 +207,9 @@ export interface Order {
   deliveryFee: number;
   packagingFee: number;
   total: number;
+  deliveryCode: string;
+  anonymity: boolean;
+  conversationId: string;
   businessId: string;
   business: Business;
   occasion: Occasion;

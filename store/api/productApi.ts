@@ -1,4 +1,4 @@
-import { CreateProductDto, PaginatedProductResponse, Product } from '@/types';
+import { Category, CreateProductDto, PaginatedProductResponse, Product } from '@/types';
 import { baseApi } from './baseApi';
 
 export const productApi = baseApi.injectEndpoints({
@@ -9,22 +9,37 @@ export const productApi = baseApi.injectEndpoints({
                 method: 'GET',
                 params,
             }),
-            providesTags: ['Recommendations' as any],
+            providesTags: ['Recommendations'],
         }),
-        getProducts: builder.query<PaginatedProductResponse, { category?: string; search?: string; page?: number; limit?: number } | void>({
+        getRecommendationsV2: builder.query<Product[], { occasionId: string; limit?: number }>({
+            query: (data) => ({
+                url: '/api/v1/recommendations/v2',
+                method: 'POST',
+                data,
+            }),
+            providesTags: ['Recommendations'],
+        }),
+        getProducts: builder.query<PaginatedProductResponse, { categoryId?: string; search?: string; page?: number; limit?: number } | void>({
             query: (params) => ({
                 url: '/api/v1/products',
                 method: 'GET',
                 params,
             }),
-            providesTags: ['Products' as any],
+            providesTags: ['Products'],
+        }),
+        getProductsByBusiness: builder.query<Product[], string>({
+            query: (businessId) => ({
+                url: `/api/v1/products/business/${businessId}`,
+                method: 'GET',
+            }),
+            providesTags: ['Products'],
         }),
         getProductById: builder.query<Product, string>({
             query: (id) => ({
                 url: `/api/v1/products/${id}`,
                 method: 'GET'
             }),
-            providesTags: (result, error, id) => [{ type: 'Products' as any, id }],
+            providesTags: (result, error, id) => [{ type: 'Products', id }],
         }),
         createProduct: builder.mutation<Product, { businessId: string; data: CreateProductDto }>({
             query: ({ businessId, data }) => ({
@@ -32,14 +47,26 @@ export const productApi = baseApi.injectEndpoints({
                 method: 'POST',
                 data,
             }),
-            invalidatesTags: ['Products' as any],
+            invalidatesTags: ['Products'],
         }),
         deleteProduct: builder.mutation<void, { businessId: string; productId: string }>({
             query: ({ businessId, productId }) => ({
                 url: `/api/v1/products/business/${businessId}/${productId}`,
                 method: 'DELETE',
             }),
-            invalidatesTags: ['Products' as any],
+            invalidatesTags: ['Products'],
+        }),
+        getCategories: builder.query<Category[], void>({
+            query: () => ({
+                url: '/api/v1/categories',
+                method: 'GET',
+            }),
+        }),
+        getCategoryById: builder.query<Category, string>({
+            query: (id) => ({
+                url: `/api/v1/categories/${id}`,
+                method: 'GET',
+            }),
         }),
     }),
     overrideExisting: true,
@@ -47,8 +74,12 @@ export const productApi = baseApi.injectEndpoints({
 
 export const {
     useGetRecommendationsQuery,
+    useGetRecommendationsV2Query,
     useGetProductsQuery,
+    useGetProductsByBusinessQuery,
     useGetProductByIdQuery,
     useCreateProductMutation,
-    useDeleteProductMutation
+    useDeleteProductMutation,
+    useGetCategoriesQuery,
+    useGetCategoryByIdQuery
 } = productApi;

@@ -8,7 +8,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Typography from '../ui/Typography';
 
-const ThemePickerSheet = forwardRef<BottomSheetRef, {}>((_, ref) => {
+interface ThemePickerSheetProps {
+    onSelect?: (preference: ThemePreference) => void;
+}
+
+const ThemePickerSheet = forwardRef<BottomSheetRef, ThemePickerSheetProps>(({ onSelect }, ref) => {
     const { colors, spacing } = useTheme();
     const dispatch = useDispatch();
     const currentPreference = useSelector((state: RootState) => state.theme.preference);
@@ -21,7 +25,9 @@ const ThemePickerSheet = forwardRef<BottomSheetRef, {}>((_, ref) => {
 
     const handleSelect = (preference: ThemePreference) => {
         dispatch(setThemePreference(preference));
-        // As per PRD, the sheet remains open for live preview but the selection is applied.
+        if (onSelect) {
+            onSelect(preference);
+        }
     };
 
     return (

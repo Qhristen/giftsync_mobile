@@ -1,10 +1,10 @@
-import { Notification, UnreadCount } from "@/types";
+import { Notification, PaginationMeta, UnreadCount } from "@/types";
 import { baseApi } from "./baseApi";
 
 export const notificationApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getNotifications: builder.query<
-      Notification[],
+      { items: Notification[], meta: PaginationMeta },
       { page: number; limit: number }
     >({
       query: (params) => ({
@@ -30,10 +30,38 @@ export const notificationApi = baseApi.injectEndpoints({
         method: "POST",
         data,
       }),
-      invalidatesTags: ["Products" as any],
+      invalidatesTags: ["Notifications"],
+    }),
+    markAsRead: builder.mutation<void, string>({
+      query: (id) => ({
+        url: `/api/v1/notifications/${id}/read`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["Notifications"],
+    }),
+    markAllAsRead: builder.mutation<void, void>({
+      query: () => ({
+        url: "/api/v1/notifications/read-all",
+        method: "PATCH",
+      }),
+      invalidatesTags: ["Notifications"],
+    }),
+    deleteNotification: builder.mutation<void, string>({
+      query: (id) => ({
+        url: `/api/v1/notifications/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Notifications"],
     }),
   }),
   overrideExisting: true,
 });
 
-export const { useGetUnreadCountQuery, useRegisterDeviceTokenMutation } = notificationApi;
+export const {
+  useGetUnreadCountQuery,
+  useRegisterDeviceTokenMutation,
+  useGetNotificationsQuery,
+  useMarkAsReadMutation,
+  useMarkAllAsReadMutation,
+  useDeleteNotificationMutation
+} = notificationApi;

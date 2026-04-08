@@ -8,11 +8,13 @@ import { useTheme } from '@/hooks/useTheme';
 import { useGetUpcomingOccasionsQuery } from '@/store/api/occasionApi';
 import { useGetProductByIdQuery } from '@/store/api/productApi';
 import { Occasion } from '@/types';
+import { calculateDeliveryStatus } from '@/utils/dateUtils';
+import { formatCurrency } from '@/utils/formatCurrency';
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ActivityIndicator, Dimensions, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 
@@ -27,6 +29,16 @@ export default function ShopItemDetailScreen() {
 
     const { data: upcomingOccasions = [] } = useGetUpcomingOccasionsQuery();
     const { data: product, isLoading, error } = useGetProductByIdQuery(id as string);
+
+    const selectedOccasion = useMemo(() => {
+        if (occasionId) return upcomingOccasions.find(o => o.id === occasionId);
+        return null;
+    }, [occasionId, upcomingOccasions]);
+
+    const deliveryStatus = useMemo(() => {
+        if (!product || !selectedOccasion) return null;
+        return calculateDeliveryStatus(selectedOccasion.date, product.deliveryDays, selectedOccasion.contact?.name);
+    }, [product, selectedOccasion]);
 
     if (isLoading) {
         return (
@@ -101,7 +113,7 @@ export default function ShopItemDetailScreen() {
                     <View style={styles.titleRow}>
                         <View style={{ flex: 1 }}>
                             <Typography variant="h2">{product.name}</Typography>
-                            <Typography variant="h3" color={colors.primary} style={{ marginTop: 4 }}>{product.currency} {product.price}</Typography>
+                            <Typography variant="h3" color={colors.primary} style={{ marginTop: 4 }}>{formatCurrency(product.price, product.currency)}</Typography>
                         </View>
                         <View style={[styles.ratingBadge, { backgroundColor: colors.surfaceRaised }]}>
                             <Ionicons name="star" size={16} color="#FFD700" />
@@ -118,10 +130,43 @@ export default function ShopItemDetailScreen() {
                         <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
                     </Card>
 
+                    {deliveryStatus && (
+                        <View style={{ marginTop: spacing.xl }}>
+                            <Typography variant="h4" style={{ marginBottom: spacing.md }}>Delivery Status</Typography>
+                            <Card
+                                variant="elevated"
+                                style={[
+                                    styles.deliveryCard,
+                                    { backgroundColor: deliveryStatus.canArriveOnTime ? colors.success + '15' : colors.error + '15' }
+                                ]}
+                            >
+                                <View style={[styles.deliveryIcon, { backgroundColor: deliveryStatus.canArriveOnTime ? colors.success : colors.error }]}>
+                                    <Ionicons
+                                        name={deliveryStatus.canArriveOnTime ? "time-outline" : "alert-circle-outline"}
+                                        size={20}
+                                        color="#FFF"
+                                    />
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                    <Typography variant="bodyBold" color={deliveryStatus.canArriveOnTime ? colors.success : colors.error}>
+                                        {deliveryStatus.canArriveOnTime ? 'Arrives on time' : 'Might be late'}
+                                    </Typography>
+                                    <Typography variant="caption" color={colors.textSecondary}>
+                                        Estimated arrival: {deliveryStatus.arrivalDate}
+                                    </Typography>
+                                    <View style={{ height: 4 }} />
+                                    <Typography variant="caption" color={colors.textSecondary}>
+                                        {deliveryStatus.recipientName}'s event is in {deliveryStatus.daysToOccasion} days. This gift takes {deliveryStatus.deliveryDays} days to deliver.
+                                    </Typography>
+                                </View>
+                            </Card>
+                        </View>
+                    )}
+
                     <View style={{ marginTop: spacing.xl }}>
                         <Typography variant="h4" style={{ marginBottom: spacing.sm }}>Category</Typography>
                         <Typography variant="body" color={colors.textSecondary} style={{ lineHeight: 24 }}>
-                            {product.category}
+                            {product?.category?.name}
                         </Typography>
                     </View>
 
@@ -220,6 +265,20 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         padding: 12,
+    },
+    deliveryCard: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        padding: 16,
+        gap: 12,
+        borderRadius: 16,
+    },
+    deliveryIcon: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     featureItem: {
         flexDirection: 'row',

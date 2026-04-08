@@ -6,9 +6,10 @@ import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { useGetUnreadCountQuery } from '@/store/api/notificationApi';
 import { useGetMonthlyOccasionsQuery, useGetUpcomingOccasionsQuery } from '@/store/api/occasionApi';
-import { useGetRecommendationsQuery } from '@/store/api/productApi';
+import { useGetRecommendationsV2Query } from '@/store/api/productApi';
 import { useGetProfileQuery } from '@/store/api/userApi';
 import { getCountdown } from '@/utils/dateUtils';
+import { formatCurrency } from '@/utils/formatCurrency';
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
@@ -36,9 +37,9 @@ export default function HomeScreen() {
 
     // Use the first upcoming occasion for specific recommendations, otherwise generic
     const firstUpcoming = upcoming[0];
-    const { data: recs = [], isLoading: isRecsLoading, refetch: refetchRecs } = useGetRecommendationsQuery(
-        firstUpcoming ? { occasionId: firstUpcoming.id } : {},
-        { skip: isUpcomingLoading }
+    const { data: recs = [], isLoading: isRecsLoading, refetch: refetchRecs } = useGetRecommendationsV2Query(
+        { occasionId: firstUpcoming?.id as string, limit: 10 },
+        { skip: !firstUpcoming || isUpcomingLoading }
     );
 
 
@@ -90,23 +91,22 @@ export default function HomeScreen() {
                     </View>
                 </Animated.View>
 
-                {/* Hero Carousel */}
-                {upcoming.length > 0 && (
+                {/* Hero Carousel or Onboarding */}
+                {upcoming.length > 0 ? (
                     <Animated.View entering={FadeInDown.delay(200).duration(600)}>
                         <FlashList
                             data={upcoming}
                             horizontal
                             pagingEnabled
                             showsHorizontalScrollIndicator={false}
-                            // estimatedItemSize={width}
                             keyExtractor={(item) => item.id}
                             renderItem={({ item }) => (
                                 <View style={{ width, paddingHorizontal: spacing.xl }}>
                                     <Card variant="elevated" style={[styles.heroCard, { backgroundColor: colors.primary }]}>
                                         <View style={styles.heroHeader}>
-                                            <Avatar uri={item.contactAvatar} name={item.contactName} size="lg" />
+                                            <Avatar uri={item.contact?.avatar} name={item.contact?.name} size="lg" />
                                             <View>
-                                                <Typography variant="h3" color="#FFFFFF">{item.contactName}</Typography>
+                                                <Typography variant="h3" color="#FFFFFF">{item.contact?.name}</Typography>
                                                 <Typography variant="body" color="#FFFFFF" style={{ opacity: 0.9 }}>{item.type}</Typography>
                                             </View>
                                         </View>
@@ -125,6 +125,27 @@ export default function HomeScreen() {
                                 </View>
                             )}
                         />
+                    </Animated.View>
+                ) : (
+                    <Animated.View entering={FadeInDown.delay(200).duration(600)} style={{ paddingHorizontal: spacing.xl }}>
+                        <Card variant="elevated" style={[styles.onboardingCard, { backgroundColor: colors.surfaceRaised }]}>
+                            <View style={styles.onboardingContent}>
+                                <View style={[styles.onboardingIcon, { backgroundColor: colors.primary + '15' }]}>
+                                    <Ionicons name="gift-outline" size={32} color={colors.primary} />
+                                </View>
+                                <View style={{ flex: 1, gap: 4 }}>
+                                    <Typography variant="h3">Never miss a moment</Typography>
+                                    <Typography variant="body" color={colors.textSecondary}>
+                                        Add your first contact and we'll help you track their special occasions with personalized gift ideas.
+                                    </Typography>
+                                </View>
+                            </View>
+                            <Button
+                                title="Add Your First Occasion"
+                                onPress={() => router.push('/(tabs)/occasions')}
+                                style={{ marginTop: 8 }}
+                            />
+                        </Card>
                     </Animated.View>
                 )}
 
@@ -151,7 +172,9 @@ export default function HomeScreen() {
                         <Typography variant="h4" style={{ marginBottom: spacing.md }}>This Month</Typography>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
                             {monthly.map((occ) => (
-                                <Badge key={occ.id} label={occ.contactName ?? ""} outline variant="primary" />
+                                <Pressable key={occ.id} onPress={() => router.push({ pathname: '/(tabs)/occasions/[id]', params: { id: occ.id } })}>
+                                    <Badge label={occ.contact?.name || ""} outline variant="primary" />
+                                </Pressable>
                             ))}
                         </ScrollView>
                     </Animated.View>
@@ -161,7 +184,7 @@ export default function HomeScreen() {
                 <Animated.View entering={FadeInDown.delay(600).duration(600)} style={{ marginTop: 32 }}>
                     <View style={[styles.sectionHeader, { paddingHorizontal: spacing.xl }]}>
                         <Typography variant="h4">
-                            {firstUpcoming ? `Picked for ${firstUpcoming.contactName}` : 'Recommendations'}
+                            {firstUpcoming ? `Picked for ${firstUpcoming.contact?.name}` : 'Recommendations'}
                         </Typography>
                         <Pressable onPress={() => router.push('/(tabs)/shop')}><Typography variant="label" color={colors.primary}>See all →</Typography></Pressable>
                     </View>
@@ -188,8 +211,11 @@ export default function HomeScreen() {
                                         <Typography variant="bodyBold" numberOfLines={1}>{item.name}</Typography>
                                         <Typography variant="caption" color={colors.textSecondary}>{item.business?.name}</Typography>
                                         <View style={styles.recFooter}>
-                                            <Typography variant="label" color={colors.primary}>{item.currency} {item.price}</Typography>
-                                            <Ionicons name="heart-outline" size={20} color={colors.textMuted} />
+                                            <Typography variant="label" color={colors.primary}>{formatCurrency(item.price, item.currency)}</Typography>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                                <Ionicons name="time-outline" size={14} color={colors.success} />
+                                                <Typography variant="caption" color={colors.success}>{item.deliveryDays}d</Typography>
+                                            </View>
                                         </View>
                                         <Button
                                             title="Send as Gift →"
@@ -202,8 +228,11 @@ export default function HomeScreen() {
                             )}
                         />
                     ) : (
-                        <View style={{ padding: spacing.xl, alignItems: 'center' }}>
-                            <Typography variant="body" color={colors.textSecondary}>No recommendations found.</Typography>
+                        <View style={{ paddingHorizontal: spacing.xl, paddingVertical: spacing.xl, alignItems: 'center', gap: 12 }}>
+                            <Ionicons name="sparkles-outline" size={32} color={colors.textSecondary} style={{ opacity: 0.5 }} />
+                            <Typography variant="body" color={colors.textSecondary} align="center">
+                                Once you add an occasion, we'll suggest the perfect gifts right here.
+                            </Typography>
                         </View>
                     )}
                 </Animated.View>
@@ -293,5 +322,22 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         marginTop: 4,
+    },
+    onboardingCard: {
+        padding: 24,
+        borderRadius: 24,
+        gap: 20,
+    },
+    onboardingContent: {
+        flexDirection: 'row',
+        gap: 16,
+        alignItems: 'flex-start',
+    },
+    onboardingIcon: {
+        width: 64,
+        height: 64,
+        borderRadius: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
 });

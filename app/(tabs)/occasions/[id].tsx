@@ -1,11 +1,13 @@
+import CreateOccasionSheet from '@/components/sheets/CreateOccasionSheet';
 import Avatar from '@/components/ui/Avatar';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
+import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
 import { useGetOccasionDetailQuery } from '@/store/api/occasionApi';
-import { useGetRecommendationsQuery } from '@/store/api/productApi';
+import { useGetRecommendationsV2Query } from '@/store/api/productApi';
 import { getCountdown } from '@/utils/dateUtils';
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
@@ -23,13 +25,13 @@ export default function OccasionDetailScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
 
-    const { data: occasion, isLoading, error } = useGetOccasionDetailQuery(id as string, { skip: !id });
+    const { data: occasion, isLoading, error, refetch } = useGetOccasionDetailQuery(id as string, { skip: !id });
+    const editSheet = useBottomSheet();
 
-    const { data: recs = [], isLoading: isRecsLoading, refetch: refetchRecs } = useGetRecommendationsQuery(
-        { occasionId: occasion?.id as string },
+    const { data: recs = [], isLoading: isRecsLoading } = useGetRecommendationsV2Query(
+        { occasionId: occasion?.id as string, limit: 10 },
         { skip: !occasion?.id }
     );
-
 
     if (isLoading) {
         return (
@@ -59,14 +61,14 @@ export default function OccasionDetailScreen() {
                             <Ionicons name="arrow-back" size={24} color="#FFF" />
                         </Pressable>
                         <Typography variant="h4" color="#FFF">Occasion Details</Typography>
-                        <Pressable style={styles.iconBtn}>
+                        <Pressable style={styles.iconBtn} onPress={() => editSheet.open()}>
                             <Ionicons name="create-outline" size={24} color="#FFF" />
                         </Pressable>
                     </View>
 
                     <Animated.View entering={FadeInDown.duration(500)} style={styles.heroContent}>
-                        <Avatar uri={occasion.contactAvatar} name={occasion.contactName} size="xl" />
-                        <Typography variant="h1" color="#FFF" style={{ marginTop: 16 }}>{occasion.contactName}</Typography>
+                        <Avatar uri={occasion.contact?.avatar} name={occasion.contact?.name} size="xl" />
+                        <Typography variant="h1" color="#FFF" style={{ marginTop: 16 }}>{occasion.contact?.name}</Typography>
                         <Badge label={occasion.type} variant="primary" style={{ marginTop: 8, alignSelf: 'center', backgroundColor: 'rgba(255,255,255,0.2)' }} />
                     </Animated.View>
                 </View>
@@ -91,18 +93,6 @@ export default function OccasionDetailScreen() {
 
                         <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
-                        {/* <View style={styles.detailRow}>
-                            <View style={[styles.detailIconBg, { backgroundColor: colors.secondary + '15' }]}>
-                                <Ionicons name="gift-outline" size={24} color={colors.secondary} />
-                            </View>
-                            <View style={{ flex: 1, marginLeft: 16 }}>
-                                <Typography variant="caption" color={colors.textSecondary}>Recurrence</Typography>
-                                <Typography variant="bodyBold" style={{ marginTop: 2 }}>
-                                    {occasion.recursYearly ? 'Repeats Yearly' : 'One-time Occasion'}
-                                </Typography>
-                            </View>
-                        </View> */}
-
                         {occasion.notes && (
                             <>
                                 <View style={[styles.divider, { backgroundColor: colors.border }]} />
@@ -124,10 +114,7 @@ export default function OccasionDetailScreen() {
                     {/* Premium Action Banner */}
                     <Animated.View entering={FadeInUp.delay(400).duration(500)} style={{ marginTop: 32 }}>
                         <Typography variant="h3" style={{ marginBottom: 16 }}>Find the Perfect Gift</Typography>
-                        <Card style={[styles.collectionCard, { backgroundColor: '#1A1A1A' }]} onPress={() => router.push({
-                            pathname: '/checkout',
-                            params: { occasionId: occasion.id }
-                        })}>
+                        <Card style={[styles.collectionCard, { backgroundColor: '#1A1A1A' }]} onPress={() => router.push('/(tabs)/shop')}>
                             <Image
                                 source={{ uri: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&q=80&w=800' }}
                                 style={[StyleSheet.absoluteFillObject, { opacity: 0.5 }]}
@@ -137,7 +124,7 @@ export default function OccasionDetailScreen() {
                                 <View>
                                     <Typography variant="h2" color="#FFFFFF">The {occasion.type} Edit</Typography>
                                     <Typography variant="body" color="#FFFFFF" style={{ opacity: 0.8, marginTop: 4 }}>
-                                        Exclusive gifts curated for {occasion.contactName}
+                                        Exclusive gifts curated for {occasion.contact?.name}
                                     </Typography>
                                 </View>
                                 <View style={[styles.exploreBtn, { backgroundColor: colors.primary }]}>
@@ -150,7 +137,7 @@ export default function OccasionDetailScreen() {
 
                     <View style={[styles.sectionHeader, { paddingTop: spacing['4xl'] }]}>
                         <Typography variant="h4">
-                            {`Picked for ${occasion.contactName}`}
+                            {`Picked for ${occasion.contact?.name}`}
                         </Typography>
                         <Pressable onPress={() => router.push('/(tabs)/shop')}><Typography variant="label" color={colors.primary}>See all →</Typography></Pressable>
                     </View>
@@ -178,7 +165,10 @@ export default function OccasionDetailScreen() {
                                         <Typography variant="caption" color={colors.textSecondary}>{item.business?.name}</Typography>
                                         <View style={styles.recFooter}>
                                             <Typography variant="label" color={colors.primary}>{item.currency} {item.price}</Typography>
-                                            <Ionicons name="heart-outline" size={20} color={colors.textMuted} />
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                                <Ionicons name="time-outline" size={14} color={colors.success} />
+                                                <Typography variant="caption" color={colors.success}>{item.deliveryDays}d</Typography>
+                                            </View>
                                         </View>
                                         <Button
                                             title="Send as Gift →"
@@ -198,6 +188,13 @@ export default function OccasionDetailScreen() {
 
                 </Animated.View>
             </ScrollView>
+
+            <CreateOccasionSheet
+                ref={editSheet.ref}
+                isEditing
+                occasionId={occasion.id}
+                onSuccess={() => refetch()}
+            />
         </View >
     );
 }
@@ -209,8 +206,6 @@ const styles = StyleSheet.create({
     headerBg: {
         paddingTop: 60,
         paddingBottom: 40,
-        // borderBottomLeftRadius: 40,
-        // borderBottomRightRadius: 40,
     },
     header: {
         position: 'absolute',

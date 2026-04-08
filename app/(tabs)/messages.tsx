@@ -2,6 +2,7 @@ import ConversationItem from '@/components/chat/ConversationItem';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { useGetConversationsQuery } from '@/store/api/chatApi';
+import { useGetProfileQuery } from '@/store/api/userApi';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
@@ -18,7 +19,7 @@ export default function MessagesScreen() {
     } = useGetConversationsQuery({ page: 1, limit: 50 });
 
     const conversations = data || [];
-
+    
     const onRefresh = React.useCallback(() => {
         refetch();
     }, [refetch]);

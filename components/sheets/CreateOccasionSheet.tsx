@@ -3,26 +3,28 @@ import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import * as Contacts from 'expo-contacts';
 import React, { forwardRef, useState } from 'react';
-import { Platform, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, StyleSheet, View } from 'react-native';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Typography from '../ui/Typography';
-import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
+
+import { useGetContactsQuery } from '@/store/api/contactsApi';
+import { useCreateOccasionMutation, useGetOccasionDetailQuery, useUpdateOccasionMutation } from '@/store/api/occasionApi';
+import { spendCoins } from '@/store/slices/walletSlice';
+import { useDispatch } from 'react-redux';
+import { toast } from 'sonner-native';
 
 export interface OccasionFormData {
+    contactId?: string;
     type: string;
     date: string; // ISO string
-    contactAvatar: string;
-    contactName: string;
-    contactNumber: string;
     notes?: string;
 }
 
 const OCCASION_TYPES = [
     'Birthday',
     'Anniversary',
-    'Graduation',
     'Valentine’s Day',
     'Mother’s Day',
     'Father’s Day',
@@ -32,39 +34,104 @@ const OCCASION_TYPES = [
     'Eid al-Adha',
     'Friendship Day'
 ] as const;
+
 interface Props {
-    onSubmit: (data: OccasionFormData) => void;
+    onSuccess?: () => void;
     isLoading?: boolean;
+    isEditing?: boolean;
+    occasionId?: string;
+    fixedContactId?: string;
+    fixedContactName?: string;
 }
 
 const CreateOccasionSheet = forwardRef<BottomSheetRef, Props>(
-    ({ onSubmit, isLoading }, ref) => {
+    ({ onSuccess, isLoading: externalLoading, isEditing, occasionId, fixedContactId, fixedContactName }, ref) => {
         const { spacing, colors } = useTheme();
-        const [type, setType] = useState<OccasionFormData['type']>('Other');
+        const dispatch = useDispatch();
+        const { data: contacts = [] } = useGetContactsQuery();
+        const { data: occasionDetail, isLoading: isFetchingOccasion } = useGetOccasionDetailQuery(occasionId as string, { skip: !isEditing || !occasionId });
+        const [createOccasion, { isLoading: isCreatingOccasion }] = useCreateOccasionMutation();
+        const [updateOccasion, { isLoading: isUpdatingOccasion }] = useUpdateOccasionMutation();
+
+        const [isSubmitting, setIsSubmitting] = useState(false);
+
+        const [selectedContactId, setSelectedContactId] = useState<string | undefined>(fixedContactId);
+        const [contactName, setContactName] = useState(fixedContactName || "");
+        const [contactNumber, setContactNumber] = useState("");
+
+        const [type, setType] = useState<string>('Birthday');
         const [date, setDate] = useState(new Date());
         const [showPicker, setShowPicker] = useState(false);
-        const [contactAvatar, setContactAvatar] = useState("");
-        const [contactName, setContactName] = useState("");
-        const [contactNumber, setContactNumber] = useState("");
         const [notes, setNotes] = useState("");
+
+        React.useEffect(() => {
+            if (isEditing && occasionDetail) {
+                setType(occasionDetail.type);
+                setDate(new Date(occasionDetail.date));
+                setNotes(occasionDetail.notes || "");
+                setSelectedContactId(occasionDetail.contactId);
+
+                if (occasionDetail.contactId) {
+                    const existing = contacts.find(c => c.id === occasionDetail.contactId);
+                    if (existing) {
+                        setContactName(existing.name);
+                        setContactNumber(existing.phoneNumber || "");
+                    } else if (occasionDetail.contact?.name) { // Fallback if API returned joined contact
+                        setContactName(occasionDetail.contact.name);
+                    }
+                }
+            }
+        }, [isEditing, occasionDetail, contacts]);
+
+        React.useEffect(() => {
+            if (fixedContactId) setSelectedContactId(fixedContactId);
+            if (fixedContactName) setContactName(fixedContactName);
+        }, [fixedContactId, fixedContactName]);
 
         const formattedDate = date.toLocaleString('default', { month: 'long', day: 'numeric' });
 
-        const handleSubmit = () => {
-            onSubmit({
-                contactAvatar,
-                contactName,
-                contactNumber,
-                type,
-                date: date.toISOString(),
-                notes
-            });
-            // setContactName('');
-            // setContactAvatar('');
-            // setContactNumber('');
-            // setType('Other');
-            // setDate(new Date());
-            // setNotes('');
+        const handleSubmit = async () => {
+            setIsSubmitting(true);
+            try {
+                let contactId = selectedContactId;
+
+                if (!contactId && !isEditing) {
+                    throw new Error("Contact ID is required");
+                }
+
+                if (isEditing && occasionId) {
+                    await updateOccasion({
+                        id: occasionId,
+                        data: {
+                            contactId,
+                            type,
+                            date: date.toISOString(),
+                            notes,
+                        }
+                    }).unwrap();
+                    toast.success('Success', { description: 'Occasion updated successfully!' });
+                } else {
+                    await createOccasion({
+                        contactId: contactId!,
+                        type,
+                        date: date.toISOString(),
+                        notes,
+                        dotColor: 'blue',
+                    }).unwrap();
+                    dispatch(spendCoins(1));
+                    toast.success('Success', { description: 'Occasion created successfully!' });
+                }
+
+                onSuccess?.();
+                (ref as any)?.current?.close();
+            } catch (err: any) {
+                console.error(err);
+                toast.error('Error', {
+                    description: err?.data?.message || 'Failed to process request. Please try again.'
+                });
+            } finally {
+                setIsSubmitting(false);
+            }
         };
 
         const handleDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
@@ -85,11 +152,20 @@ const CreateOccasionSheet = forwardRef<BottomSheetRef, Props>(
                 const contact = await Contacts.presentContactPickerAsync();
                 if (contact) {
                     const phone = contact.phoneNumbers?.[0]?.number;
-                    console.log("phone", phone);
-                    const text = phone ? `${contact.name} - ${phone}` : contact.name;
-                    setContactAvatar(contact.image?.uri || "");
-                    setContactName(contact.name);
+                    const name = contact.name;
+
+                    setContactName(name);
                     setContactNumber(phone ?? "");
+
+                    const existingContact = contacts.find(c =>
+                        (phone && c.phoneNumber === phone) || c.name === name
+                    );
+
+                    if (existingContact) {
+                        setSelectedContactId(existingContact.id);
+                    } else {
+                        setSelectedContactId(undefined);
+                    }
                 }
             } catch (error) {
                 console.log('Error picking contact', error);
@@ -97,109 +173,132 @@ const CreateOccasionSheet = forwardRef<BottomSheetRef, Props>(
         };
 
         return (
-            <BottomSheetWrapper ref={ref} snapPoints={['65%', '85%']} scrollable keyboardBehavior="fillParent" android_keyboardInputMode="adjustResize">
-                <BottomSheetScrollView>
+            <BottomSheetWrapper
+                ref={ref}
+                snapPoints={['65%', '90%']}
+                scrollable
+                keyboardBehavior="interactive"
+                android_keyboardInputMode="adjustPan"
+            >
+                <View style={{ paddingBottom: spacing.xl * 2 }}>
                     <Typography variant="h2" style={{ marginBottom: spacing.xs }}>
-                        Create Occasion
+                        {isEditing ? 'Edit Occasion' : 'Create Occasion'}
                     </Typography>
-                    <Typography variant="body" color={colors.textSecondary} style={{ marginBottom: spacing.xl }}>
-                        Add an occasion. This costs 1 coin.
-                    </Typography>
+                    {!isEditing && (
+                        <Typography variant="body" color={colors.textSecondary} style={{ marginBottom: spacing.xl }}>
+                            Add an occasion. This costs 1 coin.
+                        </Typography>
+                    )}
 
-                    <View style={styles.form}>
-                        <Pressable onPress={!contactName ? handlePickContact : undefined}>
-                            <View pointerEvents={!contactName ? 'none' : 'auto'}>
-                                <Input
-                                    label="Contact"
-                                    placeholder="Select a contact"
-                                    value={contactNumber ? `${contactName} - ${contactNumber}` : contactName}
-                                    onChangeText={(text) => {
-                                        if (text.includes(" - ")) {
-                                            const parts = text.split(" - ");
-                                            setContactName(parts[0]);
-                                            setContactNumber(parts.slice(1).join(" - "));
-                                        } else {
-                                            setContactName(text);
-                                            setContactNumber("");
-                                        }
-                                    }}
-                                    isBottomSheet
-                                    editable={false}
-                                    // editable={!!contactName}
-                                    rightIcon={
-                                        <Pressable onPress={handlePickContact} style={{ padding: 4 }}>
-                                            <Ionicons name="person-add-outline" size={20} color={colors.textSecondary} />
-                                        </Pressable>
-                                    }
-                                />
-                            </View>
-                        </Pressable>
-
-                        <View>
-                            <Typography variant="label" style={{ marginBottom: 8, marginLeft: 4 }}>Type of occation</Typography>
-                            <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
-                                {OCCASION_TYPES.map((t) => (
-                                    <Pressable
-                                        key={t}
-                                        onPress={() => setType(t)}
-                                        style={({ pressed }) => [
-                                            styles.typeBtn,
-                                            {
-                                                backgroundColor: type === t ? colors.primary : colors.surfaceRaised,
-                                                borderColor: type === t ? colors.primary : colors.border,
-                                                borderWidth: 1,
-                                            },
-                                            pressed && { opacity: 0.8 }
-                                        ]}
-                                    >
-                                        <Typography variant="caption" color={type === t ? '#FFFFFF' : colors.textPrimary}>
-                                            {t}
-                                        </Typography>
-                                    </Pressable>
-                                ))}
-                            </View>
+                    {isFetchingOccasion ? (
+                        <View style={{ padding: spacing.xl * 2, alignItems: 'center' }}>
+                            <ActivityIndicator color={colors.primary} size="large" />
                         </View>
+                    ) : (
+                        <View style={styles.form}>
+                            {(fixedContactId || isEditing) ? (
+                                <View style={{ marginBottom: spacing.md, padding: spacing.md, backgroundColor: colors.surfaceRaised, borderRadius: 12, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                                    <Ionicons name="person-circle-outline" size={24} color={colors.primary} />
+                                    <View>
+                                        <Typography variant="bodyBold">{contactName}</Typography>
+                                        <Typography variant="caption" color={colors.textSecondary}>
+                                            {isEditing ? 'Contact for this occasion' : 'Adding occasion for this contact'}
+                                        </Typography>
+                                    </View>
+                                </View>
+                            ) : (
+                                <Pressable onPress={handlePickContact}>
+                                    <View pointerEvents="none">
+                                        <Input
+                                            label="Contact"
+                                            placeholder="Select a contact"
+                                            value={contactName ? (contactNumber ? `${contactName} - ${contactNumber}` : contactName) : ""}
+                                            isBottomSheet
+                                            editable={false}
+                                            rightIcon={
+                                                <Pressable onPress={handlePickContact} style={{ padding: 4 }}>
+                                                    <Ionicons
+                                                        name={selectedContactId ? "checkmark-circle" : "person-add-outline"}
+                                                        size={20}
+                                                        color={selectedContactId ? colors.success : colors.textSecondary}
+                                                    />
+                                                </Pressable>
+                                            }
+                                        />
+                                    </View>
+                                    {selectedContactId && (
+                                        <Typography variant="caption" color={colors.success} style={{ marginTop: -12, marginLeft: 4 }}>
+                                            Linked to GiftSync Contact
+                                        </Typography>
+                                    )}
+                                </Pressable>
+                            )}
 
-                        <Pressable onPress={() => setShowPicker(true)}>
-                            <View pointerEvents="none">
-                                <Input
-                                    label="Date"
-                                    placeholder="Select a date"
-                                    value={formattedDate}
-                                    onChangeText={() => { }}
-                                    isBottomSheet
-                                />
+                            <View>
+                                <Typography variant="label" style={{ marginBottom: 8, marginLeft: 4 }}>Type of occasion</Typography>
+                                <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+                                    {OCCASION_TYPES.map((t) => (
+                                        <Pressable
+                                            key={t}
+                                            onPress={() => setType(t)}
+                                            style={[
+                                                styles.typeBtn,
+                                                {
+                                                    backgroundColor: type === t ? colors.primary : colors.surfaceRaised,
+                                                    borderColor: type === t ? colors.primary : colors.border,
+                                                    borderWidth: 1,
+                                                }
+                                            ]}
+                                        >
+                                            <Typography variant="caption" color={type === t ? '#FFFFFF' : colors.textPrimary}>
+                                                {t}
+                                            </Typography>
+                                        </Pressable>
+                                    ))}
+                                </View>
                             </View>
-                        </Pressable>
 
-                        {showPicker && (
-                            <DateTimePicker
-                                value={date}
-                                mode="date"
-                                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                                onChange={handleDateChange}
+                            <Pressable onPress={() => setShowPicker(true)}>
+                                <View pointerEvents="none">
+                                    <Input
+                                        label="Date"
+                                        placeholder="Select a date"
+                                        value={formattedDate}
+                                        onChangeText={() => { }}
+                                        isBottomSheet
+                                    />
+                                </View>
+                            </Pressable>
+
+                            {showPicker && (
+                                <DateTimePicker
+                                    value={date}
+                                    mode="date"
+                                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                                    onChange={handleDateChange}
+                                />
+                            )}
+
+                            <Input
+                                label="Notes (Optional)"
+                                placeholder="Add preferences, gift ideas, etc."
+                                value={notes}
+                                onChangeText={setNotes}
+                                multiline
+                                numberOfLines={3}
+                                isBottomSheet
                             />
-                        )}
 
-                        <Input
-                            label="Notes (Optional)"
-                            placeholder="Add preferences, gift ideas, etc."
-                            value={notes}
-                            onChangeText={setNotes}
-                            multiline
-                            numberOfLines={3}
-                            isBottomSheet
-                        />
-
-                        <Button
-                            title="Create Occasion (1 Coin)"
-                            onPress={handleSubmit}
-                            disabled={!contactName || !type || isLoading}
-                            isLoading={isLoading}
-                            style={{ marginTop: spacing.md }}
-                        />
-                    </View>
-                </BottomSheetScrollView>
+                            <Button
+                                title={isEditing ? 'Save Changes' : 'Create Occasion (1 Coin)'}
+                                onPress={handleSubmit}
+                                disabled={!contactName || !type || isSubmitting || externalLoading || isFetchingOccasion}
+                                isLoading={isSubmitting || externalLoading || isFetchingOccasion}
+                                style={{ marginTop: spacing.md }}
+                            />
+                        </View>
+                    )}
+                </View>
             </BottomSheetWrapper>
         );
     }

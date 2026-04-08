@@ -1,20 +1,21 @@
-import CreateOccasionSheet, { OccasionFormData } from '@/components/sheets/CreateOccasionSheet';
+import ContactDetailSheet from '@/components/sheets/ContactDetailSheet';
+import CreateContactSheet from '@/components/sheets/CreateContactSheet';
+import CreateOccasionSheet from '@/components/sheets/CreateOccasionSheet';
 import Avatar from '@/components/ui/Avatar';
-import Badge from '@/components/ui/Badge';
 import { BottomSheetRef } from '@/components/ui/BottomSheetWrapper';
-import Button from '@/components/ui/Button';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import { Pressable, ScrollView, SectionList, StyleSheet, View } from 'react-native';
+import { FlatList, Pressable, RefreshControl, ScrollView, SectionList, StyleSheet, View } from 'react-native';
 
 import { RootState } from '@/store';
-import { useCreateOccasionMutation, useGetMonthlyOccasionsQuery, useGetUpcomingOccasionsQuery } from '@/store/api/occasionApi';
-import { spendCoins } from '@/store/slices/walletSlice';
+import { useGetContactsQuery } from '@/store/api/contactsApi';
+import { useGetMonthlyOccasionsQuery, useGetUpcomingOccasionsQuery } from '@/store/api/occasionApi';
+import { spacing } from '@/theme';
+import { Contact } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 import { useDispatch, useSelector } from 'react-redux';
-import { toast } from 'sonner-native';
 
 export default function OccasionsScreen() {
     const router = useRouter();
@@ -24,24 +25,36 @@ export default function OccasionsScreen() {
     const [selectedMonthIndex, setSelectedMonthIndex] = useState(new Date().getMonth());
     const currentYear = new Date().getFullYear();
 
-    const { data: upcomingOccasions = [], isLoading: isUpcomingLoading, refetch: refetchUpcoming } = useGetUpcomingOccasionsQuery();
-    const { data: monthlyOccasions = [], isLoading, refetch } = useGetMonthlyOccasionsQuery({
+    const { data: upcomingOccasions = [], isFetching: isUpcomingFetching, refetch: refetchUpcoming } = useGetUpcomingOccasionsQuery();
+    const { data: monthlyOccasions = [], isFetching: isMonthlyFetching, refetch: refetchMonthly } = useGetMonthlyOccasionsQuery({
         month: selectedMonthIndex + 1,
         year: currentYear
     });
 
-    const [createOccasion, { isLoading: isCreating, error }] = useCreateOccasionMutation();
-
     const { coins } = useSelector((state: RootState) => state.wallet);
     const dispatch = useDispatch();
+
+    const [viewMode, setViewMode] = useState<'calendar' | 'contacts'>('calendar');
+    const { data: contacts = [], isFetching: isContactsFetching, refetch: refetchContacts } = useGetContactsQuery();
+
+    const isRefreshing = isUpcomingFetching || isMonthlyFetching || isContactsFetching;
+
+    const onRefresh = React.useCallback(() => {
+        refetchUpcoming();
+        refetchMonthly();
+        refetchContacts();
+    }, [refetchUpcoming, refetchMonthly, refetchContacts]);
 
     const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     const selectedMonthName = months[selectedMonthIndex];
 
     const createSheetRef = useRef<BottomSheetRef>(null);
+    const contactSheetRef = useRef<BottomSheetRef>(null);
+    const contactDetailSheetRef = useRef<BottomSheetRef>(null);
     const scrollRef = useRef<ScrollView>(null);
     const [scrollWidth, setScrollWidth] = useState(0);
     const monthLayouts = useRef<Record<string, { x: number; width: number }>>({});
+    const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
 
     const centerMonth = (month: string) => {
         const layout = monthLayouts.current[month];
@@ -59,119 +72,142 @@ export default function OccasionsScreen() {
     }, [selectedMonthIndex, scrollWidth]);
 
     const handleOpenCreateSheet = () => {
-        if (coins < 1) {
-            toast.error('No Coins', {
-                description: 'You need at least 1 coin to create an occasion. Please top up in your profile.'
-            });
-            return;
+        if (viewMode === 'calendar') {
+            contactSheetRef.current?.expand();
+        } else {
+            contactSheetRef.current?.expand();
         }
-        createSheetRef.current?.expand();
     };
 
-    const handleCreateSubmit = async (data: OccasionFormData) => {
-        try {
-            await createOccasion({
-                type: data.type,
-                date: data.date,
-                notes: data.notes,
-                contactAvatar: data.contactAvatar,
-                contactName: data.contactName,
-                contactNumber: data.contactNumber,
-                dotColor: 'blue', // Default color
-            }).unwrap();
-
-            dispatch(spendCoins(1));
-            createSheetRef.current?.close();
-            toast.success('Success', {
-                description: 'Occasion created successfully!'
-            });
-        } catch (err) {
-            toast.error('Error', {
-                description: 'Failed to create occasion. Please try again.'
-            });
-        }
+    const handleContactClick = (contact: Contact) => {
+        setSelectedContact(contact);
+        contactDetailSheetRef.current?.expand();
     };
 
     const sections = [
         { title: `Upcoming in ${selectedMonthName}`, data: monthlyOccasions },
-        { title: 'Other Occasions', data: upcomingOccasions.filter(o => new Date(o.date).getMonth() !== selectedMonthIndex) },
+        { title: 'Other Occasions', data: upcomingOccasions.filter((o: any) => new Date(o.date).getMonth() !== selectedMonthIndex) },
     ].filter(section => section.data.length > 0);
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             <View style={styles.header}>
-                <Typography variant="h1" style={{ paddingHorizontal: spacing.xl, marginTop: spacing.xl }}>Calendar</Typography>
-
-                {/* Simple Monthly Switcher */}
-                <ScrollView
-                    ref={scrollRef}
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    onLayout={(e) => setScrollWidth(e.nativeEvent.layout.width)}
-                    contentContainerStyle={{ paddingHorizontal: spacing.xl, gap: 12, paddingVertical: spacing.md }}
-                >
-                    {months.map((m, idx) => (
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingRight: spacing.xl }}>
+                    <Typography variant="h1" style={{ paddingHorizontal: spacing.xl, marginTop: spacing.xl }}>{viewMode === 'calendar' ? "Occasions" : "Contacts"}</Typography>
+                    <View style={[styles.tabSwitcher, { backgroundColor: colors.surfaceRaised }]}>
                         <Pressable
-                            key={m}
-                            onLayout={(e) => {
-                                const { x, width } = e.nativeEvent.layout;
-                                monthLayouts.current[m] = { x, width };
-                                // Handle initial mount centering
-                                if (idx === selectedMonthIndex) centerMonth(m);
-                            }}
-                            onPress={() => setSelectedMonthIndex(idx)}
-                            style={({ pressed }) => [
-                                styles.monthBtn,
-                                { backgroundColor: selectedMonthIndex === idx ? colors.primary : colors.surfaceRaised },
-                                pressed && { opacity: 0.8 },
-                            ]}
+                            onPress={() => setViewMode('calendar')}
+                            style={[styles.tabBtn, viewMode === 'calendar' && { backgroundColor: colors.surface }]}
                         >
-                            <Typography variant="label" color={selectedMonthIndex === idx ? '#FFFFFF' : colors.textPrimary}>{m}</Typography>
+                            <Ionicons name="calendar-outline" size={18} color={viewMode === 'calendar' ? colors.primary : colors.textMuted} />
                         </Pressable>
-                    ))}
-                </ScrollView>
-            </View>
+                        <Pressable
+                            onPress={() => setViewMode('contacts')}
+                            style={[styles.tabBtn, viewMode === 'contacts' && { backgroundColor: colors.surface }]}
+                        >
+                            <Ionicons name="people-outline" size={18} color={viewMode === 'contacts' ? colors.primary : colors.textMuted} />
+                        </Pressable>
+                    </View>
+                </View>
 
-            <SectionList
-                sections={sections}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                    <Pressable
-                        onPress={() => router.push({ pathname: '/(tabs)/occasions/[id]', params: { id: item.id } })}
-                        style={({ pressed }) => [
-                            styles.item,
-                            { backgroundColor: pressed ? colors.surfaceRaised : 'transparent', paddingHorizontal: spacing.xl },
-                        ]}
+                {viewMode === 'calendar' ? (
+                    <ScrollView
+                        ref={scrollRef}
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        onLayout={(e) => setScrollWidth(e.nativeEvent.layout.width)}
+                        contentContainerStyle={{ paddingHorizontal: spacing.xl, gap: 12, paddingVertical: spacing.md }}
                     >
-                        <View style={[styles.dot, { backgroundColor: item.dotColor === 'red' ? colors.primary : item.dotColor === 'blue' ? colors.secondary : colors.success }]} />
-                        <Avatar uri={item.contactAvatar} name={item.contactName} size="sm" />
-                        <View style={styles.itemContent}>
-                            <Typography variant="bodyBold">{item.contactName}</Typography>
-                            <Typography variant="caption" color={colors.textSecondary}>
-                                {item.type} • {new Date(item.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                            </Typography>
-                        </View>
-                        {/* <Badge label={item.source === 'google' ? 'Sync' : 'Custom'} size="xs" variant={item.source === 'google' ? 'primary' : 'amber'} />
-                        <Button
-                            title="Plan"
-                            size="sm"
-                            variant="outline"
-                            onPress={() => router.push('/checkout')}
-                            style={styles.planBtn}
-                        /> */}
-                    </Pressable>
-                )}
-                renderSectionHeader={({ section: { title } }) => (
-                    <View style={[styles.sectionHeader, { backgroundColor: colors.background, paddingHorizontal: spacing.xl, paddingVertical: spacing.xs }]}>
-                        <Typography variant="label" color={colors.textSecondary} style={{ paddingVertical: 8 }}>
-                            {title}
-                        </Typography>
+                        {months.map((m, idx) => (
+                            <Pressable
+                                key={m}
+                                onLayout={(e) => {
+                                    const { x, width } = e.nativeEvent.layout;
+                                    monthLayouts.current[m] = { x, width };
+                                    if (idx === selectedMonthIndex) centerMonth(m);
+                                }}
+                                onPress={() => setSelectedMonthIndex(idx)}
+                                style={({ pressed }) => [
+                                    styles.monthBtn,
+                                    { backgroundColor: selectedMonthIndex === idx ? colors.primary : colors.surfaceRaised },
+                                    pressed && { opacity: 0.8 },
+                                ]}
+                            >
+                                <Typography variant="label" color={selectedMonthIndex === idx ? '#FFFFFF' : colors.textPrimary}>{m}</Typography>
+                            </Pressable>
+                        ))}
+                    </ScrollView>
+                ) : (
+                    <View style={{ paddingHorizontal: spacing.xl, paddingVertical: spacing.sm }}>
+                        <Typography variant="caption" color={colors.textSecondary}>All your managed friends and family</Typography>
                     </View>
                 )}
-                contentContainerStyle={{ paddingBottom: 100, paddingTop: spacing.md }}
-            />
+            </View>
 
-            {/* Create Occasion FAB */}
+            {viewMode === 'calendar' ? (
+                <SectionList
+                    sections={sections}
+                    refreshControl={
+                        <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={colors.primary} />
+                    }
+                    keyExtractor={(item) => item.id}
+                    renderItem={({ item }) => (
+                        <Pressable
+                            onPress={() => router.push({ pathname: '/(tabs)/occasions/[id]', params: { id: item.id } })}
+                            style={({ pressed }) => [
+                                styles.item,
+                                { backgroundColor: pressed ? colors.surfaceRaised : 'transparent', paddingHorizontal: spacing.xl },
+                            ]}
+                        >
+                            <View style={[styles.dot, { backgroundColor: item.dotColor === 'red' ? colors.primary : item.dotColor === 'blue' ? colors.secondary : colors.success }]} />
+                            <Avatar uri={item.contact?.avatar} name={item.contact?.name} size="sm" />
+                            <View style={styles.itemContent}>
+                                <Typography variant="bodyBold">{item.contact?.name}</Typography>
+                                <Typography variant="caption" color={colors.textSecondary}>
+                                    {item.type} • {new Date(item.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                </Typography>
+                            </View>
+                        </Pressable>
+                    )}
+                    renderSectionHeader={({ section: { title } }) => (
+                        <View style={[styles.sectionHeader, { backgroundColor: colors.background, paddingHorizontal: spacing.xl, paddingVertical: spacing.xs }]}>
+                            <Typography variant="label" color={colors.textSecondary} style={{ paddingVertical: 8 }}>
+                                {title}
+                            </Typography>
+                        </View>
+                    )}
+                    contentContainerStyle={{ paddingBottom: 100, paddingTop: spacing.md }}
+                />
+            ) : (
+                <FlatList
+                    data={contacts}
+                    refreshControl={
+                        <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={colors.primary} />
+                    }
+                    keyExtractor={(item) => item.id}
+                    renderItem={({ item }) => (
+                        <Pressable
+                            onPress={() => handleContactClick(item as any)}
+                            style={({ pressed }) => [
+                                styles.item,
+                                { backgroundColor: pressed ? colors.surfaceRaised : 'transparent', paddingHorizontal: spacing.xl }
+                            ]}
+                        >
+                            <Avatar uri={item.avatar} name={item.name} size="md" />
+                            <View style={styles.itemContent}>
+                                <Typography variant="bodyBold">{item.name}</Typography>
+                                <Typography variant="caption" color={colors.textSecondary}>
+                                    {item.relationship} • {item.budget} Budget
+                                </Typography>
+                            </View>
+                            <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+                        </Pressable>
+                    )}
+                    contentContainerStyle={{ paddingBottom: 100, paddingTop: spacing.md }}
+                />
+            )}
+
+            {/* Add Contact FAB */}
             <Pressable
                 onPress={handleOpenCreateSheet}
                 style={({ pressed }) => [
@@ -185,9 +221,41 @@ export default function OccasionsScreen() {
 
             <CreateOccasionSheet
                 ref={createSheetRef}
-                onSubmit={handleCreateSubmit}
-                isLoading={isCreating}
+                fixedContactId={selectedContact?.id}
+                fixedContactName={selectedContact?.name}
             />
+
+            <CreateContactSheet
+                ref={contactSheetRef}
+                onSuccess={(contactId, newContact) => {
+                    contactSheetRef.current?.close();
+                    if (newContact) {
+                        setSelectedContact(newContact);
+                    } else {
+                        // Fallback if contact object wasn't passed, though it should be.
+                        const found = contacts.find(c => c.id === contactId);
+                        if (found) setSelectedContact(found as any);
+                    }
+                    setTimeout(() => {
+                        createSheetRef.current?.expand();
+                    }, 400); // Wait for the contact sheet to close first
+                }}
+            />
+
+            {selectedContact && (
+                <ContactDetailSheet
+                    ref={contactDetailSheetRef}
+                    contact={selectedContact}
+                    onAddOccasion={(c) => {
+                        contactDetailSheetRef.current?.close();
+                        createSheetRef.current?.expand();
+                    }}
+                    onEditOccasion={(id) => {
+                        contactDetailSheetRef.current?.close();
+                        router.push({ pathname: '/(tabs)/occasions/[id]', params: { id } });
+                    }}
+                />
+            )}
         </View>
     );
 }
@@ -204,6 +272,19 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingVertical: 8,
         borderRadius: 20,
+    },
+    tabSwitcher: {
+        flexDirection: 'row',
+        padding: 4,
+        borderRadius: 12,
+        marginTop: spacing.xl,
+    },
+    tabBtn: {
+        width: 36,
+        height: 32,
+        borderRadius: 8,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     item: {
         flexDirection: 'row',

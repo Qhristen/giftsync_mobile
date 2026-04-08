@@ -9,7 +9,9 @@ interface Props {
     label?: string;
     placeholder?: string;
     value: string;
-    onChangeText: (text: string) => void;
+    onChangeText?: (text: string) => void;
+    onBlur?: () => void;
+    onFocus?: () => void;
     onSubmitEditing?: () => void;
     error?: string;
     secureTextEntry?: boolean;
@@ -29,6 +31,8 @@ const Input: React.FC<Props> = ({
     placeholder,
     value,
     onChangeText,
+    onBlur,
+    onFocus,
     onSubmitEditing,
     error,
     secureTextEntry = false,
@@ -73,8 +77,14 @@ const Input: React.FC<Props> = ({
                         value={value}
                         onChangeText={onChangeText}
                         onSubmitEditing={onSubmitEditing}
-                        onFocus={() => setIsFocused(true)}
-                        onBlur={() => setIsFocused(false)}
+                        onFocus={() => {
+                            setIsFocused(true);
+                            onFocus?.();
+                        }}
+                        onBlur={() => {
+                            setIsFocused(false);
+                            onBlur?.();
+                        }}
                         secureTextEntry={secureTextEntry && !showPassword}
                         keyboardType={keyboardType}
                         multiline={multiline}
@@ -90,8 +100,14 @@ const Input: React.FC<Props> = ({
                         value={value}
                         onChangeText={onChangeText}
                         onSubmitEditing={onSubmitEditing}
-                        onFocus={() => setIsFocused(true)}
-                        onBlur={() => setIsFocused(false)}
+                        onFocus={() => {
+                            setIsFocused(true);
+                            onFocus?.();
+                        }}
+                        onBlur={() => {
+                            setIsFocused(false);
+                            onBlur?.();
+                        }}
                         secureTextEntry={secureTextEntry && !showPassword}
                         keyboardType={keyboardType}
                         multiline={multiline}

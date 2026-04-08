@@ -46,7 +46,7 @@ export default function ChatDetailScreen() {
     const isLoading = isConvLoading || isMessagesLoading;
 
     const participants = conversation?.participants?.filter(p => p.id !== profile?.id) || [];
-    console.log("conversation.order.item", conversation);
+  
     const displayName = conversation?.order?.item?.product?.name || 'Chat';
     const avatarSize = 28;
     const overlap = 10;

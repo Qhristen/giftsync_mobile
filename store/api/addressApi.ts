@@ -8,14 +8,14 @@ export const addressApi = baseApi.injectEndpoints({
                 url: '/api/v1/addresses',
                 method: 'GET',
             }),
-            providesTags: ['Addresses' as any],
+            providesTags: ['Addresses'],
         }),
         getAddressById: builder.query<Address, string>({
             query: (id) => ({
                 url: `/api/v1/addresses/${id}`,
                 method: 'GET',
             }),
-            providesTags: (result, error, id) => [{ type: 'Addresses' as any, id }],
+            providesTags: (result, error, id) => [{ type: 'Addresses', id }],
         }),
         createAddress: builder.mutation<Address, CreateAddressDto>({
             query: (data) => ({
@@ -23,7 +23,7 @@ export const addressApi = baseApi.injectEndpoints({
                 method: 'POST',
                 data,
             }),
-            invalidatesTags: ['Addresses' as any],
+            invalidatesTags: ['Addresses'],
         }),
         updateAddress: builder.mutation<Address, { id: string; data: UpdateAddressDto }>({
             query: ({ id, data }) => ({
@@ -31,21 +31,21 @@ export const addressApi = baseApi.injectEndpoints({
                 method: 'PATCH',
                 data,
             }),
-            invalidatesTags: (result, error, { id }) => ['Addresses' as any, { type: 'Addresses' as any, id }],
+            invalidatesTags: (result, error, { id }) => ['Addresses', { type: 'Addresses', id }],
         }),
         deleteAddress: builder.mutation<void, string>({
             query: (id) => ({
                 url: `/api/v1/addresses/${id}`,
                 method: 'DELETE',
             }),
-            invalidatesTags: ['Addresses' as any],
+            invalidatesTags: ['Addresses'],
         }),
         setDefaultAddress: builder.mutation<Address, string>({
             query: (id) => ({
                 url: `/api/v1/addresses/${id}/default`,
                 method: 'PATCH',
             }),
-            invalidatesTags: ['Addresses' as any],
+            invalidatesTags: ['Addresses'],
         }),
     }),
     overrideExisting: true,

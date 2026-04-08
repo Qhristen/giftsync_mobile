@@ -80,6 +80,6 @@ const styles = StyleSheet.create({
     documentCard: {
         padding: 24,
         borderRadius: 24,
-        borderWidth: 1,
+        // borderWidth: 1,
     },
 });

@@ -1,90 +1,163 @@
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
+import { useDeleteNotificationMutation, useGetNotificationsQuery, useMarkAllAsReadMutation, useMarkAsReadMutation } from '@/store/api/notificationApi';
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
+import { formatDistanceToNow } from 'date-fns';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import React from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-
-const INITIAL_NOTIFICATIONS = [
-    { id: '1', title: 'Gift Delivered!', message: "Alex's Birthday gift has been successfully delivered and signed for.", time: '10m ago', isRead: false, type: 'success' },
-    { id: '2', title: 'Upcoming Occasion', message: "Sarah's Anniversary is in 3 days. Send a gift now to arrive on time.", time: '2h ago', isRead: false, type: 'warning' },
-    { id: '3', title: 'Coins Added', message: 'You have successfully topped up 50 coins to your wallet.', time: '1d ago', isRead: true, type: 'info' },
-    { id: '4', title: 'Order Update', message: 'Your order #ORD-089A is now out for delivery.', time: '2d ago', isRead: true, type: 'info' },
-    { id: '5', title: 'System', message: 'Welcome to GiftSync! Explore our marketplace and never miss an occasion.', time: '1w ago', isRead: true, type: 'info' },
-];
+import { toast } from 'sonner-native';
 
 export default function NotificationsScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
-    const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
 
-    const markAllAsRead = () => {
-        setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+    const { data: data, isLoading, refetch } = useGetNotificationsQuery({ page: 1, limit: 50 });
+    const [markAllAsRead] = useMarkAllAsReadMutation();
+    const [markAsRead] = useMarkAsReadMutation();
+    const [deleteNotification] = useDeleteNotificationMutation();
+
+    const notifications = data?.items || [];
+
+    const handleMarkAllRead = async () => {
+        try {
+            await markAllAsRead().unwrap();
+        } catch (error) {
+            console.error('Failed to mark all as read:', error);
+        }
+    };
+
+    const handleNotificationPress = async (id: string, isRead: boolean) => {
+        if (!isRead) {
+            try {
+                await markAsRead(id).unwrap();
+            } catch (error) {
+                console.error('Failed to mark as read:', error);
+            }
+        }
+    };
+
+    const handleDelete = async (id: string) => {
+        try {
+            await deleteNotification(id).unwrap();
+            toast.success('Notification deleted');
+        } catch (error) {
+            console.error('Failed to delete notification:', error);
+            toast.error('Failed to delete');
+        }
     };
 
     const getIcon = (type: string) => {
-        switch (type) {
-            case 'success': return { name: 'checkmark-circle', color: colors.success };
-            case 'warning': return { name: 'time', color: '#F59E0B' };
+        switch (type.toLowerCase()) {
+            case 'success':
+            case 'delivered':
+                return { name: 'checkmark-circle', color: colors.success };
+            case 'warning':
+            case 'upcoming':
+                return { name: 'time', color: '#F59E0B' };
+            case 'order':
+            case 'transaction':
+                return { name: 'receipt', color: colors.primary };
             default: return { name: 'information-circle', color: colors.primary };
         }
     };
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <View style={[styles.header, { padding: spacing.xl }]}>
+            <View style={[styles.header, { paddingHorizontal: spacing.xl }]}>
                 <Pressable onPress={() => router.back()} style={styles.backBtn}>
                     <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
                 </Pressable>
                 <Typography variant="h2">Notifications</Typography>
-                <Pressable onPress={markAllAsRead}>
+                <Pressable onPress={handleMarkAllRead}>
                     <Typography variant="bodyBold" color={colors.primary}>Mark All Read</Typography>
                 </Pressable>
             </View>
 
-            <FlashList
-                data={notifications}
-                estimatedItemSize={90}
-                keyExtractor={(item) => item.id}
-                contentContainerStyle={{ paddingBottom: spacing.xl }}
-                renderItem={({ item, index }) => {
-                    const iconConfig = getIcon(item.type);
-                    return (
-                        <Animated.View entering={FadeInDown.delay(index * 100).duration(400)}>
-                            <Pressable style={({ pressed }) => [
-                                styles.notificationItem,
-                                { backgroundColor: item.isRead ? 'transparent' : colors.surfaceRaised },
-                                pressed && { opacity: 0.7 }
-                            ]}>
-                                <View style={[styles.iconContainer, { backgroundColor: item.isRead ? 'transparent' : colors.surface }]}>
-                                    <Ionicons name={iconConfig.name as any} size={24} color={iconConfig.color} />
-                                </View>
-                                <View style={styles.textContainer}>
-                                    <View style={styles.titleRow}>
-                                        <Typography variant="bodyBold" color={colors.textPrimary}>{item.title}</Typography>
-                                        <Typography variant="caption" color={colors.textSecondary}>{item.time}</Typography>
-                                    </View>
-                                    <Typography variant="body" color={colors.textSecondary} style={{ marginTop: 4 }}>
-                                        {item.message}
-                                    </Typography>
-                                </View>
-                                {!item.isRead && <View style={[styles.unreadDot, { backgroundColor: colors.primary }]} />}
-                            </Pressable>
-                        </Animated.View>
-                    );
-                }}
-                ListEmptyComponent={() => (
-                    <View style={styles.emptyContainer}>
-                        <Ionicons name="notifications-off-outline" size={64} color={colors.textMuted} />
-                        <Typography variant="body" color={colors.textSecondary} style={{ marginTop: 16 }}>
-                            No notifications yet.
-                        </Typography>
-                    </View>
-                )}
-            />
+            {isLoading && notifications.length === 0 ? (
+                <View style={[styles.emptyContainer, { flex: 1 }]}>
+                    <ActivityIndicator size="large" color={colors.primary} />
+                </View>
+            ) : (
+                <FlashList
+                    data={notifications}
+                    // estimatedItemSize={90}
+                    keyExtractor={(item) => item.id}
+                    contentContainerStyle={{ paddingBottom: spacing.xl }}
+                    onRefresh={refetch}
+                    refreshing={isLoading}
+                    renderItem={({ item, index }) => {
+                        const iconConfig = getIcon(item.type);
+                        const timeAgo = formatDistanceToNow(new Date(item.createdAt), { addSuffix: true });
+
+                        const renderLeftActions = () => (
+                            <View style={[styles.swipeAction, { backgroundColor: colors.primary }]}>
+                                <Ionicons name="checkmark-done" size={24} color="#FFF" />
+                                <Typography variant="caption" color="#FFF">Read</Typography>
+                            </View>
+                        );
+
+                        const renderRightActions = () => (
+                            <View style={[styles.swipeAction, { backgroundColor: colors.error }]}>
+                                <Ionicons name="trash" size={24} color="#FFF" />
+                                <Typography variant="caption" color="#FFF">Delete</Typography>
+                            </View>
+                        );
+
+                        return (
+                            <Animated.View entering={FadeInDown.delay(index * 100).duration(400)}>
+                                <Swipeable
+                                    renderLeftActions={item.isRead ? undefined : renderLeftActions}
+                                    renderRightActions={renderRightActions}
+                                    onSwipeableOpen={(direction) => {
+                                        if (direction === 'left') {
+                                            handleNotificationPress(item.id, item.isRead);
+                                        } else if (direction === 'right') {
+                                            handleDelete(item.id);
+                                        }
+                                    }}
+                                >
+                                    <Pressable
+                                        onPress={() => handleNotificationPress(item.id, item.isRead)}
+                                        style={({ pressed }) => [
+                                            styles.notificationItem,
+                                            { backgroundColor: item.isRead ? colors.background : colors.surfaceRaised },
+                                            pressed && { opacity: 0.7 }
+                                        ]}
+                                    >
+                                        <View style={[styles.iconContainer, { backgroundColor: item.isRead ? colors.surfaceRaised : colors.surface }]}>
+                                            <Ionicons name={iconConfig.name as any} size={24} color={iconConfig.color} />
+                                        </View>
+                                        <View style={styles.textContainer}>
+                                            <View style={styles.titleRow}>
+                                                <Typography variant="bodyBold" color={colors.textPrimary}>{item.title}</Typography>
+                                                <Typography variant="caption" color={colors.textSecondary}>{timeAgo}</Typography>
+                                            </View>
+                                            <Typography variant="body" color={colors.textSecondary} style={{ marginTop: 4 }}>
+                                                {item.body}
+                                            </Typography>
+                                        </View>
+                                        {!item.isRead && <View style={[styles.unreadDot, { backgroundColor: colors.primary }]} />}
+                                    </Pressable>
+                                </Swipeable>
+                            </Animated.View>
+                        );
+                    }}
+                    ListEmptyComponent={() => (
+                        <View style={styles.emptyContainer}>
+                            <Ionicons name="notifications-off-outline" size={64} color={colors.textMuted} />
+                            <Typography variant="body" color={colors.textSecondary} style={{ marginTop: 16 }}>
+                                No notifications yet.
+                            </Typography>
+                        </View>
+                    )}
+                />
+            )}
         </View>
+
     );
 }
 
@@ -137,5 +210,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         paddingVertical: 100,
+    },
+    swipeAction: {
+        width: 80,
+        height: '100%',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 4,
     },
 });

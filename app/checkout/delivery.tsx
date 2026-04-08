@@ -13,7 +13,7 @@ import { Address } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
 
 export default function DeliveryScreen() {
     const router = useRouter();
@@ -27,6 +27,7 @@ export default function DeliveryScreen() {
     const [deliveryDate, setDeliveryDate] = React.useState<string | null>(null);
     const [deliveryTimeWindow, setDeliveryTimeWindow] = React.useState<'morning' | 'afternoon' | 'evening' | null>(null);
     const [giftMessage, setGiftMessage] = React.useState('');
+    const [isAnonymous, setIsAnonymous] = React.useState(false);
 
     const addressSheet = useBottomSheet();
     const optionsSheet = useBottomSheet();
@@ -48,7 +49,7 @@ export default function DeliveryScreen() {
                 deliveryDate: deliveryDate,
                 deliveryTimeWindow: timeWindowFormatted,
                 giftMessage: giftMessage,
-                paymentMethod: 'coins',
+                anonymity: isAnonymous,
             }).unwrap();
 
             router.push({
@@ -152,6 +153,20 @@ export default function DeliveryScreen() {
                         numberOfLines={4}
                         style={{ minHeight: 100 }}
                     />
+
+                    {/* Anonymous Delivery */}
+                    <Card variant="raised" style={[styles.packagingCard, { marginTop: spacing.xl }]}>
+                        <View style={{ flex: 1, paddingRight: spacing.md }}>
+                            <Typography variant="bodyBold">Send Anonymously</Typography>
+                            <Typography variant="caption" color={colors.textSecondary}>Keep your identity a secret from the recipient</Typography>
+                        </View>
+                        <Switch
+                            value={isAnonymous}
+                            onValueChange={setIsAnonymous}
+                            trackColor={{ false: colors.border, true: colors.primary }}
+                            thumbColor={colors.background}
+                        />
+                    </Card>
 
                     {/* Summary Mini */}
                     <Card variant="raised" style={{ marginTop: 40, padding: 16 }}>

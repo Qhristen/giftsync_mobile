@@ -1,6 +1,7 @@
 import Avatar from '@/components/ui/Avatar';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
+import { useGetProfileQuery } from '@/store/api/userApi';
 import { Conversation } from '@/types';
 import { formatDistanceToNow } from 'date-fns';
 import React from 'react';
@@ -13,8 +14,9 @@ interface ConversationItemProps {
 
 const ConversationItem: React.FC<ConversationItemProps> = ({ conversation, onPress }) => {
     const { colors, spacing } = useTheme();
+    const { data: profile } = useGetProfileQuery();
 
-    const participants = conversation.participants || [];
+    const participants = conversation.participants.filter(p => p.id !== profile?.id);
     const displayName = conversation?.order?.item?.product?.name
 
     const lastMessageDate = conversation.lastMessageAt
