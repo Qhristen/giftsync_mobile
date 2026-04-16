@@ -1,4 +1,5 @@
 import ConfirmDeleteSheet from '@/components/sheets/ConfirmDeleteSheet';
+import ListSkeleton from '@/components/skeletons/ListSkeleton';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
@@ -12,7 +13,7 @@ import { formatCurrency } from '@/utils/formatCurrency';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, View } from 'react-native';
+import { FlatList, Image, Pressable, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { toast } from 'sonner-native';
 
@@ -124,8 +125,8 @@ export default function MyProductsScreen() {
             </View>
 
             {isLoading ? (
-                <View style={[styles.emptyContainer, { justifyContent: 'center', flex: 1, marginTop: 0 }]}>
-                    <ActivityIndicator size="large" color={colors.primary} />
+                <View style={{ flex: 1, paddingTop: 20 }}>
+                    <ListSkeleton />
                 </View>
             ) : (
                 <FlatList

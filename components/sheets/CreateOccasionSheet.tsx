@@ -48,7 +48,7 @@ const CreateOccasionSheet = forwardRef<BottomSheetRef, Props>(
     ({ onSuccess, isLoading: externalLoading, isEditing, occasionId, fixedContactId, fixedContactName }, ref) => {
         const { spacing, colors } = useTheme();
         const dispatch = useDispatch();
-        const { data: contacts = [] } = useGetContactsQuery();
+        const { data: contactsData } = useGetContactsQuery();
         const { data: occasionDetail, isLoading: isFetchingOccasion } = useGetOccasionDetailQuery(occasionId as string, { skip: !isEditing || !occasionId });
         const [createOccasion, { isLoading: isCreatingOccasion }] = useCreateOccasionMutation();
         const [updateOccasion, { isLoading: isUpdatingOccasion }] = useUpdateOccasionMutation();
@@ -63,6 +63,8 @@ const CreateOccasionSheet = forwardRef<BottomSheetRef, Props>(
         const [date, setDate] = useState(new Date());
         const [showPicker, setShowPicker] = useState(false);
         const [notes, setNotes] = useState("");
+        const contacts = React.useMemo(() => contactsData?.items || [], [contactsData?.items]);
+
 
         React.useEffect(() => {
             if (isEditing && occasionDetail) {
@@ -111,12 +113,14 @@ const CreateOccasionSheet = forwardRef<BottomSheetRef, Props>(
                     }).unwrap();
                     toast.success('Success', { description: 'Occasion updated successfully!' });
                 } else {
+                    const randomColors = ['#E74C3C', '#3498DB', '#2ECC71', '#F1C40F', '#9B59B6', '#E67E22', '#1ABC9C', '#34495E'];
+                    const randomColor = randomColors[Math.floor(Math.random() * randomColors.length)];
                     await createOccasion({
                         contactId: contactId!,
                         type,
                         date: date.toISOString(),
                         notes,
-                        dotColor: 'blue',
+                        dotColor: randomColor,
                     }).unwrap();
                     dispatch(spendCoins(1));
                     toast.success('Success', { description: 'Occasion created successfully!' });

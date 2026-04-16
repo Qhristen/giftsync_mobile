@@ -138,7 +138,7 @@ export default function DeliveryScreen() {
                     <Card variant="raised" style={[styles.packagingCard, { marginTop: spacing.xl }]}>
                         <View style={{ flex: 1 }}>
                             <Typography variant="bodyBold">Premium Packaging</Typography>
-                            <Typography variant="caption" color={colors.textSecondary}>Ribbon-wrapped box + Silk paper (+ NGN 500)</Typography>
+                            <Typography variant="caption" color={colors.textSecondary}>Ribbon-wrapped box + Silk paper (+ NGN {(Number(product?.packagingFee || 500)).toLocaleString()})</Typography>
                         </View>
                         <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
                     </Card>
@@ -176,17 +176,17 @@ export default function DeliveryScreen() {
                         </View>
                         <View style={styles.summaryRow}>
                             <Typography variant="caption">Delivery Fee</Typography>
-                            <Typography variant="caption">NGN 1,500</Typography>
+                            <Typography variant="caption">NGN {(Number(product?.deliveryFee || 1500)).toLocaleString()}</Typography>
                         </View>
                         <View style={styles.summaryRow}>
                             <Typography variant="caption">Packaging</Typography>
-                            <Typography variant="caption">NGN 500</Typography>
+                            <Typography variant="caption">NGN {(Number(product?.packagingFee || 500)).toLocaleString()}</Typography>
                         </View>
                         <View style={[styles.divider, { backgroundColor: colors.border, marginVertical: 8 }]} />
                         <View style={styles.summaryRow}>
                             <Typography variant="bodyBold">Estimated Total</Typography>
                             <Typography variant="bodyBold" color={colors.primary}>
-                                NGN {((Number(product?.price || 0) + 1500 + 500) || 0).toLocaleString()}
+                                NGN {((Number(product?.price || 0) + Number(product?.deliveryFee || 1500) + Number(product?.packagingFee || 500)) || 0).toLocaleString()}
                             </Typography>
                         </View>
                     </Card>

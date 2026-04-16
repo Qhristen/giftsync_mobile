@@ -43,6 +43,7 @@ export default function AddProductScreen() {
         isAvailable: params.isAvailable !== undefined ? params.isAvailable === 'true' : true,
         deliveryFee: params.deliveryFee ? parseFloat(params.deliveryFee as string) : 0,
         packagingFee: params.packagingFee ? parseFloat(params.packagingFee as string) : 0,
+        deliveryDays: params.deliveryDays ? parseInt(params.deliveryDays as string) : undefined,
     });
 
     const addTag = () => {
@@ -264,6 +265,15 @@ export default function AddProductScreen() {
                             value={inputStrings.packagingFee}
                             onChangeText={(text) => handlePriceChange('packagingFee', text)}
                             leftIcon={<Typography variant="body" color={colors.textSecondary}>{getCurrencySymbol(formData.currency)}</Typography>}
+                        />
+
+                        <Input
+                            label="Delivery Days"
+                            placeholder="e.g. 3"
+                            keyboardType="numeric"
+                            value={formData.deliveryDays?.toString() ?? ""}
+                            onChangeText={(text) => setFormData({ ...formData, deliveryDays: parseInt(text) || 0 })}
+                            rightIcon={<Typography variant="caption" color={colors.textSecondary}>days</Typography>}
                         />
 
                         <View>

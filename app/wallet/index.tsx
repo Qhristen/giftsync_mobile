@@ -1,4 +1,5 @@
 import PaymentMethodSheet, { PAYMENT_METHODS } from '@/components/sheets/PaymentMethodSheet';
+import ListSkeleton from '@/components/skeletons/ListSkeleton';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
@@ -12,7 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'sonner-native';
@@ -33,7 +34,7 @@ export default function WalletTopUpScreen() {
     const coins = useSelector((state: RootState) => state.wallet.coins);
 
     const { data: coinPackages = [], isLoading } = useGetCoinPackagesQuery();
-     const { data: wallet, refetch } = useGetWalletBalanceQuery()
+    const { data: wallet, refetch } = useGetWalletBalanceQuery()
 
 
     const [selectedPackage, setSelectedPackage] = useState<CoinPackage | null>(null);
@@ -96,8 +97,8 @@ export default function WalletTopUpScreen() {
             {/* Packages */}
             <View style={{ flex: 1 }}>
                 {isLoading ? (
-                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                        <ActivityIndicator size="large" color={colors.primary} />
+                    <View style={{ flex: 1, paddingTop: 20 }}>
+                        <ListSkeleton />
                     </View>
                 ) : (
                     <FlashList

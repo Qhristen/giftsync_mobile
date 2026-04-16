@@ -1,18 +1,16 @@
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
-import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
-import { RootState } from '@/store';
 import { useGetOrderByIdQuery, useHandlePaymentMutation } from '@/store/api/orderApi';
-import { useGetWalletBalanceQuery } from '@/store/api/walletApi';
+import { useGetCoinQuoteQuery, useGetWalletBalanceQuery } from '@/store/api/walletApi';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { toast } from 'sonner-native';
 
 export default function PaymentScreen() {
@@ -23,6 +21,10 @@ export default function PaymentScreen() {
     const { data: order, isLoading: isOrderLoading } = useGetOrderByIdQuery(orderId as string, { skip: !orderId });
     const [handlePayment] = useHandlePaymentMutation();
     const { data: wallet, refetch } = useGetWalletBalanceQuery()
+
+    const { data: coinQuote, isLoading: isQuoteLoading } = useGetCoinQuoteQuery(order?.total ?? 0, {
+        skip: !order?.total,
+    });
 
     const [paymentMethod, setPaymentMethod] = useState('coins');
     const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
@@ -36,10 +38,9 @@ export default function PaymentScreen() {
                 method: paymentMethod
             }).unwrap();
 
-            if (response.paymentUrl) {
-                setPaymentUrl(response.paymentUrl);
-                // setShowWebView(true) // will be handled by paymentUrl state
-            } else if (response.status === 'paid' || response.status === 'Processing') {
+            if (response.paymentMethod === 'paystack' && response.status === "payment_initiated") {
+                setPaymentUrl(response?.checkoutUrl as string);
+            } else if (response.status === 'paid') {
                 router.push({
                     pathname: '/checkout/confirmation',
                     params: { orderId }
@@ -167,9 +168,9 @@ export default function PaymentScreen() {
             {/* Footer */}
             <View style={[styles.footer, { padding: spacing.xl, borderTopWidth: 1, borderTopColor: colors.border }]}>
                 <Button
-                    title={isProcessing ? "Processing..." : paymentMethod === 'coins' ? `Pay with ${order?.total ? order.total / 1000 : 5} Coins` : `Pay NGN ${order?.total?.toLocaleString()}`}
+                    title={isProcessing ? "Processing..." : paymentMethod === 'coins' ? `Pay with ${coinQuote?.coins ? coinQuote.coins.toLocaleString() : '...'} Coins` : `Pay NGN ${order?.total?.toLocaleString()}`}
                     onPress={handlePay}
-                    isLoading={isProcessing || isOrderLoading}
+                    isLoading={isProcessing || isOrderLoading || (paymentMethod === 'coins' && isQuoteLoading)}
                     style={styles.submitBtn}
                 />
             </View>

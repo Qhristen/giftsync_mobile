@@ -1,4 +1,4 @@
-import { Order } from '@/types';
+import { Order, PaginationMeta, PaymentResponse } from '@/types';
 import { baseApi } from './baseApi';
 
 export interface CreateOrderDto {
@@ -24,7 +24,7 @@ export const orderApi = baseApi.injectEndpoints({
             }),
             invalidatesTags: ['Orders'],
         }),
-        getOrders: builder.query<Order[], void>({
+        getOrders: builder.query<{ items: Order[], meta: PaginationMeta }, void>({
             query: () => ({
                 url: '/api/v1/orders',
                 method: 'GET',
@@ -48,12 +48,12 @@ export const orderApi = baseApi.injectEndpoints({
         confirmDelivery: builder.mutation<Order, { orderId: string; deliveryCode: string }>({
             query: ({ orderId, deliveryCode }) => ({
                 url: `/api/v1/orders/${orderId}/confirm`,
-                method: 'PATCH',
-                body: { deliveryCode },
+                method: 'POST',
+                data: { code: deliveryCode },
             }),
             invalidatesTags: (result, error, { orderId }) => ['Orders', { type: 'Orders', id: orderId }],
         }),
-        handlePayment: builder.mutation<{ paymentUrl?: string; status: string }, { orderId: string; method: string }>({
+        handlePayment: builder.mutation<PaymentResponse, { orderId: string; method: string }>({
             query: ({ orderId, method }) => ({
                 url: `/api/v1/orders/${orderId}/pay`,
                 method: 'POST',

@@ -22,9 +22,6 @@ export type AxiosBaseQueryError = {
 export const isTokenExpired = (token: string): boolean => {
     try {
         const decoded = jose.decodeJwt(token);
-        const exp = (decoded as any).exp;
-        const now = Math.floor(Date.now() / 1000);
-        // Check if the token has expired (current time is past expiration)
         return decoded?.exp ? decoded.exp * 1000 <= Date.now() : true;
     } catch {
         return true;
@@ -35,6 +32,7 @@ const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 const axiosInstance = axios.create({
     baseURL: BASE_URL,
+    timeout: 15000, // 15s timeout to prevent hanging requests
 });
 
 
@@ -44,7 +42,9 @@ axiosInstance.interceptors.request.use(
         config.headers["Content-Type"] = "application/json";
 
         const storedAccessToken = await tokenCache.getToken('accessToken');
-        config.headers.Authorization = `Bearer ${storedAccessToken}`;
+        if (storedAccessToken) {
+            config.headers.Authorization = `Bearer ${storedAccessToken}`;
+        }
 
         return config;
     },
@@ -71,7 +71,8 @@ export const getValidToken = async () => {
                     Authorization: `Bearer ${storedAccessToken}`,
                     "Content-Type": "application/json",
                     "Accept": "application/json"
-                }
+                },
+                timeout: 10000,
             }
         );
         await tokenCache.saveToken('accessToken', response.data.accessToken);
@@ -149,5 +150,9 @@ export const baseApi = createApi({
     reducerPath: 'api',
     baseQuery: axiosBaseQuery(),
     tagTypes: ['Contacts', 'Occasions', 'Recommendations', 'Orders', 'Shortlist', 'UserProfile', 'Wallet', 'Notifications', 'Products', 'Addresses', 'Chat', 'Business'],
+    // Keep unused data cached for 5 minutes to reduce redundant fetches
+    keepUnusedDataFor: 300,
+    // Refetch on reconnect and on focus for freshness
+    refetchOnReconnect: true,
     endpoints: () => ({}),
 });

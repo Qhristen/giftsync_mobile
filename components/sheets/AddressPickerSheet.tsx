@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Contacts from 'expo-contacts';
 import React, { forwardRef, useState } from 'react';
 import { ActivityIndicator, Platform, Pressable, StyleSheet, View } from 'react-native';
+import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
@@ -128,37 +129,60 @@ const AddressPickerSheet = forwardRef<BottomSheetRef, Props>(
                             <ActivityIndicator color={colors.primary} style={{ marginTop: spacing.xl }} />
                         ) : (
                             <View style={styles.list}>
-                                {addresses.map((addr) => (
-                                    <View key={addr.id} style={[styles.itemContainer, { backgroundColor: colors.surface }]}>
-                                        <Pressable
-                                            onPress={() => onSelect(addr)}
-                                            style={[
-                                                styles.item,
-                                                { borderColor: selectedAddressId === addr.id ? colors.primary : colors.border }
-                                            ]}
-                                        >
-                                            <View style={styles.itemContent}>
-                                                <Typography variant="bodyBold">{addr.recipientName}</Typography>
-                                                <Typography variant="caption" color={colors.textSecondary}>
-                                                    {addr.line1}{addr.line2 ? `, ${addr.line2}` : ''}, {addr.city}, {addr.state}, {addr.country}. {addr.phone}
-                                                </Typography>
-                                            </View>
-                                            {selectedAddressId === addr.id && (
-                                                <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
-                                            )}
-                                        </Pressable>
-                                        <View style={[styles.actions, { borderTopColor: colors.border }]}>
-                                            <Pressable onPress={() => handleEdit(addr)} style={styles.actionBtn}>
-                                                <Ionicons name="create-outline" size={18} color={colors.textSecondary} />
-                                                <Typography variant="caption" color={colors.textSecondary}>Edit</Typography>
-                                            </Pressable>
-                                            <Pressable onPress={() => addr.id && handleDelete(addr.id)} style={styles.actionBtn}>
-                                                <Ionicons name="trash-outline" size={18} color={colors.error} />
-                                                <Typography variant="caption" color={colors.error}>Delete</Typography>
-                                            </Pressable>
+                                {addresses.map((addr) => {
+                                    const renderLeftActions = () => (
+                                        <View style={[styles.swipeAction, { backgroundColor: colors.primary }]}>
+                                            <Ionicons name="create" size={24} color="#FFF" />
+                                            <Typography variant="caption" color="#FFF">Edit</Typography>
                                         </View>
-                                    </View>
-                                ))}
+                                    );
+
+                                    const renderRightActions = () => (
+                                        <View style={[styles.swipeAction, { backgroundColor: colors.error }]}>
+                                            <Ionicons name="trash" size={24} color="#FFF" />
+                                            <Typography variant="caption" color="#FFF">Delete</Typography>
+                                        </View>
+                                    );
+
+                                    return (
+                                        <Swipeable
+                                            key={addr.id}
+                                            renderLeftActions={renderLeftActions}
+                                            renderRightActions={renderRightActions}
+                                            onSwipeableOpen={(direction) => {
+                                                if (direction === 'left') {
+                                                    // This is swipe right (left actions)
+                                                    handleEdit(addr);
+                                                } else if (direction === 'right') {
+                                                    // This is swipe left (right actions)
+                                                    addr.id && handleDelete(addr.id);
+                                                }
+                                            }}
+                                            containerStyle={styles.swipeContainer}
+                                        >
+                                            <Pressable
+                                                onPress={() => onSelect(addr)}
+                                                style={[
+                                                    styles.item,
+                                                    {
+                                                        borderColor: selectedAddressId === addr.id ? colors.primary : colors.border,
+                                                        backgroundColor: colors.surface
+                                                    }
+                                                ]}
+                                            >
+                                                <View style={styles.itemContent}>
+                                                    <Typography variant="bodyBold">{addr.recipientName}</Typography>
+                                                    <Typography variant="caption" color={colors.textSecondary}>
+                                                        {addr.line1}{addr.line2 ? `, ${addr.line2}` : ''}, {addr.city}, {addr.state}, {addr.country}. {addr.phone}
+                                                    </Typography>
+                                                </View>
+                                                {selectedAddressId === addr.id && (
+                                                    <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
+                                                )}
+                                            </Pressable>
+                                        </Swipeable>
+                                    );
+                                })}
                                 {addresses.length === 0 && (
                                     <Typography variant="body" color={colors.textMuted} style={{ textAlign: 'center', marginTop: spacing.xl }}>
                                         No addresses found. Add a new one.
@@ -218,12 +242,6 @@ const styles = StyleSheet.create({
     list: {
         gap: 16,
     },
-    itemContainer: {
-        borderRadius: 12,
-        overflow: 'hidden',
-        borderWidth: 1,
-        borderColor: 'transparent',
-    },
     item: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -235,17 +253,16 @@ const styles = StyleSheet.create({
     itemContent: {
         flex: 1,
     },
-    actions: {
-        flexDirection: 'row',
-        borderTopWidth: 1,
+    swipeContainer: {
+        borderRadius: 12,
+        overflow: 'hidden',
     },
-    actionBtn: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
+    swipeAction: {
+        width: 80,
+        height: '100%',
         justifyContent: 'center',
-        padding: 12,
-        gap: 8,
+        alignItems: 'center',
+        gap: 4,
     },
 });
 

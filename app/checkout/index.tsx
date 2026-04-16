@@ -6,6 +6,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useGetOccasionDetailQuery } from '@/store/api/occasionApi';
 import { useGetProductByIdQuery } from '@/store/api/productApi';
 import { calculateDeliveryStatus } from '@/utils/dateUtils';
+import { formatCurrency } from '@/utils/formatCurrency';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -127,7 +128,7 @@ export default function CheckoutEntry() {
                                 <Typography variant="bodyBold">{product?.name || 'Select a Gift'}</Typography>
                                 {product && <Typography variant="caption" color={colors.textSecondary}>Provider: {product.business?.name}</Typography>}
                                 <Typography variant="label" color={colors.primary} style={{ marginTop: 4 }}>
-                                    {product ? `${product.currency} ${Number(product.price).toLocaleString()}` : '---'}
+                                    {product ? formatCurrency((Number(product.price) || 0) + (Number(product.deliveryFee) || 0) + (Number(product.packagingFee) || 0), product.currency) : '---'}
                                 </Typography>
                             </View>
                         </>

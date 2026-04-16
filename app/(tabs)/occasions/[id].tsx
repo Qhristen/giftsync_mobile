@@ -1,4 +1,5 @@
 import CreateOccasionSheet from '@/components/sheets/CreateOccasionSheet';
+import OccasionDetailSkeleton from '@/components/skeletons/OccasionDetailSkeleton';
 import Avatar from '@/components/ui/Avatar';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
@@ -27,18 +28,20 @@ export default function OccasionDetailScreen() {
 
     const { data: occasion, isLoading, error, refetch } = useGetOccasionDetailQuery(id as string, { skip: !id });
     const editSheet = useBottomSheet();
+    const createSheet = useBottomSheet();
 
     const { data: recs = [], isLoading: isRecsLoading } = useGetRecommendationsV2Query(
         { occasionId: occasion?.id as string, limit: 10 },
         { skip: !occasion?.id }
     );
 
+
+    const otherOccasions = occasion?.contact?.occasions?.filter(
+        (o) => o.id !== occasion.id
+    ) || [];
+
     if (isLoading) {
-        return (
-            <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center' }]}>
-                <ActivityIndicator size="large" color={colors.primary} />
-            </View>
-        );
+        return <OccasionDetailSkeleton />;
     }
 
     if (!occasion || error) {
@@ -69,7 +72,7 @@ export default function OccasionDetailScreen() {
                     <Animated.View entering={FadeInDown.duration(500)} style={styles.heroContent}>
                         <Avatar uri={occasion.contact?.avatar} name={occasion.contact?.name} size="xl" />
                         <Typography variant="h1" color="#FFF" style={{ marginTop: 16 }}>{occasion.contact?.name}</Typography>
-                        <Badge label={occasion.type} variant="primary" style={{ marginTop: 8, alignSelf: 'center', backgroundColor: 'rgba(255,255,255,0.2)' }} />
+                        <Badge label={occasion.type} variant="primary" style={{ marginTop: 8, alignSelf: 'center', backgroundColor: colors.background }} />
                     </Animated.View>
                 </View>
                 <Animated.View entering={FadeInUp.delay(200).duration(500)} style={[styles.content, { padding: spacing.xl }]}>
@@ -186,6 +189,63 @@ export default function OccasionDetailScreen() {
                         </View>
                     )}
 
+                    {/* Other Occasions for this Contact */}
+                    <Animated.View entering={FadeInUp.delay(600).duration(500)} style={{ marginTop: 32 }}>
+                        <View style={[styles.sectionHeader, { marginBottom: 16 }]}>
+                            <Typography variant="h3">
+                                {`Other Occasions`}
+                            </Typography>
+                            <Pressable
+                                onPress={() => createSheet.open()}
+                                style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
+                            >
+                                <Ionicons name="add-circle" size={20} color={colors.primary} />
+                                <Typography variant="label" color={colors.primary}>Add New</Typography>
+                            </Pressable>
+                        </View>
+
+                        {otherOccasions.length > 0 ? (
+                            otherOccasions.map((otherOcc) => (
+                                <Pressable
+                                    key={otherOcc.id}
+                                    onPress={() => router.push({ pathname: '/(tabs)/occasions/[id]', params: { id: otherOcc.id } })}
+                                >
+                                    <Card style={[styles.otherOccasionCard, { backgroundColor: colors.surfaceRaised }]}>
+                                        <View style={[styles.otherOccasionDot, { backgroundColor: otherOcc.dotColor || colors.primary }]} />
+                                        <View style={{ flex: 1 }}>
+                                            <Typography variant="bodyBold">{otherOcc.type}</Typography>
+                                            <Typography variant="caption" color={colors.textSecondary} style={{ marginTop: 2 }}>
+                                                {new Date(otherOcc.date).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
+                                            </Typography>
+                                        </View>
+                                        <View style={{ alignItems: 'flex-end' }}>
+                                            <Typography variant="caption" color={colors.primary}>
+                                                {getCountdown(otherOcc.date)}
+                                            </Typography>
+                                            <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} style={{ marginTop: 4 }} />
+                                        </View>
+                                    </Card>
+                                </Pressable>
+                            ))
+                        ) : (
+                            <Card
+                                style={[styles.emptyOccasionCard, { backgroundColor: colors.surfaceRaised, borderColor: colors.border }]}
+                                onPress={() => createSheet.open()}
+                            >
+                                <View style={[styles.emptyOccasionIcon, { backgroundColor: colors.primary + '15' }]}>
+                                    <Ionicons name="calendar-outline" size={28} color={colors.primary} />
+                                </View>
+                                <Typography variant="body" color={colors.textSecondary} style={{ marginTop: 12, textAlign: 'center' }}>
+                                    No other occasions for {occasion.contact?.name}
+                                </Typography>
+                                <View style={[styles.addOccasionBtn, { backgroundColor: colors.primary }]}>
+                                    <Ionicons name="add" size={18} color="#FFF" />
+                                    <Typography variant="bodyBold" color="#FFF" style={{ marginLeft: 6 }}>Create Occasion</Typography>
+                                </View>
+                            </Card>
+                        )}
+                    </Animated.View>
+
                 </Animated.View>
             </ScrollView>
 
@@ -193,6 +253,13 @@ export default function OccasionDetailScreen() {
                 ref={editSheet.ref}
                 isEditing
                 occasionId={occasion.id}
+                onSuccess={() => refetch()}
+            />
+
+            <CreateOccasionSheet
+                ref={createSheet.ref}
+                fixedContactId={occasion.contactId}
+                fixedContactName={occasion.contact?.name}
                 onSuccess={() => refetch()}
             />
         </View >
@@ -289,5 +356,41 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         marginTop: 4,
+    },
+    otherOccasionCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 16,
+        borderRadius: 16,
+        marginBottom: 10,
+        gap: 14,
+    },
+    otherOccasionDot: {
+        width: 12,
+        height: 12,
+        borderRadius: 6,
+    },
+    emptyOccasionCard: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 28,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderStyle: 'dashed',
+    },
+    emptyOccasionIcon: {
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    addOccasionBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 100,
+        marginTop: 16,
     },
 });

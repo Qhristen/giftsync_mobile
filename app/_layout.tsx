@@ -22,7 +22,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Provider } from 'react-redux';
 
 import { useTheme } from '@/hooks/useTheme';
-import { store } from '@/store';
+import { persistor, store } from '@/store';
 import 'react-native-reanimated';
 import { Toaster } from 'sonner-native';
 
@@ -39,6 +39,7 @@ import { logoutUser, setCredentials } from '@/store/slices/authSlice';
 import { tokenCache } from '@/utils/cache';
 import { ActivityIndicator, Platform, View } from 'react-native';
 import { useSelector } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
 
 function RootLayoutContent() {
   const { isDark, colors, spacing } = useTheme();
@@ -196,9 +197,11 @@ export default function RootLayout() {
 
   return (
     <Provider store={store}>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <RootLayoutContent />
-      </GestureHandlerRootView>
+      <PersistGate loading={null} persistor={persistor}>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <RootLayoutContent />
+        </GestureHandlerRootView>
+      </PersistGate>
     </Provider>
   );
 }

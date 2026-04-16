@@ -1,3 +1,4 @@
+import HomeScreenSkeleton from '@/components/skeletons/HomeScreenSkeleton';
 import Avatar from '@/components/ui/Avatar';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
@@ -30,7 +31,7 @@ export default function HomeScreen() {
 
     const currentMonth = new Date().getMonth() + 1;
     const currentYear = new Date().getFullYear();
-    const { data: monthly = [], isLoading: isMonthlyLoading, refetch: refetchMonthly } = useGetMonthlyOccasionsQuery({
+    const { data: monthly, isLoading: isMonthlyLoading, refetch: refetchMonthly } = useGetMonthlyOccasionsQuery({
         month: currentMonth,
         year: currentYear
     });
@@ -41,7 +42,6 @@ export default function HomeScreen() {
         { occasionId: firstUpcoming?.id as string, limit: 10 },
         { skip: !firstUpcoming || isUpcomingLoading }
     );
-
 
     const onRefresh = React.useCallback(() => {
         refetchProfile();
@@ -54,11 +54,7 @@ export default function HomeScreen() {
     const isLoading = isProfileLoading || isUpcomingLoading;
 
     if (isLoading) {
-        return (
-            <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center' }]}>
-                <ActivityIndicator size="large" color={colors.primary} />
-            </View>
-        );
+        return <HomeScreenSkeleton />;
     }
 
     return (
@@ -67,7 +63,11 @@ export default function HomeScreen() {
                 contentContainerStyle={{ paddingBottom: 100 }}
                 showsVerticalScrollIndicator={false}
                 refreshControl={
-                    <RefreshControl refreshing={false} onRefresh={onRefresh} tintColor={colors.primary} />
+                    <RefreshControl
+                        refreshing={isProfileLoading || isUpcomingLoading || isMonthlyLoading || isRecsLoading}
+                        onRefresh={onRefresh}
+                        tintColor={colors.primary}
+                    />
                 }
             >
                 {/* Header */}
@@ -154,7 +154,7 @@ export default function HomeScreen() {
                     {[
                         { label: 'Coins', icon: 'wallet-outline', route: '/wallet' },
                         { label: 'Add Occasion', icon: 'calendar-outline', route: '/(tabs)/occasions' },
-                        { label: 'Browse Shop', icon: 'cart-outline', route: '/(tabs)/shop' },
+                        { label: 'AI Chat', icon: 'sparkles-outline', route: '/ai-chat' },
                         { label: 'View Orders', icon: 'list-outline', route: '/orders' }
                     ].map((act, idx) => (
                         <Pressable key={idx} style={styles.actionBtn} onPress={() => router.push(act.route as any)}>
@@ -167,11 +167,11 @@ export default function HomeScreen() {
                 </Animated.View>
 
                 {/* This Month's Occasions */}
-                {monthly.length > 0 && (
+                {(monthly?.items?.length ?? 0) > 0 && (
                     <Animated.View entering={FadeInDown.delay(500).duration(600)} style={{ paddingHorizontal: spacing.xl }}>
                         <Typography variant="h4" style={{ marginBottom: spacing.md }}>This Month</Typography>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
-                            {monthly.map((occ) => (
+                            {monthly?.items?.map((occ) => (
                                 <Pressable key={occ.id} onPress={() => router.push({ pathname: '/(tabs)/occasions/[id]', params: { id: occ.id } })}>
                                     <Badge label={occ.contact?.name || ""} outline variant="primary" />
                                 </Pressable>

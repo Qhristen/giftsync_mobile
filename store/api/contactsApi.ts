@@ -1,10 +1,14 @@
-import { Contact, CreateContactDto, UpdateContactDto } from '@/types';
+import { Contact, CreateContactDto, PaginatedContactResponse, UpdateContactDto } from '@/types';
 import { baseApi } from './baseApi';
 
 export const contactsApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
-        getContacts: builder.query<Contact[], void>({
-            query: () => ({ url: '/api/v1/contacts', method: 'GET' }),
+        getContacts: builder.query<PaginatedContactResponse, { page?: number; limit?: number } | void>({
+            query: (params) => ({
+                url: '/api/v1/contacts',
+                method: 'GET',
+                params
+            }),
             providesTags: ['Contacts'],
         }),
         createContact: builder.mutation<Contact, CreateContactDto>({

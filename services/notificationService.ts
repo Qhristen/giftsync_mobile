@@ -389,6 +389,20 @@ class NotificationService {
         case 'Notifications':
           deepLinkPath = 'notifications';
           break;
+        case 'Messages':
+        case 'ChatList':
+        case 'Chats':
+          deepLinkPath = 'messages';
+          break;
+        case 'ChatDetail':
+        case 'Chat':
+        case 'Conversation':
+          if (parsedParams.id) {
+            deepLinkPath = `chat/${parsedParams.id}`;
+          } else {
+            deepLinkPath = 'messages';
+          }
+          break;
         case 'Checkout':
           deepLinkPath = 'checkout';
           break;
@@ -461,6 +475,15 @@ class NotificationService {
         break;
       case "view_notifications":
         this.navigateToScreen('Notifications');
+        break;
+      case "view_chat":
+      case "new_message":
+      case "conversation":
+        if (data.conversationId || data.chatId || data.id) {
+          this.navigateToScreen('ChatDetail', { id: data.conversationId || data.chatId || data.id });
+        } else {
+          this.navigateToScreen('Messages');
+        }
         break;
       default:
         console.log("🤷‍♂️ Unknown action:", action);

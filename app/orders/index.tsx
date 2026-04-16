@@ -1,4 +1,5 @@
 import OrderDetailSheet from '@/components/sheets/OrderDetailSheet';
+import ListSkeleton from '@/components/skeletons/ListSkeleton';
 import Badge from '@/components/ui/Badge';
 import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
@@ -13,7 +14,7 @@ import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 export default function OrderListScreen() {
     const router = useRouter();
@@ -22,8 +23,7 @@ export default function OrderListScreen() {
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const orderSheet = useBottomSheet();
 
-    const { data: orders = [], isLoading, refetch } = useGetOrdersQuery();
-    
+    const { data, isLoading, isFetching, refetch } = useGetOrdersQuery();
     const handleChat = async (conversationId: string) => {
         try {
             router.push(`/chat/${conversationId}`);
@@ -32,7 +32,9 @@ export default function OrderListScreen() {
         }
     };
 
-    const filteredOrders = orders.filter(o =>
+
+
+    const filteredOrders = data?.items?.filter(o =>
         activeTab === 'Active' ? (o.status !== 'Delivered' && o.status !== 'Cancelled') : (o.status === 'Delivered' || o.status === 'Cancelled')
     );
 
@@ -44,6 +46,21 @@ export default function OrderListScreen() {
                         <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
                     </Pressable>
                     <Typography variant="h1">Orders</Typography>
+                    <View style={{ flex: 1 }} />
+                    <Pressable
+                        onPress={() => refetch()}
+                        style={({ pressed }) => [
+                            styles.refreshBtn,
+                            { backgroundColor: colors.surfaceRaised },
+                            pressed && { opacity: 0.7 }
+                        ]}
+                    >
+                        <Ionicons
+                            name="refresh"
+                            size={20}
+                            color={isFetching ? colors.primary : colors.textPrimary}
+                        />
+                    </Pressable>
                 </View>
 
                 {/* Tab Switcher */}
@@ -65,8 +82,8 @@ export default function OrderListScreen() {
             </View>
 
             {isLoading ? (
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                    <ActivityIndicator size="large" color={colors.primary} />
+                <View style={{ flex: 1, paddingTop: 20 }}>
+                    <ListSkeleton />
                 </View>
             ) : (
                 <FlashList
@@ -74,10 +91,10 @@ export default function OrderListScreen() {
                     // estimatedItemSize={120}
                     keyExtractor={(item) => item.id}
                     onRefresh={refetch}
-                    refreshing={isLoading}
+                    refreshing={isFetching}
                     renderItem={({ item }) => {
-                        const productName = item.item.product.name;
-                        const productImage = item.item.product.imageUrls?.[0];
+                        const productName = item.item.product?.name;
+                        const productImage = item.item.product?.imageUrls?.[0];
 
                         return (
                             <Card
@@ -101,7 +118,7 @@ export default function OrderListScreen() {
                                     )}
                                     <View style={{ flex: 1 }}>
                                         <Typography variant="bodyBold">{productName}</Typography>
-                                        <Typography variant="caption" color={colors.textSecondary}>To {item.occasion?.contactName}</Typography>
+                                        <Typography variant="caption" color={colors.textSecondary}>To {item.occasion?.contact?.name}</Typography>
                                     </View>
                                     <Badge
                                         label={item.status}
@@ -125,7 +142,7 @@ export default function OrderListScreen() {
                                                 <Ionicons name="card-outline" size={16} color={colors.success} />
                                                 <Typography variant="label" color={colors.success} style={{ fontSize: 12 }}>Pay Now</Typography>
                                             </Pressable>
-                                        ): item.conversationId &&
+                                        ) : item.conversationId &&
                                         <Pressable
                                             onPress={() => handleChat(item.id)}
                                             style={[styles.cardChatBtn, { backgroundColor: colors.primary + '10' }]}
@@ -163,6 +180,13 @@ const styles = StyleSheet.create({
     header: {
         paddingBottom: 24,
     },
+    refreshBtn: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     headerTop: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -186,11 +210,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     tabActiveShadow: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
+        // shadowColor: '#000',
+        // shadowOffset: { width: 0, height: 2 },
+        // shadowOpacity: 0.1,
+        // shadowRadius: 4,
+        // elevation: 3,
     },
     orderCard: {
         padding: 16,

@@ -5,17 +5,16 @@ import Avatar from '@/components/ui/Avatar';
 import { BottomSheetRef } from '@/components/ui/BottomSheetWrapper';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
+import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import { FlatList, Pressable, RefreshControl, ScrollView, SectionList, StyleSheet, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, SectionList, StyleSheet, View } from 'react-native';
 
-import { RootState } from '@/store';
 import { useGetContactsQuery } from '@/store/api/contactsApi';
 import { useGetMonthlyOccasionsQuery, useGetUpcomingOccasionsQuery } from '@/store/api/occasionApi';
 import { spacing } from '@/theme';
 import { Contact } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
-import { useDispatch, useSelector } from 'react-redux';
 
 export default function OccasionsScreen() {
     const router = useRouter();
@@ -25,18 +24,16 @@ export default function OccasionsScreen() {
     const [selectedMonthIndex, setSelectedMonthIndex] = useState(new Date().getMonth());
     const currentYear = new Date().getFullYear();
 
-    const { data: upcomingOccasions = [], isFetching: isUpcomingFetching, refetch: refetchUpcoming } = useGetUpcomingOccasionsQuery();
-    const { data: monthlyOccasions = [], isFetching: isMonthlyFetching, refetch: refetchMonthly } = useGetMonthlyOccasionsQuery({
+    const { data: upcomingOccasions, isFetching: isUpcomingFetching, refetch: refetchUpcoming } = useGetUpcomingOccasionsQuery();
+    const { data: monthlyOccasions, isFetching: isMonthlyFetching, refetch: refetchMonthly } = useGetMonthlyOccasionsQuery({
         month: selectedMonthIndex + 1,
         year: currentYear
     });
 
-    const { coins } = useSelector((state: RootState) => state.wallet);
-    const dispatch = useDispatch();
 
     const [viewMode, setViewMode] = useState<'calendar' | 'contacts'>('calendar');
-    const { data: contacts = [], isFetching: isContactsFetching, refetch: refetchContacts } = useGetContactsQuery();
-
+    const { data, isFetching: isContactsFetching, refetch: refetchContacts } = useGetContactsQuery();
+    const contacts = data?.items ?? [];
     const isRefreshing = isUpcomingFetching || isMonthlyFetching || isContactsFetching;
 
     const onRefresh = React.useCallback(() => {
@@ -85,8 +82,8 @@ export default function OccasionsScreen() {
     };
 
     const sections = [
-        { title: `Upcoming in ${selectedMonthName}`, data: monthlyOccasions },
-        { title: 'Other Occasions', data: upcomingOccasions.filter((o: any) => new Date(o.date).getMonth() !== selectedMonthIndex) },
+        { title: `Upcoming in ${selectedMonthName}`, data: monthlyOccasions?.items ?? [] },
+        { title: 'Other Occasions', data: upcomingOccasions?.filter((o: any) => new Date(o.date).getMonth() !== selectedMonthIndex) ?? [] },
     ].filter(section => section.data.length > 0);
 
     return (
@@ -99,13 +96,13 @@ export default function OccasionsScreen() {
                             onPress={() => setViewMode('calendar')}
                             style={[styles.tabBtn, viewMode === 'calendar' && { backgroundColor: colors.surface }]}
                         >
-                            <Ionicons name="calendar-outline" size={18} color={viewMode === 'calendar' ? colors.primary : colors.textMuted} />
+                            <Ionicons name="calendar-outline" size={18} color={viewMode === 'calendar' ? colors.primary : colors.textSecondary} />
                         </Pressable>
                         <Pressable
                             onPress={() => setViewMode('contacts')}
                             style={[styles.tabBtn, viewMode === 'contacts' && { backgroundColor: colors.surface }]}
                         >
-                            <Ionicons name="people-outline" size={18} color={viewMode === 'contacts' ? colors.primary : colors.textMuted} />
+                            <Ionicons name="people-outline" size={18} color={viewMode === 'contacts' ? colors.primary : colors.textSecondary} />
                         </Pressable>
                     </View>
                 </View>
@@ -159,7 +156,7 @@ export default function OccasionsScreen() {
                                 { backgroundColor: pressed ? colors.surfaceRaised : 'transparent', paddingHorizontal: spacing.xl },
                             ]}
                         >
-                            <View style={[styles.dot, { backgroundColor: item.dotColor === 'red' ? colors.primary : item.dotColor === 'blue' ? colors.secondary : colors.success }]} />
+                            <View style={[styles.dot, { backgroundColor: item.dotColor === 'red' ? colors.primary : item.dotColor === 'blue' ? colors.secondary : (item.dotColor && item.dotColor.includes('#') ? item.dotColor : colors.success) }]} />
                             <Avatar uri={item.contact?.avatar} name={item.contact?.name} size="sm" />
                             <View style={styles.itemContent}>
                                 <Typography variant="bodyBold">{item.contact?.name}</Typography>
@@ -179,7 +176,8 @@ export default function OccasionsScreen() {
                     contentContainerStyle={{ paddingBottom: 100, paddingTop: spacing.md }}
                 />
             ) : (
-                <FlatList
+                <FlashList
+                    // estimatedItemSize={70}
                     data={contacts}
                     refreshControl={
                         <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={colors.primary} />

@@ -1,5 +1,25 @@
-import { CreateOccasionDto, Occasion, UpdateOccasionDto } from '@/types';
+import { CreateOccasionDto, Occasion, PaginationMeta, UpdateOccasionDto } from '@/types';
 import { baseApi } from './baseApi';
+
+/**
+ * Helper: returns a small set of { month, year } entries near a given date,
+ * so we only patch the caches that are likely loaded instead of 36 months.
+ */
+const getNearbyMonthKeys = (date?: string): { month: number; year: number }[] => {
+    const d = date ? new Date(date) : new Date();
+    const month = d.getMonth() + 1; // 1-based
+    const year = d.getFullYear();
+
+    const keys: { month: number; year: number }[] = [];
+    for (let offset = -1; offset <= 1; offset++) {
+        let m = month + offset;
+        let y = year;
+        if (m < 1) { m = 12; y--; }
+        if (m > 12) { m = 1; y++; }
+        keys.push({ month: m, year: y });
+    }
+    return keys;
+};
 
 export const occasionApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
@@ -7,7 +27,7 @@ export const occasionApi = baseApi.injectEndpoints({
             query: () => ({ url: '/api/v1/occasions/upcoming', method: 'GET' }),
             providesTags: ['Occasions'],
         }),
-        getMonthlyOccasions: builder.query<Occasion[], { month: number; year: number }>({
+        getMonthlyOccasions: builder.query<{ items: Occasion[], meta: PaginationMeta }, { month: number; year: number }>({
             query: (params) => ({
                 url: '/api/v1/occasions',
                 params,
@@ -35,7 +55,7 @@ export const occasionApi = baseApi.injectEndpoints({
                     id: tempId,
                     userId: 'optimistic',
                     contactId: arg.contactId,
-                    recursYearly: false,
+                    // recursYearly: false,
                     type: arg.type,
                     date: arg.date,
                     source: 'custom',
@@ -47,8 +67,8 @@ export const occasionApi = baseApi.injectEndpoints({
 
                 const patchMonthly = dispatch(
                     occasionApi.util.updateQueryData('getMonthlyOccasions', { month, year }, (draft) => {
-                        draft.push(newOccasion);
-                        draft.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+                        draft.items.push(newOccasion);
+                        draft.items.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
                     })
                 );
 
@@ -91,23 +111,19 @@ export const occasionApi = baseApi.injectEndpoints({
                     })
                 );
 
-                const currentYear = new Date().getFullYear();
-                const patchesMonthly: any[] = [];
-                [currentYear - 1, currentYear, currentYear + 1].forEach(year => {
-                    for (let month = 1; month <= 12; month++) {
-                        patchesMonthly.push(
-                            dispatch(
-                                occasionApi.util.updateQueryData('getMonthlyOccasions', { month, year }, (draft) => {
-                                    const index = draft.findIndex(o => o.id === id);
-                                    if (index !== -1) {
-                                        Object.assign(draft[index], data);
-                                        draft.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-                                    }
-                                })
-                            )
-                        );
-                    }
-                });
+                // Only patch nearby months instead of 3 years × 12 months
+                const nearbyKeys = getNearbyMonthKeys(data.date);
+                const patchesMonthly = nearbyKeys.map(key =>
+                    dispatch(
+                        occasionApi.util.updateQueryData('getMonthlyOccasions', key, (draft) => {
+                            const index = draft.items.findIndex(o => o.id === id);
+                            if (index !== -1) {
+                                Object.assign(draft.items[index], data);
+                                draft.items.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+                            }
+                        })
+                    )
+                );
 
                 try {
                     await queryFulfilled;
@@ -132,20 +148,16 @@ export const occasionApi = baseApi.injectEndpoints({
                     })
                 );
 
-                const currentYear = new Date().getFullYear();
-                const patchesMonthly: any[] = [];
-                [currentYear - 1, currentYear, currentYear + 1].forEach(year => {
-                    for (let month = 1; month <= 12; month++) {
-                        patchesMonthly.push(
-                            dispatch(
-                                occasionApi.util.updateQueryData('getMonthlyOccasions', { month, year }, (draft) => {
-                                    const index = draft.findIndex(o => o.id === id);
-                                    if (index !== -1) draft.splice(index, 1);
-                                })
-                            )
-                        );
-                    }
-                });
+                // Only patch nearby months instead of 3 years × 12 months
+                const nearbyKeys = getNearbyMonthKeys();
+                const patchesMonthly = nearbyKeys.map(key =>
+                    dispatch(
+                        occasionApi.util.updateQueryData('getMonthlyOccasions', key, (draft) => {
+                            const index = draft.items.findIndex(o => o.id === id);
+                            if (index !== -1) draft.items.splice(index, 1);
+                        })
+                    )
+                );
 
                 try {
                     await queryFulfilled;

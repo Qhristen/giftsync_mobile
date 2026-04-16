@@ -1,5 +1,6 @@
 import FilterSheet from '@/components/sheets/FilterSheet';
 import GiftOptionsSheet from '@/components/sheets/OccasionPickerSheet';
+import ShopScreenSkeleton from '@/components/skeletons/ShopScreenSkeleton';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
@@ -8,6 +9,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { useTheme } from '@/hooks/useTheme';
 import { useGetUpcomingOccasionsQuery } from '@/store/api/occasionApi';
 import { useGetCategoriesQuery, useGetProductsQuery } from '@/store/api/productApi';
+import { Product } from '@/types';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
@@ -15,7 +17,7 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
-import { ActivityIndicator, Dimensions, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Dimensions, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
@@ -32,7 +34,7 @@ export default function ShopScreen() {
     const [categoryLayouts, setCategoryLayouts] = useState<Record<string, { x: number; width: number }>>({});
     const giftSheet = useBottomSheet();
     const filterSheet = useBottomSheet();
-    const { data: categoriesData = [] } = useGetCategoriesQuery();
+    const { data: categoriesData = [], refetch: refetchCategories, isFetching: isCategoriesFetching } = useGetCategoriesQuery();
     const categories = [{ id: 'All', name: 'All' }, ...categoriesData];
 
     const [priceRange, setPriceRange] = useState('All');
@@ -52,10 +54,18 @@ export default function ShopScreen() {
         queryParams.minPrice = 100;
     }
 
-    const { data: productsData, isLoading, error } = useGetProductsQuery(
+    const { data: productsData, isLoading, isFetching: isProductsFetching, error, refetch: refetchProducts } = useGetProductsQuery(
         Object.keys(queryParams).length > 0 ? queryParams : undefined
     );
-    const { data: upcomingOccasions = [] } = useGetUpcomingOccasionsQuery();
+    const { data: upcomingOccasions = [], refetch: refetchOccasions, isFetching: isOccasionsFetching } = useGetUpcomingOccasionsQuery();
+
+    const onRefresh = React.useCallback(() => {
+        refetchProducts();
+        refetchOccasions();
+        refetchCategories();
+    }, [refetchProducts, refetchOccasions, refetchCategories]);
+
+    const isRefreshing = isProductsFetching || isOccasionsFetching || isCategoriesFetching;
 
     const banners = [
         {
@@ -147,7 +157,7 @@ export default function ShopScreen() {
                                                 variant="outline"
                                                 size="sm"
                                                 style={{ alignSelf: 'flex-start', borderColor: 'rgba(255,255,255,0.5)' }}
-                                                // textStyle={{ color: '#FFFFFF' }}
+                                                color="#FFFFFF"
                                                 onPress={() => { }}
                                             />
                                         </View>
@@ -213,8 +223,10 @@ export default function ShopScreen() {
         </View>
     );
 
-    const renderItem = ({ item: product, index }: { item: any, index: number }) => {
+    const renderItem = ({ item: product, index }: { item: Product, index: number }) => {
         const isLeft = index % 2 === 0;
+
+        const totalPrice = Number(product.price) + Number(product.deliveryFee) + Number(product.packagingFee);
         return (
             <View style={[
                 styles.productWrapper,
@@ -237,7 +249,7 @@ export default function ShopScreen() {
                         <Typography variant="caption" color={colors.textSecondary} numberOfLines={1} style={{ marginTop: 2 }}>{product.business?.name || 'GiftSync Choice'}</Typography>
 
                         <View style={styles.priceRow}>
-                            <Typography variant="bodyBold" color={colors.primary}>{formatCurrency(product.price, product.currency)}</Typography>
+                            <Typography variant="bodyBold" color={colors.primary}>{formatCurrency(totalPrice, product.currency)}</Typography>
                             <Pressable
                                 style={[styles.miniSendBtn, { backgroundColor: colors.primary + '15' }]}
                                 onPress={(e) => {
@@ -258,9 +270,7 @@ export default function ShopScreen() {
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             {isLoading ? (
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                    <ActivityIndicator size="large" color={colors.primary} />
-                </View>
+                <ShopScreenSkeleton />
             ) : error ? (
                 <View style={{ flex: 1 }}>
                     {renderHeader()}
@@ -272,11 +282,14 @@ export default function ShopScreen() {
                 <FlashList
                     data={productsData?.items || []}
                     renderItem={renderItem}
-                    // estimatedItemSize={280}
+                    estimatedItemSize={280}
                     numColumns={2}
                     ListHeaderComponent={renderHeader()}
                     contentContainerStyle={{ paddingBottom: 100, paddingTop: 10 }}
                     showsVerticalScrollIndicator={false}
+                    refreshControl={
+                        <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={colors.primary} />
+                    }
                     keyExtractor={(item: any) => item.id}
                 />
             )}

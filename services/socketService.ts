@@ -126,11 +126,11 @@ class SocketService {
                     { conversationId: message.conversationId, limit: 50 },
                     (draft) => {
                         // Initialize structure if missing
-                        if (!draft) {
-                            draft = [];
+                        if (!draft?.items) {
+                            draft = { items: [], meta: { page: 1, limit: 50, total: 0, totalPages: 1 } };
                         }
 
-                        const messages = draft as ChatMessage[];
+                        const messages = draft.items as ChatMessage[];
 
                         // 1. If we sent this optimistically, replace the temp entry
                         if (message.sender.id === currentUserId) {
@@ -169,11 +169,11 @@ class SocketService {
                         const conversations = Array.isArray(draft) ? draft : draft;
                         if (!conversations) return;
 
-                        const convIndex = conversations.findIndex(
+                        const convIndex = conversations.items.findIndex(
                             (c: any) => c.id === message.conversationId,
                         );
                         if (convIndex !== -1) {
-                            const conv = conversations[convIndex];
+                            const conv = conversations.items[convIndex];
                             conv.lastMessagePreview = message.content;
                             conv.lastMessageAt = message.createdAt;
 
@@ -187,8 +187,8 @@ class SocketService {
                             }
 
                             // Bubble to top
-                            const [updatedConv] = conversations.splice(convIndex, 1);
-                            conversations.unshift(updatedConv);
+                            const [updatedConv] = conversations.items.splice(convIndex, 1);
+                            conversations.items.unshift(updatedConv);
                         } else {
                             // Completely new conversation — invalidate list
                             dispatch(
@@ -230,7 +230,7 @@ class SocketService {
                         const conversations = Array.isArray(draft) ? draft : draft;
                         if (!conversations) return;
 
-                        const conv = conversations.find((c: any) => c.id === conversationId);
+                        const conv = conversations.items.find((c: any) => c.id === conversationId);
                         if (conv) {
                             // Reset our own unread count if we are the reader
                             const currentUserId = this.getState?.().auth?.user?.id;
@@ -333,11 +333,11 @@ class SocketService {
                 { conversationId, limit: 50 },
                 (draft) => {
                     if (!draft) return;
-                    if (!draft) {
-                        draft = [];
+                    if (!draft?.items) {
+                        draft = { items: [], meta: { page: 1, limit: 50, total: 0, totalPages: 1 } };
                     }
 
-                    const messages = draft;
+                    const messages = draft.items;
 
                     if (!messages.find((m) => m.id === optimisticMessage.id)) {
                         messages.push(optimisticMessage);
@@ -356,16 +356,16 @@ class SocketService {
                     const conversations = Array.isArray(draft) ? draft : draft;
                     if (!conversations) return;
 
-                    const convIndex = conversations.findIndex(
+                    const convIndex = conversations.items.findIndex(
                         (c: any) => c.id === conversationId,
                     );
                     if (convIndex !== -1) {
-                        const conv = conversations[convIndex];
+                        const conv = conversations.items[convIndex];
                         conv.lastMessagePreview = content;
                         conv.lastMessageAt = optimisticMessage.createdAt;
 
-                        const [updatedConv] = conversations.splice(convIndex, 1);
-                        conversations.unshift(updatedConv);
+                        const [updatedConv] = conversations.items.splice(convIndex, 1);
+                        conversations.items.unshift(updatedConv);
                     }
                 },
             ),
@@ -387,7 +387,7 @@ class SocketService {
                                 { conversationId, limit: 50 },
                                 (draft) => {
                                     if (!draft) return;
-                                    const messages = draft as ChatMessage[];
+                                    const messages = draft.items as ChatMessage[];
                                     if (!messages) return;
 
                                     const index = messages.findIndex(

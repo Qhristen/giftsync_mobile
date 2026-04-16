@@ -1,4 +1,5 @@
 import ConfirmDeliverySheet from '@/components/sheets/ConfirmDeliverySheet';
+import ListSkeleton from '@/components/skeletons/ListSkeleton';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
@@ -12,7 +13,7 @@ import { formatCurrency } from '@/utils/formatCurrency';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 
 export default function ProductOrdersScreen() {
     const router = useRouter();
@@ -102,8 +103,8 @@ export default function ProductOrdersScreen() {
             </View>
 
             {isLoading ? (
-                <View style={[styles.emptyContainer, { justifyContent: 'center', flex: 1, marginTop: 0 }]}>
-                    <ActivityIndicator size="large" color={colors.primary} />
+                <View style={{ flex: 1, paddingTop: 20 }}>
+                    <ListSkeleton />
                 </View>
             ) : (
                 <FlatList

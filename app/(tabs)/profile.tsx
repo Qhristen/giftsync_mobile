@@ -18,6 +18,18 @@ import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { toast } from 'sonner-native';
 
+  interface SettingItem {
+        label: string;
+        icon: string;
+        onPress: () => void;
+        extra?: string;
+    }
+
+    interface SettingSection {
+        title: string;
+        items: SettingItem[];
+    }
+    
 export default function ProfileScreen() {
     const router = useRouter();
     const { colors, spacing, scheme } = useTheme();
@@ -33,7 +45,9 @@ export default function ProfileScreen() {
     const { user } = useAppSelector((state: RootState) => state.auth);
     const [currency, setCurrency] = useState('NGN');
 
-    const sections = [
+  
+
+    const sections: SettingSection[] = [
         {
             title: 'Account',
             items: [
@@ -53,7 +67,7 @@ export default function ProfileScreen() {
             title: 'Vendors point',
             items: [
                 { label: 'Business Info', icon: 'business-outline', onPress: () => router.push('/profile/business-info') },
-               user?.business ? { label: 'My Products', icon: 'cube-outline', onPress: () => router.push('/profile/my-products') } : {},
+                ...(user?.business ? [{ label: 'My Products', icon: 'cube-outline', onPress: () => router.push('/profile/my-products') }] : []),
             ],
         },
         {

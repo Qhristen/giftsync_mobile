@@ -1,4 +1,5 @@
 import AddressPickerSheet from '@/components/sheets/AddressPickerSheet';
+import ListSkeleton from '@/components/skeletons/ListSkeleton';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
@@ -10,7 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 export default function SavedAddressesScreen() {
@@ -41,8 +42,8 @@ export default function SavedAddressesScreen() {
             </View>
 
             {isLoading ? (
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                    <ActivityIndicator color={colors.primary} size="large" />
+                <View style={{ flex: 1, paddingTop: 20 }}>
+                    <ListSkeleton />
                 </View>
             ) : (
                 <FlashList

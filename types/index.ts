@@ -7,7 +7,16 @@ export interface User {
   currency: string;
   theme: string;
   coinBalance: number;
+  deviceTokens?: string[];
+  createdAt: string;
   business: Business;
+}
+
+export interface LoginResponse {
+  user: User;
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
 }
 
 export interface Business {
@@ -27,6 +36,12 @@ export interface Business {
   bankAccountName: string;
   bankAccountNumber: string;
   isVerified: boolean;
+}
+
+export interface BusinessBasic {
+  name: string;
+  logoUrl?: string;
+  location?: string;
 }
 
 export interface CreateBusinessDto {
@@ -51,13 +66,19 @@ export interface Contact {
   phoneNumber: string;
   email?: string;
   avatar?: string;
+  occasions?: Occasion[];
   relationship?: string;
   interests?: string[];
-  budget?: 'LOW' | 'MID' | 'HIGH';
+  budget?: 'LOW' | 'MID' | 'HIGH' | string;
   notes?: string;
   source?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface PaginatedContactResponse {
+  items: Contact[];
+  meta: PaginationMeta;
 }
 
 export interface CreateContactDto {
@@ -81,9 +102,10 @@ export interface Occasion {
   contact?: Contact;
   type: string;
   date: string;
-  recursYearly: boolean;
   source: string;
   dotColor: string;
+  googleEventId?: string;
+  countdown?: number
   notes?: string;
   createdAt: string;
   updatedAt: string;
@@ -95,7 +117,8 @@ export interface CreateOccasionDto {
   date: string;
   dotColor?: 'red' | 'blue' | 'green' | string;
   notes?: string;
-  source?: string
+  source?: string;
+  googleEventId?: string;
 }
 
 export interface UpdateOccasionDto extends Partial<CreateOccasionDto> { }
@@ -113,13 +136,15 @@ export interface Product {
   price: number;
   currency: string;
   imageUrls: string[];
+  packagingFee: number;
+  deliveryFee: number;
   category: Category;
   tags: string[];
   ratingAvg: number;
   ratingCount: number;
   isAvailable: boolean;
   deliveryDays: number;
-  business: Business;
+  business: BusinessBasic;
 }
 
 export interface CreateProductDto {
@@ -133,6 +158,7 @@ export interface CreateProductDto {
   categoryId: string;
   tags?: string[];
   isAvailable?: boolean;
+  deliveryDays?: number;
 }
 
 export interface UpdateProductDto extends Partial<CreateProductDto> { }
@@ -162,6 +188,22 @@ export interface UnreadCount {
   count: number;
 }
 
+export interface WalletTransaction {
+  id: string;
+  type: 'purchase' | 'spend' | 'deposit' | 'withdrawal' | 'refund';
+  amount: number;
+  balanceAfter: number;
+  description: string;
+  reference: string;
+  paymentMethod: string;
+  createdAt: string;
+}
+
+export interface PaginatedWalletTransactionResponse {
+  items: WalletTransaction[];
+  meta: PaginationMeta;
+}
+
 export interface CoinPackage {
   id: string;
   label: string;
@@ -184,11 +226,13 @@ export interface Notification {
 
 export interface OrderItem {
   id: string;
-  productId: string;
-  product: Product;
+  productName: string;
+  productImage: string;
+  businessName: string;
   unitPrice: number;
   quantity: number;
-  total: number;
+  lineTotal: number;
+  product: Product;
 }
 
 export type PaymentMethod = 'paystack' | 'flutterwave' | 'card' | 'cash' | 'coins';
@@ -203,20 +247,26 @@ export interface Order {
   giftMessage: string;
   paymentMethod: PaymentMethod;
   paymentStatus: PaymentStatus;
+  occasion: Occasion;
+  conversationId: string;
   subtotal: number;
   deliveryFee: number;
   packagingFee: number;
   total: number;
   deliveryCode: string;
   anonymity: boolean;
-  conversationId: string;
-  businessId: string;
-  business: Business;
-  occasion: Occasion;
   status: OrderStatus;
-  deliveryAddress: Address;
   item: OrderItem;
   createdAt: string; // ISO datetime
+}
+
+export interface PaymentResponse {
+  status: string;
+  paymentMethod: string;
+  checkoutUrl?: string;
+  reference?: string;
+  accessCode?: string;
+  message?: string;
 }
 
 export interface Address {

@@ -3,7 +3,7 @@ import { useGetCategoriesQuery } from '@/store/api/productApi';
 import { Category } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 import React, { forwardRef } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Typography from '../ui/Typography';
 
@@ -36,12 +36,13 @@ const CategoryPickerSheet = forwardRef<BottomSheetRef, CategoryPickerSheetProps>
     };
 
     return (
-        <BottomSheetWrapper ref={ref} snapPoints={['60%']}>
+        <BottomSheetWrapper ref={ref} snapPoints={['60%']} scrollable keyboardBehavior="interactive"
+            android_keyboardInputMode="adjustPan">
             <Typography variant="h3" style={{ marginBottom: spacing.lg }}>
                 Select Category
             </Typography>
 
-            <ScrollView style={styles.list}>
+            <View style={styles.list}>
                 {isLoading ? (
                     <ActivityIndicator color={colors.primary} />
                 ) : (
@@ -77,7 +78,7 @@ const CategoryPickerSheet = forwardRef<BottomSheetRef, CategoryPickerSheetProps>
                         );
                     })
                 )}
-            </ScrollView>
+            </View>
         </BottomSheetWrapper>
     );
 });
@@ -90,6 +91,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         padding: 16,
+        marginVertical: 4,
         borderRadius: 12,
         // borderWidth: 1.5,
         gap: 16,

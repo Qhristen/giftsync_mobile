@@ -1,7 +1,8 @@
 import {
     ChatMessage,
     Conversation,
-    CreateConversationDto
+    CreateConversationDto,
+    PaginationMeta
 } from '@/types';
 import { baseApi } from './baseApi';
 
@@ -9,7 +10,7 @@ export const chatApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
         // ── GET /api/v1/chat/conversations ──────────────────────────────────
         getConversations: builder.query<
-            Conversation[],
+            { items: Conversation[], meta: PaginationMeta },
             { page?: number; limit?: number }
         >({
             query: ({ page = 1, limit = 50 } = {}) => ({
@@ -18,9 +19,9 @@ export const chatApi = baseApi.injectEndpoints({
                 params: { page, limit },
             }),
             providesTags: (result) =>
-                result
+                result?.items
                     ? [
-                        ...result.map(({ id }) => ({ type: 'Chat' as const, id: `CONV_${id}` })),
+                        ...result.items.map(({ id }) => ({ type: 'Chat' as const, id: `CONV_${id}` })),
                         { type: 'Chat', id: 'CONV_LIST' }
                     ]
                     : [{ type: 'Chat', id: 'CONV_LIST' }],
@@ -47,7 +48,7 @@ export const chatApi = baseApi.injectEndpoints({
 
         // ── GET /api/v1/chat/conversations/:id/messages ──────────────────────
         getMessages: builder.query<
-            ChatMessage[],
+            {items: ChatMessage[], meta: PaginationMeta},
             { conversationId: string; page?: number; limit?: number }
         >({
             query: ({ conversationId, page = 1, limit = 50 }) => ({
@@ -61,7 +62,7 @@ export const chatApi = baseApi.injectEndpoints({
         }),
 
         // ── PUT /api/v1/chat/conversations/:id/read ─────────────────────────
-        markConversationAsRead: builder.mutation<void, string>({
+        markConversationAsRead: builder.mutation<{ count: number }, string>({
             query: (conversationId) => ({
                 url: `/api/v1/chat/conversations/${conversationId}/read`,
                 method: 'PUT',

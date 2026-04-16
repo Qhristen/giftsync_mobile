@@ -42,7 +42,7 @@ export default function ChatDetailScreen() {
     const [markAsRead] = useMarkConversationAsReadMutation();
     const typingUsers = useSelector((state: RootState) => state.chat.typingUsers[conversationId] || []);
 
-    const messages = data || [];
+    const messages = data?.items || [];
     const isLoading = isConvLoading || isMessagesLoading;
 
     const participants = conversation?.participants?.filter(p => p.id !== profile?.id) || [];

@@ -79,7 +79,7 @@ const ContactDetailSheet = forwardRef<BottomSheetRef, Props>(
                                         { backgroundColor: pressed ? colors.surfaceRaised : 'transparent' }
                                     ]}
                                 >
-                                    <View style={[styles.dot, { backgroundColor: item.dotColor === 'red' ? colors.primary : item.dotColor === 'blue' ? colors.secondary : colors.success }]} />
+                                    <View style={[styles.dot, { backgroundColor: item.dotColor === 'red' ? colors.primary : item.dotColor === 'blue' ? colors.secondary : (item.dotColor && item.dotColor.includes('#') ? item.dotColor : colors.success) }]} />
                                     <View style={{ flex: 1 }}>
                                         <Typography variant="bodyBold">{item.type}</Typography>
                                         <Typography variant="caption" color={colors.textSecondary}>

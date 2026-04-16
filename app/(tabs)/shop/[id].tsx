@@ -1,4 +1,5 @@
 import OccasionPickerSheet from '@/components/sheets/OccasionPickerSheet';
+import ShopItemDetailSkeleton from '@/components/skeletons/ShopItemDetailSkeleton';
 import Avatar from '@/components/ui/Avatar';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
@@ -15,7 +16,7 @@ import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
-import { ActivityIndicator, Dimensions, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Dimensions, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 
 const { width } = Dimensions.get('window');
@@ -41,11 +42,7 @@ export default function ShopItemDetailScreen() {
     }, [product, selectedOccasion]);
 
     if (isLoading) {
-        return (
-            <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
-                <ActivityIndicator size="large" color={colors.primary} />
-            </View>
-        );
+        return <ShopItemDetailSkeleton />;
     }
 
     if (error || !product) {
@@ -65,9 +62,9 @@ export default function ShopItemDetailScreen() {
                 <Pressable onPress={() => router.back()} style={[styles.iconBtn, { backgroundColor: colors.surfaceRaised }]}>
                     <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
                 </Pressable>
-                <Pressable style={[styles.iconBtn, { backgroundColor: colors.surfaceRaised }]}>
+                {/* <Pressable style={[styles.iconBtn, { backgroundColor: colors.surfaceRaised }]}>
                     <Ionicons name="heart-outline" size={24} color={colors.textPrimary} />
-                </Pressable>
+                </Pressable> */}
             </View>
 
             <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
@@ -113,7 +110,9 @@ export default function ShopItemDetailScreen() {
                     <View style={styles.titleRow}>
                         <View style={{ flex: 1 }}>
                             <Typography variant="h2">{product.name}</Typography>
-                            <Typography variant="h3" color={colors.primary} style={{ marginTop: 4 }}>{formatCurrency(product.price, product.currency)}</Typography>
+                            <Typography variant="h3" color={colors.primary} style={{ marginTop: 4 }}>
+                                {formatCurrency((Number(product.price) || 0) + (Number(product.deliveryFee) || 0) + (Number(product.packagingFee) || 0), product.currency)}
+                            </Typography>
                         </View>
                         <View style={[styles.ratingBadge, { backgroundColor: colors.surfaceRaised }]}>
                             <Ionicons name="star" size={16} color="#FFD700" />
