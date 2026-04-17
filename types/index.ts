@@ -95,33 +95,59 @@ export interface CreateContactDto {
 
 export interface UpdateContactDto extends Partial<CreateContactDto> { }
 
+export interface OccasionTemplate {
+  id: string;
+  title: string;
+  type: string;
+  month: number;
+  day: number;
+  recurrence: 'NONE' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
+  iconUrl?: string;
+  description?: string;
+}
+
 export interface Occasion {
   id: string;
   userId: string;
   contactId: string;
   contact?: Contact;
-  type: string;
+  templateId?: string;
+  title: string;
   date: string;
+  recurrenceType?: 'NONE' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
+  recurrenceRule?: {
+    type: string;
+    rules: any[];
+  };
+  isActive: boolean;
   source: string;
-  dotColor: string;
   googleEventId?: string;
-  countdown?: number
-  notes?: string;
+  countdown?: number;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface CreateOccasionDto {
-  contactId: string;
-  type: string;
+  contactId?: string;
+  templateId?: string;
+  title: string;
   date: string;
-  dotColor?: 'red' | 'blue' | 'green' | string;
-  notes?: string;
+  recurrenceType?: 'NONE' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
+  recurrenceRule?: {
+    type: string;
+    rules: any[];
+  };
+  isActive?: boolean;
   source?: string;
   googleEventId?: string;
 }
 
 export interface UpdateOccasionDto extends Partial<CreateOccasionDto> { }
+
+export interface SubscribeOccasionDto {
+  templateId: string;
+  contactId: string;
+}
 
 export interface Category {
   id: string;

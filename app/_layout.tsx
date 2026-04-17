@@ -168,6 +168,8 @@ function RootLayoutContent() {
   );
 }
 
+import { KeyboardProvider } from 'react-native-keyboard-controller';
+
 export default function RootLayout() {
   const [frauncesLoaded, frauncesError] = useFraunces({
     Fraunces_400Regular,
@@ -198,9 +200,11 @@ export default function RootLayout() {
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
-        <GestureHandlerRootView style={{ flex: 1 }}>
-          <RootLayoutContent />
-        </GestureHandlerRootView>
+        <KeyboardProvider>
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <RootLayoutContent />
+          </GestureHandlerRootView>
+        </KeyboardProvider>
       </PersistGate>
     </Provider>
   );

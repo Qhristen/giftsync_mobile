@@ -20,8 +20,11 @@ export default function DeliveryScreen() {
     const { colors, spacing } = useTheme();
     const { occasionId, productId } = useLocalSearchParams<{ occasionId: string; productId: string }>();
 
-    const { data: product, isLoading: isProductLoading } = useGetProductByIdQuery(productId as string, { skip: !productId });
-    const { data: occasion, isLoading: isOccasionLoading } = useGetOccasionDetailQuery(occasionId as string, { skip: !occasionId });
+    const { data: product, isLoading: initialProductLoading, isFetching: isProductFetching } = useGetProductByIdQuery(productId as string, { skip: !productId });
+    const isProductLoading = initialProductLoading || isProductFetching;
+
+    const { data: occasion, isLoading: initialOccasionLoading, isFetching: isOccasionFetching } = useGetOccasionDetailQuery(occasionId as string, { skip: !occasionId });
+    const isOccasionLoading = initialOccasionLoading || isOccasionFetching;
 
     const [deliveryAddress, setDeliveryAddress] = React.useState<Address | null>(null);
     const [deliveryDate, setDeliveryDate] = React.useState<string | null>(null);

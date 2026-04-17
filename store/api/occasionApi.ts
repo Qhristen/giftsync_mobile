@@ -1,4 +1,4 @@
-import { CreateOccasionDto, Occasion, PaginationMeta, UpdateOccasionDto } from '@/types';
+import { CreateOccasionDto, Occasion, OccasionTemplate, PaginationMeta, SubscribeOccasionDto, UpdateOccasionDto } from '@/types';
 import { baseApi } from './baseApi';
 
 /**
@@ -23,6 +23,9 @@ const getNearbyMonthKeys = (date?: string): { month: number; year: number }[] =>
 
 export const occasionApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
+        getOccasionTemplates: builder.query<OccasionTemplate[], void>({
+            query: () => ({ url: '/api/v1/occasions/templates', method: 'GET' }),
+        }),
         getUpcomingOccasions: builder.query<Occasion[], void>({
             query: () => ({ url: '/api/v1/occasions/upcoming', method: 'GET' }),
             providesTags: ['Occasions'],
@@ -54,13 +57,13 @@ export const occasionApi = baseApi.injectEndpoints({
                 const newOccasion: Occasion = {
                     id: tempId,
                     userId: 'optimistic',
-                    contactId: arg.contactId,
-                    // recursYearly: false,
-                    type: arg.type,
+                    contactId: arg.contactId || '',
+                    templateId: arg.templateId,
+                    title: arg.title,
                     date: arg.date,
-                    source: 'custom',
-                    dotColor: arg.dotColor || 'blue',
-                    notes: arg.notes || '',
+                    recurrenceType: arg.recurrenceType || 'NONE',
+                    isActive: arg.isActive || true,
+                    source: arg.templateId ? 'template' : 'custom',
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString(),
                 };
@@ -86,6 +89,14 @@ export const occasionApi = baseApi.injectEndpoints({
                     patchUpcoming.undo();
                 }
             },
+        }),
+        subscribeToTemplate: builder.mutation<Occasion, SubscribeOccasionDto>({
+            query: (data) => ({
+                url: '/api/v1/occasions/subscribe',
+                method: 'POST',
+                data,
+            }),
+            invalidatesTags: ['Occasions'],
         }),
         updateOccasion: builder.mutation<Occasion, { id: string; data: UpdateOccasionDto }>({
             query: ({ id, data }) => ({
@@ -172,10 +183,12 @@ export const occasionApi = baseApi.injectEndpoints({
 });
 
 export const {
+    useGetOccasionTemplatesQuery,
     useGetUpcomingOccasionsQuery,
     useGetMonthlyOccasionsQuery,
     useGetOccasionDetailQuery,
     useCreateOccasionMutation,
     useUpdateOccasionMutation,
     useDeleteOccasionMutation,
+    useSubscribeToTemplateMutation,
 } = occasionApi;

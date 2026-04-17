@@ -32,15 +32,26 @@ export default function OccasionsScreen() {
 
 
     const [viewMode, setViewMode] = useState<'calendar' | 'contacts'>('calendar');
-    const { data, isFetching: isContactsFetching, refetch: refetchContacts } = useGetContactsQuery();
-    const contacts = data?.items ?? [];
+    const [page, setPage] = useState(1);
+    const { data: contactsData, isFetching: isContactsFetching, refetch: refetchContacts } = useGetContactsQuery({ page, limit: 20 });
+
+    // We get all accumulated items directly from RTKQ since we used merge/serializeQueryArgs
+    const allContacts = contactsData?.items || [];
+
     const isRefreshing = isUpcomingFetching || isMonthlyFetching || isContactsFetching;
 
     const onRefresh = React.useCallback(() => {
+        setPage(1);
         refetchUpcoming();
         refetchMonthly();
         refetchContacts();
     }, [refetchUpcoming, refetchMonthly, refetchContacts]);
+
+    const loadMore = () => {
+        if (contactsData?.meta && page < contactsData.meta.totalPages && !isContactsFetching) {
+            setPage(p => p + 1);
+        }
+    };
 
     const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     const selectedMonthName = months[selectedMonthIndex];
@@ -156,12 +167,12 @@ export default function OccasionsScreen() {
                                 { backgroundColor: pressed ? colors.surfaceRaised : 'transparent', paddingHorizontal: spacing.xl },
                             ]}
                         >
-                            <View style={[styles.dot, { backgroundColor: item.dotColor === 'red' ? colors.primary : item.dotColor === 'blue' ? colors.secondary : (item.dotColor && item.dotColor.includes('#') ? item.dotColor : colors.success) }]} />
+                            <View style={[styles.dot, { backgroundColor: colors.primary }]} />
                             <Avatar uri={item.contact?.avatar} name={item.contact?.name} size="sm" />
                             <View style={styles.itemContent}>
                                 <Typography variant="bodyBold">{item.contact?.name}</Typography>
                                 <Typography variant="caption" color={colors.textSecondary}>
-                                    {item.type} • {new Date(item.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                    {item.title} • {new Date(item.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                                 </Typography>
                             </View>
                         </Pressable>
@@ -178,11 +189,13 @@ export default function OccasionsScreen() {
             ) : (
                 <FlashList
                     // estimatedItemSize={70}
-                    data={contacts}
+                    data={allContacts}
                     refreshControl={
-                        <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={colors.primary} />
+                        <RefreshControl refreshing={isRefreshing && page === 1} onRefresh={onRefresh} tintColor={colors.primary} />
                     }
                     keyExtractor={(item) => item.id}
+                    onEndReached={loadMore}
+                    onEndReachedThreshold={0.5}
                     renderItem={({ item }) => (
                         <Pressable
                             onPress={() => handleContactClick(item as any)}
@@ -225,35 +238,26 @@ export default function OccasionsScreen() {
 
             <CreateContactSheet
                 ref={contactSheetRef}
-                onSuccess={(contactId, newContact) => {
-                    contactSheetRef.current?.close();
-                    if (newContact) {
-                        setSelectedContact(newContact);
-                    } else {
-                        // Fallback if contact object wasn't passed, though it should be.
-                        const found = contacts.find(c => c.id === contactId);
-                        if (found) setSelectedContact(found as any);
-                    }
-                    setTimeout(() => {
-                        createSheetRef.current?.expand();
-                    }, 400); // Wait for the contact sheet to close first
+                onSuccess={() => {
+                    refetchUpcoming();
+                    refetchMonthly();
+                    refetchContacts();
                 }}
             />
 
-            {selectedContact && (
-                <ContactDetailSheet
-                    ref={contactDetailSheetRef}
-                    contact={selectedContact}
-                    onAddOccasion={(c) => {
-                        contactDetailSheetRef.current?.close();
-                        createSheetRef.current?.expand();
-                    }}
-                    onEditOccasion={(id) => {
-                        contactDetailSheetRef.current?.close();
-                        router.push({ pathname: '/(tabs)/occasions/[id]', params: { id } });
-                    }}
-                />
-            )}
+            <ContactDetailSheet
+                ref={contactDetailSheetRef}
+                contact={selectedContact}
+                onClose={() => setSelectedContact(null)}
+                onAddOccasion={(c) => {
+                    contactDetailSheetRef.current?.close();
+                    createSheetRef.current?.expand();
+                }}
+                onEditOccasion={(id) => {
+                    contactDetailSheetRef.current?.close();
+                    router.push({ pathname: '/(tabs)/occasions/[id]', params: { id } });
+                }}
+            />
         </View>
     );
 }

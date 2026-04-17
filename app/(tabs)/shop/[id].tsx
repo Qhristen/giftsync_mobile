@@ -29,7 +29,7 @@ export default function ShopItemDetailScreen() {
     const occasionSheet = useBottomSheet();
 
     const { data: upcomingOccasions = [] } = useGetUpcomingOccasionsQuery();
-    const { data: product, isLoading, error } = useGetProductByIdQuery(id as string);
+    const { data: product, isLoading, isFetching, error } = useGetProductByIdQuery(id as string);
 
     const selectedOccasion = useMemo(() => {
         if (occasionId) return upcomingOccasions.find(o => o.id === occasionId);
@@ -41,7 +41,7 @@ export default function ShopItemDetailScreen() {
         return calculateDeliveryStatus(selectedOccasion.date, product.deliveryDays, selectedOccasion.contact?.name);
     }, [product, selectedOccasion]);
 
-    if (isLoading) {
+    if (isLoading || isFetching) {
         return <ShopItemDetailSkeleton />;
     }
 

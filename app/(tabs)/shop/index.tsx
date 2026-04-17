@@ -1,8 +1,6 @@
 import FilterSheet from '@/components/sheets/FilterSheet';
 import GiftOptionsSheet from '@/components/sheets/OccasionPickerSheet';
 import ShopScreenSkeleton from '@/components/skeletons/ShopScreenSkeleton';
-import Button from '@/components/ui/Button';
-import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -14,10 +12,9 @@ import { formatCurrency } from '@/utils/formatCurrency';
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import React, { useRef, useState } from 'react';
-import { Dimensions, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Dimensions, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
@@ -54,16 +51,34 @@ export default function ShopScreen() {
         queryParams.minPrice = 100;
     }
 
+    const [page, setPage] = useState(1);
+
+    // Reset page to 1 when any filter changes
+    useEffect(() => {
+        setPage(1);
+    }, [activeCategory, debouncedSearch, priceRange, sortBy]);
+
+    queryParams.page = page;
+    queryParams.limit = 20;
+
     const { data: productsData, isLoading, isFetching: isProductsFetching, error, refetch: refetchProducts } = useGetProductsQuery(
-        Object.keys(queryParams).length > 0 ? queryParams : undefined
+        queryParams
     );
+
     const { data: upcomingOccasions = [], refetch: refetchOccasions, isFetching: isOccasionsFetching } = useGetUpcomingOccasionsQuery();
 
     const onRefresh = React.useCallback(() => {
+        setPage(1);
         refetchProducts();
         refetchOccasions();
         refetchCategories();
     }, [refetchProducts, refetchOccasions, refetchCategories]);
+
+    const loadMore = () => {
+        if (productsData?.meta && page < productsData.meta.totalPages && !isProductsFetching) {
+            setPage(p => p + 1);
+        }
+    };
 
     const isRefreshing = isProductsFetching || isOccasionsFetching || isCategoriesFetching;
 
@@ -92,7 +107,7 @@ export default function ShopScreen() {
     ];
 
     const renderHeader = () => (
-        <View style={{ paddingBottom: spacing.lg }}>
+        <View style={{ paddingBottom: spacing.sm }}>
             {/* Header Title */}
             <View style={[styles.header, { paddingHorizontal: spacing.xl, paddingTop: insets.top + spacing.md }]}>
                 <Typography variant="h1">Discover</Typography>
@@ -131,7 +146,7 @@ export default function ShopScreen() {
             {searchQuery.length === 0 ? (
                 <>
                     {/* Hero Banner Carousel */}
-                    <View style={{ marginBottom: spacing.xl }}>
+                    {/* <View style={{ marginBottom: spacing.xl }}>
                         <ScrollView
                             horizontal
                             showsHorizontalScrollIndicator={false}
@@ -166,7 +181,7 @@ export default function ShopScreen() {
                                 </Card>
                             ))}
                         </ScrollView>
-                    </View>
+                    </View> */}
 
                     {/* Dynamic Category Pills */}
                     <ScrollView
@@ -223,7 +238,7 @@ export default function ShopScreen() {
         </View>
     );
 
-    const renderItem = ({ item: product, index }: { item: Product, index: number }) => {
+    const renderItem: any = ({ item: product, index }: { item: Product; index: number }) => {
         const isLeft = index % 2 === 0;
 
         const totalPrice = Number(product.price) + Number(product.deliveryFee) + Number(product.packagingFee);
@@ -269,29 +284,32 @@ export default function ShopScreen() {
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
+            {renderHeader()}
+
             {isLoading ? (
                 <ShopScreenSkeleton />
             ) : error ? (
                 <View style={{ flex: 1 }}>
-                    {renderHeader()}
                     <Typography variant="body" color={colors.error} style={{ textAlign: 'center', marginTop: 24 }}>
                         Failed to load trending gifts.
                     </Typography>
                 </View>
             ) : (
-                <FlashList
-                    data={productsData?.items || []}
-                    renderItem={renderItem}
-                    estimatedItemSize={280}
-                    numColumns={2}
-                    ListHeaderComponent={renderHeader()}
-                    contentContainerStyle={{ paddingBottom: 100, paddingTop: 10 }}
-                    showsVerticalScrollIndicator={false}
-                    refreshControl={
-                        <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={colors.primary} />
-                    }
-                    keyExtractor={(item: any) => item.id}
-                />
+                <View style={{ flex: 1 }}>
+                    <FlashList
+                        data={productsData?.items || []}
+                        renderItem={renderItem}
+                        numColumns={2}
+                        contentContainerStyle={{ paddingBottom: 100, paddingTop: 10 }}
+                        showsVerticalScrollIndicator={false}
+                        refreshing={isRefreshing && page === 1}
+                        onRefresh={onRefresh}
+                        keyExtractor={(item: any) => item.id}
+                        onEndReached={loadMore}
+                        onEndReachedThreshold={0.5}
+                        ListFooterComponent={isProductsFetching && page > 1 ? <ActivityIndicator style={{ padding: 20 }} color={colors.primary} /> : <View style={{ height: 20 }} />}
+                    />
+                </View>
             )}
 
             <GiftOptionsSheet

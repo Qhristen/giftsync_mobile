@@ -59,6 +59,27 @@ export default function HomeScreen() {
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
+            {/* Header */}
+            <Animated.View entering={FadeInDown.duration(600)} style={[styles.header, { padding: spacing.xl }]}>
+                <View>
+                    <Typography variant="body" color={colors.textSecondary}>
+                        Good morning, {profile?.name?.split(' ')[0] || 'Alex'} 👋
+                    </Typography>
+                    <Typography variant="h1">GiftSync</Typography>
+                </View>
+                <View style={styles.headerIcons}>
+                    <Pressable
+                        style={[styles.iconBtn, { backgroundColor: colors.surfaceRaised }]}
+                        onPress={() => router.push('/notifications')}
+                    >
+                        <Ionicons name="notifications-outline" size={24} color={colors.textPrimary} />
+                        {unreadCount && unreadCount.count > 0 && (
+                            <View style={[styles.badge, { backgroundColor: colors.primary }]} />
+                        )}
+                    </Pressable>
+                </View>
+            </Animated.View>
+
             <ScrollView
                 contentContainerStyle={{ paddingBottom: 100 }}
                 showsVerticalScrollIndicator={false}
@@ -70,26 +91,6 @@ export default function HomeScreen() {
                     />
                 }
             >
-                {/* Header */}
-                <Animated.View entering={FadeInDown.duration(600)} style={[styles.header, { padding: spacing.xl }]}>
-                    <View>
-                        <Typography variant="body" color={colors.textSecondary}>
-                            Good morning, {profile?.name?.split(' ')[0] || 'Alex'} 👋
-                        </Typography>
-                        <Typography variant="h1">GiftSync</Typography>
-                    </View>
-                    <View style={styles.headerIcons}>
-                        <Pressable
-                            style={[styles.iconBtn, { backgroundColor: colors.surfaceRaised }]}
-                            onPress={() => router.push('/notifications')}
-                        >
-                            <Ionicons name="notifications-outline" size={24} color={colors.textPrimary} />
-                            {unreadCount && unreadCount.count > 0 && (
-                                <View style={[styles.badge, { backgroundColor: colors.primary }]} />
-                            )}
-                        </Pressable>
-                    </View>
-                </Animated.View>
 
                 {/* Hero Carousel or Onboarding */}
                 {upcoming.length > 0 ? (
@@ -107,7 +108,7 @@ export default function HomeScreen() {
                                             <Avatar uri={item.contact?.avatar} name={item.contact?.name} size="lg" />
                                             <View>
                                                 <Typography variant="h3" color="#FFFFFF">{item.contact?.name}</Typography>
-                                                <Typography variant="body" color="#FFFFFF" style={{ opacity: 0.9 }}>{item.type}</Typography>
+                                                <Typography variant="body" color="#FFFFFF" style={{ opacity: 0.9 }}>{item.title}</Typography>
                                             </View>
                                         </View>
                                         <View style={styles.heroFooter}>
@@ -244,7 +245,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingTop: 30,
+        paddingTop: 25,
     },
     header: {
         flexDirection: 'row',

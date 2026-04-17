@@ -84,7 +84,7 @@ export default function MessagesScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingTop: 30, // Account for status bar
+        paddingTop: 50,
     },
     header: {
         flexDirection: 'row',

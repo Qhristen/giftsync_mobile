@@ -26,7 +26,7 @@ export default function OccasionDetailScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
 
-    const { data: occasion, isLoading, error, refetch } = useGetOccasionDetailQuery(id as string, { skip: !id });
+    const { data: occasion, isLoading, isFetching, error, refetch } = useGetOccasionDetailQuery(id as string, { skip: !id });
     const editSheet = useBottomSheet();
     const createSheet = useBottomSheet();
 
@@ -40,7 +40,7 @@ export default function OccasionDetailScreen() {
         (o) => o.id !== occasion.id
     ) || [];
 
-    if (isLoading) {
+    if (isLoading || isFetching) {
         return <OccasionDetailSkeleton />;
     }
 
@@ -72,7 +72,7 @@ export default function OccasionDetailScreen() {
                     <Animated.View entering={FadeInDown.duration(500)} style={styles.heroContent}>
                         <Avatar uri={occasion.contact?.avatar} name={occasion.contact?.name} size="xl" />
                         <Typography variant="h1" color="#FFF" style={{ marginTop: 16 }}>{occasion.contact?.name}</Typography>
-                        <Badge label={occasion.type} variant="primary" style={{ marginTop: 8, alignSelf: 'center', backgroundColor: colors.background }} />
+                        <Badge label={occasion.title} variant="primary" style={{ marginTop: 8, alignSelf: 'center', backgroundColor: colors.background }} />
                     </Animated.View>
                 </View>
                 <Animated.View entering={FadeInUp.delay(200).duration(500)} style={[styles.content, { padding: spacing.xl }]}>
@@ -94,24 +94,7 @@ export default function OccasionDetailScreen() {
                             </View>
                         </View>
 
-                        <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
-                        {occasion.notes && (
-                            <>
-                                <View style={[styles.divider, { backgroundColor: colors.border }]} />
-                                <View style={styles.detailRow}>
-                                    <View style={[styles.detailIconBg, { backgroundColor: colors.primary + '15' }]}>
-                                        <Ionicons name="document-text-outline" size={24} color={colors.primary} />
-                                    </View>
-                                    <View style={{ flex: 1, marginLeft: 16 }}>
-                                        <Typography variant="caption" color={colors.textSecondary}>Notes & Preferences</Typography>
-                                        <Typography variant="body" style={{ marginTop: 2, lineHeight: 22 }}>
-                                            {occasion.notes}
-                                        </Typography>
-                                    </View>
-                                </View>
-                            </>
-                        )}
                     </Card>
 
                     {/* Premium Action Banner */}
@@ -125,7 +108,7 @@ export default function OccasionDetailScreen() {
                             />
                             <View style={styles.collectionOverlay}>
                                 <View>
-                                    <Typography variant="h2" color="#FFFFFF">The {occasion.type} Edit</Typography>
+                                    <Typography variant="h2" color="#FFFFFF">The {occasion.title} Edit</Typography>
                                     <Typography variant="body" color="#FFFFFF" style={{ opacity: 0.8, marginTop: 4 }}>
                                         Exclusive gifts curated for {occasion.contact?.name}
                                     </Typography>
@@ -211,9 +194,9 @@ export default function OccasionDetailScreen() {
                                     onPress={() => router.push({ pathname: '/(tabs)/occasions/[id]', params: { id: otherOcc.id } })}
                                 >
                                     <Card style={[styles.otherOccasionCard, { backgroundColor: colors.surfaceRaised }]}>
-                                        <View style={[styles.otherOccasionDot, { backgroundColor: otherOcc.dotColor || colors.primary }]} />
+                                        <View style={[styles.otherOccasionDot, { backgroundColor: colors.primary }]} />
                                         <View style={{ flex: 1 }}>
-                                            <Typography variant="bodyBold">{otherOcc.type}</Typography>
+                                            <Typography variant="bodyBold">{otherOcc.title}</Typography>
                                             <Typography variant="caption" color={colors.textSecondary} style={{ marginTop: 2 }}>
                                                 {new Date(otherOcc.date).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
                                             </Typography>

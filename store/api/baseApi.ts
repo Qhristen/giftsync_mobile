@@ -62,8 +62,12 @@ export const getValidToken = async () => {
         return null;
     }
 
+    const storedAccessToken = await tokenCache.getToken('accessToken');
+    if (storedAccessToken && !isTokenExpired(storedAccessToken)) {
+        return storedAccessToken;
+    }
+
     try {
-        const storedAccessToken = await tokenCache.getToken('accessToken');
         const response = await axios.post(`${BASE_URL}/api/v1/auth/refresh`,
             { refreshToken: storedRefreshToken },
             {

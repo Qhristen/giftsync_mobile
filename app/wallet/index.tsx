@@ -94,6 +94,15 @@ export default function WalletTopUpScreen() {
                 </Card>
             </Animated.View>
 
+            {/* Transaction History Link */}
+            <Pressable
+                onPress={() => router.push('/wallet/transactions' as any)}
+                style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingBottom: spacing.md }}
+            >
+                <Ionicons name="time-outline" size={16} color={colors.primary} />
+                <Typography variant="label" color={colors.primary}>Transaction History →</Typography>
+            </Pressable>
+
             {/* Packages */}
             <View style={{ flex: 1 }}>
                 {isLoading ? (

@@ -18,8 +18,11 @@ export default function CheckoutEntry() {
     const { colors, spacing } = useTheme();
     const { occasionId, productId } = useLocalSearchParams<{ occasionId: string; productId: string }>();
 
-    const { data: occasion, isLoading: isOccasionLoading } = useGetOccasionDetailQuery(occasionId as string, { skip: !occasionId });
-    const { data: product, isLoading: isProductLoading } = useGetProductByIdQuery(productId as string, { skip: !productId });
+    const { data: occasion, isLoading: initialOccasionLoading, isFetching: isOccasionFetching } = useGetOccasionDetailQuery(occasionId as string, { skip: !occasionId });
+    const isOccasionLoading = initialOccasionLoading || isOccasionFetching;
+
+    const { data: product, isLoading: initialProductLoading, isFetching: isProductFetching } = useGetProductByIdQuery(productId as string, { skip: !productId });
+    const isProductLoading = initialProductLoading || isProductFetching;
 
     const deliveryStatus = useMemo(() => {
         if (!product || !occasion) return null;
@@ -57,7 +60,7 @@ export default function CheckoutEntry() {
                                             <Typography variant="caption" color={colors.primary} style={{ fontSize: 10 }}>RECIPIENT</Typography>
                                         </View>
                                     </View>
-                                    {occasion && <Typography variant="caption" color={colors.textSecondary}>{occasion.type}</Typography>}
+                                    {occasion && <Typography variant="caption" color={colors.textSecondary}>{occasion.title}</Typography>}
                                 </View>
                             </View>
 
@@ -68,7 +71,7 @@ export default function CheckoutEntry() {
                                     <Ionicons name="calendar" size={20} color={colors.primary} />
                                 </View>
                                 <View style={{ flex: 1 }}>
-                                    <Typography variant="bodyMedium" style={{ fontWeight: '600' }}>{occasion?.type || 'Occasion Date'}</Typography>
+                                    <Typography variant="bodyMedium" style={{ fontWeight: '600' }}>{occasion?.title || 'Occasion Date'}</Typography>
                                     {occasion && <Typography variant="caption" color={colors.textSecondary}>
                                         {new Date(occasion.date).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
                                     </Typography>}

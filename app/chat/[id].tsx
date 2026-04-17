@@ -12,12 +12,12 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
     ActivityIndicator,
     FlatList,
-    KeyboardAvoidingView,
     Pressable,
     StyleSheet,
     TextInput,
     View
 } from 'react-native';
+import { KeyboardChatScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 
@@ -30,6 +30,15 @@ export default function ChatDetailScreen() {
     const [messageText, setMessageText] = useState('');
     const flatListRef = useRef<FlatList>(null);
     const socketService = useChatSocket();
+
+    const renderScrollComponent = React.useCallback((props: any) => (
+        <KeyboardChatScrollView
+            {...props}
+            keyboardLiftBehavior="whenAtEnd"
+            automaticallyAdjustContentInsets={false}
+            contentInsetAdjustmentBehavior="never"
+        />
+    ), []);
 
     const { data: profile } = useGetProfileQuery();
     const { data: conversation, isLoading: isConvLoading } = useGetConversationQuery(conversationId);
@@ -46,7 +55,7 @@ export default function ChatDetailScreen() {
     const isLoading = isConvLoading || isMessagesLoading;
 
     const participants = conversation?.participants?.filter(p => p.id !== profile?.id) || [];
-  
+
     const displayName = conversation?.order?.item?.product?.name || 'Chat';
     const avatarSize = 28;
     const overlap = 10;
@@ -72,6 +81,10 @@ export default function ChatDetailScreen() {
         const content = messageText.trim();
         setMessageText('');
         socketService.sendTyping(conversationId, false);
+
+        setTimeout(() => {
+            flatListRef.current?.scrollToEnd({ animated: true });
+        }, 100);
 
         try {
             await socketService.sendMessage(conversationId, content);
@@ -99,10 +112,8 @@ export default function ChatDetailScreen() {
     }
 
     return (
-        <KeyboardAvoidingView
-            behavior={"padding"}
+        <View
             style={[styles.container, { backgroundColor: colors.background }]}
-            keyboardVerticalOffset={0}
         >
             <Stack.Screen options={{ headerShown: false }} />
 
@@ -153,6 +164,8 @@ export default function ChatDetailScreen() {
             <FlatList
                 ref={flatListRef}
                 data={messages}
+                showsVerticalScrollIndicator={false}
+                renderScrollComponent={renderScrollComponent}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (
                     <MessageBubble
@@ -166,50 +179,52 @@ export default function ChatDetailScreen() {
                 onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
             />
 
-            <View style={[
-                styles.inputContainer,
-                {
-                    borderTopColor: colors.border,
-                    backgroundColor: colors.surface,
-                    paddingBottom: insets.bottom + 12,
-                }
-            ]}>
-                <Pressable style={styles.attachBtn}>
-                    <Ionicons name="add-circle-outline" size={28} color={colors.textSecondary} />
-                </Pressable>
-                <View style={styles.inputWrapper}>
-                    <TextInput
-                        placeholder="Type a message..."
-                        value={messageText}
-                        onChangeText={handleTyping}
-                        placeholderTextColor={colors.textMuted}
+            <KeyboardStickyView offset={{ opened: insets.bottom }}>
+                <View style={[
+                    styles.inputContainer,
+                    {
+                        borderTopColor: colors.border,
+                        backgroundColor: colors.surface,
+                        paddingBottom: insets.bottom + 12,
+                    }
+                ]}>
+                    <Pressable style={styles.attachBtn}>
+                        <Ionicons name="add-circle-outline" size={28} color={colors.textSecondary} />
+                    </Pressable>
+                    <View style={styles.inputWrapper}>
+                        <TextInput
+                            placeholder="Type a message..."
+                            value={messageText}
+                            onChangeText={handleTyping}
+                            placeholderTextColor={colors.textMuted}
+                            style={[
+                                styles.input,
+                                {
+                                    color: colors.textPrimary,
+                                    backgroundColor: colors.surfaceRaised,
+                                }
+                            ]}
+                        />
+                    </View>
+                    <Pressable
+                        onPress={handleSend}
+                        disabled={!messageText.trim()}
                         style={[
-                            styles.input,
+                            styles.sendBtn,
                             {
-                                color: colors.textPrimary,
-                                backgroundColor: colors.surfaceRaised,
+                                backgroundColor: messageText.trim() ? colors.primary : colors.surfaceRaised,
                             }
                         ]}
-                    />
+                    >
+                        <Ionicons
+                            name="send"
+                            size={20}
+                            color={messageText.trim() ? '#FFFFFF' : colors.textMuted}
+                        />
+                    </Pressable>
                 </View>
-                <Pressable
-                    onPress={handleSend}
-                    disabled={!messageText.trim()}
-                    style={[
-                        styles.sendBtn,
-                        {
-                            backgroundColor: messageText.trim() ? colors.primary : colors.surfaceRaised,
-                        }
-                    ]}
-                >
-                    <Ionicons
-                        name="send"
-                        size={20}
-                        color={messageText.trim() ? '#FFFFFF' : colors.textMuted}
-                    />
-                </Pressable>
-            </View>
-        </KeyboardAvoidingView>
+            </KeyboardStickyView>
+        </View>
     );
 }
 

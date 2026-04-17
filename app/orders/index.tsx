@@ -13,8 +13,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 export default function OrderListScreen() {
     const router = useRouter();
@@ -23,7 +23,18 @@ export default function OrderListScreen() {
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const orderSheet = useBottomSheet();
 
-    const { data, isLoading, isFetching, refetch } = useGetOrdersQuery();
+    const [page, setPage] = useState(1);
+    const { data, isLoading, isFetching, refetch } = useGetOrdersQuery({ page, limit: 20 });
+
+    // We get all accumulated items directly from RTKQ since we used merge/serializeQueryArgs
+    const allOrders = data?.items || [];
+
+    const loadMore = () => {
+        if (data?.meta && page < data.meta.totalPages && !isFetching) {
+            setPage(p => p + 1);
+        }
+    };
+
     const handleChat = async (conversationId: string) => {
         try {
             router.push(`/chat/${conversationId}`);
@@ -32,10 +43,13 @@ export default function OrderListScreen() {
         }
     };
 
-
-
-    const filteredOrders = data?.items?.filter(o =>
-        activeTab === 'Active' ? (o.status !== 'Delivered' && o.status !== 'Cancelled') : (o.status === 'Delivered' || o.status === 'Cancelled')
+    const filteredOrders = useMemo(() =>
+        allOrders.filter(o =>
+            activeTab === 'Active'
+                ? (o.status !== 'Delivered' && o.status !== 'Cancelled')
+                : (o.status === 'Delivered' || o.status === 'Cancelled')
+        ),
+        [allOrders, activeTab]
     );
 
     return (
@@ -68,7 +82,7 @@ export default function OrderListScreen() {
                     {['Active', 'History'].map((tab) => (
                         <Pressable
                             key={tab}
-                            onPress={() => setActiveTab(tab as any)}
+                            onPress={() => setActiveTab(tab as 'Active' | 'History')}
                             style={[
                                 styles.tab,
                                 { backgroundColor: activeTab === tab ? colors.surface : 'transparent' },
@@ -88,10 +102,11 @@ export default function OrderListScreen() {
             ) : (
                 <FlashList
                     data={filteredOrders}
-                    // estimatedItemSize={120}
                     keyExtractor={(item) => item.id}
-                    onRefresh={refetch}
-                    refreshing={isFetching}
+                    onRefresh={() => { setPage(1); refetch(); }}
+                    refreshing={isFetching && page === 1}
+                    onEndReached={loadMore}
+                    onEndReachedThreshold={0.5}
                     renderItem={({ item }) => {
                         const productName = item.item.product?.name;
                         const productImage = item.item.product?.imageUrls?.[0];
@@ -157,6 +172,7 @@ export default function OrderListScreen() {
                         );
                     }}
                     ListEmptyComponent={<Typography align="center" style={{ marginTop: 40 }}>No orders found.</Typography>}
+                    ListFooterComponent={isFetching && page > 1 ? <ActivityIndicator style={{ padding: 20 }} color={colors.primary} /> : null}
                     contentContainerStyle={{ paddingBottom: 100 }}
                 />
             )}

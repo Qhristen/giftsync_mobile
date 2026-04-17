@@ -1,13 +1,12 @@
 import { useTheme } from '@/hooks/useTheme';
-import { Ionicons } from '@expo/vector-icons';
+import { Occasion } from '@/types';
+import { getCountdown } from '@/utils/dateUtils';
 import React, { forwardRef } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import Avatar from '../ui/Avatar';
 import Badge from '../ui/Badge';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Typography from '../ui/Typography';
-import { Occasion } from '@/types';
-import { getCountdown } from '@/utils/dateUtils';
-import Avatar from '../ui/Avatar';
 
 
 interface Props {
@@ -40,12 +39,12 @@ const OccasionPickerSheet = forwardRef<BottomSheetRef, Props>(
                             ]}
                         >
                             <View style={[styles.iconContainer, { backgroundColor: colors.surface }]}>
-                               <Avatar uri={occasion.contact?.avatar} name={occasion.contact?.name} size="sm" />
+                                <Avatar uri={occasion.contact?.avatar} name={occasion.contact?.name} size="sm" />
                             </View>
                             <View style={styles.itemContent}>
                                 <Typography variant="bodyBold">{occasion.contact?.name}</Typography>
                                 <Typography variant="caption" color={colors.textSecondary}>
-                                    {occasion.type} - {new Date(occasion.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                    {occasion.title} - {new Date(occasion.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                                 </Typography>
                             </View>
                             {occasion.date && (
@@ -54,7 +53,7 @@ const OccasionPickerSheet = forwardRef<BottomSheetRef, Props>(
                         </Pressable>
                     ))}
 
-                   
+
                 </View>
             </BottomSheetWrapper>
         );

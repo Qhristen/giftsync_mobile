@@ -19,12 +19,33 @@ export const productApi = baseApi.injectEndpoints({
             }),
             providesTags: ['Recommendations'],
         }),
-        getProducts: builder.query<PaginatedProductResponse, { categoryId?: string; search?: string; page?: number; limit?: number } | void>({
+        getProducts: builder.query<PaginatedProductResponse, { page?: number; limit?: number;[key: string]: unknown }>({
             query: (params) => ({
                 url: '/api/v1/products',
                 method: 'GET',
                 params,
             }),
+            serializeQueryArgs: ({ endpointName, queryArgs }) => {
+                const queryArgsCopy = queryArgs || {};
+                delete queryArgsCopy.page;
+                return `${endpointName}-${JSON.stringify(queryArgsCopy)}`;
+            },
+            merge: (currentCache, newItems, { arg }) => {
+                const params = arg as { page?: number } | undefined;
+                if (!params || params.page === 1) {
+                    return newItems;
+                }
+                const existingIds = new Set(currentCache.items.map(item => item.id));
+                currentCache.items.push(
+                    ...newItems.items.filter(item => !existingIds.has(item.id))
+                );
+                currentCache.meta = newItems.meta;
+            },
+            forceRefetch: ({ currentArg, previousArg }) => {
+                const curr = currentArg as { page?: number } | undefined;
+                const prev = previousArg as { page?: number } | undefined;
+                return curr?.page !== prev?.page;
+            },
             providesTags: ['Products'],
         }),
         getProductsByBusiness: builder.query<Product[], string>({

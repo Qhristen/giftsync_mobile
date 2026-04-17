@@ -46,8 +46,8 @@ class SocketService {
         let token: string | null = null;
         try {
             token = await getValidToken();
-        } catch (error) {
-            console.error('Chat Socket: Failed to get valid token on connect', error);
+        } catch (error: any) {
+            console.log('Chat Socket: Failed to get valid token on connect', error?.message || 'Unknown error');
             return;
         }
 
@@ -103,8 +103,8 @@ class SocketService {
                         this.socket.auth = { token: newToken };
                         this.socket.connect();
                     }
-                } catch (refreshError) {
-                    console.error('Chat Socket: Failed to refresh token on connect_error', refreshError);
+                } catch (refreshError: any) {
+                    console.log('Chat Socket: Failed to refresh token on connect_error', refreshError?.message || 'Unknown error');
                 }
             }
         });
