@@ -13,8 +13,9 @@ import { Pressable, RefreshControl, ScrollView, SectionList, StyleSheet, View } 
 import { useGetContactsQuery } from '@/store/api/contactsApi';
 import { useGetMonthlyOccasionsQuery, useGetUpcomingOccasionsQuery } from '@/store/api/occasionApi';
 import { spacing } from '@/theme';
-import { Contact } from '@/types';
+import { Contact, Occasion } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 export default function OccasionsScreen() {
     const router = useRouter();
@@ -53,7 +54,9 @@ export default function OccasionsScreen() {
         }
     };
 
+    const currentMonth = new Date().getMonth();
     const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const visibleMonths = months.map((m, i) => ({ name: m, index: i })).slice(currentMonth);
     const selectedMonthName = months[selectedMonthIndex];
 
     const createSheetRef = useRef<BottomSheetRef>(null);
@@ -92,9 +95,16 @@ export default function OccasionsScreen() {
         contactDetailSheetRef.current?.expand();
     };
 
+    const chunkArray = <T,>(arr: T[], size: number): T[][] => {
+        return arr.reduce((acc, _, i) => {
+            if (i % size === 0) acc.push(arr.slice(i, i + size));
+            return acc;
+        }, [] as T[][]);
+    };
+
     const sections = [
-        { title: `Upcoming in ${selectedMonthName}`, data: monthlyOccasions?.items ?? [] },
-        { title: 'Other Occasions', data: upcomingOccasions?.filter((o: any) => new Date(o.date).getMonth() !== selectedMonthIndex) ?? [] },
+        { title: `Upcoming in ${selectedMonthName}`, data: chunkArray(monthlyOccasions?.items ?? [], 3) },
+        { title: 'Other Occasions', data: chunkArray(upcomingOccasions?.filter((o: Occasion) => new Date(o.date).getMonth() !== selectedMonthIndex) ?? [], 3) },
     ].filter(section => section.data.length > 0);
 
     return (
@@ -126,22 +136,22 @@ export default function OccasionsScreen() {
                         onLayout={(e) => setScrollWidth(e.nativeEvent.layout.width)}
                         contentContainerStyle={{ paddingHorizontal: spacing.xl, gap: 12, paddingVertical: spacing.md }}
                     >
-                        {months.map((m, idx) => (
+                        {visibleMonths.map(({ name, index }) => (
                             <Pressable
-                                key={m}
+                                key={name}
                                 onLayout={(e) => {
                                     const { x, width } = e.nativeEvent.layout;
-                                    monthLayouts.current[m] = { x, width };
-                                    if (idx === selectedMonthIndex) centerMonth(m);
+                                    monthLayouts.current[name] = { x, width };
+                                    if (index === selectedMonthIndex) centerMonth(name);
                                 }}
-                                onPress={() => setSelectedMonthIndex(idx)}
+                                onPress={() => setSelectedMonthIndex(index)}
                                 style={({ pressed }) => [
                                     styles.monthBtn,
-                                    { backgroundColor: selectedMonthIndex === idx ? colors.primary : colors.surfaceRaised },
+                                    { backgroundColor: selectedMonthIndex === index ? colors.primary : colors.surfaceRaised },
                                     pressed && { opacity: 0.8 },
                                 ]}
                             >
-                                <Typography variant="label" color={selectedMonthIndex === idx ? '#FFFFFF' : colors.textPrimary}>{m}</Typography>
+                                <Typography variant="label" color={selectedMonthIndex === index ? '#FFFFFF' : colors.textPrimary}>{name}</Typography>
                             </Pressable>
                         ))}
                     </ScrollView>
@@ -158,24 +168,43 @@ export default function OccasionsScreen() {
                     refreshControl={
                         <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={colors.primary} />
                     }
-                    keyExtractor={(item) => item.id}
-                    renderItem={({ item }) => (
-                        <Pressable
-                            onPress={() => router.push({ pathname: '/(tabs)/occasions/[id]', params: { id: item.id } })}
-                            style={({ pressed }) => [
-                                styles.item,
-                                { backgroundColor: pressed ? colors.surfaceRaised : 'transparent', paddingHorizontal: spacing.xl },
-                            ]}
-                        >
-                            <View style={[styles.dot, { backgroundColor: colors.primary }]} />
-                            <Avatar uri={item.contact?.avatar} name={item.contact?.name} size="sm" />
-                            <View style={styles.itemContent}>
-                                <Typography variant="bodyBold">{item.contact?.name}</Typography>
-                                <Typography variant="caption" color={colors.textSecondary}>
-                                    {item.title} • {new Date(item.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                                </Typography>
-                            </View>
-                        </Pressable>
+                    keyExtractor={(item, index) => item[0]?.id || `row-${index}`}
+                    renderItem={({ item: row, index: rowIndex }) => (
+                        <View style={styles.gridRow}>
+                            {row.map((item: Occasion, itemIndex: number) => (
+                                <Animated.View
+                                    key={item.id}
+                                    entering={FadeInDown.delay((rowIndex * 3 + itemIndex) * 60).duration(300).springify().damping(50)}
+                                    style={{ flex: 1 }}
+                                >
+                                    <Pressable
+                                        onPress={() => router.push({ pathname: '/(tabs)/occasions/[id]', params: { id: item.id } })}
+                                        style={({ pressed }) => [
+                                            styles.gridCard,
+                                            { backgroundColor: colors.surfaceRaised },
+                                            pressed && { opacity: 0.7, transform: [{ scale: 0.98 }] },
+                                        ]}
+                                    >
+                                        <Avatar uri={item.contact?.avatar} name={item.contact?.name} size="md" />
+                                        <View style={styles.gridCardContent}>
+                                            <Typography variant="bodyBold" numberOfLines={1} style={{ textAlign: 'center', fontSize: 13 }}>
+                                                {item.contact?.name?.split(' ')[0]}
+                                            </Typography>
+                                            <Typography variant="caption" color={colors.textSecondary} numberOfLines={1} style={{ textAlign: 'center', fontSize: 10 }}>
+                                                {item.title}
+                                            </Typography>
+                                            <Typography variant="caption" color={colors.primary} style={{ textAlign: 'center', fontSize: 10, marginTop: 2 }}>
+                                                {new Date(item.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                            </Typography>
+                                        </View>
+                                    </Pressable>
+                                </Animated.View>
+                            ))}
+                            {/* Fillers to maintain grid layout */}
+                            {row.length < 3 && Array(3 - row.length).fill(0).map((_, i) => (
+                                <View key={`filler-${i}`} style={[styles.gridCard, { backgroundColor: 'transparent' }]} />
+                            ))}
+                        </View>
                     )}
                     renderSectionHeader={({ section: { title } }) => (
                         <View style={[styles.sectionHeader, { backgroundColor: colors.background, paddingHorizontal: spacing.xl, paddingVertical: spacing.xs }]}>
@@ -184,7 +213,7 @@ export default function OccasionsScreen() {
                             </Typography>
                         </View>
                     )}
-                    contentContainerStyle={{ paddingBottom: 100, paddingTop: spacing.md }}
+                    contentContainerStyle={{ paddingBottom: 100 }}
                 />
             ) : (
                 <FlashList
@@ -196,25 +225,29 @@ export default function OccasionsScreen() {
                     keyExtractor={(item) => item.id}
                     onEndReached={loadMore}
                     onEndReachedThreshold={0.5}
-                    renderItem={({ item }) => (
-                        <Pressable
-                            onPress={() => handleContactClick(item as any)}
-                            style={({ pressed }) => [
-                                styles.item,
-                                { backgroundColor: pressed ? colors.surfaceRaised : 'transparent', paddingHorizontal: spacing.xl }
-                            ]}
+                    renderItem={({ item, index }) => (
+                        <Animated.View
+                            entering={FadeInDown.delay(index * 50).duration(400).springify().damping(15)}
                         >
-                            <Avatar uri={item.avatar} name={item.name} size="md" />
-                            <View style={styles.itemContent}>
-                                <Typography variant="bodyBold">{item.name}</Typography>
-                                <Typography variant="caption" color={colors.textSecondary}>
-                                    {item.relationship} • {item.budget} Budget
-                                </Typography>
-                            </View>
-                            <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
-                        </Pressable>
+                            <Pressable
+                                onPress={() => handleContactClick(item)}
+                                style={({ pressed }) => [
+                                    styles.item,
+                                    { backgroundColor: pressed ? colors.surfaceRaised : 'transparent', paddingHorizontal: spacing.xl }
+                                ]}
+                            >
+                                <Avatar uri={item.avatar} name={item.name} size="md" />
+                                <View style={styles.itemContent}>
+                                    <Typography variant="bodyBold">{item.name}</Typography>
+                                    <Typography variant="caption" color={colors.textSecondary}>
+                                        {item.relationship} • {item.budget} Budget
+                                    </Typography>
+                                </View>
+                                <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+                            </Pressable>
+                        </Animated.View>
                     )}
-                    contentContainerStyle={{ paddingBottom: 100, paddingTop: spacing.md }}
+                    contentContainerStyle={{ paddingBottom: 100 }}
                 />
             )}
 
@@ -268,7 +301,7 @@ const styles = StyleSheet.create({
         paddingTop: 30,
     },
     header: {
-        paddingBottom: 0,
+        // paddingBottom: 0,
     },
     monthBtn: {
         paddingHorizontal: 16,
@@ -294,21 +327,29 @@ const styles = StyleSheet.create({
         paddingVertical: 14,
         gap: 12,
     },
-    dot: {
-        width: 6,
-        height: 6,
-        borderRadius: 3,
-    },
     itemContent: {
         flex: 1,
     },
-    sectionHeader: {
-        borderBottomWidth: 1,
-        borderBottomColor: 'rgba(0,0,0,0.05)',
+    gridRow: {
+        flexDirection: 'row',
+        paddingHorizontal: spacing.xl,
+        gap: 12,
+        marginBottom: 12,
     },
-    planBtn: {
-        paddingHorizontal: 12,
-        borderRadius: 100,
+    gridCard: {
+        flex: 1,
+        alignItems: 'center',
+        padding: 12,
+        borderRadius: 20,
+        gap: 8,
+    },
+    gridCardContent: {
+        width: '100%',
+        alignItems: 'center',
+    },
+    sectionHeader: {
+        // borderBottomWidth: 1,
+        borderBottomColor: 'rgba(0,0,0,0.05)',
     },
     fab: {
         position: 'absolute',

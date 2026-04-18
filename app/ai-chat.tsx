@@ -2,7 +2,7 @@ import MessageBubble from '@/components/chat/MessageBubble';
 import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
-import { useChatMutation } from '@/store/api/aiApi';
+import { AiChatHistoryItem, useChatMutation } from '@/store/api/aiApi';
 import { useAppSelector } from '@/store/hooks';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,6 +10,7 @@ import { Image } from 'expo-image';
 import { Stack, useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import {
+    ActivityIndicator,
     FlatList,
     Pressable,
     StyleSheet,
@@ -56,6 +57,7 @@ export default function AIChatScreen() {
             createdAt: new Date().toISOString(),
         }
     ]);
+    const [chatHistory, setChatHistory] = useState<AiChatHistoryItem[]>([]);
     const [isAITyping, setIsAITyping] = useState(false);
 
     const [chatMutation] = useChatMutation();
@@ -80,9 +82,13 @@ export default function AIChatScreen() {
         }, 100);
 
         try {
-            const result = await chatMutation({ message: currentText }).unwrap();
+            const result = await chatMutation({
+                message: currentText,
+                history: chatHistory
+            }).unwrap();
 
             if (result.response) {
+
                 const responseMsg: AIMessage = {
                     id: (Date.now() + 1).toString(),
                     content: result.response.message,
@@ -91,6 +97,13 @@ export default function AIChatScreen() {
                     uiData: result.response.uiData,
                 };
                 setMessages(prev => [...prev, responseMsg]);
+
+                // Update conversation history with user message and model response
+                setChatHistory(prev => [
+                    ...prev,
+                    { role: 'user', content: currentText },
+                    { role: 'model', content: result.response.message }
+                ]);
             }
         } catch (error) {
             console.error('Chat Error:', error);
@@ -145,7 +158,10 @@ export default function AIChatScreen() {
                 </View>
 
                 <Pressable
-                    onPress={() => setMessages([messages[0]])}
+                    onPress={() => {
+                        setMessages([messages[0]]);
+                        setChatHistory([]);
+                    }}
                     style={({ pressed }) => [
                         styles.headerAction,
                         pressed && { opacity: 0.7 }
@@ -162,6 +178,16 @@ export default function AIChatScreen() {
                 showsVerticalScrollIndicator={false}
                 renderScrollComponent={renderScrollComponent}
                 keyExtractor={(item) => item.id}
+                ListFooterComponent={isAITyping ? (
+                    <View style={styles.typingIndicatorContainer}>
+                        <View style={[styles.typingIndicatorBubble, { backgroundColor: colors.surfaceRaised }]}>
+                            <ActivityIndicator size="small" color={colors.primary} />
+                            <Typography variant="body" color={colors.textSecondary} style={{ fontStyle: 'italic' }}>
+                                thinking...
+                            </Typography>
+                        </View>
+                    </View>
+                ) : null}
                 renderItem={({ item }) => {
                     const hasProducts = item.uiData?.type === 'products' && item.uiData.items && item.uiData.items.length > 0;
                     const hasOccasions = item.uiData?.type === 'occasions' && item.uiData.items && item.uiData.items.length > 0;
@@ -182,21 +208,21 @@ export default function AIChatScreen() {
                                     isOwnMessage={false}
                                 />
 
-                                {/* Recommendations Carousel */}
+                                {/* Recommendations Two-Column Grid */}
                                 <View style={{ paddingLeft: spacing.xl, paddingRight: spacing.md, paddingBottom: spacing.md }}>
-                                    <FlatList
-                                        data={item.uiData?.items}
-                                        horizontal
-                                        showsHorizontalScrollIndicator={false}
-                                        keyExtractor={(rec: any) => rec.id}
-                                        renderItem={({ item: rec }) => (
-                                            <Card style={styles.recCard} onPress={() => router.push({ pathname: '/(tabs)/shop/[id]', params: { id: rec.id } })}>
-                                                <Image source={{ uri: rec.imageUrls?.[0] }} style={styles.recImage} />
+                                    <View style={styles.twoColumnGrid}>
+                                        {item.uiData?.items?.map((rec: any) => (
+                                            <Card
+                                                key={rec.id}
+                                                style={styles.gridCard}
+                                                onPress={() => router.push({ pathname: '/(tabs)/shop/[id]', params: { id: rec.id } })}
+                                            >
+                                                <Image source={{ uri: rec.imageUrls?.[0] }} style={styles.gridProductImage} />
                                                 <Typography variant="bodyBold" numberOfLines={1} style={{ marginTop: 8 }}>{rec.name}</Typography>
                                                 <Typography variant="label" color={colors.primary}>{formatCurrency(rec.price, rec.currency || 'NGN')}</Typography>
                                             </Card>
-                                        )}
-                                    />
+                                        ))}
+                                    </View>
                                 </View>
                             </View>
                         );
@@ -217,27 +243,23 @@ export default function AIChatScreen() {
                                     isOwnMessage={false}
                                 />
 
-                                {/* Occasions Carousel */}
+                                {/* Occasions Two-Column Grid */}
                                 <View style={{ paddingLeft: spacing.xl, paddingRight: spacing.md, paddingBottom: spacing.md }}>
-                                    <FlatList
-                                        data={item.uiData?.items}
-                                        horizontal
-                                        showsHorizontalScrollIndicator={false}
-                                        keyExtractor={(rec: any) => rec.id}
-                                        renderItem={({ item: rec }) => (
-                                            <Card style={[styles.recCard, { padding: 12, width: 220, marginRight: 12 }]} onPress={() => router.push({ pathname: '/(tabs)/occasions/[id]', params: { id: rec.id } })}>
-                                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                                                    <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary + '20', justifyContent: 'center', alignItems: 'center' }}>
-                                                        <Ionicons name="calendar-outline" size={20} color={colors.primary} />
-                                                    </View>
-                                                    <View style={{ flex: 1 }}>
-                                                        <Typography variant="bodyBold" numberOfLines={1}>{rec.title}</Typography>
-                                                        <Typography variant="caption" color={colors.textSecondary}>{new Date(rec.date).toLocaleDateString()}</Typography>
-                                                    </View>
+                                    <View style={styles.twoColumnGrid}>
+                                        {item.uiData?.items?.map((rec: any) => (
+                                            <Card
+                                                key={rec.id}
+                                                style={[styles.gridCard, { padding: 12 }]}
+                                                onPress={() => router.push({ pathname: '/(tabs)/occasions/[id]', params: { id: rec.id } })}
+                                            >
+                                                <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary + '20', justifyContent: 'center', alignItems: 'center', marginBottom: 8 }}>
+                                                    <Ionicons name="calendar-outline" size={20} color={colors.primary} />
                                                 </View>
+                                                <Typography variant="bodyBold" numberOfLines={2}>{rec.title}</Typography>
+                                                <Typography variant="caption" color={colors.textSecondary}>{new Date(rec.date).toLocaleDateString()}</Typography>
                                             </Card>
-                                        )}
-                                    />
+                                        ))}
+                                    </View>
                                 </View>
                             </View>
                         );
@@ -258,33 +280,31 @@ export default function AIChatScreen() {
                                     isOwnMessage={false}
                                 />
 
-                                {/* Contacts Carousel */}
+                                {/* Contacts Two-Column Grid */}
                                 <View style={{ paddingLeft: spacing.xl, paddingRight: spacing.md, paddingBottom: spacing.md }}>
-                                    <FlatList
-                                        data={item.uiData?.items}
-                                        horizontal
-                                        showsHorizontalScrollIndicator={false}
-                                        keyExtractor={(rec: any) => rec.id}
-                                        renderItem={({ item: rec }) => (
-                                            <Card style={[styles.recCard, { padding: 12, width: 220, marginRight: 12 }]}>
-                                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                                    <View style={styles.twoColumnGrid}>
+                                        {item.uiData?.items?.map((rec: any) => (
+                                            <Card key={rec.id} style={[styles.gridCard, { padding: 12 }]}>
+                                                <View style={{ alignItems: 'center', marginBottom: 8 }}>
                                                     {rec.avatar ? (
-                                                        <Image source={{ uri: rec.avatar }} style={{ width: 40, height: 40, borderRadius: 20 }} />
+                                                        <Image source={{ uri: rec.avatar }} style={{ width: 48, height: 48, borderRadius: 24 }} />
                                                     ) : (
-                                                        <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary + '20', justifyContent: 'center', alignItems: 'center' }}>
+                                                        <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: colors.primary + '20', justifyContent: 'center', alignItems: 'center' }}>
                                                             <Typography variant="bodyBold" color={colors.primary}>
                                                                 {rec.name?.substring(0, 2).toUpperCase() || 'CX'}
                                                             </Typography>
                                                         </View>
                                                     )}
-                                                    <View style={{ flex: 1 }}>
-                                                        <Typography variant="bodyBold" numberOfLines={1}>{rec.name}</Typography>
-                                                        {rec.phoneNumber && <Typography variant="caption" color={colors.textSecondary}>{rec.phoneNumber}</Typography>}
-                                                    </View>
                                                 </View>
+                                                <Typography variant="bodyBold" numberOfLines={1} style={{ textAlign: 'center' }}>{rec.name}</Typography>
+                                                {rec.phoneNumber && (
+                                                    <Typography variant="caption" color={colors.textSecondary} numberOfLines={1} style={{ textAlign: 'center' }}>
+                                                        {rec.phoneNumber}
+                                                    </Typography>
+                                                )}
                                             </Card>
-                                        )}
-                                    />
+                                        ))}
+                                    </View>
                                 </View>
                             </View>
                         );
@@ -431,6 +451,23 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    // Two-column grid layout
+    twoColumnGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 10,
+    },
+    gridCard: {
+        width: '48%',
+        padding: 8,
+        borderRadius: 16,
+    },
+    gridProductImage: {
+        width: '100%',
+        height: 110,
+        borderRadius: 8,
+    },
+    // Legacy styles kept for safety
     recCard: {
         width: 160,
         padding: 8,
@@ -441,5 +478,19 @@ const styles = StyleSheet.create({
         width: '100%',
         height: 120,
         borderRadius: 8,
+    },
+    typingIndicatorContainer: {
+        paddingHorizontal: 16,
+        paddingBottom: 8,
+        alignItems: 'flex-start',
+        marginTop: 8,
+    },
+    typingIndicatorBubble: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderRadius: 20,
+        gap: 8,
     }
 });

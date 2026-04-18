@@ -128,10 +128,10 @@ const OccasionForm: React.FC<OccasionFormProps> = ({
         setSubmittingTemplateId(template.id);
         setIsSubmitting(true);
         try {
-            await subscribeToTemplate({
+          await subscribeToTemplate({
                 contactId: (fixedContactId || selectedContactId)!,
                 templateId: template.id,
-            }).unwrap();
+            }).unwrap();  
 
             dispatch(spendCoins(1));
             toast.success('Subscribed!', { description: `${template.title} added successfully` });

@@ -1,8 +1,14 @@
 import { Product } from '@/types';
 import { baseApi } from './baseApi';
 
+export interface AiChatHistoryItem {
+    role: 'user' | 'model';
+    content: string;
+}
+
 export interface AiChatRequest {
     message: string;
+    history?: AiChatHistoryItem[];
 }
 
 export interface AiChatResponse {

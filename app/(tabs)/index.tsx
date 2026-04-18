@@ -60,7 +60,7 @@ export default function HomeScreen() {
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             {/* Header */}
-            <Animated.View entering={FadeInDown.duration(600)} style={[styles.header, { padding: spacing.xl }]}>
+            <Animated.View entering={FadeInDown.duration(600)} style={[styles.header, { padding: spacing.xl, paddingBottom: spacing.md }]}>
                 <View>
                     <Typography variant="body" color={colors.textSecondary}>
                         Good morning, {profile?.name?.split(' ')[0] || 'Alex'} 👋
@@ -83,6 +83,7 @@ export default function HomeScreen() {
             <ScrollView
                 contentContainerStyle={{ paddingBottom: 100 }}
                 showsVerticalScrollIndicator={false}
+                style={{ borderTopLeftRadius: 24, borderTopRightRadius: 24 }}
                 refreshControl={
                     <RefreshControl
                         refreshing={isProfileLoading || isUpcomingLoading || isMonthlyLoading || isRecsLoading}
