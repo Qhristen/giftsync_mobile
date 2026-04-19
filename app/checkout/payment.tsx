@@ -22,7 +22,10 @@ export default function PaymentScreen() {
     const [handlePayment] = useHandlePaymentMutation();
     const { data: wallet, refetch } = useGetWalletBalanceQuery()
 
-    const { data: coinQuote, isLoading: isQuoteLoading } = useGetCoinQuoteQuery(order?.total ?? 0, {
+    const { data: coinQuote, isLoading: isQuoteLoading } = useGetCoinQuoteQuery({
+        amount: order?.total ?? 0,
+        currency: order?.item?.product.currency,
+    }, {
         skip: !order?.total,
     });
 
@@ -168,7 +171,7 @@ export default function PaymentScreen() {
             {/* Footer */}
             <View style={[styles.footer, { padding: spacing.xl, borderTopWidth: 1, borderTopColor: colors.border }]}>
                 <Button
-                    title={isProcessing ? "Processing..." : paymentMethod === 'coins' ? `Pay with ${coinQuote?.coins ? coinQuote.coins.toLocaleString() : '...'} Coins` : `Pay NGN ${order?.total?.toLocaleString()}`}
+                    title={isProcessing ? "Processing..." : paymentMethod === 'coins' ? `Pay with ${coinQuote?.coins ? coinQuote.coins.toLocaleString() : '...'} Coins` : `Pay ${formatCurrency(order?.total ?? 0, order?.item?.product.currency)}`}
                     onPress={handlePay}
                     isLoading={isProcessing || isOrderLoading || (paymentMethod === 'coins' && isQuoteLoading)}
                     style={styles.submitBtn}

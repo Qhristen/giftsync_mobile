@@ -36,7 +36,9 @@ const CategoryPickerSheet = forwardRef<BottomSheetRef, CategoryPickerSheetProps>
     };
 
     return (
-        <BottomSheetWrapper ref={ref} snapPoints={['60%']} scrollable keyboardBehavior="interactive"
+        <BottomSheetWrapper ref={ref} snapPoints={['60%']}
+            scrollable
+            keyboardBehavior="interactive"
             android_keyboardInputMode="adjustPan">
             <Typography variant="h3" style={{ marginBottom: spacing.lg }}>
                 Select Category

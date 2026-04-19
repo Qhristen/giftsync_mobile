@@ -2,18 +2,30 @@ import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { ChatMessage } from '@/types';
 import { format } from 'date-fns';
+import * as Clipboard from 'expo-clipboard';
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { toast } from 'sonner-native';
 
 interface MessageBubbleProps {
     message: ChatMessage;
     isOwnMessage: boolean;
+    onLongPress?: (message: ChatMessage) => void;
 }
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isOwnMessage }) => {
+const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isOwnMessage, onLongPress }) => {
     const { colors, spacing } = useTheme();
 
     const timeString = format(new Date(message.createdAt), 'HH:mm');
+
+    const handleCopy = async () => {
+        if (onLongPress) {
+            onLongPress(message);
+        } else if (message.content) {
+            await Clipboard.setStringAsync(message.content);
+            toast.success('Message copied!');
+        }
+    };
 
     return (
         <View
@@ -26,14 +38,17 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isOwnMessage }) 
                 },
             ]}
         >
-            <View
-                style={[
+            <Pressable
+                onLongPress={handleCopy}
+                delayLongPress={250}
+                style={({ pressed }) => [
                     styles.bubble,
                     {
                         backgroundColor: isOwnMessage ? colors.primary : colors.surfaceRaised,
                         borderBottomRightRadius: isOwnMessage ? 4 : 16,
                         borderBottomLeftRadius: isOwnMessage ? 16 : 4,
                         padding: spacing.md,
+                        opacity: pressed ? 0.9 : 1,
                     },
                 ]}
             >
@@ -50,7 +65,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isOwnMessage }) 
                 >
                     {timeString}
                 </Typography>
-            </View>
+            </Pressable>
         </View>
     );
 };

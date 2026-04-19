@@ -1,5 +1,7 @@
 import MessageBubble from '@/components/chat/MessageBubble';
-import Card from '@/components/ui/Card';
+import MessageOptionsSheet from '@/components/sheets/MessageOptionsSheet';
+import Avatar from '@/components/ui/Avatar';
+import { BottomSheetRef } from '@/components/ui/BottomSheetWrapper';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { AiChatHistoryItem, useChatMutation } from '@/store/api/aiApi';
@@ -18,6 +20,7 @@ import {
     View
 } from 'react-native';
 import { KeyboardChatScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface AIMessage {
@@ -37,6 +40,7 @@ export default function AIChatScreen() {
     const { colors, spacing } = useTheme();
     const insets = useSafeAreaInsets();
     const flatListRef = useRef<FlatList>(null);
+    const messageOptionsSheetRef = useRef<BottomSheetRef>(null);
 
     const renderScrollComponent = React.useCallback((props: any) => (
         <KeyboardChatScrollView
@@ -59,8 +63,14 @@ export default function AIChatScreen() {
     ]);
     const [chatHistory, setChatHistory] = useState<AiChatHistoryItem[]>([]);
     const [isAITyping, setIsAITyping] = useState(false);
+    const [selectedMessageText, setSelectedMessageText] = useState('');
 
     const [chatMutation] = useChatMutation();
+
+    const handleMessageLongPress = (msg: any) => {
+        setSelectedMessageText(msg.content);
+        messageOptionsSheetRef.current?.expand();
+    };
 
     const handleSend = async () => {
         if (!messageText.trim()) return;
@@ -78,7 +88,7 @@ export default function AIChatScreen() {
         setIsAITyping(true);
 
         setTimeout(() => {
-            flatListRef.current?.scrollToEnd({ animated: true });
+            flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
         }, 100);
 
         try {
@@ -105,11 +115,11 @@ export default function AIChatScreen() {
                     { role: 'model', content: result.response.message }
                 ]);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Chat Error:', error);
             const errorMsg: AIMessage = {
                 id: (Date.now() + 1).toString(),
-                content: "I'm having trouble connecting right now. Please try again later.",
+                content: error?.data?.message || "I'm having trouble connecting right now. Please try again later.",
                 isOwnMessage: false,
                 createdAt: new Date().toISOString(),
             };
@@ -133,7 +143,7 @@ export default function AIChatScreen() {
                     paddingBottom: 16,
                     backgroundColor: colors.surface,
                     borderBottomColor: colors.border,
-                    borderBottomWidth: 1,
+                    // borderBottomWidth: 1,
                 }
             ]}>
                 <View style={styles.headerLeft}>
@@ -174,11 +184,12 @@ export default function AIChatScreen() {
             {/* Chat Area */}
             <FlatList
                 ref={flatListRef}
-                data={messages}
+                data={[...messages].reverse()}
+                inverted={true}
                 showsVerticalScrollIndicator={false}
                 renderScrollComponent={renderScrollComponent}
                 keyExtractor={(item) => item.id}
-                ListFooterComponent={isAITyping ? (
+                ListHeaderComponent={isAITyping ? (
                     <View style={styles.typingIndicatorContainer}>
                         <View style={[styles.typingIndicatorBubble, { backgroundColor: colors.surfaceRaised }]}>
                             <ActivityIndicator size="small" color={colors.primary} />
@@ -206,21 +217,33 @@ export default function AIChatScreen() {
                                         senderId: '',
                                     } as any}
                                     isOwnMessage={false}
+                                    onLongPress={handleMessageLongPress}
                                 />
 
                                 {/* Recommendations Two-Column Grid */}
                                 <View style={{ paddingLeft: spacing.xl, paddingRight: spacing.md, paddingBottom: spacing.md }}>
                                     <View style={styles.twoColumnGrid}>
-                                        {item.uiData?.items?.map((rec: any) => (
-                                            <Card
+                                        {item.uiData?.items?.map((rec: any, index: number) => (
+                                            <Animated.View
                                                 key={rec.id}
-                                                style={styles.gridCard}
-                                                onPress={() => router.push({ pathname: '/(tabs)/shop/[id]', params: { id: rec.id } })}
+                                                entering={FadeInDown.delay(index * 60).duration(300).springify().damping(50)}
+                                                style={{ width: '48%', marginBottom: 12 }}
                                             >
-                                                <Image source={{ uri: rec.imageUrls?.[0] }} style={styles.gridProductImage} />
-                                                <Typography variant="bodyBold" numberOfLines={1} style={{ marginTop: 8 }}>{rec.name}</Typography>
-                                                <Typography variant="label" color={colors.primary}>{formatCurrency(rec.price, rec.currency || 'NGN')}</Typography>
-                                            </Card>
+                                                <Pressable
+                                                    onPress={() => router.push({ pathname: '/(tabs)/shop/[id]', params: { id: rec.id } })}
+                                                    style={({ pressed }) => [
+                                                        styles.gridCardInner,
+                                                        { backgroundColor: colors.surfaceRaised },
+                                                        pressed && { opacity: 0.7, transform: [{ scale: 0.98 }] }
+                                                    ]}
+                                                >
+                                                    <Image source={{ uri: rec.imageUrls?.[0] }} style={styles.gridProductImage} />
+                                                    <View style={styles.gridCardContent}>
+                                                        <Typography variant="bodyBold" numberOfLines={1} style={{ textAlign: 'center', fontSize: 13, marginTop: 4 }}>{rec.name}</Typography>
+                                                        <Typography variant="label" color={colors.primary} style={{ textAlign: 'center', fontSize: 12 }}>{formatCurrency(rec.price, rec.currency || 'NGN')}</Typography>
+                                                    </View>
+                                                </Pressable>
+                                            </Animated.View>
                                         ))}
                                     </View>
                                 </View>
@@ -241,23 +264,48 @@ export default function AIChatScreen() {
                                         senderId: '',
                                     } as any}
                                     isOwnMessage={false}
+                                    onLongPress={handleMessageLongPress}
                                 />
 
                                 {/* Occasions Two-Column Grid */}
                                 <View style={{ paddingLeft: spacing.xl, paddingRight: spacing.md, paddingBottom: spacing.md }}>
                                     <View style={styles.twoColumnGrid}>
-                                        {item.uiData?.items?.map((rec: any) => (
-                                            <Card
+                                        {item.uiData?.items?.map((rec: any, index: number) => (
+                                            <Animated.View
                                                 key={rec.id}
-                                                style={[styles.gridCard, { padding: 12 }]}
-                                                onPress={() => router.push({ pathname: '/(tabs)/occasions/[id]', params: { id: rec.id } })}
+                                                entering={FadeInDown.delay(index * 60).duration(300).springify().damping(50)}
+                                                style={{ width: '48%', marginBottom: 12 }}
                                             >
-                                                <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary + '20', justifyContent: 'center', alignItems: 'center', marginBottom: 8 }}>
-                                                    <Ionicons name="calendar-outline" size={20} color={colors.primary} />
-                                                </View>
-                                                <Typography variant="bodyBold" numberOfLines={2}>{rec.title}</Typography>
-                                                <Typography variant="caption" color={colors.textSecondary}>{new Date(rec.date).toLocaleDateString()}</Typography>
-                                            </Card>
+                                                <Pressable
+                                                    onPress={() => router.push({ pathname: '/(tabs)/occasions/[id]', params: { id: rec.id } })}
+                                                    style={({ pressed }) => [
+                                                        styles.gridCardInner,
+                                                        { backgroundColor: colors.surfaceRaised },
+                                                        pressed && { opacity: 0.7, transform: [{ scale: 0.98 }] }
+                                                    ]}
+                                                >
+                                                    {rec.contact ? (
+                                                        <Avatar uri={rec.contact?.avatar} name={rec.contact?.name} size="md" />
+                                                    ) : (
+                                                        <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary + '20', justifyContent: 'center', alignItems: 'center' }}>
+                                                            <Ionicons name="calendar-outline" size={20} color={colors.primary} />
+                                                        </View>
+                                                    )}
+                                                    <View style={styles.gridCardContent}>
+                                                        {rec.contact?.name && (
+                                                            <Typography variant="bodyBold" numberOfLines={1} style={{ textAlign: 'center', fontSize: 13 }}>
+                                                                {rec.contact.name.split(' ')[0]}
+                                                            </Typography>
+                                                        )}
+                                                        <Typography variant="caption" color={rec.contact ? colors.textSecondary : colors.textPrimary} numberOfLines={1} style={{ textAlign: 'center', fontSize: 10 }}>
+                                                            {rec.title}
+                                                        </Typography>
+                                                        <Typography variant="caption" color={colors.primary} style={{ textAlign: 'center', fontSize: 10, marginTop: 2 }}>
+                                                            {new Date(rec.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                                        </Typography>
+                                                    </View>
+                                                </Pressable>
+                                            </Animated.View>
                                         ))}
                                     </View>
                                 </View>
@@ -278,31 +326,41 @@ export default function AIChatScreen() {
                                         senderId: '',
                                     } as any}
                                     isOwnMessage={false}
+                                    onLongPress={handleMessageLongPress}
                                 />
 
                                 {/* Contacts Two-Column Grid */}
                                 <View style={{ paddingLeft: spacing.xl, paddingRight: spacing.md, paddingBottom: spacing.md }}>
                                     <View style={styles.twoColumnGrid}>
-                                        {item.uiData?.items?.map((rec: any) => (
-                                            <Card key={rec.id} style={[styles.gridCard, { padding: 12 }]}>
-                                                <View style={{ alignItems: 'center', marginBottom: 8 }}>
-                                                    {rec.avatar ? (
-                                                        <Image source={{ uri: rec.avatar }} style={{ width: 48, height: 48, borderRadius: 24 }} />
-                                                    ) : (
-                                                        <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: colors.primary + '20', justifyContent: 'center', alignItems: 'center' }}>
-                                                            <Typography variant="bodyBold" color={colors.primary}>
-                                                                {rec.name?.substring(0, 2).toUpperCase() || 'CX'}
+                                        {item.uiData?.items?.map((rec: any, index: number) => (
+                                            <Animated.View
+                                                key={rec.id}
+                                                entering={FadeInDown.delay(index * 60).duration(300).springify().damping(50)}
+                                                style={{ width: '48%', marginBottom: 12 }}
+                                            >
+                                                <Pressable
+                                                    style={({ pressed }) => [
+                                                        styles.gridCardInner,
+                                                        { backgroundColor: colors.surfaceRaised },
+                                                        pressed && { opacity: 0.7, transform: [{ scale: 0.98 }] }
+                                                    ]}
+                                                >
+                                                    <Avatar uri={rec.avatar} name={rec.name} size="md" />
+                                                    <View style={styles.gridCardContent}>
+                                                        <Typography variant="bodyBold" numberOfLines={1} style={{ textAlign: 'center', fontSize: 13 }}>{rec.name}</Typography>
+                                                        {rec.relationship && (
+                                                            <Typography variant="caption" color={colors.textSecondary} numberOfLines={1} style={{ textAlign: 'center', fontSize: 10 }}>
+                                                                {rec.relationship}
                                                             </Typography>
-                                                        </View>
-                                                    )}
-                                                </View>
-                                                <Typography variant="bodyBold" numberOfLines={1} style={{ textAlign: 'center' }}>{rec.name}</Typography>
-                                                {rec.phoneNumber && (
-                                                    <Typography variant="caption" color={colors.textSecondary} numberOfLines={1} style={{ textAlign: 'center' }}>
-                                                        {rec.phoneNumber}
-                                                    </Typography>
-                                                )}
-                                            </Card>
+                                                        )}
+                                                        {rec.phoneNumber && (
+                                                            <Typography variant="caption" color={colors.textSecondary} numberOfLines={1} style={{ textAlign: 'center', fontSize: 10, marginTop: 2 }}>
+                                                                {rec.phoneNumber}
+                                                            </Typography>
+                                                        )}
+                                                    </View>
+                                                </Pressable>
+                                            </Animated.View>
                                         ))}
                                     </View>
                                 </View>
@@ -320,13 +378,12 @@ export default function AIChatScreen() {
                                 senderId: '',
                             } as any}
                             isOwnMessage={item.isOwnMessage}
+                            onLongPress={handleMessageLongPress}
                         />
                     );
                 }}
                 style={{ flex: 1 }}
                 contentContainerStyle={[styles.messageList, { paddingBottom: spacing.lg }]}
-                onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-                onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
             />
 
             {/* Input */}
@@ -373,6 +430,12 @@ export default function AIChatScreen() {
                     </Pressable>
                 </View>
             </KeyboardStickyView>
+
+            <MessageOptionsSheet
+                ref={messageOptionsSheetRef}
+                textToCopy={selectedMessageText}
+                onClose={() => setSelectedMessageText('')}
+            />
         </View>
     );
 }
@@ -455,12 +518,18 @@ const styles = StyleSheet.create({
     twoColumnGrid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: 10,
+        justifyContent: 'space-between',
     },
-    gridCard: {
-        width: '48%',
-        padding: 8,
-        borderRadius: 16,
+    gridCardInner: {
+        flex: 1,
+        alignItems: 'center',
+        padding: 12,
+        borderRadius: 20,
+        gap: 8,
+    },
+    gridCardContent: {
+        width: '100%',
+        alignItems: 'center',
     },
     gridProductImage: {
         width: '100%',

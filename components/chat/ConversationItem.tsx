@@ -121,6 +121,7 @@ const styles = StyleSheet.create({
     preview: {
         flex: 1,
         marginRight: 8,
+        fontSize: 12
     },
     badge: {
         minWidth: 20,

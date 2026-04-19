@@ -58,11 +58,13 @@ export default function MessagesScreen() {
             <FlatList
                 data={conversations}
                 keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                    <ConversationItem
-                        conversation={item}
-                        onPress={() => router.push(`/chat/${item.id}`)}
-                    />
+                renderItem={({ item, index }) => (
+                    <Animated.View entering={FadeInDown.delay(index * 60).duration(350).springify().damping(18)}>
+                        <ConversationItem
+                            conversation={item}
+                            onPress={() => router.push(`/chat/${item.id}`)}
+                        />
+                    </Animated.View>
                 )}
                 contentContainerStyle={[styles.list, { paddingBottom: 100 }]}
                 showsVerticalScrollIndicator={false}

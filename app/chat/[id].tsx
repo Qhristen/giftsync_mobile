@@ -1,11 +1,14 @@
 import MessageBubble from '@/components/chat/MessageBubble';
+import MessageOptionsSheet from '@/components/sheets/MessageOptionsSheet';
 import Avatar from '@/components/ui/Avatar';
+import { BottomSheetRef } from '@/components/ui/BottomSheetWrapper';
 import Typography from '@/components/ui/Typography';
 import { useChatSocket } from '@/hooks/useChatSocket';
 import { useTheme } from '@/hooks/useTheme';
 import { RootState } from '@/store';
 import { useGetConversationQuery, useGetMessagesQuery, useMarkConversationAsReadMutation } from '@/store/api/chatApi';
 import { useGetProfileQuery } from '@/store/api/userApi';
+import { ChatMessage } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
@@ -29,6 +32,8 @@ export default function ChatDetailScreen() {
     const insets = useSafeAreaInsets();
     const [messageText, setMessageText] = useState('');
     const flatListRef = useRef<FlatList>(null);
+    const optionsSheetRef = useRef<BottomSheetRef>(null);
+    const [selectedMessage, setSelectedMessage] = useState<ChatMessage | null>(null);
     const socketService = useChatSocket();
 
     const renderScrollComponent = React.useCallback((props: any) => (
@@ -83,7 +88,7 @@ export default function ChatDetailScreen() {
         socketService.sendTyping(conversationId, false);
 
         setTimeout(() => {
-            flatListRef.current?.scrollToEnd({ animated: true });
+            flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
         }, 100);
 
         try {
@@ -101,6 +106,11 @@ export default function ChatDetailScreen() {
         } else {
             socketService.sendTyping(conversationId, false);
         }
+    };
+
+    const handleLongPress = (message: ChatMessage) => {
+        setSelectedMessage(message);
+        optionsSheetRef.current?.present();
     };
 
     if (isLoading) {
@@ -163,7 +173,8 @@ export default function ChatDetailScreen() {
 
             <FlatList
                 ref={flatListRef}
-                data={messages}
+                data={[...messages].reverse()}
+                inverted={true}
                 showsVerticalScrollIndicator={false}
                 renderScrollComponent={renderScrollComponent}
                 keyExtractor={(item) => item.id}
@@ -171,12 +182,11 @@ export default function ChatDetailScreen() {
                     <MessageBubble
                         message={item}
                         isOwnMessage={item.sender.id === profile?.id}
+                        onLongPress={handleLongPress}
                     />
                 )}
                 style={{ flex: 1 }}
                 contentContainerStyle={[styles.messageList, { paddingBottom: spacing.lg }]}
-                onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-                onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
             />
 
             <KeyboardStickyView offset={{ opened: insets.bottom }}>
@@ -224,6 +234,12 @@ export default function ChatDetailScreen() {
                     </Pressable>
                 </View>
             </KeyboardStickyView>
+
+            <MessageOptionsSheet
+                ref={optionsSheetRef}
+                textToCopy={selectedMessage?.content || ''}
+                onClose={() => setSelectedMessage(null)}
+            />
         </View>
     );
 }

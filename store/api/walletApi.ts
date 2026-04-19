@@ -40,11 +40,11 @@ export const walletApi = baseApi.injectEndpoints({
             },
             providesTags: ['Wallet'],
         }),
-        getCoinQuote: builder.query<{ amount: number; currency: string; coins: number; rate: number }, number>({
-            query: (amount) => ({
+        getCoinQuote: builder.query<{ amount: number; currency: string; coins: number; rate: number }, { amount: number; currency?: string }>({
+            query: (params) => ({
                 url: '/api/v1/wallet/quote',
                 method: 'GET',
-                params: { amount },
+                params,
             }),
         }),
     }),

@@ -10,6 +10,7 @@ import { useGetOccasionDetailQuery } from '@/store/api/occasionApi';
 import { useCreateOrderMutation } from '@/store/api/orderApi';
 import { useGetProductByIdQuery } from '@/store/api/productApi';
 import { Address } from '@/types';
+import { formatCurrency } from '@/utils/formatCurrency';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
@@ -175,21 +176,21 @@ export default function DeliveryScreen() {
                     <Card variant="raised" style={{ marginTop: 40, padding: 16 }}>
                         <View style={styles.summaryRow}>
                             <Typography variant="caption">{product?.name || 'Item'} Subtotal</Typography>
-                            <Typography variant="caption">NGN {product?.price?.toLocaleString() || '---'}</Typography>
+                            <Typography variant="caption">{formatCurrency(product?.price || 0, product?.currency || 'NGN')}</Typography>
                         </View>
                         <View style={styles.summaryRow}>
                             <Typography variant="caption">Delivery Fee</Typography>
-                            <Typography variant="caption">NGN {(Number(product?.deliveryFee || 1500)).toLocaleString()}</Typography>
+                            <Typography variant="caption">{formatCurrency(product?.deliveryFee || 1500, product?.currency || 'NGN')}</Typography>
                         </View>
                         <View style={styles.summaryRow}>
                             <Typography variant="caption">Packaging</Typography>
-                            <Typography variant="caption">NGN {(Number(product?.packagingFee || 500)).toLocaleString()}</Typography>
+                            <Typography variant="caption">{formatCurrency(product?.packagingFee || 500, product?.currency || 'NGN')}</Typography>
                         </View>
                         <View style={[styles.divider, { backgroundColor: colors.border, marginVertical: 8 }]} />
                         <View style={styles.summaryRow}>
                             <Typography variant="bodyBold">Estimated Total</Typography>
                             <Typography variant="bodyBold" color={colors.primary}>
-                                NGN {((Number(product?.price || 0) + Number(product?.deliveryFee || 1500) + Number(product?.packagingFee || 500)) || 0).toLocaleString()}
+                                {formatCurrency((Number(product?.price || 0) + Number(product?.deliveryFee || 1500) + Number(product?.packagingFee || 500)) || 0, product?.currency || 'NGN')}
                             </Typography>
                         </View>
                     </Card>

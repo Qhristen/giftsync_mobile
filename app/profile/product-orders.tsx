@@ -23,9 +23,10 @@ export default function ProductOrdersScreen() {
     const productId = params.productId as string;
     const productName = params.productName as string;
 
-    const { data: orders, isLoading } = useGetOrdersByProductQuery(productId, { skip: !productId });
+    const { data: productOrdersdata, isLoading } = useGetOrdersByProductQuery(productId, { skip: !productId });
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const confirmSheet = useBottomSheet();
+    const orders = productOrdersdata?.items || [];
 
     const handleOpenConfirm = (order: Order) => {
         setSelectedOrder(order);

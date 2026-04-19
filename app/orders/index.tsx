@@ -145,7 +145,7 @@ export default function OrderListScreen() {
                                 <View style={styles.orderFooter}>
                                     <View>
                                         <Typography variant="caption" color={colors.textMuted}>{formatDate(item.createdAt)}</Typography>
-                                        <Typography variant="label" color={colors.primary}>{formatCurrency(item.total)}</Typography>
+                                        <Typography variant="label" color={colors.primary}>{formatCurrency(item.total, item.item.product.currency || 'NGN')}</Typography>
                                     </View>
 
                                     <View style={{ flexDirection: 'row', gap: 8 }}>

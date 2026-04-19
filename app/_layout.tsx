@@ -80,10 +80,7 @@ function RootLayoutContent() {
       try {
         const storedAccessToken = await tokenCache.getToken('accessToken');
         if (storedAccessToken) {
-          console.log("✅ Access token found", storedAccessToken);
-          // Attempt to get profile - interceptors will handle refresh if access token is expired
-          const userProfile = await getProfile().unwrap();
-          dispatch(setCredentials({ user: userProfile }));
+          await getProfile()
         } else {
           dispatch(logoutUser());
         }

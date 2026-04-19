@@ -53,7 +53,7 @@ export const orderApi = baseApi.injectEndpoints({
             },
             providesTags: ['Orders'],
         }),
-        getOrdersByProduct: builder.query<Order[], string>({
+        getOrdersByProduct: builder.query<{items: Order[], meta: PaginationMeta}, string>({
             query: (productId) => ({
                 url: `/api/v1/orders/product/${productId}`,
                 method: 'GET',

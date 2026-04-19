@@ -1,4 +1,5 @@
 import OccasionPickerSheet from '@/components/sheets/OccasionPickerSheet';
+import VendorDetailSheet from '@/components/sheets/VendorDetailSheet';
 import ShopItemDetailSkeleton from '@/components/skeletons/ShopItemDetailSkeleton';
 import Avatar from '@/components/ui/Avatar';
 import Button from '@/components/ui/Button';
@@ -15,9 +16,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Dimensions, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
@@ -25,11 +27,18 @@ export default function ShopItemDetailScreen() {
     const { id, occasionId } = useLocalSearchParams();
     const router = useRouter();
     const { colors, spacing } = useTheme();
+    const insets = useSafeAreaInsets();
     const [activeIndex, setActiveIndex] = useState(0);
+    const [descriptionExpanded, setDescriptionExpanded] = useState(false);
     const occasionSheet = useBottomSheet();
+    const vendorSheet = useBottomSheet();
+
+    const toggleDescription = useCallback(() => setDescriptionExpanded(v => !v), []);
 
     const { data: upcomingOccasions = [] } = useGetUpcomingOccasionsQuery();
     const { data: product, isLoading, isFetching, error } = useGetProductByIdQuery(id as string);
+
+    const totalPrice = Number(product?.price) + Number(product?.deliveryFee) + Number(product?.packagingFee)
 
     const selectedOccasion = useMemo(() => {
         if (occasionId) return upcomingOccasions.find(o => o.id === occasionId);
@@ -97,8 +106,15 @@ export default function ShopItemDetailScreen() {
                                 key={i}
                                 style={[
                                     styles.dot,
-                                    { backgroundColor: i === activeIndex ? colors.primary : 'rgba(255,255,255,0.5)' },
-                                    i === activeIndex && { width: 16 }
+                                    {
+                                        backgroundColor: i === activeIndex ? colors.primary : 'rgba(255,255,255,0.9)',
+                                        shadowColor: '#000',
+                                        shadowOffset: { width: 0, height: 1 },
+                                        shadowOpacity: 0.3,
+                                        shadowRadius: 2,
+                                        elevation: 3,
+                                    },
+                                    i === activeIndex && { width: 20 }
                                 ]}
                             />
                         ))}
@@ -111,7 +127,7 @@ export default function ShopItemDetailScreen() {
                         <View style={{ flex: 1 }}>
                             <Typography variant="h2">{product.name}</Typography>
                             <Typography variant="h3" color={colors.primary} style={{ marginTop: 4 }}>
-                                {formatCurrency((Number(product.price) || 0) + (Number(product.deliveryFee) || 0) + (Number(product.packagingFee) || 0), product.currency)}
+                                {formatCurrency(totalPrice, product.currency)}
                             </Typography>
                         </View>
                         <View style={[styles.ratingBadge, { backgroundColor: colors.surfaceRaised }]}>
@@ -120,14 +136,16 @@ export default function ShopItemDetailScreen() {
                         </View>
                     </View>
 
-                    <Card variant="outline" style={[styles.vendorCard, { borderColor: colors.border, marginTop: spacing.lg }]}>
-                        <Avatar name={product.business?.name || 'Vendor'} size="md" />
-                        <View style={{ flex: 1, marginLeft: 12 }}>
-                            <Typography variant="bodyBold">Sold by {product.business?.name}</Typography>
-                            <Typography variant="caption" color={colors.textSecondary}>{product.ratingCount || 0} Reviews</Typography>
-                        </View>
-                        <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
-                    </Card>
+                    <Pressable onPress={() => vendorSheet.open()}>
+                        <Card variant="outline" style={[styles.vendorCard, { borderColor: colors.border, marginTop: spacing.lg }]}>
+                            <Avatar name={product.business?.name || 'Vendor'} size="md" />
+                            <View style={{ flex: 1, marginLeft: 12 }}>
+                                <Typography variant="bodyBold">Sold by {product.business?.name}</Typography>
+                                <Typography variant="caption" color={colors.textSecondary}>{product.ratingCount || 0} Reviews</Typography>
+                            </View>
+                            <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+                        </Card>
+                    </Pressable>
 
                     {deliveryStatus && (
                         <View style={{ marginTop: spacing.xl }}>
@@ -169,6 +187,66 @@ export default function ShopItemDetailScreen() {
                         </Typography>
                     </View>
 
+                    {/* Description */}
+                    {product.description && (
+                        <View style={{ marginTop: spacing.xl }}>
+                            <Typography variant="h4" style={{ marginBottom: spacing.sm }}>Description</Typography>
+                            <Typography
+                                variant="body"
+                                color={colors.textSecondary}
+                                style={{ lineHeight: 24 }}
+                                numberOfLines={descriptionExpanded ? undefined : 4}
+                            >
+                                {product.description}
+                            </Typography>
+                            <Pressable onPress={toggleDescription} style={{ marginTop: 6 }}>
+                                <Typography variant="bodyBold" color={colors.primary}>
+                                    {descriptionExpanded ? 'Show less' : 'Read more'}
+                                </Typography>
+                            </Pressable>
+                        </View>
+                    )}
+
+                    {/* Product Details */}
+                    <View style={{ marginTop: spacing.xl }}>
+                        <Typography variant="h4" style={{ marginBottom: spacing.md }}>Product Details</Typography>
+                        <Card variant="outline" style={[styles.detailsCard, { borderColor: colors.border }]}>
+                            <View style={styles.detailRow}>
+                                <View style={[styles.detailIcon, { backgroundColor: colors.primary + '15' }]}>
+                                    <Ionicons name="cube-outline" size={18} color={colors.primary} />
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                    <Typography variant="caption" color={colors.textSecondary}>Availability</Typography>
+                                    <Typography variant="bodyBold" color={product.isAvailable ? colors.success : colors.error}>
+                                        {product.isAvailable ? 'In Stock' : 'Out of Stock'}
+                                    </Typography>
+                                </View>
+                            </View>
+                            <View style={[styles.divider, { backgroundColor: colors.border }]} />
+                            <View style={styles.detailRow}>
+                                <View style={[styles.detailIcon, { backgroundColor: colors.primary + '15' }]}>
+                                    <Ionicons name="bicycle-outline" size={18} color={colors.primary} />
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                    <Typography variant="caption" color={colors.textSecondary}>Delivery Time</Typography>
+                                    <Typography variant="bodyBold">{product.deliveryDays} {product.deliveryDays === 1 ? 'day' : 'days'}</Typography>
+                                </View>
+                            </View>
+                            <View style={[styles.divider, { backgroundColor: colors.border }]} />
+                            <View style={styles.detailRow}>
+                                <View style={[styles.detailIcon, { backgroundColor: colors.primary + '15' }]}>
+                                    <Ionicons name="pricetag-outline" size={18} color={colors.primary} />
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                    <Typography variant="caption" color={colors.textSecondary}>Item Price</Typography>
+                                    <Typography variant="bodyBold">{formatCurrency(totalPrice, product.currency)}</Typography>
+                                </View>
+                            </View>
+
+                        </Card>
+                    </View>
+
+                    {/* Tags */}
                     {product.tags && product.tags.length > 0 && (
                         <View style={{ marginTop: spacing.xl }}>
                             <Typography variant="h4" style={{ marginBottom: spacing.md }}>Tags</Typography>
@@ -182,22 +260,24 @@ export default function ShopItemDetailScreen() {
                         </View>
                     )}
                 </Animated.View>
-                <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
-                    <Button
-                        title="Send as Gift"
-                        variant="primary"
-                        style={{ flex: 1 }}
-                        leftIcon={<Ionicons name="gift-outline" size={20} color="#FFF" style={{ marginRight: 8 }} />}
-                        onPress={() => {
-                            if (occasionId) {
-                                router.push({ pathname: '/checkout', params: { productId: id, occasionId: occasionId as string } });
-                            } else {
-                                occasionSheet.open();
-                            }
-                        }}
-                    />
-                </View>
             </ScrollView>
+
+            {/* Sticky Footer — sits above the absolute-positioned floating tab bar                 (tab bar: ~55px tall + 15px margin + device bottom inset) */}
+            <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border, paddingBottom: insets.bottom + 80 }]}>
+                <Button
+                    title="Send as Gift"
+                    variant="primary"
+                    style={{ flex: 1 }}
+                    leftIcon={<Ionicons name="gift-outline" size={20} color="#FFF" style={{ marginRight: 8 }} />}
+                    onPress={() => {
+                        if (occasionId) {
+                            router.push({ pathname: '/checkout', params: { productId: id, occasionId: occasionId as string } });
+                        } else {
+                            occasionSheet.open();
+                        }
+                    }}
+                />
+            </View>
 
             <OccasionPickerSheet
                 ref={occasionSheet.ref}
@@ -206,6 +286,13 @@ export default function ShopItemDetailScreen() {
                     occasionSheet.close();
                     router.push({ pathname: '/checkout', params: { productId: id, occasionId: occasion.id } });
                 }}
+            />
+
+            <VendorDetailSheet
+                ref={vendorSheet.ref}
+                business={product.business}
+                ratingAvg={product?.ratingAvg}
+                ratingCount={product?.ratingCount}
             />
         </View>
     );
@@ -284,17 +371,37 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 12,
     },
+    detailsCard: {
+        padding: 0,
+        overflow: 'hidden',
+        borderRadius: 16,
+    },
+    detailRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 14,
+        gap: 12,
+    },
+    detailIcon: {
+        width: 36,
+        height: 36,
+        borderRadius: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    divider: {
+        height: 1,
+        marginHorizontal: 14,
+    },
     footer: {
-        // position: 'absolute',
-        // bottom: 60,
         width: '100%',
-        // height: 200,
-        padding: 24,
-        // borderTopWidth: 1,
-        // elevation: 10,
-        // shadowColor: '#000',
-        // shadowOffset: { width: 0, height: -2 },
-        // shadowOpacity: 0.1,
-        // shadowRadius: 10,
+        paddingHorizontal: 24,
+        paddingTop: 16,
+        borderTopWidth: 1,
+        elevation: 8,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -2 },
+        shadowOpacity: 0.06,
+        shadowRadius: 8,
     },
 });

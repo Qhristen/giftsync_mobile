@@ -11,7 +11,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, SectionList, StyleSheet, View } from 'react-native';
 
 import { useGetContactsQuery } from '@/store/api/contactsApi';
-import { useGetMonthlyOccasionsQuery, useGetUpcomingOccasionsQuery } from '@/store/api/occasionApi';
+import { useGetMonthlyOccasionsQuery } from '@/store/api/occasionApi';
 import { spacing } from '@/theme';
 import { Contact, Occasion } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
@@ -24,12 +24,43 @@ export default function OccasionsScreen() {
     // API Hooks
     const [selectedMonthIndex, setSelectedMonthIndex] = useState(new Date().getMonth());
     const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth(); // 0-indexed
 
-    const { data: upcomingOccasions, isFetching: isUpcomingFetching, refetch: refetchUpcoming } = useGetUpcomingOccasionsQuery();
+    // Fetch the selected month's occasions
     const { data: monthlyOccasions, isFetching: isMonthlyFetching, refetch: refetchMonthly } = useGetMonthlyOccasionsQuery({
         month: selectedMonthIndex + 1,
         year: currentYear
     });
+
+    // Pre-fetch ALL remaining months of the year (fixed 12 slots, skipped when out of range)
+    // This keeps hooks calls stable regardless of which month is selected.
+    const month0 = useGetMonthlyOccasionsQuery({ month: 1, year: currentYear }, { skip: currentMonth > 0 });
+    const month1 = useGetMonthlyOccasionsQuery({ month: 2, year: currentYear }, { skip: currentMonth > 1 });
+    const month2 = useGetMonthlyOccasionsQuery({ month: 3, year: currentYear }, { skip: currentMonth > 2 });
+    const month3 = useGetMonthlyOccasionsQuery({ month: 4, year: currentYear }, { skip: currentMonth > 3 });
+    const month4 = useGetMonthlyOccasionsQuery({ month: 5, year: currentYear }, { skip: currentMonth > 4 });
+    const month5 = useGetMonthlyOccasionsQuery({ month: 6, year: currentYear }, { skip: currentMonth > 5 });
+    const month6 = useGetMonthlyOccasionsQuery({ month: 7, year: currentYear }, { skip: currentMonth > 6 });
+    const month7 = useGetMonthlyOccasionsQuery({ month: 8, year: currentYear }, { skip: currentMonth > 7 });
+    const month8 = useGetMonthlyOccasionsQuery({ month: 9, year: currentYear }, { skip: currentMonth > 8 });
+    const month9 = useGetMonthlyOccasionsQuery({ month: 10, year: currentYear }, { skip: currentMonth > 9 });
+    const month10 = useGetMonthlyOccasionsQuery({ month: 11, year: currentYear }, { skip: currentMonth > 10 });
+    const month11 = useGetMonthlyOccasionsQuery({ month: 12, year: currentYear }, { skip: false });
+
+    // All per-month results indexed 0–11
+    const allMonthResults = [month0, month1, month2, month3, month4, month5, month6, month7, month8, month9, month10, month11];
+
+    // Occasions from every visible month EXCEPT the selected one
+    const otherOccasions = allMonthResults
+        .flatMap((result, i) => {
+            if (i === selectedMonthIndex) return []; // exclude selected month
+            if (i < currentMonth) return [];          // exclude past months
+            return result.data?.items ?? [];
+        })
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    const isOtherFetching = allMonthResults.some((r, i) => i !== selectedMonthIndex && i >= currentMonth && r.isFetching);
+    const refetchOtherMonths = () => allMonthResults.forEach((r, i) => { if (i >= currentMonth) r.refetch(); });
 
 
     const [viewMode, setViewMode] = useState<'calendar' | 'contacts'>('calendar');
@@ -39,14 +70,14 @@ export default function OccasionsScreen() {
     // We get all accumulated items directly from RTKQ since we used merge/serializeQueryArgs
     const allContacts = contactsData?.items || [];
 
-    const isRefreshing = isUpcomingFetching || isMonthlyFetching || isContactsFetching;
+    const isRefreshing = isMonthlyFetching || isOtherFetching || isContactsFetching;
 
     const onRefresh = React.useCallback(() => {
         setPage(1);
-        refetchUpcoming();
         refetchMonthly();
+        refetchOtherMonths();
         refetchContacts();
-    }, [refetchUpcoming, refetchMonthly, refetchContacts]);
+    }, [refetchMonthly, refetchContacts]);
 
     const loadMore = () => {
         if (contactsData?.meta && page < contactsData.meta.totalPages && !isContactsFetching) {
@@ -54,7 +85,6 @@ export default function OccasionsScreen() {
         }
     };
 
-    const currentMonth = new Date().getMonth();
     const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     const visibleMonths = months.map((m, i) => ({ name: m, index: i })).slice(currentMonth);
     const selectedMonthName = months[selectedMonthIndex];
@@ -104,7 +134,7 @@ export default function OccasionsScreen() {
 
     const sections = [
         { title: `Upcoming in ${selectedMonthName}`, data: chunkArray(monthlyOccasions?.items ?? [], 3) },
-        { title: 'Other Occasions', data: chunkArray(upcomingOccasions?.filter((o: Occasion) => new Date(o.date).getMonth() !== selectedMonthIndex) ?? [], 3) },
+        { title: 'Other Occasions', data: chunkArray(otherOccasions, 3) },
     ].filter(section => section.data.length > 0);
 
     return (
@@ -272,8 +302,8 @@ export default function OccasionsScreen() {
             <CreateContactSheet
                 ref={contactSheetRef}
                 onSuccess={() => {
-                    refetchUpcoming();
                     refetchMonthly();
+                    refetchOtherMonths();
                     refetchContacts();
                 }}
             />

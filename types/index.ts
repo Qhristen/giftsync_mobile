@@ -38,11 +38,6 @@ export interface Business {
   isVerified: boolean;
 }
 
-export interface BusinessBasic {
-  name: string;
-  logoUrl?: string;
-  location?: string;
-}
 
 export interface CreateBusinessDto {
   name: string;
@@ -170,7 +165,7 @@ export interface Product {
   ratingCount: number;
   isAvailable: boolean;
   deliveryDays: number;
-  business: BusinessBasic;
+  business: Business;
 }
 
 export interface CreateProductDto {
@@ -278,6 +273,7 @@ export interface Order {
   subtotal: number;
   deliveryFee: number;
   packagingFee: number;
+  deliveryAddress: Address
   total: number;
   deliveryCode: string;
   anonymity: boolean;

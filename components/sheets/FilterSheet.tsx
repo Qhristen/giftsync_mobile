@@ -1,10 +1,12 @@
 import { useTheme } from '@/hooks/useTheme';
+import { getCurrencySymbol } from '@/utils/formatCurrency';
 import { Ionicons } from '@expo/vector-icons';
 import React, { forwardRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Button from '../ui/Button';
 import Typography from '../ui/Typography';
+import { useAppSelector } from '@/store/hooks';
 
 export interface FilterOptions {
     priceRange: string;
@@ -21,8 +23,10 @@ const FilterSheet = forwardRef<BottomSheetRef, FilterSheetProps>(({ initialFilte
     const [priceRange, setPriceRange] = useState(initialFilters?.priceRange || 'All');
     const [sortBy, setSortBy] = useState(initialFilters?.sortBy || 'Trending');
 
+    const { user } = useAppSelector(s => s.auth);
+    const sym = getCurrencySymbol(user?.currency || 'NGN');
 
-    const prices = ['All', 'Under $50', '$50 - $100', 'Over $100'];
+    const prices = ['All', `Under ${sym}5000`, `${sym}5000 - ${sym}10000`, `Over ${sym}10000`];
     const sorts = ['Trending', 'Price: Low to High', 'Price: High to Low', 'Newest'];
 
     return (
@@ -38,7 +42,7 @@ const FilterSheet = forwardRef<BottomSheetRef, FilterSheetProps>(({ initialFilte
             </View>
 
             <Typography variant="h4" style={{ marginBottom: spacing.md }}>Price Range</Typography>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: spacing.xl }}>
+            {/* <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: spacing.xl }}>
                 {prices.map((p) => {
                     const isSelected = priceRange === p;
                     return (
@@ -57,7 +61,7 @@ const FilterSheet = forwardRef<BottomSheetRef, FilterSheetProps>(({ initialFilte
                         </Pressable>
                     );
                 })}
-            </View>
+            </View> */}
 
             <Typography variant="h4" style={{ marginBottom: spacing.md }}>Sort By</Typography>
             <View style={{ gap: 12, marginBottom: spacing.xl }}>
