@@ -15,9 +15,10 @@ interface OrderDetailSheetProps {
     order: Order | null;
     onClose?: () => void;
     onChat?: (conversationId: string) => void;
+    onReview?: (order: Order) => void;
 }
 
-const OrderDetailSheet = forwardRef<BottomSheetRef, OrderDetailSheetProps>(({ order, onClose, onChat }, ref) => {
+const OrderDetailSheet = forwardRef<BottomSheetRef, OrderDetailSheetProps>(({ order, onClose, onChat, onReview }, ref) => {
     const { colors, spacing } = useTheme();
     const router = useRouter();
 
@@ -78,28 +79,39 @@ const OrderDetailSheet = forwardRef<BottomSheetRef, OrderDetailSheetProps>(({ or
                                 style={[{ flex: 1 }]}
                             />
                         )
-                            : order.conversationId &&
-                            <Pressable
-                                onPress={() => {
-                                    onClose?.();
-                                    onChat?.(order.conversationId);
-                                }}
-                                style={[
-                                    styles.chatBtn,
-                                    {
-                                        backgroundColor: colors.primary + '15',
-                                        flexDirection: 'row',
-                                        gap: 6,
-                                        paddingHorizontal: 12,
-                                        height: 48,
-                                        borderRadius: 16,
-                                        flex: 1,
-                                    }
-                                ]}
-                            >
-                                <Ionicons name="chatbubble-ellipses" size={16} color={colors.primary} />
-                                <Typography variant="label" color={colors.primary} style={{ fontSize: 13 }}>Chat Vendor</Typography>
-                            </Pressable>
+                            : (
+                                <View style={{ gap: 12 }}>
+                                    {order.status === 'Delivered' && (
+                                        <Button
+                                            title="Write a Review"
+                                            variant="secondary"
+                                            onPress={() => onReview?.(order)}
+                                        />
+                                    )}
+                                    {order.conversationId && (
+                                        <Pressable
+                                            onPress={() => {
+                                                onClose?.();
+                                                onChat?.(order.conversationId);
+                                            }}
+                                            style={[
+                                                styles.chatBtn,
+                                                {
+                                                    backgroundColor: colors.primary + '15',
+                                                    flexDirection: 'row',
+                                                    gap: 6,
+                                                    paddingHorizontal: 12,
+                                                    height: 48,
+                                                    borderRadius: 16,
+                                                }
+                                            ]}
+                                        >
+                                            <Ionicons name="chatbubble-ellipses" size={16} color={colors.primary} />
+                                            <Typography variant="label" color={colors.primary} style={{ fontSize: 13 }}>Chat Vendor</Typography>
+                                        </Pressable>
+                                    )}
+                                </View>
+                            )
                         }
                     </View>
                 </>

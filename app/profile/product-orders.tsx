@@ -37,7 +37,6 @@ export default function ProductOrdersScreen() {
         confirmSheet.close();
         // The RTK Query invalidation for 'Orders' in useConfirmDeliveryMutation 
         // will automatically refetch the list.
-        setSelectedOrder(null);
     };
 
     const getStatusVariant = (status: OrderStatus): "primary" | "secondary" | "success" | "amber" | "error" | "muted" => {

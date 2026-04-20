@@ -1,5 +1,5 @@
 import MessageBubble from '@/components/chat/MessageBubble';
-import MessageOptionsSheet from '@/components/sheets/MessageOptionsSheet';
+import ConversationOptionsSheet from '@/components/sheets/ConversationOptionsSheet';
 import Avatar from '@/components/ui/Avatar';
 import { BottomSheetRef } from '@/components/ui/BottomSheetWrapper';
 import Typography from '@/components/ui/Typography';
@@ -10,19 +10,25 @@ import { useGetConversationQuery, useGetMessagesQuery, useMarkConversationAsRead
 import { useGetProfileQuery } from '@/store/api/userApi';
 import { ChatMessage } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
     ActivityIndicator,
     FlatList,
+    GestureResponderEvent,
     Pressable,
     StyleSheet,
     TextInput,
+    useWindowDimensions,
     View
 } from 'react-native';
-import { KeyboardChatScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
+import { KeyboardAvoidingView, OverKeyboardView } from 'react-native-keyboard-controller';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
+import { toast } from 'sonner-native';
+
 
 
 export default function ChatDetailScreen() {
@@ -32,34 +38,33 @@ export default function ChatDetailScreen() {
     const insets = useSafeAreaInsets();
     const [messageText, setMessageText] = useState('');
     const flatListRef = useRef<FlatList>(null);
-    const optionsSheetRef = useRef<BottomSheetRef>(null);
+    const convOptionsRef = useRef<BottomSheetRef>(null);
+    const orderDetailsRef = useRef<BottomSheetRef>(null);
+    const [isOptionsVisible, setIsOptionsVisible] = useState(false);
     const [selectedMessage, setSelectedMessage] = useState<ChatMessage | null>(null);
+    const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
+    const { width: screenWidth, height: screenHeight } = useWindowDimensions();
     const socketService = useChatSocket();
-
-    const renderScrollComponent = React.useCallback((props: any) => (
-        <KeyboardChatScrollView
-            {...props}
-            keyboardLiftBehavior="whenAtEnd"
-            automaticallyAdjustContentInsets={false}
-            contentInsetAdjustmentBehavior="never"
-        />
-    ), []);
 
     const { data: profile } = useGetProfileQuery();
     const { data: conversation, isLoading: isConvLoading } = useGetConversationQuery(conversationId);
     const {
         data,
         isLoading: isMessagesLoading,
-        refetch
-    } = useGetMessagesQuery({ conversationId, limit: 50 });
+    } = useGetMessagesQuery({ conversationId, limit: 30 });
 
     const [markAsRead] = useMarkConversationAsReadMutation();
     const typingUsers = useSelector((state: RootState) => state.chat.typingUsers[conversationId] || []);
 
     const messages = data?.items || [];
-    const isLoading = isConvLoading || isMessagesLoading;
+    const memoizedMessages = useMemo(() => [...messages].reverse(), [messages]);
+    const isLoading = isMessagesLoading && messages.length === 0;
+    const currentUserId = profile?.id;
 
-    const participants = conversation?.participants?.filter(p => p.id !== profile?.id) || [];
+    const participants = useMemo(() =>
+        conversation?.participants?.filter(p => p.id !== profile?.id) || [],
+        [conversation?.participants, profile?.id]
+    );
 
     const displayName = conversation?.order?.item?.product?.name || 'Chat';
     const avatarSize = 28;
@@ -108,12 +113,31 @@ export default function ChatDetailScreen() {
         }
     };
 
-    const handleLongPress = (message: ChatMessage) => {
+    const handleLongPress = (message: ChatMessage, event: GestureResponderEvent) => {
+        const { pageX, pageY } = event.nativeEvent;
+        setMenuPosition({ x: pageX, y: pageY });
         setSelectedMessage(message);
-        optionsSheetRef.current?.present();
+        setIsOptionsVisible(true);
     };
 
-    if (isLoading) {
+    const handleCopy = async () => {
+        if (selectedMessage?.content) {
+            await Clipboard.setStringAsync(selectedMessage.content);
+            toast.success('Message copied!');
+        }
+        setIsOptionsVisible(false);
+        setSelectedMessage(null);
+    };
+
+    const handleHeaderOptions = () => {
+        convOptionsRef.current?.expand();
+    };
+
+    const handleViewOrder = () => {
+        orderDetailsRef.current?.expand();
+    };
+
+    if (isConvLoading && !conversation) {
         return (
             <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center' }]}>
                 <ActivityIndicator size="large" color={colors.primary} />
@@ -166,30 +190,46 @@ export default function ChatDetailScreen() {
                     </View>
                 </View>
 
-                <Pressable onPress={() => { }} style={styles.headerRightBtn}>
+                <Pressable onPress={handleHeaderOptions} style={styles.headerRightBtn}>
                     <Ionicons name="ellipsis-horizontal" size={24} color={colors.textPrimary} />
                 </Pressable>
             </View>
 
-            <FlatList
-                ref={flatListRef}
-                data={[...messages].reverse()}
-                inverted={true}
-                showsVerticalScrollIndicator={false}
-                renderScrollComponent={renderScrollComponent}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                    <MessageBubble
-                        message={item}
-                        isOwnMessage={item.sender.id === profile?.id}
-                        onLongPress={handleLongPress}
+            <KeyboardAvoidingView
+                behavior="padding"
+                keyboardVerticalOffset={0}
+                style={{ flex: 1 }}
+            >
+                {isLoading ? (
+                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                        <ActivityIndicator color={colors.primary} />
+                    </View>
+                ) : (
+                    <FlatList
+                        ref={flatListRef}
+                        data={memoizedMessages}
+                        inverted={true}
+                        showsVerticalScrollIndicator={false}
+                        keyExtractor={(item) => item.id}
+                        initialNumToRender={15}
+                        windowSize={10}
+                        maxToRenderPerBatch={10}
+                        removeClippedSubviews={true}
+                        renderItem={({ item }) => (
+                            <MessageBubble
+                                message={item}
+                                isOwnMessage={item.sender.id === currentUserId}
+                                onLongPress={handleLongPress}
+                            />
+                        )}
+                        style={{ flex: 1 }}
+                        contentContainerStyle={[styles.messageList, { paddingBottom: spacing.lg }]}
+                        keyboardShouldPersistTaps="handled"
+                        keyboardDismissMode="on-drag"
+                        maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
                     />
                 )}
-                style={{ flex: 1 }}
-                contentContainerStyle={[styles.messageList, { paddingBottom: spacing.lg }]}
-            />
 
-            <KeyboardStickyView offset={{ opened: insets.bottom }}>
                 <View style={[
                     styles.inputContainer,
                     {
@@ -233,13 +273,76 @@ export default function ChatDetailScreen() {
                         />
                     </Pressable>
                 </View>
-            </KeyboardStickyView>
+            </KeyboardAvoidingView>
 
-            <MessageOptionsSheet
-                ref={optionsSheetRef}
-                textToCopy={selectedMessage?.content || ''}
-                onClose={() => setSelectedMessage(null)}
+            <OverKeyboardView visible={isOptionsVisible}>
+                <Pressable
+                    style={StyleSheet.absoluteFill}
+                    onPress={() => setIsOptionsVisible(false)}
+                >
+                    <Animated.View
+                        entering={FadeIn.duration(200)}
+                        exiting={FadeOut.duration(200)}
+                        style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.2)' }]}
+                    >
+                        <Animated.View
+                            entering={FadeIn.duration(200)}
+                            style={[
+                                styles.floatingMenu,
+                                {
+                                    backgroundColor: colors.surface,
+                                    top: Math.min(Math.max(insets.top + 60, menuPosition.y - 120), screenHeight - 200),
+                                    left: selectedMessage?.sender?.id === currentUserId
+                                        ? Math.max(20, menuPosition.x - 190)
+                                        : Math.min(screenWidth - 210, menuPosition.x + 10),
+                                }
+                            ]}
+                        >
+                            <Pressable
+                                style={({ pressed }) => [
+                                    styles.menuOption,
+                                    { backgroundColor: pressed ? colors.surfaceRaised : 'transparent' }
+                                ]}
+                                onPress={handleCopy}
+                            >
+                                <Ionicons name="copy-outline" size={18} color={colors.textPrimary} />
+                                <Typography variant="body">Copy Text</Typography>
+                            </Pressable>
+
+                            <View style={[styles.menuSeparator, { backgroundColor: colors.border }]} />
+
+                            <Pressable
+                                style={({ pressed }) => [
+                                    styles.menuOption,
+                                    { backgroundColor: pressed ? colors.surfaceRaised : 'transparent' }
+                                ]}
+                                onPress={() => setIsOptionsVisible(false)}
+                            >
+                                <Ionicons name="close-outline" size={18} color={colors.error} />
+                                <Typography variant="body" color={colors.error}>Cancel</Typography>
+                            </Pressable>
+                        </Animated.View>
+                    </Animated.View>
+                </Pressable>
+            </OverKeyboardView>
+
+            <ConversationOptionsSheet
+                ref={convOptionsRef}
+                conversation={conversation || null}
+                onViewOrder={handleViewOrder}
+                onViewProfile={() => {
+                    const otherParticipant = conversation?.participants?.find(p => p.id !== profile?.id);
+                    // if (otherParticipant) {
+                    //     router.push(`/profile/${otherParticipant.id}`);
+                    // }
+                }}
             />
+
+            {/* <OrderDetailSheet
+                ref={orderDetailsRef}
+                order={conversation?.order || null}
+                onChat={() => convOptionsRef.current?.close()}
+            /> */}
         </View>
     );
 }
@@ -301,5 +404,30 @@ const styles = StyleSheet.create({
         borderRadius: 22,
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    overlay: {
+        flex: 1,
+    },
+    menuOption: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 12,
+        borderRadius: 12,
+        gap: 12,
+    },
+    floatingMenu: {
+        position: 'absolute',
+        width: 170,
+        borderRadius: 16,
+        padding: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 10,
+        elevation: 10,
+    },
+    menuSeparator: {
+        height: 1,
+        marginHorizontal: 12,
     },
 });

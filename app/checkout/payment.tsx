@@ -44,7 +44,7 @@ export default function PaymentScreen() {
             if (response.paymentMethod === 'paystack' && response.status === "payment_initiated") {
                 setPaymentUrl(response?.checkoutUrl as string);
             } else if (response.status === 'paid') {
-                router.push({
+                router.replace({
                     pathname: '/checkout/confirmation',
                     params: { orderId }
                 });

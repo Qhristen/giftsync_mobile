@@ -1,4 +1,4 @@
-import PaymentMethodSheet, { PAYMENT_METHODS } from '@/components/sheets/PaymentMethodSheet';
+import PaymentMethodSheet from '@/components/sheets/PaymentMethodSheet';
 import ListSkeleton from '@/components/skeletons/ListSkeleton';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
@@ -6,16 +6,16 @@ import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
 import { RootState } from '@/store';
-import { useGetCoinPackagesQuery, useGetWalletBalanceQuery } from '@/store/api/walletApi';
-import { addCoins } from '@/store/slices/walletSlice';
+import { useGetCoinPackagesQuery, useGetWalletBalanceQuery, useInitializeFundingMutation, useVerifyFundingMutation } from '@/store/api/walletApi';
 import { CoinPackage } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { useDispatch, useSelector } from 'react-redux';
+import { WebView } from 'react-native-webview';
+import { useSelector } from 'react-redux';
 import { toast } from 'sonner-native';
 
 const packageStyles: Record<number, { icon: string; color: string }> = {
@@ -30,16 +30,22 @@ const getPackageStyle = (index: number) => packageStyles[index % 4];
 export default function WalletTopUpScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
-    const dispatch = useDispatch();
     const coins = useSelector((state: RootState) => state.wallet.coins);
 
-    const { data: coinPackages = [], isLoading } = useGetCoinPackagesQuery();
-    const { data: wallet, refetch } = useGetWalletBalanceQuery()
+    const { data: coinPackages = [], isLoading, isFetching: isFetchingPackages, refetch: refetchPackages } = useGetCoinPackagesQuery();
+    const { data: wallet, refetch: refetchWallet, isFetching: isFetchingWallet } = useGetWalletBalanceQuery();
 
+    const isRefreshing = isFetchingPackages || isFetchingWallet;
+    const handleRefresh = () => { refetchPackages(); refetchWallet(); };
+
+    const [initializeFunding] = useInitializeFundingMutation();
+    const [verifyFunding] = useVerifyFundingMutation();
 
     const [selectedPackage, setSelectedPackage] = useState<CoinPackage | null>(null);
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('paystack');
     const [isPurchasing, setIsPurchasing] = useState(false);
+    const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
+    const paymentReferenceRef = useRef<string | null>(null);
     const paymentSheet = useBottomSheet();
 
     const formatPrice = (price: number, currency: string) => {
@@ -50,30 +56,85 @@ export default function WalletTopUpScreen() {
         }).format(price);
     };
 
-    const handlePurchase = () => {
+    const handlePurchase = async () => {
         if (!selectedPackage || !selectedPaymentMethod) return;
 
-        const paymentName = PAYMENT_METHODS.find(m => m.id === selectedPaymentMethod)?.name;
-
         setIsPurchasing(true);
-        // Simulate network call
-        setTimeout(() => {
-            dispatch(addCoins(selectedPackage.coinAmount));
-            setIsPurchasing(false);
+
+        try {
+            const response = await initializeFunding({
+                amount: Number(selectedPackage.price),
+                paymentType: 'deposit',
+                packageId: selectedPackage.id,
+            }).unwrap();
+
+            // Store reference for later verification
+            paymentReferenceRef.current = response.data.reference;
+
+            // Close the payment method sheet first
             paymentSheet.close();
-            toast.success('Success!', {
-                description: `You have successfully purchased ${selectedPackage.coinAmount} Coins via ${paymentName}!`,
+
+            // Open Paystack checkout in a WebView
+            setPaymentUrl(response.data.authorizationUrl);
+        } catch (error: any) {
+            console.error('Payment initialization error:', error);
+            toast.error(error?.data?.message || 'Failed to initialize payment. Please try again.');
+        } finally {
+            setIsPurchasing(false);
+        }
+    };
+
+    const handleVerifyPayment = async () => {
+        const reference = paymentReferenceRef.current;
+        if (!reference) return;
+
+        try {
+            const result = await verifyFunding({ reference }).unwrap();
+
+            // Refetch wallet balance to reflect new coins
+            refetchWallet();
+
+            toast.success('Deposit Successful!', {
+                description: result.message || `Your wallet has been credited.`,
                 action: {
                     label: 'Great',
                     onClick: () => router.back()
                 }
             });
-        }, 1500);
+        } catch (error: any) {
+            console.error('Payment verification error:', error);
+            toast.error(error?.data?.message || 'Payment verification failed. If you were charged, your wallet will be credited shortly.');
+        } finally {
+            paymentReferenceRef.current = null;
+        }
+    };
+
+    const handleWebViewNavChange = (newNavState: any) => {
+        const { url } = newNavState;
+        if (!url) return;
+
+        // Detect Paystack callback/success/cancel URLs
+        if (url.includes('success') || url.includes('callback') || url.includes('trxref')) {
+            setPaymentUrl(null);
+            handleVerifyPayment();
+        }
+
+        if (url.includes('cancel') || url.includes('fail')) {
+            setPaymentUrl(null);
+            paymentReferenceRef.current = null;
+            toast.error('Payment cancelled or failed.');
+        }
+    };
+
+    const handleCancelPayment = () => {
+        setPaymentUrl(null);
+        paymentReferenceRef.current = null;
+        toast('Payment cancelled');
     };
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <View style={[styles.header, { paddingHorizontal: spacing.xl, paddingBottom: spacing.md }]}>
+            <View style={[styles.header, { paddingHorizontal: spacing.xl }]}>
                 <Pressable onPress={() => router.back()} style={styles.backBtn}>
                     <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
                 </Pressable>
@@ -112,8 +173,9 @@ export default function WalletTopUpScreen() {
                 ) : (
                     <FlashList
                         data={coinPackages}
-                        // estimatedItemSize={80}
                         keyExtractor={(item) => String(item.id)}
+                        onRefresh={handleRefresh}
+                        refreshing={isRefreshing}
                         contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: 150 }}
                         ListHeaderComponent={
                             <Typography variant="h4" style={{ marginBottom: spacing.md, marginTop: spacing.xs }}>
@@ -185,6 +247,23 @@ export default function WalletTopUpScreen() {
                 confirmButtonText={selectedPackage ? `Confirm ${formatPrice(selectedPackage.price, selectedPackage.currency)}` : 'Confirm Purchase'}
                 isProcessing={isPurchasing}
             />
+
+            {/* Paystack WebView Modal */}
+            <Modal visible={!!paymentUrl} animationType="slide" onRequestClose={handleCancelPayment}>
+                <View style={[styles.webviewContainer, { backgroundColor: colors.background }]}>
+                    <View style={styles.webviewHeader}>
+                        <Button title="Cancel" variant="ghost" onPress={handleCancelPayment} />
+                        <Typography variant="label">Complete Payment</Typography>
+                        <View style={{ width: 80 }} />
+                    </View>
+                    <WebView
+                        source={{ uri: paymentUrl || '' }}
+                        onNavigationStateChange={handleWebViewNavChange}
+                        startInLoadingState={true}
+                        style={{ flex: 1 }}
+                    />
+                </View>
+            </Modal>
         </View>
     );
 }
@@ -212,7 +291,10 @@ const styles = StyleSheet.create({
         width: '100%',
         alignItems: 'center',
         paddingVertical: 32,
-        borderRadius: 24,
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
+        borderTopLeftRadius: 0,
+        borderTopRightRadius: 0,
     },
     packageCard: {
         flexDirection: 'row',
@@ -237,6 +319,16 @@ const styles = StyleSheet.create({
         bottom: 0,
         width: '100%',
         padding: 24,
-        // borderTopWidth: 1,
+    },
+    webviewContainer: {
+        flex: 1,
+        paddingTop: 50,
+    },
+    webviewHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 8,
     },
 });

@@ -18,7 +18,7 @@ export function getCountdown(date: string | Date) {
     if (diffDays === 0) return 'today';
     if (diffDays === 1) return 'tomorrow';
     if (diffDays < 0) return 'past';
-    return `in ${diffDays}d`;
+    return `in ${diffDays} days`;
 }
 
 export function isUpcoming(date: string | Date, withinDays: number = 30) {

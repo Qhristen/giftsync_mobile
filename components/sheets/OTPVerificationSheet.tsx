@@ -1,10 +1,11 @@
 import { useTheme } from '@/hooks/useTheme';
+import { typography } from '@/theme';
+import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import React, { forwardRef, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Button from '../ui/Button';
 import Typography from '../ui/Typography';
-import { typography } from '@/theme';
 
 interface Props {
     onVerify: (otp: string) => Promise<void>;
@@ -21,7 +22,7 @@ const OTPVerificationSheet = forwardRef<BottomSheetRef, Props>(
         const [isResending, setIsResending] = useState(false);
 
         useEffect(() => {
-            let timer: NodeJS.Timeout;
+            let timer: any;
             if (resendTimer > 0) {
                 timer = setInterval(() => setResendTimer((t) => t - 1), 1000);
             }
@@ -34,13 +35,13 @@ const OTPVerificationSheet = forwardRef<BottomSheetRef, Props>(
             setOtp(newOtp);
 
             if (text && index < 5) {
-                inputs.current[index + 1].focus();
+                inputs.current[index + 1]?.focus();
             }
         };
 
         const handleKeyPress = (e: any, index: number) => {
             if (e.nativeEvent.key === 'Backspace' && !otp[index] && index > 0) {
-                inputs.current[index - 1].focus();
+                inputs.current[index - 1]?.focus();
             }
         };
 
@@ -61,7 +62,13 @@ const OTPVerificationSheet = forwardRef<BottomSheetRef, Props>(
         };
 
         return (
-            <BottomSheetWrapper ref={ref} snapPoints={['60%']}>
+            <BottomSheetWrapper
+                ref={ref}
+                snapPoints={['75%', '90%']}
+                scrollable
+                keyboardBehavior="interactive"
+                android_keyboardInputMode="adjustPan"
+            >
                 <View style={styles.content}>
                     <Typography variant="h2" align="center" style={{ marginBottom: spacing.sm }}>
                         Verify Account
@@ -72,9 +79,9 @@ const OTPVerificationSheet = forwardRef<BottomSheetRef, Props>(
 
                     <View style={styles.otpGrid}>
                         {otp.map((digit, i) => (
-                            <TextInput
+                            <BottomSheetTextInput
                                 key={i}
-                                ref={(el) => (inputs.current[i] = el!)}
+                                ref={(el) => { inputs.current[i] = el!; }}
                                 style={[
                                     styles.otpInput,
                                     {

@@ -8,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 const TX_ICONS: Record<string, { name: string; color: string; bg: string }> = {
@@ -27,7 +27,7 @@ export default function WalletTransactionsScreen() {
     const [page, setPage] = useState(1);
     const limit = 20;
 
-    const { data: wallet } = useGetWalletBalanceQuery();
+    const { data: wallet, refetch: refetchWallet, isLoading: isLoadingWallet } = useGetWalletBalanceQuery();
     const { data: txData, isLoading, isFetching, refetch } = useGetTransactionsQuery({ page, limit });
 
     const transactions = txData?.items ?? [];
@@ -120,8 +120,8 @@ export default function WalletTransactionsScreen() {
                     keyExtractor={(item) => item.id}
                     renderItem={renderTransaction}
                     contentContainerStyle={{ paddingBottom: 100 }}
-                    onRefresh={() => { setPage(1); refetch(); }}
-                    refreshing={isFetching && page === 1}
+                    onRefresh={() => { setPage(1); refetch(); refetchWallet(); }}
+                    refreshing={(isFetching || isLoadingWallet) && page === 1}
                     onEndReached={() => {
                         if (hasMore && !isFetching) {
                             setPage(p => p + 1);
@@ -137,19 +137,15 @@ export default function WalletTransactionsScreen() {
                         </View>
                     }
                     ListFooterComponent={
-                        meta && transactions.length > 0 ? (
-                            <View style={{ alignItems: 'center', paddingVertical: spacing.xl }}>
+                        isFetching && page > 1 ? (
+                            <View style={{ paddingVertical: spacing.xl, alignItems: 'center' }}>
+                                <ActivityIndicator size="small" color={colors.primary} />
+                            </View>
+                        ) : meta && transactions.length > 0 && !hasMore ? (
+                            <View style={{ paddingVertical: spacing.xl, alignItems: 'center' }}>
                                 <Typography variant="caption" color={colors.textMuted}>
-                                    Page {meta.page} of {meta.totalPages}
+                                    No more transactions to show
                                 </Typography>
-                                {hasMore && (
-                                    <Pressable
-                                        onPress={() => setPage(p => p + 1)}
-                                        style={[styles.loadMoreBtn, { backgroundColor: colors.surfaceRaised }]}
-                                    >
-                                        <Typography variant="label" color={colors.primary}>Load More</Typography>
-                                    </Pressable>
-                                )}
                             </View>
                         ) : null
                     }
@@ -178,7 +174,10 @@ const styles = StyleSheet.create({
     },
     balanceCard: {
         padding: 20,
-        borderRadius: 20,
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
+        borderTopLeftRadius: 0,
+        borderTopRightRadius: 0,
     },
     txCard: {
         flexDirection: 'row',
@@ -192,11 +191,5 @@ const styles = StyleSheet.create({
         borderRadius: 14,
         justifyContent: 'center',
         alignItems: 'center',
-    },
-    loadMoreBtn: {
-        paddingHorizontal: 20,
-        paddingVertical: 10,
-        borderRadius: 20,
-        marginTop: 12,
     },
 });

@@ -2,15 +2,13 @@ import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { ChatMessage } from '@/types';
 import { format } from 'date-fns';
-import * as Clipboard from 'expo-clipboard';
 import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
-import { toast } from 'sonner-native';
+import { GestureResponderEvent, Pressable, StyleSheet, View } from 'react-native';
 
 interface MessageBubbleProps {
     message: ChatMessage;
     isOwnMessage: boolean;
-    onLongPress?: (message: ChatMessage) => void;
+    onLongPress?: (message: ChatMessage, event: GestureResponderEvent) => void;
 }
 
 const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isOwnMessage, onLongPress }) => {
@@ -18,12 +16,9 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isOwnMessage, on
 
     const timeString = format(new Date(message.createdAt), 'HH:mm');
 
-    const handleCopy = async () => {
+    const handleLongPress = (event: GestureResponderEvent) => {
         if (onLongPress) {
-            onLongPress(message);
-        } else if (message.content) {
-            await Clipboard.setStringAsync(message.content);
-            toast.success('Message copied!');
+            onLongPress(message, event);
         }
     };
 
@@ -39,7 +34,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isOwnMessage, on
             ]}
         >
             <Pressable
-                onLongPress={handleCopy}
+                onLongPress={handleLongPress}
                 delayLongPress={250}
                 style={({ pressed }) => [
                     styles.bubble,

@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
     monthBtn: {
         paddingHorizontal: 16,
         paddingVertical: 8,
-        borderRadius: 20,
+        borderRadius: 100,
     },
     tabSwitcher: {
         flexDirection: 'row',

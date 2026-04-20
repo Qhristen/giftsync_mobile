@@ -9,8 +9,8 @@ import Typography from '../ui/Typography';
 
 export const PAYMENT_METHODS = [
     { id: 'paystack', name: 'Paystack', icon: 'card-outline', color: '#0BA4DB' },
-    { id: 'stripe', name: 'Stripe', icon: 'logo-usd', color: '#635BFF' },
-    { id: 'crypto', name: 'Cryptocurrency', icon: 'logo-bitcoin', color: '#F7931A' },
+    // { id: 'stripe', name: 'Stripe', icon: 'logo-usd', color: '#635BFF' },
+    // { id: 'crypto', name: 'Cryptocurrency', icon: 'logo-bitcoin', color: '#F7931A' },
 ];
 
 export interface PaymentMethodSheetProps {

@@ -1,27 +1,29 @@
 import MessageBubble from '@/components/chat/MessageBubble';
-import MessageOptionsSheet from '@/components/sheets/MessageOptionsSheet';
 import Avatar from '@/components/ui/Avatar';
-import { BottomSheetRef } from '@/components/ui/BottomSheetWrapper';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { AiChatHistoryItem, useChatMutation } from '@/store/api/aiApi';
 import { useAppSelector } from '@/store/hooks';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { Ionicons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
 import { Image } from 'expo-image';
 import { Stack, useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import {
     ActivityIndicator,
     FlatList,
+    GestureResponderEvent,
     Pressable,
     StyleSheet,
     TextInput,
+    useWindowDimensions,
     View
 } from 'react-native';
-import { KeyboardChatScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import { KeyboardAvoidingView, OverKeyboardView } from 'react-native-keyboard-controller';
+import Animated, { FadeIn, FadeInDown, FadeOut } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { toast } from 'sonner-native';
 
 interface AIMessage {
     id: string;
@@ -40,16 +42,10 @@ export default function AIChatScreen() {
     const { colors, spacing } = useTheme();
     const insets = useSafeAreaInsets();
     const flatListRef = useRef<FlatList>(null);
-    const messageOptionsSheetRef = useRef<BottomSheetRef>(null);
-
-    const renderScrollComponent = React.useCallback((props: any) => (
-        <KeyboardChatScrollView
-            {...props}
-            keyboardLiftBehavior="whenAtEnd"
-            automaticallyAdjustContentInsets={false}
-            contentInsetAdjustmentBehavior="never"
-        />
-    ), []);
+    const [isOptionsVisible, setIsOptionsVisible] = useState(false);
+    const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
+    const [selectedMessageIsOwn, setSelectedMessageIsOwn] = useState(false);
+    const { width: screenWidth, height: screenHeight } = useWindowDimensions();
 
     const { user } = useAppSelector(s => s.auth);
     const [messageText, setMessageText] = useState('');
@@ -67,9 +63,21 @@ export default function AIChatScreen() {
 
     const [chatMutation] = useChatMutation();
 
-    const handleMessageLongPress = (msg: any) => {
+    const handleMessageLongPress = (msg: any, event: GestureResponderEvent) => {
+        const { pageX, pageY } = event.nativeEvent;
+        setMenuPosition({ x: pageX, y: pageY });
         setSelectedMessageText(msg.content);
-        messageOptionsSheetRef.current?.expand();
+        setSelectedMessageIsOwn(msg.isOwnMessage);
+        setIsOptionsVisible(true);
+    };
+
+    const handleCopy = async () => {
+        if (selectedMessageText) {
+            await Clipboard.setStringAsync(selectedMessageText);
+            toast.success('Message copied!');
+        }
+        setIsOptionsVisible(false);
+        setSelectedMessageText('');
     };
 
     const handleSend = async () => {
@@ -181,213 +189,208 @@ export default function AIChatScreen() {
                 </Pressable>
             </View>
 
-            {/* Chat Area */}
-            <FlatList
-                ref={flatListRef}
-                data={[...messages].reverse()}
-                inverted={true}
-                showsVerticalScrollIndicator={false}
-                renderScrollComponent={renderScrollComponent}
-                keyExtractor={(item) => item.id}
-                ListHeaderComponent={isAITyping ? (
-                    <View style={styles.typingIndicatorContainer}>
-                        <View style={[styles.typingIndicatorBubble, { backgroundColor: colors.surfaceRaised }]}>
-                            <ActivityIndicator size="small" color={colors.primary} />
-                            <Typography variant="body" color={colors.textSecondary} style={{ fontStyle: 'italic' }}>
-                                thinking...
-                            </Typography>
-                        </View>
-                    </View>
-                ) : null}
-                renderItem={({ item }) => {
-                    const hasProducts = item.uiData?.type === 'products' && item.uiData.items && item.uiData.items.length > 0;
-                    const hasOccasions = item.uiData?.type === 'occasions' && item.uiData.items && item.uiData.items.length > 0;
-                    const hasContacts = item.uiData?.type === 'contacts' && item.uiData.items && item.uiData.items.length > 0;
-
-                    if (hasProducts) {
-                        return (
-                            <View>
-                                {/* AI Text Context */}
-                                <MessageBubble
-                                    message={{
-                                        id: item.id,
-                                        content: item.content,
-                                        createdAt: item.createdAt,
-                                        conversationId: '',
-                                        senderId: '',
-                                    } as any}
-                                    isOwnMessage={false}
-                                    onLongPress={handleMessageLongPress}
-                                />
-
-                                {/* Recommendations Two-Column Grid */}
-                                <View style={{ paddingLeft: spacing.xl, paddingRight: spacing.md, paddingBottom: spacing.md }}>
-                                    <View style={styles.twoColumnGrid}>
-                                        {item.uiData?.items?.map((rec: any, index: number) => (
-                                            <Animated.View
-                                                key={rec.id}
-                                                entering={FadeInDown.delay(index * 60).duration(300).springify().damping(50)}
-                                                style={{ width: '48%', marginBottom: 12 }}
-                                            >
-                                                <Pressable
-                                                    onPress={() => router.push({ pathname: '/(tabs)/shop/[id]', params: { id: rec.id } })}
-                                                    style={({ pressed }) => [
-                                                        styles.gridCardInner,
-                                                        { backgroundColor: colors.surfaceRaised },
-                                                        pressed && { opacity: 0.7, transform: [{ scale: 0.98 }] }
-                                                    ]}
-                                                >
-                                                    <Image source={{ uri: rec.imageUrls?.[0] }} style={styles.gridProductImage} />
-                                                    <View style={styles.gridCardContent}>
-                                                        <Typography variant="bodyBold" numberOfLines={1} style={{ textAlign: 'center', fontSize: 13, marginTop: 4 }}>{rec.name}</Typography>
-                                                        <Typography variant="label" color={colors.primary} style={{ textAlign: 'center', fontSize: 12 }}>{formatCurrency(rec.price, rec.currency || 'NGN')}</Typography>
-                                                    </View>
-                                                </Pressable>
-                                            </Animated.View>
-                                        ))}
-                                    </View>
-                                </View>
-                            </View>
-                        );
-                    }
-
-                    if (hasOccasions) {
-                        return (
-                            <View>
-                                {/* AI Text Context */}
-                                <MessageBubble
-                                    message={{
-                                        id: item.id,
-                                        content: item.content,
-                                        createdAt: item.createdAt,
-                                        conversationId: '',
-                                        senderId: '',
-                                    } as any}
-                                    isOwnMessage={false}
-                                    onLongPress={handleMessageLongPress}
-                                />
-
-                                {/* Occasions Two-Column Grid */}
-                                <View style={{ paddingLeft: spacing.xl, paddingRight: spacing.md, paddingBottom: spacing.md }}>
-                                    <View style={styles.twoColumnGrid}>
-                                        {item.uiData?.items?.map((rec: any, index: number) => (
-                                            <Animated.View
-                                                key={rec.id}
-                                                entering={FadeInDown.delay(index * 60).duration(300).springify().damping(50)}
-                                                style={{ width: '48%', marginBottom: 12 }}
-                                            >
-                                                <Pressable
-                                                    onPress={() => router.push({ pathname: '/(tabs)/occasions/[id]', params: { id: rec.id } })}
-                                                    style={({ pressed }) => [
-                                                        styles.gridCardInner,
-                                                        { backgroundColor: colors.surfaceRaised },
-                                                        pressed && { opacity: 0.7, transform: [{ scale: 0.98 }] }
-                                                    ]}
-                                                >
-                                                    {rec.contact ? (
-                                                        <Avatar uri={rec.contact?.avatar} name={rec.contact?.name} size="md" />
-                                                    ) : (
-                                                        <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary + '20', justifyContent: 'center', alignItems: 'center' }}>
-                                                            <Ionicons name="calendar-outline" size={20} color={colors.primary} />
-                                                        </View>
-                                                    )}
-                                                    <View style={styles.gridCardContent}>
-                                                        {rec.contact?.name && (
-                                                            <Typography variant="bodyBold" numberOfLines={1} style={{ textAlign: 'center', fontSize: 13 }}>
-                                                                {rec.contact.name.split(' ')[0]}
-                                                            </Typography>
-                                                        )}
-                                                        <Typography variant="caption" color={rec.contact ? colors.textSecondary : colors.textPrimary} numberOfLines={1} style={{ textAlign: 'center', fontSize: 10 }}>
-                                                            {rec.title}
-                                                        </Typography>
-                                                        <Typography variant="caption" color={colors.primary} style={{ textAlign: 'center', fontSize: 10, marginTop: 2 }}>
-                                                            {new Date(rec.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                                                        </Typography>
-                                                    </View>
-                                                </Pressable>
-                                            </Animated.View>
-                                        ))}
-                                    </View>
-                                </View>
-                            </View>
-                        );
-                    }
-
-                    if (hasContacts) {
-                        return (
-                            <View>
-                                {/* AI Text Context */}
-                                <MessageBubble
-                                    message={{
-                                        id: item.id,
-                                        content: item.content,
-                                        createdAt: item.createdAt,
-                                        conversationId: '',
-                                        senderId: '',
-                                    } as any}
-                                    isOwnMessage={false}
-                                    onLongPress={handleMessageLongPress}
-                                />
-
-                                {/* Contacts Two-Column Grid */}
-                                <View style={{ paddingLeft: spacing.xl, paddingRight: spacing.md, paddingBottom: spacing.md }}>
-                                    <View style={styles.twoColumnGrid}>
-                                        {item.uiData?.items?.map((rec: any, index: number) => (
-                                            <Animated.View
-                                                key={rec.id}
-                                                entering={FadeInDown.delay(index * 60).duration(300).springify().damping(50)}
-                                                style={{ width: '48%', marginBottom: 12 }}
-                                            >
-                                                <Pressable
-                                                    style={({ pressed }) => [
-                                                        styles.gridCardInner,
-                                                        { backgroundColor: colors.surfaceRaised },
-                                                        pressed && { opacity: 0.7, transform: [{ scale: 0.98 }] }
-                                                    ]}
-                                                >
-                                                    <Avatar uri={rec.avatar} name={rec.name} size="md" />
-                                                    <View style={styles.gridCardContent}>
-                                                        <Typography variant="bodyBold" numberOfLines={1} style={{ textAlign: 'center', fontSize: 13 }}>{rec.name}</Typography>
-                                                        {rec.relationship && (
-                                                            <Typography variant="caption" color={colors.textSecondary} numberOfLines={1} style={{ textAlign: 'center', fontSize: 10 }}>
-                                                                {rec.relationship}
-                                                            </Typography>
-                                                        )}
-                                                        {rec.phoneNumber && (
-                                                            <Typography variant="caption" color={colors.textSecondary} numberOfLines={1} style={{ textAlign: 'center', fontSize: 10, marginTop: 2 }}>
-                                                                {rec.phoneNumber}
-                                                            </Typography>
-                                                        )}
-                                                    </View>
-                                                </Pressable>
-                                            </Animated.View>
-                                        ))}
-                                    </View>
-                                </View>
-                            </View>
-                        );
-                    }
-
-                    return (
-                        <MessageBubble
-                            message={{
-                                id: item.id,
-                                content: item.content,
-                                createdAt: item.createdAt,
-                                conversationId: '',
-                                senderId: '',
-                            } as any}
-                            isOwnMessage={item.isOwnMessage}
-                            onLongPress={handleMessageLongPress}
-                        />
-                    );
-                }}
+            {/* Chat Content wrap */}
+            <KeyboardAvoidingView
+                behavior="padding"
+                keyboardVerticalOffset={0}
                 style={{ flex: 1 }}
-                contentContainerStyle={[styles.messageList, { paddingBottom: spacing.lg }]}
-            />
+            >
+                {/* Chat Area */}
+                <FlatList
+                    ref={flatListRef}
+                    data={[...messages].reverse()}
+                    inverted={true}
+                    showsVerticalScrollIndicator={false}
+                    keyExtractor={(item) => item.id}
+                    keyboardDismissMode="on-drag"
+                    maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
+                    ListHeaderComponent={isAITyping ? (
+                        <View style={styles.typingIndicatorContainer}>
+                            <View style={[styles.typingIndicatorBubble, { backgroundColor: colors.surfaceRaised }]}>
+                                <ActivityIndicator size="small" color={colors.primary} />
+                                <Typography variant="body" color={colors.textSecondary} style={{ fontStyle: 'italic' }}>
+                                    thinking...
+                                </Typography>
+                            </View>
+                        </View>
+                    ) : null}
+                    renderItem={({ item }) => {
+                        const hasProducts = item.uiData?.type === 'products' && item.uiData.items && item.uiData.items.length > 0;
+                        const hasOccasions = item.uiData?.type === 'occasions' && item.uiData.items && item.uiData.items.length > 0;
+                        const hasContacts = item.uiData?.type === 'contacts' && item.uiData.items && item.uiData.items.length > 0;
 
-            {/* Input */}
-            <KeyboardStickyView offset={{ opened: insets.bottom }}>
+                        if (hasProducts) {
+                            return (
+                                <View>
+                                    <MessageBubble
+                                        message={{
+                                            id: item.id,
+                                            content: item.content,
+                                            createdAt: item.createdAt,
+                                            isOwnMessage: false,
+                                        } as any}
+                                        isOwnMessage={false}
+                                        onLongPress={handleMessageLongPress}
+                                    />
+                                    <View style={{ paddingLeft: spacing.xl, paddingRight: spacing.md, paddingBottom: spacing.md }}>
+                                        <View style={styles.twoColumnGrid}>
+                                            {item.uiData?.items?.map((rec: any, index: number) => (
+                                                <Animated.View
+                                                    key={rec.id}
+                                                    entering={FadeInDown.delay(index * 60).duration(300).springify().damping(50)}
+                                                    style={{ width: '48%', marginBottom: 12 }}
+                                                >
+                                                    <Pressable
+                                                        onPress={() => router.push({ pathname: '/(tabs)/shop/[id]', params: { id: rec.id } })}
+                                                        style={({ pressed }) => [
+                                                            styles.gridCardInner,
+                                                            { backgroundColor: colors.surfaceRaised },
+                                                            pressed && { opacity: 0.7, transform: [{ scale: 0.98 }] }
+                                                        ]}
+                                                    >
+                                                        <Image source={{ uri: rec.imageUrls?.[0] }} style={styles.gridProductImage} />
+                                                        <View style={styles.gridCardContent}>
+                                                            <Typography variant="bodyBold" numberOfLines={1} style={{ textAlign: 'center', fontSize: 13, marginTop: 4 }}>{rec.name}</Typography>
+                                                            <Typography variant="label" color={colors.primary} style={{ textAlign: 'center', fontSize: 12 }}>{formatCurrency(rec.price, rec.currency || 'NGN')}</Typography>
+                                                        </View>
+                                                    </Pressable>
+                                                </Animated.View>
+                                            ))}
+                                        </View>
+                                    </View>
+                                </View>
+                            );
+                        }
+
+                        if (hasOccasions) {
+                            return (
+                                <View>
+                                    <MessageBubble
+                                        message={{
+                                            id: item.id,
+                                            content: item.content,
+                                            createdAt: item.createdAt,
+                                            isOwnMessage: false,
+                                        } as any}
+                                        isOwnMessage={false}
+                                        onLongPress={handleMessageLongPress}
+                                    />
+                                    <View style={{ paddingLeft: spacing.xl, paddingRight: spacing.md, paddingBottom: spacing.md }}>
+                                        <View style={styles.twoColumnGrid}>
+                                            {item.uiData?.items?.map((rec: any, index: number) => (
+                                                <Animated.View
+                                                    key={rec.id}
+                                                    entering={FadeInDown.delay(index * 60).duration(300).springify().damping(50)}
+                                                    style={{ width: '48%', marginBottom: 12 }}
+                                                >
+                                                    <Pressable
+                                                        onPress={() => router.push({ pathname: '/(tabs)/occasions/[id]', params: { id: rec.id } })}
+                                                        style={({ pressed }) => [
+                                                            styles.gridCardInner,
+                                                            { backgroundColor: colors.surfaceRaised },
+                                                            pressed && { opacity: 0.7, transform: [{ scale: 0.98 }] }
+                                                        ]}
+                                                    >
+                                                        {rec.contact ? (
+                                                            <Avatar uri={rec.contact?.avatar} name={rec.contact?.name} size="md" />
+                                                        ) : (
+                                                            <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary + '20', justifyContent: 'center', alignItems: 'center' }}>
+                                                                <Ionicons name="calendar-outline" size={20} color={colors.primary} />
+                                                            </View>
+                                                        )}
+                                                        <View style={styles.gridCardContent}>
+                                                            {rec.contact?.name && (
+                                                                <Typography variant="bodyBold" numberOfLines={1} style={{ textAlign: 'center', fontSize: 13 }}>
+                                                                    {rec.contact.name.split(' ')[0]}
+                                                                </Typography>
+                                                            )}
+                                                            <Typography variant="caption" color={rec.contact ? colors.textSecondary : colors.textPrimary} numberOfLines={1} style={{ textAlign: 'center', fontSize: 10 }}>
+                                                                {rec.title}
+                                                            </Typography>
+                                                            <Typography variant="caption" color={colors.primary} style={{ textAlign: 'center', fontSize: 10, marginTop: 2 }}>
+                                                                {new Date(rec.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                                            </Typography>
+                                                        </View>
+                                                    </Pressable>
+                                                </Animated.View>
+                                            ))}
+                                        </View>
+                                    </View>
+                                </View>
+                            );
+                        }
+
+                        if (hasContacts) {
+                            return (
+                                <View>
+                                    <MessageBubble
+                                        message={{
+                                            id: item.id,
+                                            content: item.content,
+                                            createdAt: item.createdAt,
+                                            conversationId: '',
+                                            senderId: '',
+                                        } as any}
+                                        isOwnMessage={false}
+                                        onLongPress={handleMessageLongPress}
+                                    />
+                                    <View style={{ paddingLeft: spacing.xl, paddingRight: spacing.md, paddingBottom: spacing.md }}>
+                                        <View style={styles.twoColumnGrid}>
+                                            {item.uiData?.items?.map((rec: any, index: number) => (
+                                                <Animated.View
+                                                    key={rec.id}
+                                                    entering={FadeInDown.delay(index * 60).duration(300).springify().damping(50)}
+                                                    style={{ width: '48%', marginBottom: 12 }}
+                                                >
+                                                    <Pressable
+                                                        style={({ pressed }) => [
+                                                            styles.gridCardInner,
+                                                            { backgroundColor: colors.surfaceRaised },
+                                                            pressed && { opacity: 0.7, transform: [{ scale: 0.98 }] }
+                                                        ]}
+                                                    >
+                                                        <Avatar uri={rec.avatar} name={rec.name} size="md" />
+                                                        <View style={styles.gridCardContent}>
+                                                            <Typography variant="bodyBold" numberOfLines={1} style={{ textAlign: 'center', fontSize: 13 }}>{rec.name}</Typography>
+                                                            {rec.relationship && (
+                                                                <Typography variant="caption" color={colors.textSecondary} numberOfLines={1} style={{ textAlign: 'center', fontSize: 10 }}>
+                                                                    {rec.relationship}
+                                                                </Typography>
+                                                            )}
+                                                            {rec.phoneNumber && (
+                                                                <Typography variant="caption" color={colors.textSecondary} numberOfLines={1} style={{ textAlign: 'center', fontSize: 10, marginTop: 2 }}>
+                                                                    {rec.phoneNumber}
+                                                                </Typography>
+                                                            )}
+                                                        </View>
+                                                    </Pressable>
+                                                </Animated.View>
+                                            ))}
+                                        </View>
+                                    </View>
+                                </View>
+                            );
+                        }
+
+                        return (
+                            <MessageBubble
+                                message={{
+                                    id: item.id,
+                                    content: item.content,
+                                    createdAt: item.createdAt,
+                                    isOwnMessage: item.isOwnMessage,
+                                } as any}
+                                isOwnMessage={item.isOwnMessage}
+                                onLongPress={handleMessageLongPress}
+                            />
+                        );
+                    }}
+                    style={{ flex: 1 }}
+                    contentContainerStyle={[styles.messageList, { paddingBottom: spacing.lg }]}
+                    keyboardShouldPersistTaps="handled"
+                />
+
+                {/* Input */}
                 <View style={[
                     styles.inputContainer,
                     {
@@ -429,13 +432,58 @@ export default function AIChatScreen() {
                         />
                     </Pressable>
                 </View>
-            </KeyboardStickyView>
+            </KeyboardAvoidingView>
 
-            <MessageOptionsSheet
-                ref={messageOptionsSheetRef}
-                textToCopy={selectedMessageText}
-                onClose={() => setSelectedMessageText('')}
-            />
+            <OverKeyboardView visible={isOptionsVisible}>
+                <Pressable
+                    style={StyleSheet.absoluteFill}
+                    onPress={() => setIsOptionsVisible(false)}
+                >
+                    <Animated.View
+                        entering={FadeIn.duration(200)}
+                        exiting={FadeOut.duration(200)}
+                        style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.2)' }]}
+                    >
+                        <Animated.View
+                            entering={FadeIn.duration(200)}
+                            style={[
+                                styles.floatingMenu,
+                                {
+                                    backgroundColor: colors.surface,
+                                    top: Math.min(Math.max(insets.top + 60, menuPosition.y - 120), screenHeight - 200),
+                                    left: selectedMessageIsOwn
+                                        ? Math.max(20, menuPosition.x - 190)
+                                        : Math.min(screenWidth - 210, menuPosition.x + 10),
+                                }
+                            ]}
+                        >
+                            <Pressable
+                                style={({ pressed }) => [
+                                    styles.menuOption,
+                                    { backgroundColor: pressed ? colors.surfaceRaised : 'transparent' }
+                                ]}
+                                onPress={handleCopy}
+                            >
+                                <Ionicons name="copy-outline" size={18} color={colors.textPrimary} />
+                                <Typography variant="body">Copy Text</Typography>
+                            </Pressable>
+
+                            <View style={[styles.menuSeparator, { backgroundColor: colors.border }]} />
+
+                            <Pressable
+                                style={({ pressed }) => [
+                                    styles.menuOption,
+                                    { backgroundColor: pressed ? colors.surfaceRaised : 'transparent' }
+                                ]}
+                                onPress={() => setIsOptionsVisible(false)}
+                            >
+                                <Ionicons name="close-outline" size={18} color={colors.error} />
+                                <Typography variant="body" color={colors.error}>Cancel</Typography>
+                            </Pressable>
+                        </Animated.View>
+                    </Animated.View>
+                </Pressable>
+            </OverKeyboardView>
         </View>
     );
 }
@@ -561,5 +609,30 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         borderRadius: 20,
         gap: 8,
-    }
+    },
+    overlay: {
+        flex: 1,
+    },
+    floatingMenu: {
+        position: 'absolute',
+        width: 170,
+        borderRadius: 16,
+        padding: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 10,
+        elevation: 10,
+    },
+    menuOption: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 12,
+        borderRadius: 12,
+        gap: 12,
+    },
+    menuSeparator: {
+        height: 1,
+        marginHorizontal: 12,
+    },
 });

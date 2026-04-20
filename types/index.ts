@@ -37,6 +37,25 @@ export interface Business {
   bankAccountNumber: string;
   isVerified: boolean;
 }
+export interface Review {
+  id: string;
+  businessId: string;
+  userId: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+  user?: User;
+}
+
+export interface CreateReviewDto {
+  rating: number;
+  comment: string;
+}
+
+export interface PaginatedReviewResponse {
+  items: Review[];
+  meta: PaginationMeta;
+}
 
 
 export interface CreateBusinessDto {

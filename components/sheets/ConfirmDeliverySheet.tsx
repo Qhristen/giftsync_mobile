@@ -41,7 +41,11 @@ const ConfirmDeliverySheet = forwardRef<BottomSheetRef, Props>(
         if (!order) return null;
 
         return (
-            <BottomSheetWrapper ref={ref} snapPoints={['50%']} keyboardBehavior="interactive">
+            <BottomSheetWrapper ref={ref}
+                snapPoints={['35%', '40%']}
+                scrollable
+                keyboardBehavior="interactive"
+                android_keyboardInputMode="adjustPan">
                 <View style={styles.content}>
                     <Typography variant="h2" align="center" style={{ marginBottom: spacing.sm }}>
                         Confirm Delivery

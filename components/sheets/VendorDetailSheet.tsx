@@ -1,9 +1,9 @@
 import { useTheme } from '@/hooks/useTheme';
-import { Business } from '@/types';
+import { Business, PaginatedReviewResponse } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import React, { forwardRef } from 'react';
-import { Linking, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Linking, StyleSheet, View } from 'react-native';
 import Avatar from '../ui/Avatar';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Button from '../ui/Button';
@@ -13,10 +13,12 @@ interface Props {
     business?: Business | null;
     ratingAvg?: number;
     ratingCount?: number;
+    reviews?: PaginatedReviewResponse;
+    isLoadingReviews?: boolean;
 }
 
 const VendorDetailSheet = forwardRef<BottomSheetRef, Props>(
-    ({ business, ratingAvg, ratingCount }, ref) => {
+    ({ business, ratingAvg, ratingCount, reviews, isLoadingReviews }, ref) => {
         const { spacing, colors } = useTheme();
 
         const handleWebsite = () => {
@@ -97,6 +99,39 @@ const VendorDetailSheet = forwardRef<BottomSheetRef, Props>(
                                 leftIcon={<Ionicons name="logo-instagram" size={18} color={colors.primary} style={{ marginRight: 6 }} />}
                                 onPress={handleInstagram}
                             />
+                        )}
+                    </View>
+
+                    {/* Reviews Section */}
+                    <View style={{ marginTop: spacing.xl }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md }}>
+                            <Typography variant="h4">Reviews</Typography>
+                        </View>
+
+                        {isLoadingReviews && !reviews ? (
+                            <ActivityIndicator color={colors.primary} />
+                        ) : reviews?.items?.length ? (
+                            <View style={{ gap: 12 }}>
+                                {reviews.items.map((review: any) => (
+                                    <View key={review.id} style={{ padding: 12, backgroundColor: colors.surface, borderRadius: 12, borderWidth: 1, borderColor: colors.border }}>
+                                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+                                            <Typography variant="bodyBold">{review.user?.name || 'User'}</Typography>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                                <Ionicons name="star" size={14} color="#FFD700" />
+                                                <Typography variant="caption" color={colors.textSecondary} style={{ marginLeft: 4 }}>{review.rating}</Typography>
+                                            </View>
+                                        </View>
+                                        {review.comment && (
+                                            <Typography variant="body" color={colors.textSecondary} style={{ marginTop: 4 }}>{review.comment}</Typography>
+                                        )}
+                                        <Typography variant="caption" color={colors.textMuted} style={{ marginTop: 8 }}>
+                                            {new Date(review.createdAt).toLocaleDateString()}
+                                        </Typography>
+                                    </View>
+                                ))}
+                            </View>
+                        ) : (
+                            <Typography variant="body" color={colors.textMuted}>No reviews yet.</Typography>
                         )}
                     </View>
                 </View>

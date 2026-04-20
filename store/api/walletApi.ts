@@ -1,6 +1,41 @@
 import { CoinPackage, PaginatedWalletTransactionResponse, WalletBalance } from '@/types';
 import { baseApi } from './baseApi';
 
+export interface InitializeFundingRequest {
+    amount: number;
+    paymentType: 'deposit';
+    packageId?: string;
+    callbackUrl?: string;
+}
+
+export interface InitializeFundingResponse {
+    success: boolean;
+    data: {
+        authorizationUrl: string;
+        accessCode: string;
+        reference: string;
+    };
+    message: string;
+}
+
+export interface VerifyFundingRequest {
+    reference: string;
+}
+
+export interface VerifyFundingResponse {
+    success: boolean;
+    data: {
+        transaction: {
+            id: string;
+            type: string;
+            amount: number;
+            balanceAfter: number;
+        };
+        balance: number;
+    };
+    message: string;
+}
+
 export const walletApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
         getWalletBalance: builder.query<WalletBalance, void>({
@@ -47,8 +82,30 @@ export const walletApi = baseApi.injectEndpoints({
                 params,
             }),
         }),
+        initializeFunding: builder.mutation<InitializeFundingResponse, InitializeFundingRequest>({
+            query: (body) => ({
+                url: '/api/v1/payment/fund/initialize',
+                method: 'POST',
+                data: body,
+            }),
+        }),
+        verifyFunding: builder.mutation<VerifyFundingResponse, VerifyFundingRequest>({
+            query: (body) => ({
+                url: '/api/v1/payment/fund/verify',
+                method: 'POST',
+                data: body,
+            }),
+            invalidatesTags: ['Wallet'],
+        }),
     }),
     overrideExisting: true,
 });
 
-export const { useGetWalletBalanceQuery, useGetCoinPackagesQuery, useGetTransactionsQuery, useGetCoinQuoteQuery } = walletApi;
+export const {
+    useGetWalletBalanceQuery,
+    useGetCoinPackagesQuery,
+    useGetTransactionsQuery,
+    useGetCoinQuoteQuery,
+    useInitializeFundingMutation,
+    useVerifyFundingMutation,
+} = walletApi;

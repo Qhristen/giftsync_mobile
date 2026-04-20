@@ -188,7 +188,7 @@ export default function ShopScreen() {
                         ref={categoryScrollRef}
                         horizontal
                         showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: spacing.md, gap: 10 }}
+                        contentContainerStyle={{ paddingHorizontal: spacing.xl, gap: 10 }}
                     >
                         {categories.map((cat, index) => {
                             const isActive = activeCategory === cat.id;

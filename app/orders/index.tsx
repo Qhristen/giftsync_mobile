@@ -1,4 +1,5 @@
 import OrderDetailSheet from '@/components/sheets/OrderDetailSheet';
+import ReviewBusinessSheet from '@/components/sheets/ReviewBusinessSheet';
 import ListSkeleton from '@/components/skeletons/ListSkeleton';
 import Badge from '@/components/ui/Badge';
 import Card from '@/components/ui/Card';
@@ -22,6 +23,7 @@ export default function OrderListScreen() {
     const [activeTab, setActiveTab] = useState<'Active' | 'History'>('Active');
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const orderSheet = useBottomSheet();
+    const reviewSheet = useBottomSheet();
 
     const [page, setPage] = useState(1);
     const { data, isLoading, isFetching, refetch } = useGetOrdersQuery({ page, limit: 20 });
@@ -51,6 +53,18 @@ export default function OrderListScreen() {
         ),
         [allOrders, activeTab]
     );
+
+    const handleReview = (order: Order) => {
+        setSelectedOrder(order);
+        orderSheet.close();
+        setTimeout(() => {
+            reviewSheet.open();
+        }, 500);
+    };
+
+    const handleReviewSuccess = () => {
+        reviewSheet.close();
+    };
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -183,6 +197,13 @@ export default function OrderListScreen() {
                 order={selectedOrder}
                 onClose={() => orderSheet.close()}
                 onChat={handleChat}
+                onReview={handleReview}
+            />
+
+            <ReviewBusinessSheet
+                ref={reviewSheet.ref}
+                order={selectedOrder}
+                onSuccess={handleReviewSuccess}
             />
         </View>
     );

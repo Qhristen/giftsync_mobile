@@ -63,7 +63,12 @@ export default function HomeScreen() {
             <Animated.View entering={FadeInDown.duration(600)} style={[styles.header, { padding: spacing.xl, paddingBottom: spacing.md }]}>
                 <View>
                     <Typography variant="body" color={colors.textSecondary}>
-                        Good morning, {profile?.name?.split(' ')[0] || 'Alex'} 👋
+                        {(() => {
+                            const hour = new Date().getHours();
+                            if (hour < 12) return 'Good morning';
+                            if (hour < 17) return 'Good afternoon';
+                            return 'Good evening';
+                        })()}, {profile?.name?.split(' ')[0] || 'Alex'} 👋
                     </Typography>
                     <Typography variant="h1">GiftSync</Typography>
                 </View>
@@ -83,7 +88,7 @@ export default function HomeScreen() {
             <ScrollView
                 contentContainerStyle={{ paddingBottom: 100 }}
                 showsVerticalScrollIndicator={false}
-                style={{ borderTopLeftRadius: 24, borderTopRightRadius: 24 }}
+                style={{}}
                 refreshControl={
                     <RefreshControl
                         refreshing={isProfileLoading || isUpcomingLoading || isMonthlyLoading || isRecsLoading}
@@ -274,8 +279,13 @@ const styles = StyleSheet.create({
         right: 12,
     },
     heroCard: {
-        padding: 24,
-        borderRadius: 24,
+        paddingLeft: 18,
+        paddingRight: 18,
+        paddingBottom: 18,
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
+        borderTopLeftRadius: 0,
+        borderTopRightRadius: 0,
         gap: 20,
     },
     heroHeader: {

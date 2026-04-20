@@ -15,7 +15,7 @@ export function useTheme(): Theme & { isDark: boolean; scheme: 'light' | 'dark' 
     const colors = isDark ? darkColors : lightColors;
 
     return {
-        colors,
+        colors: colors as any,
         typography,
         spacing,
         isDark,

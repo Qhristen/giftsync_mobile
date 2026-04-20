@@ -2,6 +2,7 @@ import { tokenCache } from '@/utils/cache';
 import { BaseQueryFn, createApi } from '@reduxjs/toolkit/query/react';
 import axios, { AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
 import * as jose from 'jose';
+import { logoutUser } from '../slices/authSlice';
 
 interface AxiosBaseQueryArgs extends Omit<AxiosRequestConfig, 'url'> {
     url: string;
@@ -127,7 +128,7 @@ const axiosBaseQuery = (): BaseQueryFn<
     AxiosBaseQueryArgs,
     unknown,
     AxiosBaseQueryError
-> => async (args) => {
+> => async (args, api) => {
     try {
         const { url, method, data, params } = args;
         const result = await axiosInstance({
@@ -140,9 +141,17 @@ const axiosBaseQuery = (): BaseQueryFn<
         return { data: result.data };
     } catch (error) {
         const axiosError = error as AxiosError<ErrorResponse>;
+        const status = axiosError.response?.status;
+
+        // Automatically log out user if we get a 401 Unauthorized
+        // This handles cases where the refresh token has expired or is invalid
+        if (status === 401) {
+            api.dispatch(logoutUser());
+        }
+
         return {
             error: {
-                status: axiosError.response?.status,
+                status,
                 data: axiosError.response?.data || { message: axiosError.message },
             },
         };
@@ -153,7 +162,7 @@ export const api = axiosInstance
 export const baseApi = createApi({
     reducerPath: 'api',
     baseQuery: axiosBaseQuery(),
-    tagTypes: ['Contacts', 'Occasions', 'Recommendations', 'Orders', 'Shortlist', 'UserProfile', 'Wallet', 'Notifications', 'Products', 'Addresses', 'Chat', 'Business'],
+    tagTypes: ['Contacts', 'Occasions', 'Recommendations', 'Orders', 'Shortlist', 'UserProfile', 'Wallet', 'Notifications', 'Products', 'Addresses', 'Chat', 'Business', 'Review'],
     // Keep unused data cached for 5 minutes to reduce redundant fetches
     keepUnusedDataFor: 300,
     // Refetch on reconnect and on focus for freshness

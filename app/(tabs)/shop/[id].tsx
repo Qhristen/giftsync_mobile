@@ -7,6 +7,7 @@ import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
+import { useGetBusinessReviewsQuery } from '@/store/api/businessApi';
 import { useGetUpcomingOccasionsQuery } from '@/store/api/occasionApi';
 import { useGetProductByIdQuery } from '@/store/api/productApi';
 import { Occasion } from '@/types';
@@ -37,6 +38,11 @@ export default function ShopItemDetailScreen() {
 
     const { data: upcomingOccasions = [] } = useGetUpcomingOccasionsQuery();
     const { data: product, isLoading, isFetching, error } = useGetProductByIdQuery(id as string);
+
+    const { data: reviews, isLoading: isLoadingReviews } = useGetBusinessReviewsQuery(
+        { businessId: product?.business?.id! },
+        { skip: !product?.business?.id }
+    );
 
     const totalPrice = Number(product?.price) + Number(product?.deliveryFee) + Number(product?.packagingFee)
 
@@ -76,7 +82,7 @@ export default function ShopItemDetailScreen() {
                 </Pressable> */}
             </View>
 
-            <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+            <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 0 }}>
                 {/* Image Gallery */}
                 <Animated.View entering={FadeInDown.duration(500)}>
                     {product.imageUrls && product.imageUrls.length > 0 ? (
@@ -130,10 +136,10 @@ export default function ShopItemDetailScreen() {
                                 {formatCurrency(totalPrice, product.currency)}
                             </Typography>
                         </View>
-                        <View style={[styles.ratingBadge, { backgroundColor: colors.surfaceRaised }]}>
+                        {/* <View style={[styles.ratingBadge, { backgroundColor: colors.surfaceRaised }]}>
                             <Ionicons name="star" size={16} color="#FFD700" />
                             <Typography variant="bodyBold" style={{ marginLeft: 4 }}>{product.ratingAvg || 0}</Typography>
-                        </View>
+                        </View> */}
                     </View>
 
                     <Pressable onPress={() => vendorSheet.open()}>
@@ -260,24 +266,24 @@ export default function ShopItemDetailScreen() {
                         </View>
                     )}
                 </Animated.View>
+                <View style={[styles.footer, { backgroundColor: colors.surface, paddingBottom: insets.bottom + 80 }]}>
+                    <Button
+                        title="Send as Gift"
+                        variant="primary"
+                        style={{ flex: 1 }}
+                        leftIcon={<Ionicons name="gift-outline" size={20} color="#FFF" style={{ marginRight: 8 }} />}
+                        onPress={() => {
+                            if (occasionId) {
+                                router.push({ pathname: '/checkout', params: { productId: id, occasionId: occasionId as string } });
+                            } else {
+                                occasionSheet.open();
+                            }
+                        }}
+                    />
+                </View>
             </ScrollView>
 
             {/* Sticky Footer — sits above the absolute-positioned floating tab bar                 (tab bar: ~55px tall + 15px margin + device bottom inset) */}
-            <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border, paddingBottom: insets.bottom + 80 }]}>
-                <Button
-                    title="Send as Gift"
-                    variant="primary"
-                    style={{ flex: 1 }}
-                    leftIcon={<Ionicons name="gift-outline" size={20} color="#FFF" style={{ marginRight: 8 }} />}
-                    onPress={() => {
-                        if (occasionId) {
-                            router.push({ pathname: '/checkout', params: { productId: id, occasionId: occasionId as string } });
-                        } else {
-                            occasionSheet.open();
-                        }
-                    }}
-                />
-            </View>
 
             <OccasionPickerSheet
                 ref={occasionSheet.ref}
@@ -293,6 +299,8 @@ export default function ShopItemDetailScreen() {
                 business={product.business}
                 ratingAvg={product?.ratingAvg}
                 ratingCount={product?.ratingCount}
+                reviews={reviews}
+                isLoadingReviews={isLoadingReviews}
             />
         </View>
     );
@@ -321,9 +329,10 @@ const styles = StyleSheet.create({
     pagination: {
         flexDirection: 'row',
         position: 'absolute',
-        bottom: 24,
+        bottom: 54,
         alignSelf: 'center',
         gap: 6,
+
     },
     dot: {
         width: 8,
@@ -397,7 +406,6 @@ const styles = StyleSheet.create({
         width: '100%',
         paddingHorizontal: 24,
         paddingTop: 16,
-        borderTopWidth: 1,
         elevation: 8,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: -2 },
