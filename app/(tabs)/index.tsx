@@ -11,7 +11,7 @@ import { useGetRecommendationsV2Query } from '@/store/api/productApi';
 import { useGetProfileQuery } from '@/store/api/userApi';
 import { getCountdown } from '@/utils/dateUtils';
 import { formatCurrency } from '@/utils/formatCurrency';
-import { Ionicons } from '@expo/vector-icons';
+import { FontAwesome5, Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
@@ -159,14 +159,24 @@ export default function HomeScreen() {
                 {/* Quick Actions */}
                 <Animated.View entering={FadeInDown.delay(400).duration(600)} style={[styles.quickActions, { padding: spacing.xl }]}>
                     {[
-                        { label: 'Coins', icon: 'wallet-outline', route: '/wallet' },
-                        { label: 'Add Occasion', icon: 'calendar-outline', route: '/(tabs)/occasions' },
                         { label: 'AI Chat', icon: 'sparkles-outline', route: '/ai-chat' },
-                        { label: 'View Orders', icon: 'list-outline', route: '/orders' }
+                        { label: 'Browse Holidays', icon: 'gift-outline', route: '/global-occasions' },
+                        { label: 'View Orders', icon: 'list-outline', route: '/orders' },
+                        { label: 'Coins', icon: 'coins', route: '/wallet' }
                     ].map((act, idx) => (
-                        <Pressable key={idx} style={styles.actionBtn} onPress={() => router.push(act.route as any)}>
+                        <Pressable
+                            key={idx}
+                            style={styles.actionBtn}
+                            onPress={() => {
+                                router.push(act.route as any);
+                            }}
+                        >
                             <View style={[styles.actionIcon, { backgroundColor: colors.surfaceRaised }]}>
-                                <Ionicons name={act.icon as any} size={24} color={colors.primary} />
+                                {act.icon === 'coins' ? (
+                                    <FontAwesome5 name="coins" size={22} color={colors.primary} />
+                                ) : (
+                                    <Ionicons name={act.icon as any} size={24} color={colors.primary} />
+                                )}
                             </View>
                             <Typography variant="caption" color={colors.textSecondary} align="center">{act.label}</Typography>
                         </Pressable>
@@ -188,7 +198,7 @@ export default function HomeScreen() {
                 )}
 
                 {/* AI Recommendations */}
-                <Animated.View entering={FadeInDown.delay(600).duration(600)} style={{ marginTop: 32 }}>
+                <Animated.View entering={FadeInDown.delay(600).duration(600)} style={{ marginTop: 20 }}>
                     <View style={[styles.sectionHeader, { paddingHorizontal: spacing.xl }]}>
                         <Typography variant="h4">
                             {firstUpcoming ? `Picked for ${firstUpcoming.contact?.name}` : 'Recommendations'}

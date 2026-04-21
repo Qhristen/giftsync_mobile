@@ -8,7 +8,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { RootState } from '@/store';
 import { useGetCoinPackagesQuery, useGetWalletBalanceQuery, useInitializeFundingMutation, useVerifyFundingMutation } from '@/store/api/walletApi';
 import { CoinPackage } from '@/types';
-import { Ionicons } from '@expo/vector-icons';
+import { FontAwesome5, Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
@@ -145,7 +145,7 @@ export default function WalletTopUpScreen() {
             {/* Current Balance */}
             <Animated.View entering={FadeInDown.duration(400)} style={[styles.balanceSection, { padding: spacing.xl }]}>
                 <Card style={[styles.balanceCard, { backgroundColor: colors.primary }]}>
-                    <Ionicons name="wallet" size={32} color="rgba(255,255,255,0.8)" style={{ marginBottom: 12 }} />
+                    <FontAwesome5 name="coins" size={32} color="rgba(255,255,255,0.8)" style={{ marginBottom: 12 }} />
                     <Typography variant="caption" color="rgba(255,255,255,0.8)" style={{ textTransform: 'uppercase', letterSpacing: 1 }}>
                         Current Balance
                     </Typography>
@@ -174,6 +174,7 @@ export default function WalletTopUpScreen() {
                     <FlashList
                         data={coinPackages}
                         keyExtractor={(item) => String(item.id)}
+                        showsVerticalScrollIndicator={false}
                         onRefresh={handleRefresh}
                         refreshing={isRefreshing}
                         contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: 150 }}

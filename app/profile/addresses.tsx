@@ -50,6 +50,7 @@ export default function SavedAddressesScreen() {
                     data={addresses}
                     // estimatedItemSize={85}
                     keyExtractor={(item) => item.id}
+                    showsVerticalScrollIndicator={false}
                     contentContainerStyle={{ padding: spacing.xl, paddingBottom: 100 }}
                     ListEmptyComponent={() => (
                         <View style={{ alignItems: 'center', marginTop: 40 }}>

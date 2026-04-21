@@ -42,7 +42,7 @@ export default function OnboardingStep4() {
                 </Typography>
             </View>
 
-            <ScrollView contentContainerStyle={[styles.content, { paddingHorizontal: spacing.xl }]}>
+            <ScrollView contentContainerStyle={[styles.content, { paddingHorizontal: spacing.xl }]} showsVerticalScrollIndicator={false}>
                 <Card variant="elevated" style={[styles.heroCard, { backgroundColor: colors.primary }]}>
                     <Typography variant="h3" color="#FFFFFF">Next Up: Alex's Birthday</Typography>
                     <Typography variant="body" color="#FFFFFF" style={{ opacity: 0.9 }}>In 12 days • March 24</Typography>

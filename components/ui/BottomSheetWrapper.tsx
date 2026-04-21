@@ -67,7 +67,12 @@ const BottomSheetWrapper = forwardRef<BottomSheetRef, Props>(
                 android_keyboardInputMode={android_keyboardInputMode}
                 onDismiss={onClose}
             >
-                <Container style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.xl }}>{children}</Container>
+                <Container
+                    style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.xl }}
+                    showsVerticalScrollIndicator={false}
+                >
+                    {children}
+                </Container>
             </BottomSheetModal>
         );
     }

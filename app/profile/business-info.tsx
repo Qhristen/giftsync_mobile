@@ -6,11 +6,11 @@ import { useTheme } from '@/hooks/useTheme';
 import { useCreateBusinessMutation, useGetBusinessQuery, useUpdateBusinessMutation } from '@/store/api/businessApi';
 import { useUploadMutation } from '@/store/api/uploadApi';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { toast } from 'sonner-native';
-import * as ImagePicker from 'expo-image-picker';
 
 export default function BusinessInfoScreen() {
     const router = useRouter();
@@ -148,7 +148,7 @@ export default function BusinessInfoScreen() {
                     </View>
                 ))}
 
-                <ScrollView contentContainerStyle={{ padding: spacing.xl, paddingBottom: 100 }}>
+                <ScrollView contentContainerStyle={{ padding: spacing.xl, paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
                     <View style={styles.logoSection}>
                         <Avatar
                             name={formData.name}

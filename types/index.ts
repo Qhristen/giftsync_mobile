@@ -142,18 +142,13 @@ export interface Occasion {
 }
 
 export interface CreateOccasionDto {
-  contactId?: string;
-  templateId?: string;
   title: string;
   date: string;
   recurrenceType?: 'NONE' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
-  recurrenceRule?: {
-    type: string;
-    rules: any[];
-  };
-  isActive?: boolean;
-  source?: string;
-  googleEventId?: string;
+  name?: string;
+  phoneNumber?: string;
+  interests?: string[];
+  notes?: string;
 }
 
 export interface UpdateOccasionDto extends Partial<CreateOccasionDto> { }

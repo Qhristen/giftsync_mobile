@@ -93,7 +93,7 @@ export default function PaymentScreen() {
                 <Typography variant="h2">Payment</Typography>
             </View>
 
-            <ScrollView contentContainerStyle={[styles.content, { padding: spacing.xl }]}>
+            <ScrollView contentContainerStyle={[styles.content, { padding: spacing.xl }]} showsVerticalScrollIndicator={false}>
                 {/* Order Summary */}
                 <Typography variant="label" style={{ marginBottom: spacing.sm }}>Order Summary</Typography>
                 <Card variant="outline" style={styles.summaryCard}>

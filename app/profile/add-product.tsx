@@ -183,7 +183,10 @@ export default function AddProductScreen() {
                     </Pressable>
                 </View>
 
-                <ScrollView contentContainerStyle={{ padding: spacing.xl, paddingBottom: 100 }}>
+                <ScrollView
+                    contentContainerStyle={{ padding: spacing.xl, paddingBottom: 100 }}
+                    showsVerticalScrollIndicator={false}
+                >
                     <Typography variant="label" style={{ marginBottom: spacing.md }}>Product Images</Typography>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: spacing.xl }}>
                         {formData.imageUrls.map((url, idx) => (

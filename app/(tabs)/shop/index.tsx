@@ -15,6 +15,7 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Dimensions, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
@@ -243,10 +244,11 @@ export default function ShopScreen() {
 
         const totalPrice = Number(product.price) + Number(product.deliveryFee) + Number(product.packagingFee);
         return (
-            <View style={[
-                styles.productWrapper,
-                isLeft ? { paddingLeft: spacing.xl, paddingRight: 8 } : { paddingRight: spacing.xl, paddingLeft: 8 }
-            ]}>
+            <Animated.View
+                entering={FadeInDown.delay(index * 100).duration(500)} style={[
+                    styles.productWrapper,
+                    isLeft ? { paddingLeft: spacing.xl, paddingRight: 8 } : { paddingRight: spacing.xl, paddingLeft: 8 }
+                ]}>
                 <Pressable
                     style={[styles.newProductCard, { backgroundColor: colors.surface }]}
                     onPress={() => router.push(`/(tabs)/shop/${product.id}`)}
@@ -278,7 +280,7 @@ export default function ShopScreen() {
                         </View>
                     </View>
                 </Pressable>
-            </View>
+            </Animated.View>
         );
     };
 

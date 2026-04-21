@@ -52,7 +52,10 @@ export default function OnboardingStep3() {
                 </Typography>
             </View>
 
-            <ScrollView contentContainerStyle={[styles.content, { paddingHorizontal: spacing.xl }]}>
+            <ScrollView
+                contentContainerStyle={[styles.content, { paddingHorizontal: spacing.xl }]}
+                showsVerticalScrollIndicator={false}
+            >
                 <View style={styles.list}>
                     {occasions.map((o) => (
                         <Card key={o.id} variant="raised" style={styles.occasionCard}>

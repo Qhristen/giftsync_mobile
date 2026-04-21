@@ -62,7 +62,10 @@ export default function OnboardingStep1() {
                 </Typography>
             </View>
 
-            <ScrollView contentContainerStyle={[styles.content, { paddingHorizontal: spacing.xl }]}>
+            <ScrollView
+                contentContainerStyle={[styles.content, { paddingHorizontal: spacing.xl }]}
+                showsVerticalScrollIndicator={false}
+            >
                 <View style={styles.avatarSection}>
                     <Avatar size="xl" name={onboarding.profile.displayName} />
                     <Button

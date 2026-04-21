@@ -4,11 +4,11 @@ import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { useGetTransactionsQuery, useGetWalletBalanceQuery } from '@/store/api/walletApi';
 import { WalletTransaction } from '@/types';
-import { Ionicons } from '@expo/vector-icons';
-import { FlashList } from '@shopify/flash-list';
+import { formatCurrency } from '@/utils/formatCurrency';
+import { FontAwesome5, Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { ActivityIndicator, Pressable, SectionList, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 const TX_ICONS: Record<string, { name: string; color: string; bg: string }> = {
@@ -36,13 +36,36 @@ export default function WalletTransactionsScreen() {
 
     const formatDate = (dateStr: string) => {
         const d = new Date(dateStr);
-        return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        if (d.toDateString() === today.toDateString()) return 'Today';
+        if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
+
+        return d.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
     };
 
     const formatTime = (dateStr: string) => {
         const d = new Date(dateStr);
         return d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
     };
+
+    const groupedTransactions = useMemo(() => {
+        const groups: { title: string; data: WalletTransaction[] }[] = [];
+        const map = new Map<string, WalletTransaction[]>();
+
+        transactions.forEach(tx => {
+            const dateStr = formatDate(tx.createdAt);
+            if (!map.has(dateStr)) {
+                map.set(dateStr, []);
+                groups.push({ title: dateStr, data: map.get(dateStr)! });
+            }
+            map.get(dateStr)!.push(tx);
+        });
+
+        return groups;
+    }, [transactions]);
 
     const renderTransaction = ({ item, index }: { item: WalletTransaction; index: number }) => {
         const style = getTxStyle(item.type);
@@ -65,10 +88,10 @@ export default function WalletTransactionsScreen() {
                             variant="bodyBold"
                             color={isCredit ? '#10B981' : '#EF4444'}
                         >
-                            {isCredit ? '+' : '-'}{Math.abs(item.amount).toLocaleString()} Coins
+                            {isCredit ? '+' : '-'}{item.paymentMethod === 'coins' ? `${Math.abs(item.amount).toLocaleString()} Coins` : formatCurrency(Math.abs(item.amount), 'NGN')}
                         </Typography>
                         <Typography variant="caption" color={colors.textMuted}>
-                            Bal: {item.balanceAfter?.toLocaleString()}
+                            {item.paymentMethod !== 'paystack' && `Bal: ${item.balanceAfter?.toLocaleString()} Coins`}
                         </Typography>
                     </View>
                 </Card>
@@ -91,7 +114,7 @@ export default function WalletTransactionsScreen() {
             <Animated.View entering={FadeInDown.duration(400)} style={{ paddingHorizontal: spacing.xl, marginBottom: spacing.lg }}>
                 <Card style={[styles.balanceCard, { backgroundColor: colors.primary }]}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                        <Ionicons name="wallet" size={28} color="rgba(255,255,255,0.8)" />
+                        <FontAwesome5 name="coins" size={28} color="rgba(255,255,255,0.8)" />
                         <View>
                             <Typography variant="caption" color="rgba(255,255,255,0.7)" style={{ textTransform: 'uppercase', letterSpacing: 1, fontSize: 10 }}>
                                 Current Balance
@@ -115,10 +138,16 @@ export default function WalletTransactionsScreen() {
                     <ListSkeleton />
                 </View>
             ) : (
-                <FlashList
-                    data={transactions}
+                <SectionList
+                    sections={groupedTransactions}
                     keyExtractor={(item) => item.id}
                     renderItem={renderTransaction}
+                    renderSectionHeader={({ section: { title } }) => (
+                        <View style={[styles.sectionHeader, { backgroundColor: colors.background, paddingTop: spacing.md, paddingBottom: spacing.sm, paddingHorizontal: spacing.xl }]}>
+                            <Typography variant="label" color={colors.textSecondary}>{title}</Typography>
+                        </View>
+                    )}
+                    showsVerticalScrollIndicator={false}
                     contentContainerStyle={{ paddingBottom: 100 }}
                     onRefresh={() => { setPage(1); refetch(); refetchWallet(); }}
                     refreshing={(isFetching || isLoadingWallet) && page === 1}
@@ -149,7 +178,6 @@ export default function WalletTransactionsScreen() {
                             </View>
                         ) : null
                     }
-                    ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
                 />
             )}
         </View>
@@ -184,6 +212,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 14,
         gap: 12,
+        marginBottom: 10,
     },
     txIcon: {
         width: 44,
@@ -192,4 +221,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    sectionHeader: {
+        width: '100%',
+    }
 });

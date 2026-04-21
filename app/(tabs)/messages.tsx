@@ -59,7 +59,9 @@ export default function MessagesScreen() {
                 data={conversations}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item, index }) => (
-                    <Animated.View entering={FadeInDown.delay(index * 60).duration(350).springify().damping(18)}>
+                    <Animated.View
+                        entering={FadeInDown.delay(index * 100).duration(500)}
+                    >
                         <ConversationItem
                             conversation={item}
                             onPress={() => router.push(`/chat/${item.id}`)}

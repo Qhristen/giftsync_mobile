@@ -125,6 +125,7 @@ export default function OnboardingStep2() {
                         </View>
                     )}
                     contentContainerStyle={{ paddingBottom: 120 }}
+                    showsVerticalScrollIndicator={false}
                 />
             )}
 

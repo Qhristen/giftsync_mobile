@@ -61,6 +61,7 @@ const ContactPickerSheet = forwardRef<BottomSheetRef, Props>(
                 <SectionList
                     sections={sections}
                     keyExtractor={(item) => item.id}
+                    showsVerticalScrollIndicator={false}
                     renderItem={({ item }) => (
                         <Pressable
                             onPress={() => onSelect(item)}

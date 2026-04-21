@@ -9,10 +9,11 @@ interface Props {
     occasionId?: string;
     fixedContactId?: string;
     fixedContactName?: string;
+    fixedContactPhone?: string;
 }
 
 const CreateOccasionSheet = forwardRef<BottomSheetRef, Props>(
-    ({ onSuccess, isLoading, isEditing, occasionId, fixedContactId, fixedContactName }, ref) => {
+    ({ onSuccess, isLoading, isEditing, occasionId, fixedContactId, fixedContactName, fixedContactPhone }, ref) => {
         return (
             <BottomSheetWrapper
                 ref={ref}
@@ -29,6 +30,7 @@ const CreateOccasionSheet = forwardRef<BottomSheetRef, Props>(
                     occasionId={occasionId}
                     fixedContactId={fixedContactId}
                     fixedContactName={fixedContactName}
+                    fixedContactPhone={fixedContactPhone}
                 />
             </BottomSheetWrapper>
         );

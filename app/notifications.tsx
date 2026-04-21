@@ -87,6 +87,7 @@ export default function NotificationsScreen() {
                     // estimatedItemSize={90}
                     keyExtractor={(item) => item.id}
                     contentContainerStyle={{ paddingBottom: spacing.xl }}
+                    showsVerticalScrollIndicator={false}
                     onRefresh={refetch}
                     refreshing={isLoading}
                     renderItem={({ item, index }) => {

@@ -187,6 +187,7 @@ export default function OrderListScreen() {
                     }}
                     ListEmptyComponent={<Typography align="center" style={{ marginTop: 40 }}>No orders found.</Typography>}
                     ListFooterComponent={isFetching && page > 1 ? <ActivityIndicator style={{ padding: 20 }} color={colors.primary} /> : null}
+                    showsVerticalScrollIndicator={false}
                     contentContainerStyle={{ paddingBottom: 100 }}
                 />
             )}

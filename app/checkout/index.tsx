@@ -43,7 +43,10 @@ export default function CheckoutEntry() {
                 <Typography variant="h2">Confirm Your Gift</Typography>
             </View>
 
-            <ScrollView contentContainerStyle={[styles.content, { padding: spacing.xl }]}>
+            <ScrollView
+                contentContainerStyle={[styles.content, { padding: spacing.xl }]}
+                showsVerticalScrollIndicator={false}
+            >
                 {/* Recipient Card */}
                 <Typography variant="label" style={{ marginBottom: spacing.sm }}>Recipient & Occasion</Typography>
                 <Card variant="outline" style={styles.contextCard}>

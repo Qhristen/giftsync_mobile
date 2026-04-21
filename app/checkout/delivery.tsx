@@ -99,7 +99,7 @@ export default function DeliveryScreen() {
                     <Typography variant="h2">Delivery Details</Typography>
                 </View>
 
-                <ScrollView contentContainerStyle={[styles.content, { padding: spacing.xl }]}>
+                <ScrollView contentContainerStyle={[styles.content, { padding: spacing.xl }]} showsVerticalScrollIndicator={false}>
                     {/* Recipient Address */}
                     <Typography variant="label" style={{ marginBottom: spacing.sm }}>Recipient Address</Typography>
                     <Card variant="outline" style={styles.addressCard}>
