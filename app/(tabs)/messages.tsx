@@ -43,7 +43,7 @@ export default function MessagesScreen() {
                     onPress={onRefresh}
                     style={({ pressed }) => [
                         styles.refreshBtn,
-                        { backgroundColor: colors.surfaceRaised },
+                        { backgroundColor: colors.surface },
                         pressed && { opacity: 0.7 }
                     ]}
                 >

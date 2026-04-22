@@ -25,6 +25,7 @@ export const occasionApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
         getOccasionTemplates: builder.query<OccasionTemplate[], void>({
             query: () => ({ url: '/api/v1/occasions/templates', method: 'GET' }),
+            providesTags: ['Occasions'],
         }),
         getUpcomingOccasions: builder.query<Occasion[], void>({
             query: () => ({ url: '/api/v1/occasions/upcoming', method: 'GET' }),
@@ -57,13 +58,9 @@ export const occasionApi = baseApi.injectEndpoints({
                 const newOccasion: Occasion = {
                     id: tempId,
                     userId: 'optimistic',
-                    contactId: arg.contactId || '',
-                    templateId: arg.templateId,
                     title: arg.title,
                     date: arg.date,
-                    recurrenceType: arg.recurrenceType || 'NONE',
-                    isActive: arg.isActive || true,
-                    source: arg.templateId ? 'template' : 'custom',
+                    recurrenceType: arg.recurrenceType || 'YEARLY',
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString(),
                 };

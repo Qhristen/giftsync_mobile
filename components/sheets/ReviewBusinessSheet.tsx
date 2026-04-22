@@ -1,13 +1,15 @@
 import { useTheme } from '@/hooks/useTheme';
 import { useAddReviewMutation } from '@/store/api/businessApi';
 import { Order } from '@/types';
+import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import React, { forwardRef, useState } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { toast } from 'sonner-native';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Button from '../ui/Button';
 import Rating from '../ui/Rating';
 import Typography from '../ui/Typography';
+import Input from '../ui/Input';
 
 interface Props {
     order: Order | null;
@@ -28,20 +30,22 @@ const ReviewBusinessSheet = forwardRef<BottomSheetRef, Props>(
             setIsLoading(true);
             try {
                 // Submit review to the actual API
-                const businessId = order.item?.product?.businessId;
-                if (!businessId) {
-                    throw new Error('Business ID not found');
+                const businessId = order.businessId;
+                const productId = order.item?.productId;
+                if (!businessId || !productId) {
+                    throw new Error('Business ID or Product ID not found');
                 }
 
-                await addReview({ businessId, rating, comment }).unwrap();
+                await addReview({ businessId, rating, comment, productId }).unwrap();
 
                 toast.success('Thank you for your review!');
                 onSuccess();
                 // Reset state
                 setRating(0);
                 setComment('');
-            } catch (error) {
-                toast.error('Failed to submit review. Please try again.');
+            } catch (error: any) {
+                const errorMessage = error?.data?.message || error?.message || 'Failed to submit review. Please try again.';
+                toast.error('Error', { description: errorMessage });
             } finally {
                 setIsLoading(false);
             }
@@ -77,15 +81,16 @@ const ReviewBusinessSheet = forwardRef<BottomSheetRef, Props>(
                     </View>
 
                     <View style={[styles.inputContainer, { backgroundColor: colors.surfaceRaised, borderColor: colors.border }]}>
-                        <TextInput
+                        <Input
                             placeholder="Share more details about your experience (optional)"
                             value={comment}
                             onChangeText={setComment}
                             multiline
                             numberOfLines={4}
-                            textAlignVertical="top"
-                            placeholderTextColor={colors.textMuted}
-                            style={[styles.input, { color: colors.textPrimary }]}
+                            // textAlignVertical="top"
+                            // placeholderTextColor={colors.textMuted}
+                            // style={[styles.input, { color: colors.textPrimary }]}
+                            isBottomSheet
                         />
                     </View>
 

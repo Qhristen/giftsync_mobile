@@ -39,10 +39,6 @@ export default function ShopItemDetailScreen() {
     const { data: upcomingOccasions = [] } = useGetUpcomingOccasionsQuery();
     const { data: product, isLoading, isFetching, error } = useGetProductByIdQuery(id as string);
 
-    const { data: reviews, isLoading: isLoadingReviews } = useGetBusinessReviewsQuery(
-        { businessId: product?.business?.id! },
-        { skip: !product?.business?.id }
-    );
 
     const totalPrice = Number(product?.price) + Number(product?.deliveryFee) + Number(product?.packagingFee)
 
@@ -128,7 +124,7 @@ export default function ShopItemDetailScreen() {
                 </Animated.View>
 
                 {/* Details */}
-                <Animated.View entering={FadeInUp.delay(200).duration(500)} style={[styles.details, { padding: spacing.xl, backgroundColor: colors.surface }]}>
+                <Animated.View entering={FadeInUp.duration(500)} style={[styles.details, { padding: spacing.xl, backgroundColor: colors.surface }]}>
                     <View style={styles.titleRow}>
                         <View style={{ flex: 1 }}>
                             <Typography variant="h2">{product.name}</Typography>
@@ -299,9 +295,7 @@ export default function ShopItemDetailScreen() {
                 business={product.business}
                 ratingAvg={product?.ratingAvg}
                 ratingCount={product?.ratingCount}
-                reviews={reviews}
-                isLoadingReviews={isLoadingReviews}
-            />
+                          />
         </View>
     );
 }

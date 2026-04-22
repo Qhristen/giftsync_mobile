@@ -58,7 +58,7 @@ const OrderDetailSheet = forwardRef<BottomSheetRef, OrderDetailSheetProps>(({ or
                         </View>
                         <View style={styles.detailRow}>
                             <Typography variant="body" color={colors.textSecondary}>Recipient</Typography>
-                            <Typography variant="bodyBold">{order.recipientName}</Typography>
+                            <Typography variant="bodyBold">{order.occasion.contact?.name}</Typography>
                         </View>
                         <View style={[styles.divider, { backgroundColor: colors.border }]} />
                         <View style={styles.detailRow}>

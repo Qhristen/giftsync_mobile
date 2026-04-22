@@ -41,7 +41,7 @@ const FilterSheet = forwardRef<BottomSheetRef, FilterSheetProps>(({ initialFilte
                 </Pressable>
             </View>
 
-            <Typography variant="h4" style={{ marginBottom: spacing.md }}>Price Range</Typography>
+            {/* <Typography variant="h4" style={{ marginBottom: spacing.md }}>Price Range</Typography> */}
             {/* <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: spacing.xl }}>
                 {prices.map((p) => {
                     const isSelected = priceRange === p;

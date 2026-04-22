@@ -34,6 +34,9 @@ export default function BusinessInfoScreen() {
         bankAccountNumber: '',
         logoUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=business`,
         isVerified: false,
+        isRegistered: false,
+        cacNumber: '',
+        taxNumber: '',
     });
 
     const [isEditing, setIsEditing] = useState(false);
@@ -53,6 +56,9 @@ export default function BusinessInfoScreen() {
                 bankAccountNumber: business.bankAccountNumber || '',
                 logoUrl: business.logoUrl || '',
                 isVerified: business.isVerified || false,
+                isRegistered: business.isRegistered || false,
+                cacNumber: business.cacNumber || '',
+                taxNumber: business.taxNumber || '',
             });
         }
     }, [business]);
@@ -63,17 +69,14 @@ export default function BusinessInfoScreen() {
             const { isVerified, location, ...rest } = formData;
             // Remove empty strings — class-validator's @IsOptional() only skips null/undefined, not ''
             const payload = Object.fromEntries(
-                Object.entries(rest).filter(([_, v]) => v !== '')
+                Object.entries(rest).filter(([_, v]) => v !== '' && v !== null && v !== undefined)
             );
 
             if (business) {
                 await updateBusiness(payload).unwrap();
                 toast.success('Business information updated successfully');
             } else {
-                await createBusiness({
-                    ...payload,
-
-                } as any).unwrap();
+                await createBusiness(payload as any).unwrap();
                 toast.success('Business profile created successfully');
             }
             setIsEditing(false);
@@ -108,18 +111,41 @@ export default function BusinessInfoScreen() {
         }
     };
 
+    const InfoSection = ({ title, children, icon }: { title: string, children: React.ReactNode, icon?: string }) => (
+        <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+                {icon && <Ionicons name={icon as any} size={20} color={colors.primary} />}
+                <Typography variant="h4" style={{ fontWeight: '700' }}>{title}</Typography>
+            </View>
+            <View style={styles.sectionContent}>{children}</View>
+        </View>
+    );
+
+    const DetailItem = ({ label, value, icon }: { label: string, value: string | boolean | undefined, icon?: string }) => (
+        <View style={styles.detailItem}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                {icon && <Ionicons name={icon as any} size={14} color={colors.textSecondary} />}
+                <Typography variant="label" color={colors.textSecondary}>{label}</Typography>
+            </View>
+            <Typography variant="body" style={{ fontWeight: '500' }}>
+                {typeof value === 'boolean' ? (value ? 'Yes' : 'No') : (value || 'Not provided')}
+            </Typography>
+        </View>
+    );
+
+    const showForm = isEditing || !business;
+
     return (
         <View style={[styles.container, { backgroundColor: colors.surface }]}>
-            <KeyboardAvoidingView behavior={"padding"}
-                style={{ flex: 1 }}>
+            <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1 }}>
                 <View style={[styles.header, { borderBottomColor: colors.border + '33' }]}>
                     <Pressable onPress={() => router.back()} style={styles.backButton}>
                         <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
                     </Pressable>
-                    <Typography variant="h3">{business ? 'Business Info' : 'Setup Business'}</Typography>
+                    <Typography variant="h3">{business ? (isEditing ? 'Edit Business' : 'Business Info') : 'Setup Business'}</Typography>
                     <Pressable onPress={() => setIsEditing(!isEditing)} style={styles.editButton}>
                         {business && (
-                            <Typography variant="body" color={colors.primary}>
+                            <Typography variant="body" color={colors.primary} style={{ fontWeight: '600' }}>
                                 {isEditing ? 'Cancel' : 'Edit'}
                             </Typography>
                         )}
@@ -132,113 +158,169 @@ export default function BusinessInfoScreen() {
                     </View>
                 )}
 
-                {business && (formData.isVerified ? (
-                    <View style={[styles.banner, { backgroundColor: colors.success + '15', borderColor: colors.success + '33' }]}>
-                        <Ionicons name="checkmark-circle" size={20} color={colors.success} />
-                        <Typography variant="body" color={colors.success} style={{ flex: 1, fontWeight: '600' }}>
-                            Verified Business
-                        </Typography>
-                    </View>
-                ) : (
-                    <View style={[styles.banner, { backgroundColor: colors.accent + '15', borderColor: colors.accent + '33' }]}>
-                        <Ionicons name="alert-circle" size={20} color={colors.accent} />
-                        <Typography variant="body" color={colors.accent} style={{ flex: 1 }}>
-                            Your business is not verified yet. Get verified to reach more customers.
-                        </Typography>
-                    </View>
-                ))}
+                <ScrollView contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+                    {business && (formData.isVerified ? (
+                        <View style={[styles.banner, { backgroundColor: colors.success + '10', borderColor: colors.success + '20' }]}>
+                            <Ionicons name="checkmark-circle" size={20} color={colors.success} />
+                            <Typography variant="body" color={colors.success} style={{ flex: 1, fontWeight: '600' }}>
+                                Verified Business
+                            </Typography>
+                        </View>
+                    ) : (
+                        <View style={[styles.banner, { backgroundColor: colors.accent + '10', borderColor: colors.accent + '20' }]}>
+                            <Ionicons name="alert-circle" size={20} color={colors.accent} />
+                            <Typography variant="body" color={colors.accent} style={{ flex: 1 }}>
+                                Your business is not verified yet. Get verified to reach more customers.
+                            </Typography>
+                        </View>
+                    ))}
 
-                <ScrollView contentContainerStyle={{ padding: spacing.xl, paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
                     <View style={styles.logoSection}>
                         <Avatar
                             name={formData.name}
                             uri={formData.logoUrl}
                             size={100}
-                            style={{ marginBottom: spacing.md }}
                         />
-                        {(isEditing || !business) && (
+                        {showForm && (
                             <Button
                                 title={isUploading ? "Uploading..." : "Change Logo"}
                                 variant="ghost"
                                 size="sm"
                                 onPress={handleLogoChange}
                                 disabled={isUploading}
+                                style={{ marginTop: spacing.sm }}
                             />
                         )}
                     </View>
 
-                    <View style={styles.form}>
-                        <Input
-                            label="Business Name"
-                            value={formData.name}
-                            onChangeText={(text) => setFormData({ ...formData, name: text })}
-                            editable={isEditing || !business}
-                            autoCapitalize="words"
-                        />
-                        <Input
-                            label="Business Email"
-                            value={formData.email}
-                            onChangeText={(text) => setFormData({ ...formData, email: text })}
-                            editable={isEditing || !business}
-                            keyboardType="email-address"
-                            autoCapitalize="none"
-                        />
-                        <Input
-                            label="Phone Number"
-                            value={formData.phone}
-                            onChangeText={(text) => setFormData({ ...formData, phone: text })}
-                            editable={isEditing || !business}
-                            keyboardType="phone-pad"
-                        />
-                        <Input
-                            label="Description"
-                            value={formData.description}
-                            onChangeText={(text) => setFormData({ ...formData, description: text })}
-                            editable={isEditing || !business}
-                            multiline
-                            numberOfLines={3}
-                        // textAlignVertical="top"
-                        />
-                        <Input
-                            label="Business Address"
-                            value={formData.businessAddress}
-                            onChangeText={(text) => setFormData({ ...formData, businessAddress: text })}
-                            editable={isEditing || !business}
-                        />
-                        <Input
-                            label="Website URL"
-                            value={formData.websiteUrl}
-                            onChangeText={(text) => setFormData({ ...formData, websiteUrl: text })}
-                            editable={isEditing || !business}
-                            keyboardType="default"
-                            autoCapitalize="none"
-                        />
+                    <View style={{ paddingHorizontal: spacing.xl }}>
+                        <InfoSection title="Basic Information" icon="business-outline">
+                            {showForm ? (
+                                <>
+                                    <Input
+                                        label="Business Name"
+                                        value={formData.name}
+                                        onChangeText={(text) => setFormData({ ...formData, name: text })}
+                                        autoCapitalize="words"
+                                    />
+                                    <Input
+                                        label="Business Email"
+                                        value={formData.email}
+                                        onChangeText={(text) => setFormData({ ...formData, email: text })}
+                                        keyboardType="email-address"
+                                        autoCapitalize="none"
+                                    />
+                                    <Input
+                                        label="Phone Number"
+                                        value={formData.phone}
+                                        onChangeText={(text) => setFormData({ ...formData, phone: text })}
+                                        keyboardType="phone-pad"
+                                    />
+                                    <Input
+                                        label="Description"
+                                        value={formData.description}
+                                        onChangeText={(text) => setFormData({ ...formData, description: text })}
+                                        multiline
+                                        numberOfLines={3}
+                                    />
+                                    <Input
+                                        label="Business Address"
+                                        value={formData.businessAddress}
+                                        onChangeText={(text) => setFormData({ ...formData, businessAddress: text })}
+                                    />
+                                    <Input
+                                        label="Website URL"
+                                        value={formData.websiteUrl}
+                                        onChangeText={(text) => setFormData({ ...formData, websiteUrl: text })}
+                                        keyboardType="default"
+                                        autoCapitalize="none"
+                                    />
+                                </>
+                            ) : (
+                                <>
+                                    <DetailItem label="Business Name" value={formData.name} />
+                                    <DetailItem label="Email Address" value={formData.email} />
+                                    <DetailItem label="Phone Number" value={formData.phone} />
+                                    <DetailItem label="Address" value={formData.businessAddress} />
+                                    <DetailItem label="Website" value={formData.websiteUrl} />
+                                    <DetailItem label="About" value={formData.description} />
+                                </>
+                            )}
+                        </InfoSection>
 
-                        <Typography variant="h4" style={{ marginTop: spacing.xl, marginBottom: spacing.md }}>
-                            Banking Details
-                        </Typography>
+                        <InfoSection title="Legal & Registration" icon="document-text-outline">
+                            {showForm ? (
+                                <>
+                                    <View style={[styles.toggleRow, {backgroundColor: colors.surfaceRaised }]}>
+                                        <Typography variant="body">Is your business registered?</Typography>
+                                        <Pressable
+                                            onPress={() => setFormData({ ...formData, isRegistered: !formData.isRegistered })}
+                                            style={[styles.toggle, { backgroundColor: formData.isRegistered ? colors.primary : colors.surfaceRaised }]}
+                                        >
+                                            <View style={[styles.toggleThumb, { transform: [{ translateX: formData.isRegistered ? 20 : 0 }] }]} />
+                                        </Pressable>
+                                    </View>
 
-                        <Input
-                            label="Bank Name"
-                            value={formData.bankName}
-                            onChangeText={(text) => setFormData({ ...formData, bankName: text })}
-                            editable={isEditing || !business}
-                        />
-                        <Input
-                            label="Account Name"
-                            value={formData.bankAccountName}
-                            onChangeText={(text) => setFormData({ ...formData, bankAccountName: text })}
-                            editable={isEditing || !business}
-                        />
-                        <Input
-                            label="Account Number"
-                            value={formData.bankAccountNumber}
-                            onChangeText={(text) => setFormData({ ...formData, bankAccountNumber: text })}
-                            editable={isEditing || !business}
-                            keyboardType="phone-pad"
-                        />
+                                    {formData.isRegistered && (
+                                        <View style={{ gap: 16, marginTop: 8 }}>
+                                            <Input
+                                                label="CAC Number"
+                                                value={formData.cacNumber}
+                                                onChangeText={(text) => setFormData({ ...formData, cacNumber: text })}
+                                                placeholder="RC1234567"
+                                            />
+                                            <Input
+                                                label="Tax Identification Number (TIN)"
+                                                value={formData.taxNumber}
+                                                onChangeText={(text) => setFormData({ ...formData, taxNumber: text })}
+                                                placeholder="12345678-0001"
+                                            />
+                                        </View>
+                                    )}
+                                </>
+                            ) : (
+                                <>
+                                    <DetailItem label="Registration Status" value={formData.isRegistered ? "Registered" : "Not Registered"} />
+                                    {formData.isRegistered && (
+                                        <>
+                                            <DetailItem label="CAC Number" value={formData.cacNumber} />
+                                            <DetailItem label="TIN" value={formData.taxNumber} />
+                                        </>
+                                    )}
+                                </>
+                            )}
+                        </InfoSection>
 
-                        {(isEditing || !business) && (
+                        <InfoSection title="Financial Details" icon="wallet-outline">
+                            {showForm ? (
+                                <>
+                                    <Input
+                                        label="Bank Name"
+                                        value={formData.bankName}
+                                        onChangeText={(text) => setFormData({ ...formData, bankName: text })}
+                                    />
+                                    <Input
+                                        label="Account Name"
+                                        value={formData.bankAccountName}
+                                        onChangeText={(text) => setFormData({ ...formData, bankAccountName: text })}
+                                    />
+                                    <Input
+                                        label="Account Number"
+                                        value={formData.bankAccountNumber}
+                                        onChangeText={(text) => setFormData({ ...formData, bankAccountNumber: text })}
+                                        keyboardType="phone-pad"
+                                    />
+                                </>
+                            ) : (
+                                <>
+                                    <DetailItem label="Bank Name" value={formData.bankName} />
+                                    <DetailItem label="Account Name" value={formData.bankAccountName} />
+                                    <DetailItem label="Account Number" value={formData.bankAccountNumber} />
+                                </>
+                            )}
+                        </InfoSection>
+
+                        {showForm && (
                             <Button
                                 title={business ? "Save Changes" : "Create Business"}
                                 onPress={handleSave}
@@ -285,10 +367,53 @@ const styles = StyleSheet.create({
     },
     logoSection: {
         alignItems: 'center',
+        marginBottom: 24,
+        marginTop: 16,
+    },
+    section: {
         marginBottom: 32,
     },
-    form: {
-        gap: 16,
+    sectionHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+        marginBottom: 16,
+        // borderBottomWidth: 1,
+        borderBottomColor: '#f0f0f0',
+        paddingBottom: 8,
+    },
+    sectionContent: {
+        gap: 12,
+    },
+    detailItem: {
+        marginBottom: 16,
+    },
+    toggleRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderRadius: 12,
+        marginBottom: 8,
+    },
+    toggle: {
+        width: 48,
+        height: 28,
+        borderRadius: 14,
+        padding: 4,
+        justifyContent: 'center',
+    },
+    toggleThumb: {
+        width: 20,
+        height: 20,
+        borderRadius: 10,
+        backgroundColor: '#FFF',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2,
     },
     loadingOverlay: {
         position: 'absolute',
@@ -296,7 +421,7 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         bottom: 0,
-        // backgroundColor: 'rgba(255, 255, 255, 0.7)',
+        backgroundColor: 'rgba(255, 255, 255, 0.7)',
         justifyContent: 'center',
         alignItems: 'center',
         zIndex: 1000,

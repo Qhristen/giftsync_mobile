@@ -49,7 +49,7 @@ export default function DeliveryScreen() {
                 productId: product?.id as string,
                 occasionId: occasion?.id as string,
                 deliveryAddressId: deliveryAddress.id as string,
-                recipientName: deliveryAddress.recipientName,
+                recipientName: occasion?.contact?.name as string,
                 deliveryDate: deliveryDate,
                 deliveryTimeWindow: timeWindowFormatted,
                 giftMessage: giftMessage,

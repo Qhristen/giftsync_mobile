@@ -24,7 +24,7 @@ const ConversationItem: React.FC<ConversationItemProps> = ({ conversation, onPre
         : '';
 
     // Avatar group width: first avatar full-width + each additional offset by overlap
-    const avatarSize = 42;
+    const avatarSize = 55;
     const overlap = 14;
     const groupWidth = participants.length > 0
         ? avatarSize + (participants.length - 1) * (avatarSize - overlap)
@@ -46,6 +46,7 @@ const ConversationItem: React.FC<ConversationItemProps> = ({ conversation, onPre
                 {participants.map((participant, index) => (
                     <Avatar
                         key={participant.id}
+                        
                         uri={participant.avatarUrl}
                         name={participant.name}
                         size={avatarSize}
@@ -102,7 +103,7 @@ const styles = StyleSheet.create({
     },
     content: {
         flex: 1,
-        gap: 2,
+        gap: 0,
     },
     header: {
         flexDirection: 'row',

@@ -26,6 +26,8 @@ export interface Business {
   phone: string;
   userId: string;
   user: User;
+  ratingAvg: number;
+  ratingCount: number;
   logoUrl: string;
   description: string;
   businessAddress: string;
@@ -35,6 +37,9 @@ export interface Business {
   bankName: string;
   bankAccountName: string;
   bankAccountNumber: string;
+  cacNumber?: string;
+  taxNumber?: string;
+  isRegistered?: boolean;
   isVerified: boolean;
 }
 export interface Review {
@@ -50,6 +55,8 @@ export interface Review {
 export interface CreateReviewDto {
   rating: number;
   comment: string;
+  productId: string
+
 }
 
 export interface PaginatedReviewResponse {
@@ -69,6 +76,9 @@ export interface CreateBusinessDto {
   bankName: string;
   bankAccountName: string;
   bankAccountNumber: string;
+  cacNumber?: string;
+  taxNumber?: string;
+  isRegistered?: boolean;
 }
 
 export interface UpdateBusinessDto extends Partial<CreateBusinessDto> { }
@@ -123,7 +133,7 @@ export interface OccasionTemplate {
 export interface Occasion {
   id: string;
   userId: string;
-  contactId: string;
+  contactId?: string;
   contact?: Contact;
   templateId?: string;
   title: string;
@@ -133,8 +143,7 @@ export interface Occasion {
     type: string;
     rules: any[];
   };
-  isActive: boolean;
-  source: string;
+  source?: string;
   googleEventId?: string;
   countdown?: number;
   createdAt: string;
@@ -145,6 +154,7 @@ export interface CreateOccasionDto {
   title: string;
   date: string;
   recurrenceType?: 'NONE' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
+  relationship?: string;
   name?: string;
   phoneNumber?: string;
   interests?: string[];
@@ -261,6 +271,7 @@ export interface Notification {
 
 export interface OrderItem {
   id: string;
+  productId: string;
   productName: string;
   productImage: string;
   businessName: string;
@@ -277,6 +288,7 @@ export type OrderStatus = 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
 export interface Order {
   id: string;
   recipientName: string;
+  businessId: string
   deliveryDate: string; // ISO date (YYYY-MM-DD)
   deliveryTimeWindow: string;
   giftMessage: string;

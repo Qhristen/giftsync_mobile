@@ -120,7 +120,7 @@ export default function ShopScreen() {
             {/* Sticky-like Search Bar */}
             <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing.xl, marginBottom: spacing.lg, zIndex: 10 }}>
                 <View style={[styles.searchRow, { zIndex: 10 }]}>
-                    <View style={[styles.searchBar, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}>
+                    <View style={[styles.searchBar, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                         <Ionicons name="search" size={20} color={colors.textMuted} />
                         <TextInput
                             placeholder="Search gifts, experiences..."
@@ -213,7 +213,7 @@ export default function ShopScreen() {
                                     style={[
                                         styles.catPill,
                                         {
-                                            backgroundColor: isActive ? colors.primary : colors.surfaceRaised,
+                                            backgroundColor: isActive ? colors.primary : colors.surface,
                                             shadowColor: isActive ? colors.primary : 'transparent',
                                         }
                                     ]}

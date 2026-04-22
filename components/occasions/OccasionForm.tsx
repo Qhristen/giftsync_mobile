@@ -53,7 +53,8 @@ const OccasionForm: React.FC<OccasionFormProps> = ({
     // Form State
     const [name, setName] = useState(fixedContactName || "");
     const [phone, setPhone] = useState(fixedContactPhone || "");
-    const [title, setTitle] = useState("Birthday");
+    const [selectedType, setSelectedType] = useState("Birthday");
+    const [customTitle, setCustomTitle] = useState("");
     const [date, setDate] = useState(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
 
@@ -90,7 +91,13 @@ const OccasionForm: React.FC<OccasionFormProps> = ({
         if (isEditing && occasionDetail) {
             setName(occasionDetail.contact?.name || "");
             setPhone(occasionDetail.contact?.phoneNumber || "");
-            setTitle(occasionDetail.title);
+            const titleValue = occasionDetail.title;
+            if (titleValue === 'Birthday' || titleValue === 'Anniversary') {
+                setSelectedType(titleValue);
+            } else {
+                setSelectedType('Custom');
+                setCustomTitle(titleValue);
+            }
             setDate(new Date(occasionDetail.date));
             if (occasionDetail.contact?.interests) setInterests(occasionDetail.contact.interests);
             if (occasionDetail.contact?.notes) setNotes(occasionDetail.contact.notes);
@@ -141,15 +148,22 @@ const OccasionForm: React.FC<OccasionFormProps> = ({
             return;
         }
 
+        if (selectedType === 'Custom' && !customTitle.trim()) {
+            toast.error("Required Fields", { description: "Please enter a custom occasion title." });
+            return;
+        }
+
         setIsSubmitting(true);
         try {
             let contactId = selectedContact?.id || fixedContactId;
+
+            const finalTitle = selectedType === 'Custom' ? customTitle.trim() : selectedType;
 
             if (isEditing && occasionId) {
                 await updateOccasion({
                     id: occasionId,
                     data: {
-                        title,
+                        title: finalTitle,
                         date: date.toISOString(),
                         recurrenceType: 'YEARLY',
                     }
@@ -157,13 +171,14 @@ const OccasionForm: React.FC<OccasionFormProps> = ({
                 toast.success("Occasion Updated 🎉");
             } else {
                 await createOccasion({
-                    title,
+                    title: finalTitle,
                     date: date.toISOString(),
                     recurrenceType: 'YEARLY',
                     name,
                     phoneNumber: phone,
                     interests,
                     notes,
+                    relationship: ""
                 }).unwrap();
                 dispatch(spendCoins(1));
                 toast.success("Occasion Added 🎉");
@@ -240,25 +255,25 @@ const OccasionForm: React.FC<OccasionFormProps> = ({
                             {OCCASION_TYPES.map(type => (
                                 <Pressable
                                     key={type.value}
-                                    onPress={() => setTitle(type.value)}
+                                    onPress={() => setSelectedType(type.value)}
                                     style={[
                                         styles.chip,
-                                        { backgroundColor: title === type.value ? colors.primary : colors.surfaceRaised },
-                                        title === type.value && { borderColor: colors.primary }
+                                        { backgroundColor: selectedType === type.value ? colors.primary : colors.surfaceRaised },
+                                        selectedType === type.value && { borderColor: colors.primary }
                                     ]}
                                 >
-                                    <Ionicons name={type.icon as any} size={16} color={title === type.value ? "#FFF" : colors.textPrimary} />
-                                    <Typography variant="caption" color={title === type.value ? "#FFF" : colors.textPrimary}>{type.label}</Typography>
+                                    <Ionicons name={type.icon as any} size={16} color={selectedType === type.value ? "#FFF" : colors.textPrimary} />
+                                    <Typography variant="caption" color={selectedType === type.value ? "#FFF" : colors.textPrimary}>{type.label}</Typography>
                                 </Pressable>
                             ))}
                         </View>
                     </View>
 
-                    {title === 'Custom' && (
+                    {selectedType === 'Custom' && (
                         <Input
                             placeholder="e.g. Graduation"
-                            value={title === 'Custom' ? (isEditing ? title : '') : title}
-                            onChangeText={setTitle}
+                            value={customTitle}
+                            onChangeText={setCustomTitle}
                             isBottomSheet
                             style={{ marginTop: spacing.sm }}
                         />

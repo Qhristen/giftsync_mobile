@@ -1,12 +1,12 @@
+import UpcomingHolidays from '@/components/occasions/UpcomingHolidays';
 import HomeScreenSkeleton from '@/components/skeletons/HomeScreenSkeleton';
 import Avatar from '@/components/ui/Avatar';
-import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { useGetUnreadCountQuery } from '@/store/api/notificationApi';
-import { useGetMonthlyOccasionsQuery, useGetUpcomingOccasionsQuery } from '@/store/api/occasionApi';
+import { useGetOccasionTemplatesQuery, useGetUpcomingOccasionsQuery } from '@/store/api/occasionApi';
 import { useGetRecommendationsV2Query } from '@/store/api/productApi';
 import { useGetProfileQuery } from '@/store/api/userApi';
 import { getCountdown } from '@/utils/dateUtils';
@@ -29,12 +29,7 @@ export default function HomeScreen() {
     const { data: upcoming = [], isLoading: isUpcomingLoading, refetch: refetchUpcoming } = useGetUpcomingOccasionsQuery();
     const { data: unreadCount, refetch: refetchUnreadCount } = useGetUnreadCountQuery();
 
-    const currentMonth = new Date().getMonth() + 1;
-    const currentYear = new Date().getFullYear();
-    const { data: monthly, isLoading: isMonthlyLoading, refetch: refetchMonthly } = useGetMonthlyOccasionsQuery({
-        month: currentMonth,
-        year: currentYear
-    });
+    const { data: templates, isLoading: isTemplatesLoading, refetch: refetchTemplates } = useGetOccasionTemplatesQuery();
 
     // Use the first upcoming occasion for specific recommendations, otherwise generic
     const firstUpcoming = upcoming[0];
@@ -47,9 +42,9 @@ export default function HomeScreen() {
         refetchProfile();
         refetchUpcoming();
         refetchUnreadCount();
-        refetchMonthly();
+        refetchTemplates();
         refetchRecs();
-    }, [refetchProfile, refetchUpcoming, refetchUnreadCount, refetchMonthly, refetchRecs]);
+    }, [refetchProfile, refetchUpcoming, refetchUnreadCount, refetchTemplates, refetchRecs]);
 
     const isLoading = isProfileLoading || isUpcomingLoading;
 
@@ -74,7 +69,7 @@ export default function HomeScreen() {
                 </View>
                 <View style={styles.headerIcons}>
                     <Pressable
-                        style={[styles.iconBtn, { backgroundColor: colors.surfaceRaised }]}
+                        style={[styles.iconBtn, { backgroundColor: colors.surface }]}
                         onPress={() => router.push('/notifications')}
                     >
                         <Ionicons name="notifications-outline" size={24} color={colors.textPrimary} />
@@ -91,7 +86,7 @@ export default function HomeScreen() {
                 style={{}}
                 refreshControl={
                     <RefreshControl
-                        refreshing={isProfileLoading || isUpcomingLoading || isMonthlyLoading || isRecsLoading}
+                        refreshing={isProfileLoading || isUpcomingLoading || isTemplatesLoading || isRecsLoading}
                         onRefresh={onRefresh}
                         tintColor={colors.primary}
                     />
@@ -100,7 +95,7 @@ export default function HomeScreen() {
 
                 {/* Hero Carousel or Onboarding */}
                 {upcoming.length > 0 ? (
-                    <Animated.View entering={FadeInDown.delay(200).duration(600)}>
+                    <Animated.View entering={FadeInDown.duration(600)}>
                         <FlashList
                             data={upcoming}
                             horizontal
@@ -134,7 +129,7 @@ export default function HomeScreen() {
                         />
                     </Animated.View>
                 ) : (
-                    <Animated.View entering={FadeInDown.delay(200).duration(600)} style={{ paddingHorizontal: spacing.xl }}>
+                    <Animated.View entering={FadeInDown.duration(600)} style={{ paddingHorizontal: spacing.xl }}>
                         <Card variant="elevated" style={[styles.onboardingCard, { backgroundColor: colors.surfaceRaised }]}>
                             <View style={styles.onboardingContent}>
                                 <View style={[styles.onboardingIcon, { backgroundColor: colors.primary + '15' }]}>
@@ -157,7 +152,7 @@ export default function HomeScreen() {
                 )}
 
                 {/* Quick Actions */}
-                <Animated.View entering={FadeInDown.delay(400).duration(600)} style={[styles.quickActions, { padding: spacing.xl }]}>
+                <Animated.View entering={FadeInDown.duration(600)} style={[styles.quickActions, { padding: spacing.xl }]}>
                     {[
                         { label: 'AI Chat', icon: 'sparkles-outline', route: '/ai-chat' },
                         { label: 'Browse Holidays', icon: 'gift-outline', route: '/global-occasions' },
@@ -171,7 +166,7 @@ export default function HomeScreen() {
                                 router.push(act.route as any);
                             }}
                         >
-                            <View style={[styles.actionIcon, { backgroundColor: colors.surfaceRaised }]}>
+                            <View style={[styles.actionIcon, { backgroundColor: colors.surface }]}>
                                 {act.icon === 'coins' ? (
                                     <FontAwesome5 name="coins" size={22} color={colors.primary} />
                                 ) : (
@@ -183,22 +178,11 @@ export default function HomeScreen() {
                     ))}
                 </Animated.View>
 
-                {/* This Month's Occasions */}
-                {(monthly?.items?.length ?? 0) > 0 && (
-                    <Animated.View entering={FadeInDown.delay(500).duration(600)} style={{ paddingHorizontal: spacing.xl }}>
-                        <Typography variant="h4" style={{ marginBottom: spacing.md }}>This Month</Typography>
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
-                            {monthly?.items?.map((occ) => (
-                                <Pressable key={occ.id} onPress={() => router.push({ pathname: '/(tabs)/occasions/[id]', params: { id: occ.id } })}>
-                                    <Badge label={occ.contact?.name || ""} outline variant="primary" />
-                                </Pressable>
-                            ))}
-                        </ScrollView>
-                    </Animated.View>
-                )}
+                {/* Upcoming Holidays */}
+                <UpcomingHolidays templates={templates} />
 
                 {/* AI Recommendations */}
-                <Animated.View entering={FadeInDown.delay(600).duration(600)} style={{ marginTop: 20 }}>
+                <Animated.View entering={FadeInDown.duration(600)} style={{ marginTop: 20 }}>
                     <View style={[styles.sectionHeader, { paddingHorizontal: spacing.xl }]}>
                         <Typography variant="h4">
                             {firstUpcoming ? `Picked for ${firstUpcoming.contact?.name}` : 'Recommendations'}
@@ -316,7 +300,7 @@ const styles = StyleSheet.create({
     actionBtn: {
         alignItems: 'center',
         gap: 8,
-        width: (width - 64) / 4,
+        width: (width - 74) / 4,
     },
     actionIcon: {
         width: 56,

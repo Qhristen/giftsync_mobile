@@ -61,7 +61,7 @@ export default function ProductOrdersScreen() {
             <View style={styles.orderDetail}>
                 <View style={styles.detailRow}>
                     <Ionicons name="person-outline" size={16} color={colors.textSecondary} />
-                    <Typography variant="body" color={colors.textSecondary}>{item.recipientName}</Typography>
+                    <Typography variant="body" color={colors.textSecondary}>{item?.occasion?.contact?.name ?? ""}</Typography>
                 </View>
                 <View style={styles.detailRow}>
                     <Ionicons name="calendar-outline" size={16} color={colors.textSecondary} />

@@ -200,7 +200,7 @@ export default function OccasionsScreen() {
                             onPress={() => setSelectedMonthIndex(index)}
                             style={({ pressed }) => [
                                 styles.monthBtn,
-                                { backgroundColor: selectedMonthIndex === index ? colors.primary : colors.surfaceRaised },
+                                { backgroundColor: selectedMonthIndex === index ? colors.primary : colors.surface },
                                 pressed && { opacity: 0.8 },
                             ]}
                         >
@@ -229,7 +229,7 @@ export default function OccasionsScreen() {
                                     onPress={() => router.push({ pathname: '/(tabs)/occasions/[id]', params: { id: item.id } })}
                                     style={({ pressed }) => [
                                         styles.gridCard,
-                                        { backgroundColor: colors.surfaceRaised },
+                                        { backgroundColor: colors.surface },
                                         pressed && { opacity: 0.7, transform: [{ scale: 0.98 }] },
                                     ]}
                                 >
