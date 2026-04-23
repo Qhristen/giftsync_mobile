@@ -134,10 +134,10 @@ export default function NotificationsScreen() {
                                         </View>
                                         <View style={styles.textContainer}>
                                             <View style={styles.titleRow}>
-                                                <Typography variant="bodyBold" color={colors.textPrimary}>{item.title}</Typography>
+                                                <Typography variant="bodyBold" numberOfLines={2} color={colors.textPrimary}>{item.title}</Typography>
                                                 <Typography variant="caption" color={colors.textSecondary}>{timeAgo}</Typography>
                                             </View>
-                                            <Typography variant="body" color={colors.textSecondary} style={{ marginTop: 4 }}>
+                                            <Typography variant="body" numberOfLines={2} color={colors.textSecondary} style={{ marginTop: 4 }}>
                                                 {item.body}
                                             </Typography>
                                         </View>

@@ -10,6 +10,7 @@ import Badge from '../ui/Badge';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Button from '../ui/Button';
 import Typography from '../ui/Typography';
+import { moderateFontScale } from '@/utils/scaling';
 
 interface OrderDetailSheetProps {
     order: Order | null;
@@ -107,7 +108,7 @@ const OrderDetailSheet = forwardRef<BottomSheetRef, OrderDetailSheetProps>(({ or
                                             ]}
                                         >
                                             <Ionicons name="chatbubble-ellipses" size={16} color={colors.primary} />
-                                            <Typography variant="label" color={colors.primary} style={{ fontSize: 13 }}>Chat Vendor</Typography>
+                                            <Typography variant="label" color={colors.primary} style={{ fontSize: moderateFontScale(13) }}>Chat Vendor</Typography>
                                         </Pressable>
                                     )}
                                 </View>

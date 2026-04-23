@@ -1,4 +1,5 @@
 import { useTheme } from '@/hooks/useTheme';
+import { moderateFontScale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import React from 'react';
@@ -24,7 +25,7 @@ export default function TabLayout() {
           elevation: 0,
         },
         tabBarLabelStyle: {
-          fontSize: 12,
+          fontSize: moderateFontScale(12),
           fontFamily: 'DMSans_500Medium',
         },
       }}

@@ -8,6 +8,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { RootState } from '@/store';
 import { useGetCoinPackagesQuery, useGetWalletBalanceQuery, useInitializeFundingMutation, useVerifyFundingMutation } from '@/store/api/walletApi';
 import { CoinPackage } from '@/types';
+import { moderateFontScale } from '@/utils/scaling';
 import { FontAwesome5, Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
@@ -215,7 +216,7 @@ export default function WalletTopUpScreen() {
                                             </Typography>
                                             {isPopular && (
                                                 <View style={[styles.popularBadge, { backgroundColor: '#F59E0B20' }]}>
-                                                    <Typography variant="caption" color="#D97706" style={{ fontSize: 10, fontFamily: 'DMSans_700Bold' }}>
+                                                    <Typography variant="caption" color="#D97706" style={{ fontSize: moderateFontScale(10), fontFamily: 'DMSans_700Bold' }}>
                                                         POPULAR
                                                     </Typography>
                                                 </View>

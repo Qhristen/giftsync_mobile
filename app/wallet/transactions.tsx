@@ -5,6 +5,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useGetTransactionsQuery, useGetWalletBalanceQuery } from '@/store/api/walletApi';
 import { WalletTransaction } from '@/types';
 import { formatCurrency } from '@/utils/formatCurrency';
+import { moderateFontScale } from '@/utils/scaling';
 import { FontAwesome5, Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
@@ -116,7 +117,7 @@ export default function WalletTransactionsScreen() {
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                         <FontAwesome5 name="coins" size={28} color="rgba(255,255,255,0.8)" />
                         <View>
-                            <Typography variant="caption" color="rgba(255,255,255,0.7)" style={{ textTransform: 'uppercase', letterSpacing: 1, fontSize: 10 }}>
+                            <Typography variant="caption" color="rgba(255,255,255,0.7)" style={{ textTransform: 'uppercase', letterSpacing: 1, fontSize: moderateFontScale(10) }}>
                                 Current Balance
                             </Typography>
                             <Typography variant="h2" color="#FFF">

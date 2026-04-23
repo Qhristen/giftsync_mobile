@@ -1,3 +1,5 @@
+import { moderateFontScale } from '@/utils/scaling';
+
 export const typography = {
     fonts: {
         heading: 'Fraunces_700Bold',
@@ -6,20 +8,20 @@ export const typography = {
         bodyBold: 'DMSans_700Bold',
     },
     sizes: {
-        xs: 12,
-        sm: 14,
-        base: 16,
-        lg: 18,
-        xl: 20,
-        '2xl': 24,
-        '3xl': 32,
-        '4xl': 40,
+        xs: moderateFontScale(12),
+        sm: moderateFontScale(14),
+        base: moderateFontScale(16),
+        lg: moderateFontScale(18),
+        xl: moderateFontScale(20),
+        '2xl': moderateFontScale(24),
+        '3xl': moderateFontScale(32),
+        '4xl': moderateFontScale(40),
     },
     lineHeights: {
         tight: 1.25,
         normal: 1.5,
         relaxed: 1.75,
     },
-} as const;
+};
 
 export type Typography = typeof typography;

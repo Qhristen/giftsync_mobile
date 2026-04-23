@@ -1,5 +1,6 @@
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/theme';
+import { moderateFontScale } from '@/utils/scaling';
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import React, { forwardRef, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from 'react-native';
@@ -147,7 +148,7 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         borderWidth: 1.5,
         textAlign: 'center',
-        fontSize: 24,
+        fontSize: moderateFontScale(24),
         fontFamily: typography.fonts.heading,
     },
     resendContainer: {

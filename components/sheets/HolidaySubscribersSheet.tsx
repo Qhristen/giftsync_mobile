@@ -10,7 +10,7 @@ import { OccasionTemplate } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 
 interface Props {
     holiday: OccasionTemplate | null;
@@ -20,8 +20,8 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
     const { colors, spacing } = useTheme();
     const router = useRouter();
     const sheetRef = useRef<BottomSheetRef>(null);
-    const { data: subscribers } = useGetContactByTemplateIdQuery(holiday?.id || '');
-
+    const { data: subscribers, isLoading: isSubscribersLoading } = useGetContactByTemplateIdQuery(holiday?.id || '');
+    console.log(subscribers, "subscribers")
     useImperativeHandle(ref, () => ({
         expand: () => sheetRef.current?.expand(),
         close: () => sheetRef.current?.close(),
@@ -40,7 +40,12 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
     const handleBulkGift = () => {
         // Redirect to shop with selected recipients context
         router.push('/(tabs)/shop');
+        sheetRef.current?.close();
     };
+
+    if(isSubscribersLoading) {
+        return <ActivityIndicator size="small" color={colors.primary} />
+    }
 
     return (
         <BottomSheetWrapper ref={sheetRef} snapPoints={['70%']} scrollable>
@@ -90,9 +95,9 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
                                     <Avatar uri={occ?.avatar} name={occ?.name} size="md" />
                                     <View style={{ flex: 1 }}>
                                         <Typography variant="bodyBold">{occ?.name}</Typography>
-                                        <Typography variant="caption" color={colors.textSecondary}>{occ.name}</Typography>
+                                        <Typography variant="caption" color={colors.textSecondary}>{occ.phoneNumber}</Typography>
                                     </View>
-                                    <Badge label="Ready" variant="success" size="xs" />
+                                    {/* <Badge label="Ready" variant="success" size="xs" /> */}
                                 </View>
                             ))}
                         </ScrollView>

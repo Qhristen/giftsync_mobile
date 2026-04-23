@@ -41,11 +41,16 @@ const RECURRENCE_TYPES: { value: 'NONE' | 'WEEKLY' | 'MONTHLY' | 'YEARLY', label
 ];
 
 const RELATIONSHIPS = [
-    { value: 'Family', label: 'Family' },
     { value: 'Friend', label: 'Friend' },
     { value: 'Colleague', label: 'Colleague' },
     { value: 'Partner', label: 'Partner' },
-    { value: 'Others', label: 'Others' },
+    { value: 'Uncle', label: 'Uncle' },
+    { value: 'Aunt', label: 'Aunt' },
+    { value: 'Cousin', label: 'Cousin' },
+    { value: 'Brother', label: 'Brother' },
+    { value: 'Sister', label: 'Sister' },
+    { value: 'Mother', label: 'Mother' },
+    { value: 'Father', label: 'Father' },
 ];
 
 const INTERESTS_PRESETS = ['Tech', 'Fashion', 'Sports', 'Books', 'Cooking', 'Travel', 'Gaming'];

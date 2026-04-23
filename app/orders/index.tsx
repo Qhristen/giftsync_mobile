@@ -10,6 +10,7 @@ import { useGetOrdersQuery } from '@/store/api/orderApi';
 import { Order } from '@/types';
 import { formatDate } from '@/utils/dateUtils';
 import { formatCurrency } from '@/utils/formatCurrency';
+import { moderateFontScale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
@@ -169,7 +170,7 @@ export default function OrderListScreen() {
                                                 style={[styles.cardChatBtn, { backgroundColor: colors.success + '10' }]}
                                             >
                                                 <Ionicons name="card-outline" size={16} color={colors.success} />
-                                                <Typography variant="label" color={colors.success} style={{ fontSize: 12 }}>Pay Now</Typography>
+                                                <Typography variant="label" color={colors.success} style={{ fontSize: moderateFontScale(12) }}>Pay Now</Typography>
                                             </Pressable>
                                         ) : item.conversationId &&
                                         <Pressable
@@ -177,7 +178,7 @@ export default function OrderListScreen() {
                                             style={[styles.cardChatBtn, { backgroundColor: colors.primary + '10' }]}
                                         >
                                             <Ionicons name="chatbubble-ellipses" size={16} color={colors.primary} />
-                                            <Typography variant="label" color={colors.primary} style={{ fontSize: 12 }}>Chat Vendor</Typography>
+                                            <Typography variant="label" color={colors.primary} style={{ fontSize: moderateFontScale(12) }}>Chat Vendor</Typography>
                                         </Pressable>
                                         }
                                     </View>

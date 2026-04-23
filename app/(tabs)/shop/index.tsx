@@ -9,6 +9,7 @@ import { useGetUpcomingOccasionsQuery } from '@/store/api/occasionApi';
 import { useGetCategoriesQuery, useGetProductsQuery } from '@/store/api/productApi';
 import { Product } from '@/types';
 import { formatCurrency } from '@/utils/formatCurrency';
+import { moderateFontScale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
@@ -365,7 +366,7 @@ const styles = StyleSheet.create({
     searchInput: {
         flex: 1,
         fontFamily: 'DMSans_400Regular',
-        fontSize: 16,
+        fontSize: moderateFontScale(16),
     },
     filterBtn: {
         width: 52,

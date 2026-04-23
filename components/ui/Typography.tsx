@@ -1,4 +1,5 @@
 import { useTheme } from '@/hooks/useTheme';
+import { moderateFontScale } from '@/utils/scaling';
 import React from 'react';
 import { StyleProp, Text, TextStyle } from 'react-native';
 
@@ -27,56 +28,56 @@ const Typography: React.FC<Props> = ({
                 return {
                     fontFamily: themeTypography.fonts.heading,
                     fontSize: themeTypography.sizes['3xl'],
-                    lineHeight: 40,
+                    lineHeight: moderateFontScale(40),
                 };
             case 'h2':
                 return {
                     fontFamily: themeTypography.fonts.heading,
                     fontSize: themeTypography.sizes['2xl'],
-                    lineHeight: 32,
+                    lineHeight: moderateFontScale(32),
                 };
             case 'h3':
                 return {
                     fontFamily: themeTypography.fonts.heading,
                     fontSize: themeTypography.sizes.xl,
-                    lineHeight: 28,
+                    lineHeight: moderateFontScale(28),
                 };
             case 'h4':
                 return {
                     fontFamily: themeTypography.fonts.heading,
                     fontSize: themeTypography.sizes.lg,
-                    lineHeight: 24,
+                    lineHeight: moderateFontScale(24),
                 };
             case 'bodyBold':
                 return {
                     fontFamily: themeTypography.fonts.bodyBold,
                     fontSize: themeTypography.sizes.base,
-                    lineHeight: 24,
+                    lineHeight: moderateFontScale(24),
                 };
             case 'bodyMedium':
                 return {
                     fontFamily: themeTypography.fonts.bodyMedium,
                     fontSize: themeTypography.sizes.base,
-                    lineHeight: 24,
+                    lineHeight: moderateFontScale(24),
                 };
             case 'caption':
                 return {
                     fontFamily: themeTypography.fonts.body,
                     fontSize: themeTypography.sizes.xs,
-                    lineHeight: 16,
+                    lineHeight: moderateFontScale(16),
                 };
             case 'label':
                 return {
                     fontFamily: themeTypography.fonts.bodyMedium,
                     fontSize: themeTypography.sizes.sm,
-                    lineHeight: 20,
+                    lineHeight: moderateFontScale(20),
                 };
             case 'body':
             default:
                 return {
                     fontFamily: themeTypography.fonts.body,
                     fontSize: themeTypography.sizes.base,
-                    lineHeight: 24,
+                    lineHeight: moderateFontScale(24),
                 };
         }
     };

@@ -5,6 +5,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { AiChatHistoryItem, useChatMutation } from '@/store/api/aiApi';
 import { useAppSelector } from '@/store/hooks';
 import { formatCurrency } from '@/utils/formatCurrency';
+import { moderateFontScale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { Image } from 'expo-image';
@@ -164,7 +165,7 @@ export default function AIChatScreen() {
                             <Ionicons name="sparkles" size={18} color="#FFFFFF" />
                         </View>
                         <View>
-                            <Typography variant="bodyBold" style={{ fontSize: 16 }}>GiftSync AI</Typography>
+                            <Typography variant="bodyBold" style={{ fontSize: moderateFontScale(16) }}>GiftSync AI</Typography>
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                                 <View style={[styles.statusDot, { backgroundColor: isAITyping ? colors.primary : colors.success }]} />
                                 <Typography variant="caption" color={colors.textSecondary}>
@@ -250,8 +251,8 @@ export default function AIChatScreen() {
                                                     >
                                                         <Image source={{ uri: rec.imageUrls?.[0] }} style={styles.gridProductImage} />
                                                         <View style={styles.gridCardContent}>
-                                                            <Typography variant="bodyBold" numberOfLines={1} style={{ textAlign: 'center', fontSize: 13, marginTop: 4 }}>{rec.name}</Typography>
-                                                            <Typography variant="label" color={colors.primary} style={{ textAlign: 'center', fontSize: 12 }}>{formatCurrency(rec.price, rec.currency || 'NGN')}</Typography>
+                                                            <Typography variant="bodyBold" numberOfLines={1} style={{ textAlign: 'center', fontSize: moderateFontScale(13), marginTop: 4 }}>{rec.name}</Typography>
+                                                            <Typography variant="label" color={colors.primary} style={{ textAlign: 'center', fontSize: moderateFontScale(12) }}>{formatCurrency(rec.price, rec.currency || 'NGN')}</Typography>
                                                         </View>
                                                     </Pressable>
                                                 </Animated.View>
@@ -300,14 +301,14 @@ export default function AIChatScreen() {
                                                         )}
                                                         <View style={styles.gridCardContent}>
                                                             {rec.contact?.name && (
-                                                                <Typography variant="bodyBold" numberOfLines={1} style={{ textAlign: 'center', fontSize: 13 }}>
+                                                                <Typography variant="bodyBold" numberOfLines={1} style={{ textAlign: 'center', fontSize: moderateFontScale(13) }}>
                                                                     {rec.contact.name.split(' ')[0]}
                                                                 </Typography>
                                                             )}
-                                                            <Typography variant="caption" color={rec.contact ? colors.textSecondary : colors.textPrimary} numberOfLines={1} style={{ textAlign: 'center', fontSize: 10 }}>
+                                                            <Typography variant="caption" color={rec.contact ? colors.textSecondary : colors.textPrimary} numberOfLines={1} style={{ textAlign: 'center', fontSize: moderateFontScale(10) }}>
                                                                 {rec.title}
                                                             </Typography>
-                                                            <Typography variant="caption" color={colors.primary} style={{ textAlign: 'center', fontSize: 10, marginTop: 2 }}>
+                                                            <Typography variant="caption" color={colors.primary} style={{ textAlign: 'center', fontSize: moderateFontScale(10), marginTop: 2 }}>
                                                                 {new Date(rec.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                                                             </Typography>
                                                         </View>
@@ -351,14 +352,14 @@ export default function AIChatScreen() {
                                                     >
                                                         <Avatar uri={rec.avatar} name={rec.name} size="md" />
                                                         <View style={styles.gridCardContent}>
-                                                            <Typography variant="bodyBold" numberOfLines={1} style={{ textAlign: 'center', fontSize: 13 }}>{rec.name}</Typography>
+                                                            <Typography variant="bodyBold" numberOfLines={1} style={{ textAlign: 'center', fontSize: moderateFontScale(13) }}>{rec.name}</Typography>
                                                             {rec.relationship && (
-                                                                <Typography variant="caption" color={colors.textSecondary} numberOfLines={1} style={{ textAlign: 'center', fontSize: 10 }}>
+                                                                <Typography variant="caption" color={colors.textSecondary} numberOfLines={1} style={{ textAlign: 'center', fontSize: moderateFontScale(10) }}>
                                                                     {rec.relationship}
                                                                 </Typography>
                                                             )}
                                                             {rec.phoneNumber && (
-                                                                <Typography variant="caption" color={colors.textSecondary} numberOfLines={1} style={{ textAlign: 'center', fontSize: 10, marginTop: 2 }}>
+                                                                <Typography variant="caption" color={colors.textSecondary} numberOfLines={1} style={{ textAlign: 'center', fontSize: moderateFontScale(10), marginTop: 2 }}>
                                                                     {rec.phoneNumber}
                                                                 </Typography>
                                                             )}
@@ -553,7 +554,7 @@ const styles = StyleSheet.create({
         height: 48,
         borderRadius: 24,
         paddingHorizontal: 20,
-        fontSize: 16,
+        fontSize: moderateFontScale(16),
     },
     sendBtn: {
         width: 48,

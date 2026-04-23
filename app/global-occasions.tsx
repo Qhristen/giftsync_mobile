@@ -52,7 +52,7 @@ export default function GlobalOccasionsScreen() {
         try {
             await subscribeToTemplate({
                 templateId: selectedTemplate.id,
-                contactId: selectedContactIds
+                contactIds: selectedContactIds
             }).unwrap();
 
 
@@ -86,7 +86,7 @@ export default function GlobalOccasionsScreen() {
             <FlashList
                 data={templates}
                 numColumns={2}
-                contentContainerStyle={{ padding: spacing.xl }}
+                contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: spacing.xl }}
                 showsVerticalScrollIndicator={false}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item, index }) => (
@@ -202,9 +202,9 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 20,
-        paddingBottom: 10,
         gap: 16,
         paddingTop: spacing['4xl'],
+        paddingBottom: spacing.xs,
     },
     backBtn: {
         width: 40,

@@ -1,5 +1,6 @@
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/theme';
+import { moderateFontScale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import React, { useState } from 'react';
@@ -139,7 +140,7 @@ const styles = StyleSheet.create({
     },
     label: {
         fontFamily: typography.fonts.bodyMedium,
-        fontSize: 14,
+        fontSize: moderateFontScale(14),
     },
     inputContainer: {
         flexDirection: 'row',
@@ -152,7 +153,7 @@ const styles = StyleSheet.create({
         flex: 1,
         height: '100%',
         fontFamily: typography.fonts.body,
-        fontSize: 16,
+        fontSize: moderateFontScale(16),
     },
     leftIcon: {
         marginRight: 10,
@@ -162,7 +163,7 @@ const styles = StyleSheet.create({
     },
     error: {
         fontFamily: typography.fonts.body,
-        fontSize: 12,
+        fontSize: moderateFontScale(12),
     },
 });
 

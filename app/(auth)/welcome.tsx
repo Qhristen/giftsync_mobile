@@ -4,6 +4,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useGoogleAuthMutation } from '@/store/api/authApi';
 import { setOccasions } from '@/store/slices/occasionSlice';
 import { fetchGoogleBirthdays } from '@/utils/calendar';
+import { moderateFontScale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import { GoogleSignin, statusCodes, } from '@react-native-google-signin/google-signin';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -37,7 +38,7 @@ export default function WelcomeScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
     const dispatch = useDispatch();
-    const [googleAuth, {error}] = useGoogleAuthMutation();
+    const [googleAuth, { error }] = useGoogleAuthMutation();
     const [isSigningIn, setIsSigningIn] = React.useState(false);
 
     // Animation values
@@ -139,7 +140,7 @@ export default function WelcomeScreen() {
             <View style={styles.content}>
                 <Animated.View style={[styles.logoContainer, logoStyle]}>
                     <View style={[styles.logoCircle, { backgroundColor: '#FFFFFF' }]}>
-                        <Typography variant="h1" color={colors.primary} style={{ fontSize: 50 }}>🎁</Typography>
+                        <Typography variant="h1" color={colors.primary} style={{ fontSize: moderateFontScale(50) }}>🎁</Typography>
                     </View>
                 </Animated.View>
 
@@ -193,11 +194,11 @@ const styles = StyleSheet.create({
         elevation: 10,
     },
     title: {
-        fontSize: 48,
+        fontSize: moderateFontScale(48),
         marginBottom: 8,
     },
     tagline: {
-        fontSize: 18,
+        fontSize: moderateFontScale(18),
         opacity: 0.9,
     },
     footer: {

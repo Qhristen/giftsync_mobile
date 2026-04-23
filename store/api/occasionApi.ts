@@ -93,7 +93,7 @@ export const occasionApi = baseApi.injectEndpoints({
                 method: 'POST',
                 data,
             }),
-            invalidatesTags: ['Occasions'],
+            invalidatesTags: ['Occasions', "Contacts"],
         }),
         updateOccasion: builder.mutation<Occasion, { id: string; data: UpdateOccasionDto }>({
             query: ({ id, data }) => ({

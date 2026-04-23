@@ -10,6 +10,7 @@ import { useGetConversationQuery, useGetMessagesQuery, useMarkConversationAsRead
 import { useGetProfileQuery } from '@/store/api/userApi';
 import { selectTypingUsers } from '@/store/slices/chatSlice';
 import { ChatMessage } from '@/types';
+import { moderateFontScale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
@@ -397,7 +398,7 @@ const styles = StyleSheet.create({
         height: 44,
         borderRadius: 22,
         paddingHorizontal: 16,
-        fontSize: 16,
+        fontSize: moderateFontScale(16),
     },
     sendBtn: {
         width: 44,

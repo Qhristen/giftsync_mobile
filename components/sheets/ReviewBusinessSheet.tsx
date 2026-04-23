@@ -1,15 +1,15 @@
 import { useTheme } from '@/hooks/useTheme';
 import { useAddReviewMutation } from '@/store/api/businessApi';
 import { Order } from '@/types';
-import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import React, { forwardRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { toast } from 'sonner-native';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Button from '../ui/Button';
+import Input from '../ui/Input';
 import Rating from '../ui/Rating';
 import Typography from '../ui/Typography';
-import Input from '../ui/Input';
+import { moderateFontScale } from '@/utils/scaling';
 
 interface Props {
     order: Order | null;
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
         minHeight: 120,
     },
     input: {
-        fontSize: 16,
+        fontSize: moderateFontScale(16),
     },
 });
 

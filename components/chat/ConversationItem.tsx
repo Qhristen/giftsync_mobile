@@ -3,6 +3,7 @@ import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { useGetProfileQuery } from '@/store/api/userApi';
 import { Conversation } from '@/types';
+import { moderateFontScale } from '@/utils/scaling';
 import { formatDistanceToNow } from 'date-fns';
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -46,7 +47,7 @@ const ConversationItem: React.FC<ConversationItemProps> = ({ conversation, onPre
                 {participants.map((participant, index) => (
                     <Avatar
                         key={participant.id}
-                        
+
                         uri={participant.avatarUrl}
                         name={participant.name}
                         size={avatarSize}
@@ -122,7 +123,7 @@ const styles = StyleSheet.create({
     preview: {
         flex: 1,
         marginRight: 8,
-        fontSize: 12
+        fontSize: moderateFontScale(12)
     },
     badge: {
         minWidth: 20,
