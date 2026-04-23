@@ -222,7 +222,7 @@ export default function HomeScreen() {
                                             title="Send as Gift →"
                                             size="sm"
                                             style={{ marginTop: 12 }}
-                                            onPress={() => router.push({ pathname: `/(tabs)/shop/[id]`, params: { occasionId: firstUpcoming?.id, id: item.id } })}
+                                            onPress={() => router.push({ pathname: `/product-detail`, params: { occasionId: firstUpcoming?.id, id: item.id } })}
                                         />
                                     </View>
                                 </Card>

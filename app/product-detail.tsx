@@ -262,11 +262,11 @@ export default function ShopItemDetailScreen() {
                         </View>
                     )}
                 </Animated.View>
-                <View style={[styles.footer, { backgroundColor: colors.surface, paddingBottom: insets.bottom + 80 }]}>
+            </ScrollView>
+                <View style={[styles.footer, { backgroundColor: colors.surface, paddingBottom: insets.bottom + 20 }]}>
                     <Button
                         title="Send as Gift"
                         variant="primary"
-                        style={{ flex: 1 }}
                         leftIcon={<Ionicons name="gift-outline" size={20} color="#FFF" style={{ marginRight: 8 }} />}
                         onPress={() => {
                             if (occasionId) {
@@ -277,7 +277,6 @@ export default function ShopItemDetailScreen() {
                         }}
                     />
                 </View>
-            </ScrollView>
 
             {/* Sticky Footer — sits above the absolute-positioned floating tab bar                 (tab bar: ~55px tall + 15px margin + device bottom inset) */}
 

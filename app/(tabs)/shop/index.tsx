@@ -251,7 +251,7 @@ export default function ShopScreen() {
                 ]}>
                 <Pressable
                     style={[styles.newProductCard, { backgroundColor: colors.surface }]}
-                    onPress={() => router.push(`/(tabs)/shop/${product.id}`)}
+                    onPress={() => router.push({ pathname: '/product-detail', params: { id: product.id } })}
                 >
                     <View style={styles.imageContainer}>
                         <Image source={{ uri: product.imageUrls?.[0] }} style={styles.productImageFull} contentFit="cover" />

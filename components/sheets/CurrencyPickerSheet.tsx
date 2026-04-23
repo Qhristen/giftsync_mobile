@@ -15,9 +15,9 @@ const CurrencyPickerSheet = forwardRef<BottomSheetRef, CurrencyPickerSheetProps>
 
     const options = [
         { label: 'Nigerian Naira (NGN)', value: 'NGN', icon: 'cash-outline' },
-        { label: 'US Dollar (USD)', value: 'USD', icon: 'logo-usd' },
-        { label: 'British Pound (GBP)', value: 'GBP', icon: 'logo-pound' },
-        { label: 'Euro (EUR)', value: 'EUR', icon: 'logo-euro' },
+        // { label: 'US Dollar (USD)', value: 'USD', icon: 'logo-usd' },
+        // { label: 'British Pound (GBP)', value: 'GBP', icon: 'logo-pound' },
+        // { label: 'Euro (EUR)', value: 'EUR', icon: 'logo-euro' },
     ];
 
     const handleSelect = (currency: string) => {

@@ -36,7 +36,7 @@ const VendorDetailSheet = forwardRef<BottomSheetRef, Props>(
         if (!business) return null;
 
         return (
-            <BottomSheetWrapper ref={ref} snapPoints={['60%', '90%']} scrollable>
+            <BottomSheetWrapper ref={ref} snapPoints={['15%']} scrollable>
                 <View style={{ paddingBottom: spacing.xl * 2 }}>
                     {/* Header */}
                     <View style={styles.header}>

@@ -52,4 +52,10 @@ export const {
     clearTyping,
 } = chatSlice.actions;
 
+const EMPTY_ARRAY: string[] = [];
+
+// Selectors
+export const selectTypingUsers = (state: { chat: ChatState }, conversationId: string) =>
+    state.chat.typingUsers[conversationId] || EMPTY_ARRAY;
+
 export default chatSlice.reducer;

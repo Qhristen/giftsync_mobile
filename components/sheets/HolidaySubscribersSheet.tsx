@@ -4,6 +4,7 @@ import BottomSheetWrapper, { BottomSheetRef } from '@/components/ui/BottomSheetW
 import Button from '@/components/ui/Button';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
+import { useGetContactByTemplateIdQuery } from '@/store/api/contactsApi';
 import { useGetUpcomingOccasionsQuery } from '@/store/api/occasionApi';
 import { OccasionTemplate } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,6 +20,7 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
     const { colors, spacing } = useTheme();
     const router = useRouter();
     const sheetRef = useRef<BottomSheetRef>(null);
+    const { data: subscribers } = useGetContactByTemplateIdQuery(holiday?.id || '');
 
     useImperativeHandle(ref, () => ({
         expand: () => sheetRef.current?.expand(),
@@ -29,18 +31,10 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
     }), []);
     const { data: upcomingOccasions = [] } = useGetUpcomingOccasionsQuery();
 
-    const subscribers = useMemo(() => {
-        if (!holiday) return [];
-        return upcomingOccasions.filter(occ =>
-            occ.templateId === holiday.id ||
-            occ.title.toLowerCase().includes(holiday.title.toLowerCase())
-        );
-    }, [holiday, upcomingOccasions]);
-
     const handleBulkMessage = () => {
         // Implementation for bulk messaging
         // For now, it could open a chat or a new screen
-        console.log('Bulk messaging:', subscribers.map(s => s.contact?.name));
+        console.log('Bulk messaging:', subscribers?.map(s => s?.name));
     };
 
     const handleBulkGift = () => {
@@ -59,7 +53,7 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
                         <View style={{ flex: 1 }}>
                             <Typography variant="h2">{holiday.title}</Typography>
                             <Typography variant="body" color={colors.textSecondary}>
-                                Tracking {subscribers.length} {subscribers.length === 1 ? 'person' : 'people'}
+                                Tracking {subscribers?.length} {subscribers?.length === 1 ? 'person' : 'people'}
                             </Typography>
                         </View>
                     </View>
@@ -72,7 +66,7 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
                             leftIcon={<Ionicons name="chatbubble-outline" size={18} color={colors.textPrimary} />}
                             style={{ flex: 1 }}
                             onPress={handleBulkMessage}
-                            disabled={subscribers.length === 0}
+                            disabled={subscribers?.length === 0}
                         />
                         <Button
                             title="Send Gifts"
@@ -81,7 +75,7 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
                             leftIcon={<Ionicons name="gift-outline" size={18} color="#FFF" />}
                             style={{ flex: 1 }}
                             onPress={handleBulkGift}
-                            disabled={subscribers.length === 0}
+                            disabled={subscribers?.length === 0}
                         />
                     </View>
 
@@ -89,14 +83,14 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
                         Tracked Contacts
                     </Typography>
 
-                    {subscribers.length > 0 ? (
+                    {subscribers && subscribers?.length > 0 ? (
                         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
-                            {subscribers.map((occ) => (
+                            {subscribers?.map((occ) => (
                                 <View key={occ.id} style={[styles.subscriberItem, { backgroundColor: colors.surfaceRaised }]}>
-                                    <Avatar uri={occ.contact?.avatar} name={occ.contact?.name} size="md" />
+                                    <Avatar uri={occ?.avatar} name={occ?.name} size="md" />
                                     <View style={{ flex: 1 }}>
-                                        <Typography variant="bodyBold">{occ.contact?.name}</Typography>
-                                        <Typography variant="caption" color={colors.textSecondary}>{occ.title}</Typography>
+                                        <Typography variant="bodyBold">{occ?.name}</Typography>
+                                        <Typography variant="caption" color={colors.textSecondary}>{occ.name}</Typography>
                                     </View>
                                     <Badge label="Ready" variant="success" size="xs" />
                                 </View>

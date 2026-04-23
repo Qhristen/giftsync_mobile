@@ -34,6 +34,20 @@ const OCCASION_TYPES = [
     { value: 'Custom', label: 'Custom', icon: 'star-outline' },
 ];
 
+const RECURRENCE_TYPES: { value: 'NONE' | 'WEEKLY' | 'MONTHLY' | 'YEARLY', label: string }[] = [
+    { value: 'NONE', label: 'Once' },
+    { value: 'MONTHLY', label: 'Monthly' },
+    { value: 'YEARLY', label: 'Yearly' },
+];
+
+const RELATIONSHIPS = [
+    { value: 'Family', label: 'Family' },
+    { value: 'Friend', label: 'Friend' },
+    { value: 'Colleague', label: 'Colleague' },
+    { value: 'Partner', label: 'Partner' },
+    { value: 'Others', label: 'Others' },
+];
+
 const INTERESTS_PRESETS = ['Tech', 'Fashion', 'Sports', 'Books', 'Cooking', 'Travel', 'Gaming'];
 
 const OccasionForm: React.FC<OccasionFormProps> = ({
@@ -57,12 +71,13 @@ const OccasionForm: React.FC<OccasionFormProps> = ({
     const [customTitle, setCustomTitle] = useState("");
     const [date, setDate] = useState(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
+    const [recurrenceType, setRecurrenceType] = useState<'MONTHLY' | 'YEARLY' | 'NONE' | 'WEEKLY'>('YEARLY');
+    const [relationship, setRelationship] = useState('Friend');
 
     // Optional Details (Collapsed)
     const [isExpanded, setIsExpanded] = useState(false);
     const [interests, setInterests] = useState<string[]>([]);
     const [notes, setNotes] = useState("");
-    const [customInterest, setCustomInterest] = useState("");
 
     // Contact Lookup State
     const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
@@ -99,8 +114,10 @@ const OccasionForm: React.FC<OccasionFormProps> = ({
                 setCustomTitle(titleValue);
             }
             setDate(new Date(occasionDetail.date));
+            if (occasionDetail.recurrenceType) setRecurrenceType(occasionDetail.recurrenceType);
             if (occasionDetail.contact?.interests) setInterests(occasionDetail.contact.interests);
             if (occasionDetail.contact?.notes) setNotes(occasionDetail.contact.notes);
+            if (occasionDetail.contact?.relationship) setRelationship(occasionDetail.contact.relationship);
             setSelectedContact(occasionDetail.contact as Contact);
         }
     }, [isEditing, occasionDetail]);
@@ -135,12 +152,7 @@ const OccasionForm: React.FC<OccasionFormProps> = ({
         );
     };
 
-    const handleAddCustomInterest = () => {
-        if (customInterest.trim() && !interests.includes(customInterest.trim())) {
-            setInterests(prev => [...prev, customInterest.trim()]);
-            setCustomInterest("");
-        }
-    };
+
 
     const handleSubmit = async () => {
         if (!name || !phone) {
@@ -165,7 +177,7 @@ const OccasionForm: React.FC<OccasionFormProps> = ({
                     data: {
                         title: finalTitle,
                         date: date.toISOString(),
-                        recurrenceType: 'YEARLY',
+                        recurrenceType,
                     }
                 }).unwrap();
                 toast.success("Occasion Updated 🎉");
@@ -173,12 +185,12 @@ const OccasionForm: React.FC<OccasionFormProps> = ({
                 await createOccasion({
                     title: finalTitle,
                     date: date.toISOString(),
-                    recurrenceType: 'YEARLY',
+                    recurrenceType,
                     name,
                     phoneNumber: phone,
                     interests,
                     notes,
-                    relationship: ""
+                    relationship
                 }).unwrap();
                 dispatch(spendCoins(1));
                 toast.success("Occasion Added 🎉");
@@ -249,6 +261,25 @@ const OccasionForm: React.FC<OccasionFormProps> = ({
                         isBottomSheet
                     />
 
+                    <View style={{ marginTop: spacing.xs }}>
+                        <Typography variant="label" style={{ marginBottom: spacing.xs }}>Relationship</Typography>
+                        <View style={styles.chipsContainer}>
+                            {RELATIONSHIPS.map(rel => (
+                                <Pressable
+                                    key={rel.value}
+                                    onPress={() => setRelationship(rel.value)}
+                                    style={[
+                                        styles.chip,
+                                        { backgroundColor: relationship === rel.value ? colors.primary : colors.surfaceRaised },
+                                        relationship === rel.value && { borderColor: colors.primary }
+                                    ]}
+                                >
+                                    <Typography variant="caption" color={relationship === rel.value ? "#FFF" : colors.textPrimary}>{rel.label}</Typography>
+                                </Pressable>
+                            ))}
+                        </View>
+                    </View>
+
                     <View style={{ marginTop: spacing.sm }}>
                         <Typography variant="label" style={{ marginBottom: spacing.xs }}>Occasion Type</Typography>
                         <View style={styles.chipsContainer}>
@@ -289,6 +320,25 @@ const OccasionForm: React.FC<OccasionFormProps> = ({
                             />
                         </View>
                     </Pressable>
+
+                    <View style={{ marginTop: spacing.sm }}>
+                        <Typography variant="label" style={{ marginBottom: spacing.xs }}>Frequency</Typography>
+                        <View style={styles.chipsContainer}>
+                            {RECURRENCE_TYPES.map(type => (
+                                <Pressable
+                                    key={type.value}
+                                    onPress={() => setRecurrenceType(type.value)}
+                                    style={[
+                                        styles.chip,
+                                        { backgroundColor: recurrenceType === type.value ? colors.primary : colors.surfaceRaised },
+                                        recurrenceType === type.value && { borderColor: colors.primary }
+                                    ]}
+                                >
+                                    <Typography variant="caption" color={recurrenceType === type.value ? "#FFF" : colors.textPrimary}>{type.label}</Typography>
+                                </Pressable>
+                            ))}
+                        </View>
+                    </View>
 
                     {showDatePicker && (
                         <DateTimePicker
@@ -332,21 +382,6 @@ const OccasionForm: React.FC<OccasionFormProps> = ({
                                         <Typography variant="caption" color={interests.includes(interest) ? colors.primary : colors.textPrimary}>{interest}</Typography>
                                     </Pressable>
                                 ))}
-                            </View>
-                            <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
-                                <Input
-                                    placeholder="Add custom interest"
-                                    value={customInterest}
-                                    onChangeText={setCustomInterest}
-                                    // containerStyle={{ flex: 1 }}
-                                    isBottomSheet
-                                />
-                                <Button
-                                    title="Add"
-                                    onPress={handleAddCustomInterest}
-                                    size="sm"
-                                    style={{ height: 50 }}
-                                />
                             </View>
                         </View>
 

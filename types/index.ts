@@ -165,7 +165,7 @@ export interface UpdateOccasionDto extends Partial<CreateOccasionDto> { }
 
 export interface SubscribeOccasionDto {
   templateId: string;
-  contactId: string;
+  contactId: string[];
 }
 
 export interface Category {

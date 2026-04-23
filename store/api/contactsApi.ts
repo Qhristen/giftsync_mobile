@@ -63,6 +63,13 @@ export const contactsApi = baseApi.injectEndpoints({
             }),
             providesTags: (result, error, id) => [{ type: 'Contacts', id }],
         }),
+        getContactByTemplateId: builder.query<Contact[], string>({
+            query: (id) => ({
+                url: `/api/v1/contacts/template/${id}`,
+                method: 'GET',
+            }),
+            providesTags: (result, error, id) => [{ type: 'Contacts', id }],
+        }),
         deleteContact: builder.mutation<void, string>({
             query: (id) => ({
                 url: `/api/v1/contacts/${id}`,
@@ -81,4 +88,5 @@ export const {
     useBulkImportContactsMutation,
     useUpdateContactMutation,
     useDeleteContactMutation,
+    useGetContactByTemplateIdQuery
 } = contactsApi;

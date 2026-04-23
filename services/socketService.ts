@@ -139,12 +139,11 @@ class SocketService {
                             );
                             if (tempIndex !== -1) {
                                 messages[tempIndex] = message;
-                                return;
+                            } else if (!messages.find((m) => m.id === message.id)) {
+                                messages.push(message);
                             }
-                        }
-
-                        // 2. Add if not already present
-                        if (!messages.find((m) => m.id === message.id)) {
+                        } else if (!messages.find((m) => m.id === message.id)) {
+                            // 2. Add if not already present
                             messages.push(message);
                         }
 
@@ -165,9 +164,8 @@ class SocketService {
                     'getConversations',
                     { page: 1, limit: 50 },
                     (draft) => {
-                        if (!draft) return;
-                        const conversations = Array.isArray(draft) ? draft : draft;
-                        if (!conversations) return;
+                        if (!draft?.items) return;
+                        const conversations = draft;
 
                         const convIndex = conversations.items.findIndex(
                             (c: any) => c.id === message.conversationId,
@@ -333,14 +331,19 @@ class SocketService {
                 { conversationId, limit: 50 },
                 (draft) => {
                     if (!draft) return;
-                    if (!draft?.items) {
-                        draft = { items: [], meta: { page: 1, limit: 50, total: 0, totalPages: 1 } };
+                    if (!draft.items) {
+                        draft.items = [];
                     }
 
                     const messages = draft.items;
 
                     if (!messages.find((m) => m.id === optimisticMessage.id)) {
                         messages.push(optimisticMessage);
+                        // Sort to ensure correct order
+                        messages.sort(
+                            (a, b) =>
+                                new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+                        );
                     }
                 },
             ),

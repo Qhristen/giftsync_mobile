@@ -140,7 +140,7 @@ export default function OccasionDetailScreen() {
                             contentContainerStyle={{ paddingTop: spacing.md }}
                             keyExtractor={(item) => item.id}
                             renderItem={({ item }) => (
-                                <Card style={styles.recCard} onPress={() => router.push({ pathname: '/shop/[id]', params: { id: item.id } })}>
+                                <Card style={styles.recCard} onPress={() => router.push({ pathname: '/product-detail', params: { id: item.id } })}>
                                     <Image
                                         source={{ uri: item.imageUrls?.[0] }}
                                         style={styles.recImage}
@@ -160,7 +160,7 @@ export default function OccasionDetailScreen() {
                                             title="Send as Gift →"
                                             size="sm"
                                             style={{ marginTop: 12 }}
-                                            onPress={() => router.push({ pathname: '/shop/[id]', params: { id: item.id, occasionId: occasion.id } })}
+                                            onPress={() => router.push({ pathname: '/product-detail', params: { id: item.id, occasionId: occasion.id } })}
                                         />
                                     </View>
                                 </Card>
@@ -191,7 +191,7 @@ export default function OccasionDetailScreen() {
                             otherOccasions.map((otherOcc) => (
                                 <Pressable
                                     key={otherOcc.id}
-                                    onPress={() => router.push({ pathname: '/(tabs)/occasions/[id]', params: { id: otherOcc.id } })}
+                                    onPress={() => router.push({ pathname: '/occasion-detail', params: { id: otherOcc.id } })}
                                 >
                                     <Card style={[styles.otherOccasionCard, { backgroundColor: colors.surfaceRaised }]}>
                                         <View style={[styles.otherOccasionDot, { backgroundColor: colors.primary }]} />

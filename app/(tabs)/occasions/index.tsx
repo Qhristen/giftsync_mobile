@@ -226,7 +226,7 @@ export default function OccasionsScreen() {
                                 style={{ flex: 1 }}
                             >
                                 <Pressable
-                                    onPress={() => router.push({ pathname: '/(tabs)/occasions/[id]', params: { id: item.id } })}
+                                    onPress={() => router.push({ pathname: '/occasion-detail', params: { id: item.id } })}
                                     style={({ pressed }) => [
                                         styles.gridCard,
                                         { backgroundColor: colors.surface },
@@ -306,7 +306,7 @@ export default function OccasionsScreen() {
                 }}
                 onEditOccasion={(id) => {
                     contactDetailSheetRef.current?.close();
-                    router.push({ pathname: '/(tabs)/occasions/[id]', params: { id } });
+                    router.push({ pathname: '/occasion-detail', params: { id } });
                 }}
             />
         </View>

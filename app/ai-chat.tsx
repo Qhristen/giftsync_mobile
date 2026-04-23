@@ -241,7 +241,7 @@ export default function AIChatScreen() {
                                                     style={{ width: '48%', marginBottom: 12 }}
                                                 >
                                                     <Pressable
-                                                        onPress={() => router.push({ pathname: '/(tabs)/shop/[id]', params: { id: rec.id } })}
+                                                        onPress={() => router.push({ pathname: '/product-detail', params: { id: rec.id } })}
                                                         style={({ pressed }) => [
                                                             styles.gridCardInner,
                                                             { backgroundColor: colors.surfaceRaised },
@@ -284,7 +284,7 @@ export default function AIChatScreen() {
                                                     style={{ width: '48%', marginBottom: 12 }}
                                                 >
                                                     <Pressable
-                                                        onPress={() => router.push({ pathname: '/(tabs)/occasions/[id]', params: { id: rec.id } })}
+                                                        onPress={() => router.push({ pathname: '/occasion-detail', params: { id: rec.id } })}
                                                         style={({ pressed }) => [
                                                             styles.gridCardInner,
                                                             { backgroundColor: colors.surfaceRaised },

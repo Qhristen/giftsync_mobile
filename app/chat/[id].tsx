@@ -8,6 +8,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { RootState } from '@/store';
 import { useGetConversationQuery, useGetMessagesQuery, useMarkConversationAsReadMutation } from '@/store/api/chatApi';
 import { useGetProfileQuery } from '@/store/api/userApi';
+import { selectTypingUsers } from '@/store/slices/chatSlice';
 import { ChatMessage } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
@@ -51,10 +52,10 @@ export default function ChatDetailScreen() {
     const {
         data,
         isLoading: isMessagesLoading,
-    } = useGetMessagesQuery({ conversationId, limit: 30 });
+    } = useGetMessagesQuery({ conversationId, limit: 50 });
 
     const [markAsRead] = useMarkConversationAsReadMutation();
-    const typingUsers = useSelector((state: RootState) => state.chat.typingUsers[conversationId] || []);
+    const typingUsers = useSelector((state: RootState) => selectTypingUsers(state, conversationId));
 
     const messages = data?.items || [];
     const memoizedMessages = useMemo(() => [...messages].reverse(), [messages]);

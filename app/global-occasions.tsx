@@ -50,17 +50,11 @@ export default function GlobalOccasionsScreen() {
         if (!selectedTemplate || selectedContactIds.length === 0) return;
 
         try {
-            // The API currently takes one contactId at a time based on types. 
-            // I'll loop or wait for a bulk API if available, but for now I'll do individual calls.
-            // Wait, I should check if subscribeToTemplate handles multiple. 
-            // Type says: SubscribeOccasionDto { templateId: string; contactId: string; }
+            await subscribeToTemplate({
+                templateId: selectedTemplate.id,
+                contactId: selectedContactIds
+            }).unwrap();
 
-            for (const contactId of selectedContactIds) {
-                await subscribeToTemplate({
-                    templateId: selectedTemplate.id,
-                    contactId
-                }).unwrap();
-            }
 
             toast.success("Success", { description: `${selectedTemplate.title} added for ${selectedContactIds.length} people! 🎉` });
             contactPickerRef.current?.close();
