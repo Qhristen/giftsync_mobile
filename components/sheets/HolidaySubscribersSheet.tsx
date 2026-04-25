@@ -1,5 +1,4 @@
 import Avatar from '@/components/ui/Avatar';
-import Badge from '@/components/ui/Badge';
 import BottomSheetWrapper, { BottomSheetRef } from '@/components/ui/BottomSheetWrapper';
 import Button from '@/components/ui/Button';
 import Typography from '@/components/ui/Typography';
@@ -9,7 +8,7 @@ import { useGetUpcomingOccasionsQuery } from '@/store/api/occasionApi';
 import { OccasionTemplate } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
+import React, { forwardRef, useImperativeHandle, useRef } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 
 interface Props {
@@ -21,7 +20,7 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
     const router = useRouter();
     const sheetRef = useRef<BottomSheetRef>(null);
     const { data: subscribers, isLoading: isSubscribersLoading } = useGetContactByTemplateIdQuery(holiday?.id || '');
-    console.log(subscribers, "subscribers")
+
     useImperativeHandle(ref, () => ({
         expand: () => sheetRef.current?.expand(),
         close: () => sheetRef.current?.close(),
@@ -43,13 +42,15 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
         sheetRef.current?.close();
     };
 
-    if(isSubscribersLoading) {
-        return <ActivityIndicator size="small" color={colors.primary} />
-    }
+    // if(isSubscribersLoading) {
+    //     return <ActivityIndicator size="small" color={colors.primary} />
+    // }
 
     return (
         <BottomSheetWrapper ref={sheetRef} snapPoints={['70%']} scrollable>
-            {holiday ? (
+            {isSubscribersLoading ? (
+                <ActivityIndicator size="small" color={colors.primary} />
+            ) : holiday ? (
                 <View style={styles.container}>
                     <View style={styles.header}>
                         <View style={[styles.iconContainer, { backgroundColor: colors.primary + '15' }]}>
@@ -58,7 +59,7 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
                         <View style={{ flex: 1 }}>
                             <Typography variant="h2">{holiday.title}</Typography>
                             <Typography variant="body" color={colors.textSecondary}>
-                                Tracking {subscribers?.length} {subscribers?.length === 1 ? 'person' : 'people'}
+                                Celebrating with {subscribers?.length} {subscribers?.length === 1 ? 'person' : 'people'}
                             </Typography>
                         </View>
                     </View>
@@ -85,7 +86,7 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
                     </View>
 
                     <Typography variant="label" color={colors.textSecondary} style={{ marginBottom: spacing.md, marginTop: spacing.lg }}>
-                        Tracked Contacts
+                        Your Gift List
                     </Typography>
 
                     {subscribers && subscribers?.length > 0 ? (
@@ -105,7 +106,7 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
                         <View style={styles.emptyState}>
                             <Ionicons name="people-outline" size={48} color={colors.textSecondary} style={{ opacity: 0.3 }} />
                             <Typography variant="body" color={colors.textSecondary} align="center">
-                                You aren't tracking any contacts for this holiday yet.
+                                You haven't added anyone to celebrate with yet.
                             </Typography>
                             <Button
                                 title="Add Someone"

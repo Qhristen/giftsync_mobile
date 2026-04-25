@@ -1,11 +1,17 @@
 import { addDays, differenceInDays, format, formatDistanceToNow, isAfter, isBefore, startOfDay } from 'date-fns';
 
-export function formatDate(date: string | Date, pattern: string = 'MMMM dd, yyyy') {
-    return format(new Date(date), pattern);
+export function formatDate(date: string | Date | undefined | null, pattern: string = 'MMMM dd, yyyy') {
+    if (!date) return 'N/A';
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return 'Invalid date';
+    return format(d, pattern);
 }
 
-export function formatDistance(date: string | Date) {
-    return formatDistanceToNow(new Date(date), { addSuffix: true });
+export function formatDistance(date: string | Date | undefined | null) {
+    if (!date) return '';
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return '';
+    return formatDistanceToNow(d, { addSuffix: true });
 }
 
 export function getCountdown(date: string | Date) {

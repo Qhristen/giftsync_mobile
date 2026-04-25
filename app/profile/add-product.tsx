@@ -6,7 +6,7 @@ import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
 import { useGetBusinessQuery } from '@/store/api/businessApi';
-import { useCreateProductMutation } from '@/store/api/productApi';
+import { useCreateProductMutation, useUpdateProductMutation } from '@/store/api/productApi';
 import { useUploadMutation } from '@/store/api/uploadApi';
 import { CreateProductDto } from '@/types';
 import { formatInputNumber, getCurrencySymbol, parseCurrencyInput } from '@/utils/formatCurrency';
@@ -29,7 +29,9 @@ export default function AddProductScreen() {
     const [tagInput, setTagInput] = useState('');
 
     const { data: business } = useGetBusinessQuery();
-    const [createProduct, { isLoading: isSubmitting }] = useCreateProductMutation();
+    const [createProduct, { isLoading: isCreating }] = useCreateProductMutation();
+    const [updateProduct, { isLoading: isUpdating }] = useUpdateProductMutation();
+    const isSubmitting = isCreating || isUpdating;
     const [uploadImage, { isLoading: isUploading }] = useUploadMutation();
 
     const [formData, setFormData] = useState<CreateProductDto>({
@@ -124,10 +126,18 @@ export default function AddProductScreen() {
                 imageUrls: uploadedUrls,
             };
 
-            await createProduct({
-                businessId: business.id,
-                data: productData,
-            }).unwrap();
+            if (isEditing) {
+                await updateProduct({
+                    businessId: business.id,
+                    productId: params.id as string,
+                    data: productData,
+                }).unwrap();
+            } else {
+                await createProduct({
+                    businessId: business.id,
+                    data: productData,
+                }).unwrap();
+            }
 
             toast.success(`Product ${isEditing ? 'updated' : 'created'} successfully!`);
             router.back();
@@ -173,7 +183,7 @@ export default function AddProductScreen() {
                     </Pressable>
                     <Typography variant="h3">{isEditing ? 'Edit Product' : 'Add Product'}</Typography>
                     <Pressable onPress={handleSave} disabled={isSubmitting || isUploading}>
-                        {(isSubmitting || isUploading) ? (
+                        {(isSubmitting || isUploading || isUpdating) ? (
                             <ActivityIndicator size="small" color={colors.primary} />
                         ) : (
                             <Typography variant="body" color={colors.primary}>
@@ -323,7 +333,7 @@ export default function AddProductScreen() {
                     <Button
                         title={(isSubmitting || isUploading) ? 'Saving...' : (isEditing ? 'Update Product' : 'Create Product')}
                         onPress={handleSave}
-                        disabled={isSubmitting || isUploading}
+                        disabled={isSubmitting || isUploading || isUpdating}
                         style={{ marginTop: spacing.xl * 2 }}
                     />
                 </ScrollView>

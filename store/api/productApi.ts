@@ -1,4 +1,4 @@
-import { Category, CreateProductDto, PaginatedProductResponse, Product } from '@/types';
+import { Category, CreateProductDto, PaginatedProductResponse, Product, UpdateProductDto } from '@/types';
 import { baseApi } from './baseApi';
 
 export const productApi = baseApi.injectEndpoints({
@@ -70,6 +70,14 @@ export const productApi = baseApi.injectEndpoints({
             }),
             invalidatesTags: ['Products'],
         }),
+        updateProduct: builder.mutation<Product, { businessId: string; productId: string; data: UpdateProductDto }>({
+            query: ({ businessId, productId, data }) => ({
+                url: `/api/v1/products/business/${businessId}/${productId}`,
+                method: 'PATCH',
+                data,
+            }),
+            invalidatesTags: ['Products'],
+        }),
         deleteProduct: builder.mutation<void, { businessId: string; productId: string }>({
             query: ({ businessId, productId }) => ({
                 url: `/api/v1/products/business/${businessId}/${productId}`,
@@ -100,6 +108,7 @@ export const {
     useGetProductsByBusinessQuery,
     useGetProductByIdQuery,
     useCreateProductMutation,
+    useUpdateProductMutation,
     useDeleteProductMutation,
     useGetCategoriesQuery,
     useGetCategoryByIdQuery

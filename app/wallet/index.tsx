@@ -6,14 +6,14 @@ import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
 import { RootState } from '@/store';
-import { useGetCoinPackagesQuery, useGetWalletBalanceQuery, useInitializeFundingMutation, useVerifyFundingMutation } from '@/store/api/walletApi';
+import { useGetCoinPackagesQuery, useGetWalletBalanceQuery, useInitializeFundingMutation, useRequestWithdrawalMutation, useVerifyFundingMutation } from '@/store/api/walletApi';
 import { CoinPackage } from '@/types';
 import { moderateFontScale } from '@/utils/scaling';
 import { FontAwesome5, Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
-import { Modal, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Modal, Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { WebView } from 'react-native-webview';
 import { useSelector } from 'react-redux';
@@ -41,6 +41,7 @@ export default function WalletTopUpScreen() {
 
     const [initializeFunding] = useInitializeFundingMutation();
     const [verifyFunding] = useVerifyFundingMutation();
+    const [requestWithdrawal, { isLoading: isWithdrawing }] = useRequestWithdrawalMutation();
 
     const [selectedPackage, setSelectedPackage] = useState<CoinPackage | null>(null);
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('paystack');
@@ -133,6 +134,32 @@ export default function WalletTopUpScreen() {
         toast('Payment cancelled');
     };
 
+    const handleWithdraw = async () => {
+        Alert.alert(
+            'Withdraw Funds',
+            'Are you sure you want to request a withdrawal to your linked bank account? Our team will review and approve it shortly.',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Confirm Withdrawal',
+                    onPress: async () => {
+                        try {
+                            await requestWithdrawal().unwrap();
+                            toast.success('Withdrawal Requested', {
+                                description: 'Your request has been submitted for approval.'
+                            });
+                            refetchWallet();
+                        } catch (error: any) {
+                            toast.error('Withdrawal Failed', {
+                                description: error?.data?.message || 'Could not process withdrawal request.'
+                            });
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             <View style={[styles.header, { paddingHorizontal: spacing.xl }]}>
@@ -153,6 +180,16 @@ export default function WalletTopUpScreen() {
                     <Typography variant="h1" color="#FFF" style={{ marginTop: 4 }}>
                         {wallet?.balance.toLocaleString()} <Typography variant="h3" color="rgba(255,255,255,0.8)">Coins</Typography>
                     </Typography>
+                    {(wallet?.balance ?? 0) > 0 && (
+                        <Button
+                            title="Withdraw Funds"
+                            variant="secondary"
+                            size="sm"
+                            onPress={handleWithdraw}
+                            isLoading={isWithdrawing}
+                            style={{ marginTop: 16 }}
+                        />
+                    )}
                 </Card>
             </Animated.View>
 

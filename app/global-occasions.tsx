@@ -147,7 +147,7 @@ export default function GlobalOccasionsScreen() {
                 <View style={{ flex: 1 }}>
                     <Typography variant="h2" style={{ marginBottom: spacing.md }}>Select Contacts</Typography>
                     <Typography variant="body" color={colors.textSecondary} style={{ marginBottom: spacing.lg }}>
-                        Who would you like to add to {selectedTemplate?.title}?
+                        Who would you like to celebrate {selectedTemplate?.title} with?
                     </Typography>
 
                     <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>

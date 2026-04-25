@@ -1,3 +1,4 @@
+import DisputeSheet from '@/components/sheets/DisputeSheet';
 import OrderDetailSheet from '@/components/sheets/OrderDetailSheet';
 import ReviewBusinessSheet from '@/components/sheets/ReviewBusinessSheet';
 import ListSkeleton from '@/components/skeletons/ListSkeleton';
@@ -25,6 +26,7 @@ export default function OrderListScreen() {
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const orderSheet = useBottomSheet();
     const reviewSheet = useBottomSheet();
+    const disputeSheet = useBottomSheet();
 
     const [page, setPage] = useState(1);
     const { data, isLoading, isFetching, refetch } = useGetOrdersQuery({ page, limit: 20 });
@@ -60,7 +62,15 @@ export default function OrderListScreen() {
         orderSheet.close();
         setTimeout(() => {
             reviewSheet.open();
-        }, 500);
+        }, 200);
+    };
+
+    const handleDispute = (order: Order) => {
+        setSelectedOrder(order);
+        orderSheet.close();
+        setTimeout(() => {
+            disputeSheet.open();
+        }, 200);
     };
 
     const handleReviewSuccess = () => {
@@ -80,7 +90,7 @@ export default function OrderListScreen() {
                         onPress={() => refetch()}
                         style={({ pressed }) => [
                             styles.refreshBtn,
-                            { backgroundColor: colors.surfaceRaised },
+                            { backgroundColor: colors.surface },
                             pressed && { opacity: 0.7 }
                         ]}
                     >
@@ -93,14 +103,14 @@ export default function OrderListScreen() {
                 </View>
 
                 {/* Tab Switcher */}
-                <View style={[styles.tabs, { backgroundColor: colors.surfaceRaised }]}>
+                <View style={[styles.tabs, { backgroundColor: colors.surface }]}>
                     {['Active', 'History'].map((tab) => (
                         <Pressable
                             key={tab}
                             onPress={() => setActiveTab(tab as 'Active' | 'History')}
                             style={[
                                 styles.tab,
-                                { backgroundColor: activeTab === tab ? colors.surface : 'transparent' },
+                                { backgroundColor: activeTab === tab ? colors.surfaceRaised : 'transparent' },
                                 activeTab === tab && styles.tabActiveShadow,
                             ]}
                         >
@@ -200,12 +210,22 @@ export default function OrderListScreen() {
                 onClose={() => orderSheet.close()}
                 onChat={handleChat}
                 onReview={handleReview}
+                onDispute={handleDispute}
             />
 
             <ReviewBusinessSheet
                 ref={reviewSheet.ref}
                 order={selectedOrder}
                 onSuccess={handleReviewSuccess}
+            />
+
+            <DisputeSheet
+                ref={disputeSheet.ref}
+                orderId={selectedOrder?.id || ''}
+                onSuccess={() => {
+                    disputeSheet.close();
+                    refetch();
+                }}
             />
         </View>
     );

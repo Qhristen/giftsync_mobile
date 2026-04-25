@@ -30,6 +30,10 @@ export default function NotificationsScreen() {
         }
     };
 
+    React.useEffect(() => {
+        handleMarkAllRead();
+    }, []);
+
     const handleNotificationPress = async (id: string, isRead: boolean) => {
         if (!isRead) {
             try {

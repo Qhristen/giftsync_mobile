@@ -393,3 +393,39 @@ export interface CreateConversationDto {
   /** Optional: link the conversation to a specific order */
   orderId?: string;
 }
+
+// ── Trust & Safety ──────────────────────────────────────────────────────────
+
+export type ReportType = 'user' | 'post' | 'marketplace_item' | 'review' | 'comment';
+
+export interface CreateReportDto {
+  targetId: string;
+  type: ReportType;
+  reason: string;
+  description?: string;
+}
+
+export interface BlockedUser {
+  id: string;
+  blockedId: string;
+  blocked: User;
+  createdAt: string;
+}
+
+// ── Dispute Resolution ──────────────────────────────────────────────────────
+
+export interface CreateDisputeDto {
+  orderId: string;
+  reason: string;
+  description?: string;
+}
+
+export interface Dispute {
+  id: string;
+  orderId: string;
+  reason: string;
+  description?: string;
+  status: 'open' | 'resolved' | 'closed';
+  createdAt: string;
+}
+

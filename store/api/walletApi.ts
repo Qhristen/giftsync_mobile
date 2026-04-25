@@ -97,6 +97,13 @@ export const walletApi = baseApi.injectEndpoints({
             }),
             invalidatesTags: ['Wallet'],
         }),
+        requestWithdrawal: builder.mutation<void, void>({
+            query: () => ({
+                url: '/api/v1/wallet/withdraw',
+                method: 'POST',
+            }),
+            invalidatesTags: ['Wallet'],
+        }),
     }),
     overrideExisting: true,
 });
@@ -108,4 +115,6 @@ export const {
     useGetCoinQuoteQuery,
     useInitializeFundingMutation,
     useVerifyFundingMutation,
+    useRequestWithdrawalMutation,
 } = walletApi;
+

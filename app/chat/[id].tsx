@@ -1,5 +1,8 @@
 import MessageBubble from '@/components/chat/MessageBubble';
 import ConversationOptionsSheet from '@/components/sheets/ConversationOptionsSheet';
+import DisputeSheet from '@/components/sheets/DisputeSheet';
+import OrderDetailSheet from '@/components/sheets/OrderDetailSheet';
+import ReportSheet from '@/components/sheets/ReportSheet';
 import Avatar from '@/components/ui/Avatar';
 import { BottomSheetRef } from '@/components/ui/BottomSheetWrapper';
 import Typography from '@/components/ui/Typography';
@@ -7,18 +10,24 @@ import { useChatSocket } from '@/hooks/useChatSocket';
 import { useTheme } from '@/hooks/useTheme';
 import { RootState } from '@/store';
 import { useGetConversationQuery, useGetMessagesQuery, useMarkConversationAsReadMutation } from '@/store/api/chatApi';
+import { useBlockUserMutation } from '@/store/api/trustSafetyApi';
+import { useUploadMutation } from '@/store/api/uploadApi';
 import { useGetProfileQuery } from '@/store/api/userApi';
 import { selectTypingUsers } from '@/store/slices/chatSlice';
 import { ChatMessage } from '@/types';
 import { moderateFontScale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
+import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
     ActivityIndicator,
+    Alert,
     FlatList,
     GestureResponderEvent,
+    Modal,
     Pressable,
     StyleSheet,
     TextInput,
@@ -39,11 +48,15 @@ export default function ChatDetailScreen() {
     const { colors, spacing } = useTheme();
     const insets = useSafeAreaInsets();
     const [messageText, setMessageText] = useState('');
+    const [selectedImages, setSelectedImages] = useState<string[]>([]);
     const flatListRef = useRef<FlatList>(null);
     const convOptionsRef = useRef<BottomSheetRef>(null);
     const orderDetailsRef = useRef<BottomSheetRef>(null);
+    const reportSheetRef = useRef<BottomSheetRef>(null);
+    const disputeSheetRef = useRef<BottomSheetRef>(null);
     const [isOptionsVisible, setIsOptionsVisible] = useState(false);
     const [selectedMessage, setSelectedMessage] = useState<ChatMessage | null>(null);
+    const [viewerConfig, setViewerConfig] = useState<{ images: string[], index: number } | null>(null);
     const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
     const { width: screenWidth, height: screenHeight } = useWindowDimensions();
     const socketService = useChatSocket();
@@ -56,6 +69,8 @@ export default function ChatDetailScreen() {
     } = useGetMessagesQuery({ conversationId, limit: 50 });
 
     const [markAsRead] = useMarkConversationAsReadMutation();
+    const [upload, { isLoading: isUploading }] = useUploadMutation();
+    const [blockUser] = useBlockUserMutation();
     const typingUsers = useSelector((state: RootState) => selectTypingUsers(state, conversationId));
 
     const messages = data?.items || [];
@@ -88,21 +103,58 @@ export default function ChatDetailScreen() {
     }, [conversationId]);
 
     const handleSend = async () => {
-        if (!messageText.trim()) return;
+        if (!messageText.trim() && selectedImages.length === 0) return;
 
         const content = messageText.trim();
+        const imagesToUpload = [...selectedImages];
+
         setMessageText('');
+        setSelectedImages([]);
         socketService.sendTyping(conversationId, false);
+
+        // 1. First make optimistic update to the Ui with local URIs
+        const result = socketService.addOptimisticMessage(conversationId, content, imagesToUpload);
+        const manualMessage = result?.optimisticMessage;
+        const patch = result?.patch;
 
         setTimeout(() => {
             flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
         }, 100);
 
         try {
-            await socketService.sendMessage(conversationId, content);
+            let uploadedUrls: string[] = [];
+            if (imagesToUpload.length > 0) {
+                try {
+                    uploadedUrls = await Promise.all(
+                        imagesToUpload.map(uri => upload(uri).unwrap())
+                    );
+                } catch (error) {
+                    toast.error('Failed to upload images');
+                    patch?.undo();
+                    // Put them back in state so user can retry
+                    setSelectedImages(imagesToUpload);
+                    setMessageText(content);
+                    return;
+                }
+            }
+
+            // 2. Send real message to server, skipping internal optimistic update since we did it manually
+            // We pass manualMessage.id so the socket service can replace it with the real server message
+            await socketService.sendMessage(
+                conversationId,
+                content,
+                uploadedUrls.length > 0 ? uploadedUrls : [],
+                true,
+                manualMessage?.id
+            );
+
+            // removed patch?.undo() here because sendMessage ack or newMessage event 
+            // will handle the replacement of the temp message with the real one.
+            // Undoing the patch here would remove the message from the UI entirely if the 
+            // replacement already happened or if the undo logic is over-aggressive.
         } catch (error) {
             console.error('Failed to send message:', error);
-            // Optionally show error toast
+            patch?.undo();
         }
     };
 
@@ -112,6 +164,24 @@ export default function ChatDetailScreen() {
             socketService.sendTyping(conversationId, true);
         } else {
             socketService.sendTyping(conversationId, false);
+        }
+    };
+
+    const handlePickImage = async () => {
+        try {
+            const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ["images"],
+                quality: 0.8,
+                allowsMultipleSelection: true,
+            });
+
+            if (!result.canceled) {
+                const newImages = result.assets.map(asset => asset.uri);
+                setSelectedImages(prev => [...prev, ...newImages]);
+            }
+        } catch (error) {
+            console.error('Pick image error:', error);
+            toast.error('Could not pick image');
         }
     };
 
@@ -136,7 +206,50 @@ export default function ChatDetailScreen() {
     };
 
     const handleViewOrder = () => {
-        orderDetailsRef.current?.expand();
+        convOptionsRef.current?.close();
+        setTimeout(() => {
+            orderDetailsRef.current?.expand();
+        }, 500);
+    };
+
+    const handleBlockUser = () => {
+        const otherParticipant = participants[0];
+        if (!otherParticipant) return;
+
+        Alert.alert(
+            'Block User',
+            `Are you sure you want to block ${otherParticipant.name}? You will no longer receive messages from them.`,
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Block',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await blockUser({ blockedId: otherParticipant.id }).unwrap();
+                            toast.success('User blocked');
+                            router.back();
+                        } catch (error: any) {
+                            toast.error('Error', { description: error?.data?.message || 'Failed to block user' });
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
+    const handleReportUser = () => {
+        convOptionsRef.current?.close();
+        setTimeout(() => {
+            reportSheetRef.current?.expand();
+        }, 500);
+    };
+
+    const handleOpenDispute = () => {
+        orderDetailsRef.current?.close();
+        setTimeout(() => {
+            disputeSheetRef.current?.expand();
+        }, 500);
     };
 
     if (isConvLoading && !conversation) {
@@ -222,6 +335,7 @@ export default function ChatDetailScreen() {
                                 message={item}
                                 isOwnMessage={item.sender.id === currentUserId}
                                 onLongPress={handleLongPress}
+                                onImagePress={(images, index) => setViewerConfig({ images, index })}
                             />
                         )}
                         style={{ flex: 1 }}
@@ -232,6 +346,29 @@ export default function ChatDetailScreen() {
                     />
                 )}
 
+                {selectedImages.length > 0 && (
+                    <View style={[styles.imagePreviewContainer, { borderTopColor: colors.border, backgroundColor: colors.surface }]}>
+                        <FlatList
+                            data={selectedImages}
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            keyExtractor={(uri, index) => `${uri}-${index}`}
+                            contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 12, gap: 12 }}
+                            renderItem={({ item: uri, index }) => (
+                                <View style={styles.previewWrapper}>
+                                    <Image source={{ uri }} style={styles.imagePreview} />
+                                    <Pressable
+                                        onPress={() => setSelectedImages(prev => prev.filter((_, i) => i !== index))}
+                                        style={[styles.removeBtn, { backgroundColor: colors.surfaceRaised, borderColor: colors.border }]}
+                                    >
+                                        <Ionicons name="close" size={12} color={colors.textPrimary} />
+                                    </Pressable>
+                                </View>
+                            )}
+                        />
+                    </View>
+                )}
+
                 <View style={[
                     styles.inputContainer,
                     {
@@ -240,7 +377,10 @@ export default function ChatDetailScreen() {
                         paddingBottom: insets.bottom + 12,
                     }
                 ]}>
-                    <Pressable style={styles.attachBtn}>
+                    <Pressable
+                        onPress={handlePickImage}
+                        style={styles.attachBtn}
+                    >
                         <Ionicons name="add-circle-outline" size={28} color={colors.textSecondary} />
                     </Pressable>
                     <View style={styles.inputWrapper}>
@@ -260,18 +400,18 @@ export default function ChatDetailScreen() {
                     </View>
                     <Pressable
                         onPress={handleSend}
-                        disabled={!messageText.trim()}
+                        disabled={!messageText.trim() && selectedImages.length === 0}
                         style={[
                             styles.sendBtn,
                             {
-                                backgroundColor: messageText.trim() ? colors.primary : colors.surfaceRaised,
+                                backgroundColor: (messageText.trim() || selectedImages.length > 0) ? colors.primary : colors.surfaceRaised,
                             }
                         ]}
                     >
                         <Ionicons
                             name="send"
                             size={20}
-                            color={messageText.trim() ? '#FFFFFF' : colors.textMuted}
+                            color={(messageText.trim() || selectedImages.length > 0) ? '#FFFFFF' : colors.textMuted}
                         />
                     </Pressable>
                 </View>
@@ -332,6 +472,8 @@ export default function ChatDetailScreen() {
                 ref={convOptionsRef}
                 conversation={conversation || null}
                 onViewOrder={handleViewOrder}
+                onBlockUser={handleBlockUser}
+                onReportUser={handleReportUser}
                 onViewProfile={() => {
                     const otherParticipant = conversation?.participants?.find(p => p.id !== profile?.id);
                     // if (otherParticipant) {
@@ -340,11 +482,70 @@ export default function ChatDetailScreen() {
                 }}
             />
 
-            {/* <OrderDetailSheet
+            <OrderDetailSheet
                 ref={orderDetailsRef}
                 order={conversation?.order || null}
-                onChat={() => convOptionsRef.current?.close()}
-            /> */}
+                onChat={() => {
+                    orderDetailsRef.current?.close();
+                }}
+                onDispute={handleOpenDispute}
+            />
+
+            <ReportSheet
+                ref={reportSheetRef}
+                targetId={participants[0]?.id || ''}
+                type="user"
+                onSuccess={() => reportSheetRef.current?.close()}
+            />
+
+            <DisputeSheet
+                ref={disputeSheetRef}
+                orderId={conversation?.order?.id || ''}
+                onSuccess={() => {
+                    disputeSheetRef.current?.close();
+                    orderDetailsRef.current?.close();
+                }}
+            />
+
+            <Modal
+                visible={!!viewerConfig}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setViewerConfig(null)}
+            >
+                <View style={[styles.viewerContainer, { backgroundColor: 'rgba(0,0,0,0.95)' }]}>
+                    <Pressable
+                        style={[styles.viewerCloseBtn, { top: insets.top + 10 }]}
+                        onPress={() => setViewerConfig(null)}
+                    >
+                        <Ionicons name="close" size={32} color="#FFFFFF" />
+                    </Pressable>
+                    {viewerConfig && (
+                        <FlatList
+                            data={viewerConfig.images}
+                            horizontal
+                            pagingEnabled
+                            initialScrollIndex={viewerConfig.index}
+                            getItemLayout={(_, index) => ({
+                                length: screenWidth,
+                                offset: screenWidth * index,
+                                index,
+                            })}
+                            showsHorizontalScrollIndicator={false}
+                            keyExtractor={(uri, index) => `${uri}-${index}`}
+                            renderItem={({ item: uri }) => (
+                                <View style={{ width: screenWidth, height: '100%', justifyContent: 'center', alignItems: 'center' }}>
+                                    <Image
+                                        source={{ uri }}
+                                        style={styles.viewerImage}
+                                        contentFit="contain"
+                                    />
+                                </View>
+                            )}
+                        />
+                    )}
+                </View>
+            </Modal>
         </View>
     );
 }
@@ -431,5 +632,42 @@ const styles = StyleSheet.create({
     menuSeparator: {
         height: 1,
         marginHorizontal: 12,
+    },
+    imagePreviewContainer: {
+        borderTopWidth: 1,
+    },
+    previewWrapper: {
+        position: 'relative',
+    },
+    imagePreview: {
+        width: 80,
+        height: 80,
+        borderRadius: 12,
+    },
+    removeBtn: {
+        position: 'absolute',
+        top: -6,
+        right: -6,
+        width: 20,
+        height: 20,
+        borderRadius: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+    },
+    viewerContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    viewerImage: {
+        width: '100%',
+        height: '100%',
+    },
+    viewerCloseBtn: {
+        position: 'absolute',
+        right: 20,
+        zIndex: 10,
+        padding: 8,
     },
 });

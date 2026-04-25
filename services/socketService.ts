@@ -4,7 +4,7 @@ import { chatApi } from '../store/api/chatApi';
 
 import { getValidToken } from '@/store/api/baseApi';
 import { setUserStopTyping, setUserTyping } from '@/store/slices/chatSlice';
-import { ChatMessage } from '../types';
+import { ChatMessage, Conversation, PaginationMeta } from '../types';
 
 // ─── Types matching the server contract ──────────────────────────────────────
 
@@ -124,7 +124,7 @@ class SocketService {
                 chatApi.util.updateQueryData(
                     'getMessages',
                     { conversationId: message.conversationId, limit: 50 },
-                    (draft) => {
+                    (draft: { items: ChatMessage[]; meta: PaginationMeta } | undefined) => {
                         // Initialize structure if missing
                         if (!draft?.items) {
                             draft = { items: [], meta: { page: 1, limit: 50, total: 0, totalPages: 1 } };
@@ -163,7 +163,7 @@ class SocketService {
                 chatApi.util.updateQueryData(
                     'getConversations',
                     { page: 1, limit: 50 },
-                    (draft) => {
+                    (draft: { items: Conversation[]; meta: PaginationMeta } | undefined) => {
                         if (!draft?.items) return;
                         const conversations = draft;
 
@@ -223,14 +223,13 @@ class SocketService {
                 chatApi.util.updateQueryData(
                     'getConversations',
                     { page: 1, limit: 50 },
-                    (draft) => {
+                    (draft: { items: Conversation[]; meta: PaginationMeta } | undefined) => {
                         if (!draft) return;
-                        const conversations = Array.isArray(draft) ? draft : draft;
-                        if (!conversations) return;
+                        const conversations = draft;
+                        if (!conversations.items) return;
 
                         const conv = conversations.items.find((c: any) => c.id === conversationId);
                         if (conv) {
-                            // Reset our own unread count if we are the reader
                             const currentUserId = this.getState?.().auth?.user?.id;
                             if (userId === currentUserId) {
                                 conv.unreadCount = 0;
@@ -238,6 +237,24 @@ class SocketService {
                         }
                     },
                 ),
+            );
+
+            // Also update messages cache to show read status (blue ticks)
+            dispatch(
+                chatApi.util.updateQueryData(
+                    'getMessages',
+                    { conversationId, limit: 50 },
+                    (draft: { items: ChatMessage[]; meta: PaginationMeta } | undefined) => {
+                        if (!draft?.items) return;
+                        draft.items.forEach((msg) => {
+                            // If the person who read messages is not the sender of this message,
+                            // then this message is now read.
+                            if (msg.senderId !== userId) {
+                                msg.isRead = true;
+                            }
+                        });
+                    }
+                )
             );
         });
 
@@ -253,6 +270,51 @@ class SocketService {
             dispatch(chatApi.util.invalidateTags([{ type: 'Chat', id: 'UNREAD_COUNT' }]));
             dispatch(chatApi.util.invalidateTags([{ type: 'Chat', id: 'CONV_LIST' }]));
         });
+    }
+
+    /**
+     * Manually add an optimistic message to the cache.
+     * Returns a patch object that can be used to undo the change.
+     */
+    addOptimisticMessage(conversationId: string, content: string, attachments?: string[]) {
+        if (!this.dispatch) return null;
+
+        const user = this.getState?.().auth?.user;
+        if (!user) return null;
+
+        const optimisticMessage: ChatMessage = {
+            id: `temp-${Date.now()}`,
+            conversationId,
+            senderId: user.id,
+            sender: user,
+            content,
+            attachments: attachments || [],
+            isRead: false,
+            readAt: '',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        };
+
+        const patch = this.dispatch(
+            chatApi.util.updateQueryData(
+                'getMessages',
+                { conversationId, limit: 50 },
+                (draft: { items: ChatMessage[]; meta: PaginationMeta } | undefined) => {
+                    if (!draft) return;
+                    if (!draft.items) draft.items = [];
+
+                    const messages = draft.items as ChatMessage[];
+                    if (!messages.find((m) => m.id === optimisticMessage.id)) {
+                        messages.push(optimisticMessage);
+                        messages.sort(
+                            (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+                        );
+                    }
+                },
+            ),
+        );
+
+        return { optimisticMessage, patch };
     }
 
     // ── Emitters ──────────────────────────────────────────────────────────────
@@ -299,7 +361,7 @@ class SocketService {
      * Send a message to a conversation with optimistic UI updates.
      * The server ack returns the saved message object directly.
      */
-    sendMessage(conversationId: string, content: string, attachments?: object | null) {
+    sendMessage(conversationId: string, content: string, attachments?: string[] | null, skipOptimistic?: boolean, manualTempId?: string) {
         if (!this.dispatch || !this.socket?.connected) {
             return Promise.reject('Socket not connected');
         }
@@ -311,68 +373,74 @@ class SocketService {
             return Promise.reject('User not authenticated');
         }
 
-        const optimisticMessage: ChatMessage = {
-            id: `temp-${Date.now()}`,
-            conversationId,
-            senderId: user.id,
-            sender: user,
-            content,
-            attachments: [],
-            isRead: false,
-            readAt: '',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-        };
+        let patchMessages: any = null;
+        let patchConversations: any = null;
 
-        // 1. Optimistically update messages cache
-        const patchMessages = dispatch(
-            chatApi.util.updateQueryData(
-                'getMessages',
-                { conversationId, limit: 50 },
-                (draft) => {
-                    if (!draft) return;
-                    if (!draft.items) {
-                        draft.items = [];
-                    }
+        let optimisticMessage: ChatMessage | null = null;
 
-                    const messages = draft.items;
+        if (!skipOptimistic) {
+            optimisticMessage = {
+                id: `temp-${Date.now()}`,
+                conversationId,
+                senderId: user.id,
+                sender: user,
+                content,
+                attachments: (attachments as string[]) || [],
+                isRead: false,
+                readAt: '',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            };
 
-                    if (!messages.find((m) => m.id === optimisticMessage.id)) {
-                        messages.push(optimisticMessage);
-                        // Sort to ensure correct order
-                        messages.sort(
-                            (a, b) =>
-                                new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+            // 1. Optimistically update messages cache
+            patchMessages = dispatch(
+                chatApi.util.updateQueryData(
+                    'getMessages',
+                    { conversationId, limit: 50 },
+                    (draft: { items: ChatMessage[]; meta: PaginationMeta } | undefined) => {
+                        if (!draft) return;
+                        if (!draft.items) {
+                            draft.items = [];
+                        }
+
+                        const messages = draft.items;
+
+                        if (optimisticMessage && !messages.find((m) => m.id === optimisticMessage!.id)) {
+                            messages.push(optimisticMessage);
+                            // Sort to ensure correct order
+                            messages.sort(
+                                (a, b) =>
+                                    new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+                            );
+                        }
+                    },
+                ),
+            );
+
+            // 2. Optimistically update conversation list cache
+            patchConversations = dispatch(
+                chatApi.util.updateQueryData(
+                    'getConversations',
+                    { page: 1, limit: 50 },
+                    (draft: { items: Conversation[]; meta: PaginationMeta } | undefined) => {
+                        if (!draft) return;
+                        if (!draft.items) return;
+
+                        const convIndex = draft.items.findIndex(
+                            (c: any) => c.id === conversationId,
                         );
-                    }
-                },
-            ),
-        );
+                        if (convIndex !== -1 && optimisticMessage) {
+                            const conv = draft.items[convIndex];
+                            conv.lastMessagePreview = content || (attachments?.[0] ? 'Sent an image' : '');
+                            conv.lastMessageAt = optimisticMessage.createdAt;
 
-        // 2. Optimistically update conversation list cache
-        const patchConversations = dispatch(
-            chatApi.util.updateQueryData(
-                'getConversations',
-                { page: 1, limit: 50 },
-                (draft) => {
-                    if (!draft) return;
-                    const conversations = Array.isArray(draft) ? draft : draft;
-                    if (!conversations) return;
-
-                    const convIndex = conversations.items.findIndex(
-                        (c: any) => c.id === conversationId,
-                    );
-                    if (convIndex !== -1) {
-                        const conv = conversations.items[convIndex];
-                        conv.lastMessagePreview = content;
-                        conv.lastMessageAt = optimisticMessage.createdAt;
-
-                        const [updatedConv] = conversations.items.splice(convIndex, 1);
-                        conversations.items.unshift(updatedConv);
-                    }
-                },
-            ),
-        );
+                            const [updatedConv] = draft.items.splice(convIndex, 1);
+                            draft.items.unshift(updatedConv);
+                        }
+                    },
+                ),
+            );
+        }
 
         return new Promise<ChatMessage>((resolve, reject) => {
             console.log('Chat Socket: Emitting sendMessage', { conversationId, content });
@@ -384,32 +452,60 @@ class SocketService {
                 (finalMessage: ChatMessage) => {
                     if (finalMessage && finalMessage.id) {
                         // Replace temp with the real server message
-                        dispatch(
-                            chatApi.util.updateQueryData(
-                                'getMessages',
-                                { conversationId, limit: 50 },
-                                (draft) => {
-                                    if (!draft) return;
-                                    const messages = draft.items as ChatMessage[];
-                                    if (!messages) return;
+                        const idToReplace = optimisticMessage?.id || manualTempId;
 
-                                    const index = messages.findIndex(
-                                        (m) => m.id === optimisticMessage.id,
-                                    );
-                                    if (index !== -1) {
-                                        messages[index] = finalMessage;
+                        if (idToReplace) {
+                            dispatch(
+                                chatApi.util.updateQueryData(
+                                    'getMessages',
+                                    { conversationId, limit: 50 },
+                                    (draft: { items: ChatMessage[]; meta: PaginationMeta } | undefined) => {
+                                        if (!draft) return;
+                                        const messages = draft.items as ChatMessage[];
+                                        if (!messages) return;
+
+                                        const index = messages.findIndex(
+                                            (m) => m.id === idToReplace,
+                                        );
+                                        if (index !== -1) {
+                                            messages[index] = finalMessage;
+                                        } else {
+                                            // Message might have been already added by newMessage event listener,
+                                            // or index was missed. Check if real ID exists.
+                                            if (!messages.find(m => m.id === finalMessage.id)) {
+                                                messages.push(finalMessage);
+                                                messages.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+                                            }
+                                        }
+                                    },
+                                ),
+                            );
+                        } else {
+                            // No optimistic ID to replace, just ensure it's in the cache
+                            dispatch(
+                                chatApi.util.updateQueryData(
+                                    'getMessages',
+                                    { conversationId, limit: 50 },
+                                    (draft: { items: ChatMessage[]; meta: PaginationMeta } | undefined) => {
+                                        if (!draft) return;
+                                        const messages = draft.items as ChatMessage[];
+                                        if (!messages) return;
+                                        if (!messages.find(m => m.id === finalMessage.id)) {
+                                            messages.push(finalMessage);
+                                            messages.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+                                        }
                                     }
-                                },
-                            ),
-                        );
+                                )
+                            );
+                        }
                         resolve(finalMessage);
                     } else {
                         // Server returned an error or unexpected shape — rollback
                         const errorMsg =
                             (finalMessage as any)?.message ?? 'Failed to send message';
                         console.error('Chat Socket: sendMessage failed', errorMsg);
-                        patchMessages.undo();
-                        patchConversations.undo();
+                        patchMessages?.undo();
+                        patchConversations?.undo();
                         reject(errorMsg);
                     }
                 },

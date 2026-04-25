@@ -42,7 +42,7 @@ const ContactDetailSheet = forwardRef<BottomSheetRef, Props>(
             try {
                 await subscribe({
                     templateId,
-                    contactId: contact.id
+                    contactIds: [contact.id]
                 }).unwrap();
                 toast.success("Subscribed! 🎉");
             } catch (err) {

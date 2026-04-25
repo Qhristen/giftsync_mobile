@@ -56,14 +56,14 @@ export default function OccasionDetailScreen() {
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
 
-            <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
+            <ScrollView contentContainerStyle={{ paddingBottom: 20 }} showsVerticalScrollIndicator={false}>
                 {/* Header Area */}
                 <View style={[styles.headerBg, { backgroundColor: colors.primary }]}>
                     <View style={[styles.header, { top: spacing.xl, paddingHorizontal: spacing.xl }]}>
                         <Pressable onPress={() => router.back()} style={styles.iconBtn}>
                             <Ionicons name="arrow-back" size={24} color="#FFF" />
                         </Pressable>
-                        <Typography variant="h4" color="#FFF">Occasion Details</Typography>
+                        {/* <Typography variant="h4" color="#FFF">Occasion Details</Typography> */}
                         <Pressable style={styles.iconBtn} onPress={() => editSheet.open()}>
                             <Ionicons name="create-outline" size={24} color="#FFF" />
                         </Pressable>
@@ -171,63 +171,6 @@ export default function OccasionDetailScreen() {
                             <Typography variant="body" color={colors.textSecondary}>No recommendations found.</Typography>
                         </View>
                     )}
-
-                    {/* Other Occasions for this Contact */}
-                    <Animated.View entering={FadeInUp.delay(600).duration(500)} style={{ marginTop: 32 }}>
-                        <View style={[styles.sectionHeader, { marginBottom: 16 }]}>
-                            <Typography variant="h3">
-                                {`Other Occasions`}
-                            </Typography>
-                            <Pressable
-                                onPress={() => createSheet.open()}
-                                style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
-                            >
-                                <Ionicons name="add-circle" size={20} color={colors.primary} />
-                                <Typography variant="label" color={colors.primary}>Add New</Typography>
-                            </Pressable>
-                        </View>
-
-                        {otherOccasions.length > 0 ? (
-                            otherOccasions.map((otherOcc) => (
-                                <Pressable
-                                    key={otherOcc.id}
-                                    onPress={() => router.push({ pathname: '/occasion-detail', params: { id: otherOcc.id } })}
-                                >
-                                    <Card style={[styles.otherOccasionCard, { backgroundColor: colors.surfaceRaised }]}>
-                                        <View style={[styles.otherOccasionDot, { backgroundColor: colors.primary }]} />
-                                        <View style={{ flex: 1 }}>
-                                            <Typography variant="bodyBold">{otherOcc.title}</Typography>
-                                            <Typography variant="caption" color={colors.textSecondary} style={{ marginTop: 2 }}>
-                                                {new Date(otherOcc.date).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
-                                            </Typography>
-                                        </View>
-                                        <View style={{ alignItems: 'flex-end' }}>
-                                            <Typography variant="caption" color={colors.primary}>
-                                                {getCountdown(otherOcc.date)}
-                                            </Typography>
-                                            <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} style={{ marginTop: 4 }} />
-                                        </View>
-                                    </Card>
-                                </Pressable>
-                            ))
-                        ) : (
-                            <Card
-                                style={[styles.emptyOccasionCard, { backgroundColor: colors.surfaceRaised, borderColor: colors.border }]}
-                                onPress={() => createSheet.open()}
-                            >
-                                <View style={[styles.emptyOccasionIcon, { backgroundColor: colors.primary + '15' }]}>
-                                    <Ionicons name="calendar-outline" size={28} color={colors.primary} />
-                                </View>
-                                <Typography variant="body" color={colors.textSecondary} style={{ marginTop: 12, textAlign: 'center' }}>
-                                    No other occasions for {occasion.contact?.name}
-                                </Typography>
-                                <View style={[styles.addOccasionBtn, { backgroundColor: colors.primary }]}>
-                                    <Ionicons name="add" size={18} color="#FFF" />
-                                    <Typography variant="bodyBold" color="#FFF" style={{ marginLeft: 6 }}>Create Occasion</Typography>
-                                </View>
-                            </Card>
-                        )}
-                    </Animated.View>
 
                 </Animated.View>
             </ScrollView>

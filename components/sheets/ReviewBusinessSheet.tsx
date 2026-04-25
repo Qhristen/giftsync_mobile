@@ -56,7 +56,7 @@ const ReviewBusinessSheet = forwardRef<BottomSheetRef, Props>(
         const businessName = order.item?.businessName || 'the Vendor';
 
         return (
-            <BottomSheetWrapper ref={ref} snapPoints={['50%', "85%"]}
+            <BottomSheetWrapper ref={ref} snapPoints={['50%']}
                 scrollable
                 keyboardBehavior="interactive"
                 android_keyboardInputMode="adjustPan"
@@ -80,7 +80,7 @@ const ReviewBusinessSheet = forwardRef<BottomSheetRef, Props>(
                         </Typography>
                     </View>
 
-                    <View style={[styles.inputContainer, { backgroundColor: colors.surfaceRaised, borderColor: colors.border }]}>
+                    <View style={[styles.inputContainer, {}]}>
                         <Input
                             placeholder="Share more details about your experience (optional)"
                             value={comment}
@@ -117,10 +117,10 @@ const styles = StyleSheet.create({
         marginBottom: 24,
     },
     inputContainer: {
-        borderRadius: 12,
-        borderWidth: 1,
-        padding: 12,
-        minHeight: 120,
+        // borderRadius: 12,
+        // borderWidth: 1,
+        // padding: 12,
+        // minHeight: 120,
     },
     input: {
         fontSize: moderateFontScale(16),

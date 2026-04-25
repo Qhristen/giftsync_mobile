@@ -2,6 +2,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { Order } from '@/types';
 import { formatDate } from '@/utils/dateUtils';
 import { formatCurrency } from '@/utils/formatCurrency';
+import { moderateFontScale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { forwardRef } from 'react';
@@ -10,21 +11,21 @@ import Badge from '../ui/Badge';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Button from '../ui/Button';
 import Typography from '../ui/Typography';
-import { moderateFontScale } from '@/utils/scaling';
 
 interface OrderDetailSheetProps {
     order: Order | null;
     onClose?: () => void;
     onChat?: (conversationId: string) => void;
     onReview?: (order: Order) => void;
+    onDispute?: (order: Order) => void;
 }
 
-const OrderDetailSheet = forwardRef<BottomSheetRef, OrderDetailSheetProps>(({ order, onClose, onChat, onReview }, ref) => {
+const OrderDetailSheet = forwardRef<BottomSheetRef, OrderDetailSheetProps>(({ order, onClose, onChat, onReview, onDispute }, ref) => {
     const { colors, spacing } = useTheme();
     const router = useRouter();
 
     return (
-        <BottomSheetWrapper ref={ref} snapPoints={['60%']}>
+        <BottomSheetWrapper ref={ref} snapPoints={['60%']} onClose={onClose}>
             {!order ? (
                 <View style={{ padding: 20, alignItems: 'center' }}>
                     <Typography>Loading...</Typography>
@@ -48,7 +49,7 @@ const OrderDetailSheet = forwardRef<BottomSheetRef, OrderDetailSheetProps>(({ or
                         </View>
                         <View style={styles.detailRow}>
                             <Typography variant="body" color={colors.textSecondary}>Date</Typography>
-                            <Typography variant="bodyBold">{formatDate(order.createdAt)}</Typography>
+                            <Typography variant="bodyBold">{formatDate(order?.createdAt)}</Typography>
                         </View>
                         <View style={[styles.divider, { backgroundColor: colors.border }]} />
                         <View style={styles.detailRow}>
@@ -59,7 +60,7 @@ const OrderDetailSheet = forwardRef<BottomSheetRef, OrderDetailSheetProps>(({ or
                         </View>
                         <View style={styles.detailRow}>
                             <Typography variant="body" color={colors.textSecondary}>Recipient</Typography>
-                            <Typography variant="bodyBold">{order.occasion.contact?.name}</Typography>
+                            <Typography variant="bodyBold">{order?.occasion?.contact?.name}</Typography>
                         </View>
                         <View style={[styles.divider, { backgroundColor: colors.border }]} />
                         <View style={styles.detailRow}>
@@ -110,6 +111,15 @@ const OrderDetailSheet = forwardRef<BottomSheetRef, OrderDetailSheetProps>(({ or
                                             <Ionicons name="chatbubble-ellipses" size={16} color={colors.primary} />
                                             <Typography variant="label" color={colors.primary} style={{ fontSize: moderateFontScale(13) }}>Chat Vendor</Typography>
                                         </Pressable>
+                                    )}
+                                    {order.paymentStatus === 'paid' && order.status !== 'Cancelled' && (
+                                        <Button
+                                            title="Raise a Dispute"
+                                            variant="ghost"
+                                            color={colors.error}
+                                            onPress={() => onDispute?.(order)}
+                                            style={{ marginTop: 8 }}
+                                        />
                                     )}
                                 </View>
                             )

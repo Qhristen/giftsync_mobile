@@ -12,10 +12,12 @@ interface Props {
     onViewProfile?: () => void;
     onClearChat?: () => void;
     onDelete?: () => void;
+    onBlockUser?: () => void;
+    onReportUser?: () => void;
 }
 
 const ConversationOptionsSheet = forwardRef<BottomSheetRef, Props>(
-    ({ conversation, onViewOrder, onViewProfile, onClearChat, onDelete }, ref) => {
+    ({ conversation, onViewOrder, onViewProfile, onClearChat, onDelete, onBlockUser, onReportUser }, ref) => {
         const { colors, spacing } = useTheme();
 
         const options = [
@@ -31,6 +33,21 @@ const ConversationOptionsSheet = forwardRef<BottomSheetRef, Props>(
                 onPress: onViewProfile,
             },
             {
+                label: 'Report User',
+                icon: 'flag-outline',
+                onPress: () => {
+                    // This will be handled by the screen to show a report modal/sheet
+                    onReportUser?.();
+                },
+                color: colors.textPrimary,
+            },
+            {
+                label: 'Block User',
+                icon: 'ban-outline',
+                onPress: onBlockUser,
+                color: colors.error,
+            },
+            {
                 label: 'Clear Chat',
                 icon: 'trash-outline',
                 onPress: onClearChat,
@@ -43,6 +60,7 @@ const ConversationOptionsSheet = forwardRef<BottomSheetRef, Props>(
                 color: colors.error,
             },
         ];
+
 
         return (
             <BottomSheetWrapper ref={ref} snapPoints={['40%']}>

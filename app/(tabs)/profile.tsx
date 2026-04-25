@@ -18,18 +18,18 @@ import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { toast } from 'sonner-native';
 
-  interface SettingItem {
-        label: string;
-        icon: string;
-        onPress: () => void;
-        extra?: string;
-    }
+interface SettingItem {
+    label: string;
+    icon: string;
+    onPress: () => void;
+    extra?: string;
+}
 
-    interface SettingSection {
-        title: string;
-        items: SettingItem[];
-    }
-    
+interface SettingSection {
+    title: string;
+    items: SettingItem[];
+}
+
 export default function ProfileScreen() {
     const router = useRouter();
     const { colors, spacing, scheme } = useTheme();
@@ -45,7 +45,7 @@ export default function ProfileScreen() {
     const { user } = useAppSelector((state: RootState) => state.auth);
     const [currency, setCurrency] = useState('NGN');
 
-  
+
 
     const sections: SettingSection[] = [
         {
@@ -53,6 +53,7 @@ export default function ProfileScreen() {
             items: [
                 { label: 'Edit Profile', icon: 'person-outline', onPress: () => router.push('/profile/edit') },
                 { label: 'Saved Addresses', icon: 'location-outline', onPress: () => addressSheet.open() },
+                { label: 'Blocked Users', icon: 'shield-outline', onPress: () => router.push('/profile/blocked') },
             ],
         },
         {
