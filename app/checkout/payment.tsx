@@ -180,8 +180,9 @@ export default function PaymentScreen() {
 
             {/* Paystack WebView Modal */}
             <Modal visible={!!paymentUrl} animationType="slide">
-                <View style={{ flex: 1, paddingTop: 50 }}>
-                    <View style={{ flexDirection: 'row', justifyContent: 'flex-end', padding: 16 }}>
+                <View style={{ flex: 1, paddingTop: 50, backgroundColor: colors.background }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 16 }}>
+                        <Button title="Complete Payment" variant="ghost" onPress={() => setPaymentUrl(null)} />
                         <Button title="Cancel" variant="ghost" onPress={() => setPaymentUrl(null)} />
                     </View>
                     <WebView

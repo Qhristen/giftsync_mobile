@@ -7,6 +7,7 @@ import { useCreateBusinessMutation, useGetBusinessQuery, useUpdateBusinessMutati
 import { useUploadMutation } from '@/store/api/uploadApi';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -63,10 +64,32 @@ export default function BusinessInfoScreen() {
         }
     }, [business]);
 
+    useEffect(() => {
+        const getBackgroundLocation = async () => {
+            try {
+                const { status } = await Location.requestForegroundPermissionsAsync();
+                if (status !== 'granted') {
+                    console.log('Permission to access location was denied');
+                    return;
+                }
+
+                const loc = await Location.getCurrentPositionAsync({
+                    accuracy: Location.Accuracy.Balanced,
+                });
+                const locationStr = `${loc.coords.latitude},${loc.coords.longitude}`;
+                setFormData(prev => ({ ...prev, location: locationStr }));
+            } catch (error) {
+                console.log('Error getting location:', error);
+            }
+        };
+
+        getBackgroundLocation();
+    }, []);
+
     const handleSave = async () => {
         try {
             // Strip fields that aren't part of the API DTO
-            const { isVerified, location, ...rest } = formData;
+            const { isVerified, ...rest } = formData;
             // Remove empty strings — class-validator's @IsOptional() only skips null/undefined, not ''
             const payload = Object.fromEntries(
                 Object.entries(rest).filter(([_, v]) => v !== '' && v !== null && v !== undefined)
@@ -251,7 +274,7 @@ export default function BusinessInfoScreen() {
                         <InfoSection title="Legal & Registration" icon="document-text-outline">
                             {showForm ? (
                                 <>
-                                    <View style={[styles.toggleRow, {backgroundColor: colors.surfaceRaised }]}>
+                                    <View style={[styles.toggleRow, { backgroundColor: colors.surfaceRaised }]}>
                                         <Typography variant="body">Is your business registered?</Typography>
                                         <Pressable
                                             onPress={() => setFormData({ ...formData, isRegistered: !formData.isRegistered })}

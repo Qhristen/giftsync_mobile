@@ -180,17 +180,7 @@ export default function WalletTopUpScreen() {
                     <Typography variant="h1" color="#FFF" style={{ marginTop: 4 }}>
                         {wallet?.balance.toLocaleString()} <Typography variant="h3" color="rgba(255,255,255,0.8)">Coins</Typography>
                     </Typography>
-                    {(wallet?.balance ?? 0) > 0 && (
-                        <Button
-                            title="Withdraw Funds"
-                            variant="secondary"
-                            size="sm"
-                            onPress={handleWithdraw}
-                            isLoading={isWithdrawing}
-                            style={{ marginTop: 16 }}
-                        />
-                    )}
-                </Card>
+                                   </Card>
             </Animated.View>
 
             {/* Transaction History Link */}

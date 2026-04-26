@@ -72,6 +72,16 @@ export default function WalletTransactionsScreen() {
         const style = getTxStyle(item.type);
         const isCredit = item.type === 'purchase' || item.type === 'deposit' || item.type === 'refund';
 
+        const amountText = item.paymentMethod === 'coins' || item?.reference?.startsWith('DEPOSIT')
+            ? `${Math.abs(item.amount).toLocaleString()} Coins`
+            : item?.reference?.startsWith('ORDER')
+                ? formatCurrency(Math.abs(item.amount), 'NGN')
+                : `${Math.abs(item.amount).toLocaleString()} Coins`;
+
+        const balanceText = item.paymentMethod !== 'paystack' || item?.reference?.startsWith('DEPOSIT')
+            ? `Bal: ${item.balanceAfter?.toLocaleString()} Coins`
+            : `Bal: ${item.balanceAfter?.toLocaleString()}`;
+
         return (
             <Animated.View entering={FadeInDown.delay(index * 50).duration(300)}>
                 <Card style={[styles.txCard, { backgroundColor: colors.surface, marginHorizontal: spacing.xl }]}>
@@ -89,10 +99,10 @@ export default function WalletTransactionsScreen() {
                             variant="bodyBold"
                             color={isCredit ? '#10B981' : '#EF4444'}
                         >
-                            {isCredit ? '+' : '-'}{item.paymentMethod === 'coins' ? `${Math.abs(item.amount).toLocaleString()} Coins` : formatCurrency(Math.abs(item.amount), 'NGN')}
+                            {isCredit ? '+' : '-'}{amountText}
                         </Typography>
                         <Typography variant="caption" color={colors.textMuted}>
-                            {item.paymentMethod !== 'paystack' && `Bal: ${item.balanceAfter?.toLocaleString()} Coins`}
+                            {balanceText}
                         </Typography>
                     </View>
                 </Card>

@@ -7,10 +7,11 @@ import { useAppSelector } from '@/store/hooks';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { moderateFontScale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Clipboard from 'expo-clipboard';
 import { Image } from 'expo-image';
 import { Stack, useRouter } from 'expo-router';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
     ActivityIndicator,
     FlatList,
@@ -38,6 +39,9 @@ interface AIMessage {
     };
 }
 
+const AI_CHAT_CACHE_KEY = 'ai_chat_history_v1';
+const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
 export default function AIChatScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
@@ -49,6 +53,8 @@ export default function AIChatScreen() {
     const { width: screenWidth, height: screenHeight } = useWindowDimensions();
 
     const { user } = useAppSelector(s => s.auth);
+    const cacheKey = user?.id ? `${AI_CHAT_CACHE_KEY}_${user.id}` : null;
+
     const [messageText, setMessageText] = useState('');
     const [messages, setMessages] = useState<AIMessage[]>([
         {
@@ -59,10 +65,62 @@ export default function AIChatScreen() {
         }
     ]);
     const [chatHistory, setChatHistory] = useState<AiChatHistoryItem[]>([]);
+    const [isCacheLoaded, setIsCacheLoaded] = useState(false);
     const [isAITyping, setIsAITyping] = useState(false);
     const [selectedMessageText, setSelectedMessageText] = useState('');
 
     const [chatMutation] = useChatMutation();
+
+    // Load cache on mount or when user changes
+    useEffect(() => {
+        if (!cacheKey) {
+            setIsCacheLoaded(true);
+            return;
+        }
+
+        const loadCache = async () => {
+            try {
+                const cached = await AsyncStorage.getItem(cacheKey);
+                if (cached) {
+                    const { messages: cachedMsgs, chatHistory: cachedHistory, timestamp } = JSON.parse(cached);
+                    const now = Date.now();
+
+                    if (now - timestamp < CACHE_TTL) {
+                        setMessages(cachedMsgs);
+                        setChatHistory(cachedHistory);
+                    } else {
+                        // Cache expired
+                        await AsyncStorage.removeItem(cacheKey);
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to load chat cache:', e);
+            } finally {
+                setIsCacheLoaded(true);
+            }
+        };
+        loadCache();
+    }, [cacheKey]);
+
+    // Save cache whenever messages or history change
+    useEffect(() => {
+        if (!isCacheLoaded || !cacheKey) return;
+
+        const saveCache = async () => {
+            try {
+                const cacheData = {
+                    messages,
+                    chatHistory,
+                    timestamp: Date.now(),
+                };
+                await AsyncStorage.setItem(cacheKey, JSON.stringify(cacheData));
+            } catch (e) {
+                console.error('Failed to save chat cache:', e);
+            }
+        };
+
+        saveCache();
+    }, [messages, chatHistory, isCacheLoaded, cacheKey]);
 
     const handleMessageLongPress = (msg: any, event: GestureResponderEvent) => {
         const { pageX, pageY } = event.nativeEvent;
@@ -177,9 +235,18 @@ export default function AIChatScreen() {
                 </View>
 
                 <Pressable
-                    onPress={() => {
-                        setMessages([messages[0]]);
+                    onPress={async () => {
+                        // Reset to first message
+                        const resetMessages = [messages.find(m => m.id === '1') || messages[0]];
+                        setMessages(resetMessages);
                         setChatHistory([]);
+                        if (cacheKey) {
+                            try {
+                                await AsyncStorage.removeItem(cacheKey);
+                            } catch (e) {
+                                console.error('Failed to clear cache:', e);
+                            }
+                        }
                     }}
                     style={({ pressed }) => [
                         styles.headerAction,

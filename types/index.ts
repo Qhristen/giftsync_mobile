@@ -79,6 +79,7 @@ export interface CreateBusinessDto {
   cacNumber?: string;
   taxNumber?: string;
   isRegistered?: boolean;
+  location?: string;
 }
 
 export interface UpdateBusinessDto extends Partial<CreateBusinessDto> { }

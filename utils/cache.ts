@@ -50,8 +50,13 @@ const clearAll = () => {
     memoryCacheLoaded = {};
 };
 
+const getTokenSync = (key: string) => {
+    return memoryCacheLoaded[key] ? memoryCache[key] : null;
+};
+
 export const tokenCache = {
     getToken,
+    getTokenSync,
     saveToken,
     deleteToken,
     clearAll,
