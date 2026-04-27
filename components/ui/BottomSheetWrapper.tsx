@@ -28,7 +28,7 @@ interface Props {
 }
 
 const BottomSheetWrapper = forwardRef<BottomSheetRef, Props>(
-    ({ snapPoints, children, scrollable = false, onClose, index = -1, keyboardBehavior = 'fillParent', keyboardBlurBehavior = 'restore', android_keyboardInputMode = 'adjustResize' }, ref) => {
+    ({ snapPoints, children, scrollable = false, onClose, index = 0, keyboardBehavior = 'fillParent', keyboardBlurBehavior = 'restore', android_keyboardInputMode = 'adjustResize' }, ref) => {
         const { colors, spacing } = useTheme();
         const Container = scrollable ? BottomSheetScrollView : BottomSheetView;
         const modalRef = useRef<BottomSheetModal>(null);
@@ -56,7 +56,7 @@ const BottomSheetWrapper = forwardRef<BottomSheetRef, Props>(
         return (
             <BottomSheetModal
                 ref={modalRef}
-                index={Math.max(0, index)}
+                index={index}
                 snapPoints={snapPoints}
                 enablePanDownToClose
                 backdropComponent={renderBackdrop}

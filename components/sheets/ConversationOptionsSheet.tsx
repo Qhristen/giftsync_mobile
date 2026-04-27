@@ -9,7 +9,6 @@ import Typography from '../ui/Typography';
 interface Props {
     conversation: Conversation | null;
     onViewOrder?: () => void;
-    onViewProfile?: () => void;
     onClearChat?: () => void;
     onDelete?: () => void;
     onBlockUser?: () => void;
@@ -17,7 +16,7 @@ interface Props {
 }
 
 const ConversationOptionsSheet = forwardRef<BottomSheetRef, Props>(
-    ({ conversation, onViewOrder, onViewProfile, onClearChat, onDelete, onBlockUser, onReportUser }, ref) => {
+    ({ conversation, onViewOrder, onClearChat, onDelete, onBlockUser, onReportUser }, ref) => {
         const { colors, spacing } = useTheme();
 
         const options = [
@@ -26,11 +25,6 @@ const ConversationOptionsSheet = forwardRef<BottomSheetRef, Props>(
                 icon: 'receipt-outline',
                 onPress: onViewOrder,
                 visible: !!conversation?.orderId,
-            },
-            {
-                label: 'View Profile',
-                icon: 'person-outline',
-                onPress: onViewProfile,
             },
             {
                 label: 'Report User',

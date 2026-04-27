@@ -8,8 +8,10 @@ import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Typography from '../ui/Typography';
 
+import { usePlatformConfig } from '@/hooks/usePlatformConfig';
 import { useGetContactsQuery } from '@/store/api/contactsApi';
 import { useCreateOccasionMutation, useGetOccasionDetailQuery, useGetOccasionTemplatesQuery, useUpdateOccasionMutation } from '@/store/api/occasionApi';
+import { useAppSelector } from '@/store/hooks';
 import { spendCoins } from '@/store/slices/walletSlice';
 import { Contact } from '@/types';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
@@ -68,6 +70,8 @@ const OccasionForm: React.FC<OccasionFormProps> = ({
 }) => {
     const { spacing, colors } = useTheme();
     const dispatch = useDispatch();
+    const { occasionCreationCost } = usePlatformConfig();
+    const { user } = useAppSelector(s => s.auth);
 
     // Form State
     const [name, setName] = useState(fixedContactName || "");
@@ -170,6 +174,17 @@ const OccasionForm: React.FC<OccasionFormProps> = ({
             return;
         }
 
+        // Check balance for new occasions
+        if (!isEditing) {
+            const currentBalance = user?.coinBalance || 0;
+            if (currentBalance < occasionCreationCost) {
+                toast.error("Insufficient Balance", {
+                    description: `Creating an occasion costs ${occasionCreationCost} coins. Please top up your wallet.`,
+                });
+                return;
+            }
+        }
+
         setIsSubmitting(true);
         try {
             let contactId = selectedContact?.id || fixedContactId;
@@ -197,7 +212,7 @@ const OccasionForm: React.FC<OccasionFormProps> = ({
                     notes,
                     relationship
                 }).unwrap();
-                dispatch(spendCoins(1));
+                dispatch(spendCoins(occasionCreationCost));
                 toast.success("Occasion Added 🎉");
             }
 
@@ -404,7 +419,7 @@ const OccasionForm: React.FC<OccasionFormProps> = ({
 
                 {/* Section 4: Submit */}
                 <Button
-                    title={isEditing ? "Save Changes" : "Save Occasion"}
+                    title={isEditing ? "Save Changes" : `Save Occasion (${occasionCreationCost} coins)`}
                     onPress={handleSubmit}
                     isLoading={isSubmitting || isCreating || isUpdating}
                     disabled={!name || !phone || isSubmitting}

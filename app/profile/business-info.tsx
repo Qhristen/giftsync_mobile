@@ -89,14 +89,14 @@ export default function BusinessInfoScreen() {
     const handleSave = async () => {
         try {
             // Strip fields that aren't part of the API DTO
-            const { isVerified, ...rest } = formData;
+            const { isVerified, isRegistered, ...rest } = formData;
             // Remove empty strings — class-validator's @IsOptional() only skips null/undefined, not ''
             const payload = Object.fromEntries(
                 Object.entries(rest).filter(([_, v]) => v !== '' && v !== null && v !== undefined)
             );
 
             if (business) {
-                await updateBusiness(payload).unwrap();
+                await updateBusiness({ id: business.id, ...payload }).unwrap();
                 toast.success('Business information updated successfully');
             } else {
                 await createBusiness(payload as any).unwrap();
@@ -176,7 +176,7 @@ export default function BusinessInfoScreen() {
                 </View>
 
                 {isFetching && (
-                    <View style={styles.loadingOverlay}>
+                    <View style={[styles.loadingOverlay, { backgroundColor: colors.background + '80' }]}>
                         <ActivityIndicator size="large" color={colors.primary} />
                     </View>
                 )}
@@ -444,7 +444,6 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(255, 255, 255, 0.7)',
         justifyContent: 'center',
         alignItems: 'center',
         zIndex: 1000,

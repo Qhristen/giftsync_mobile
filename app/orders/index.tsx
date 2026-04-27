@@ -184,7 +184,7 @@ export default function OrderListScreen() {
                                             </Pressable>
                                         ) : item.conversationId &&
                                         <Pressable
-                                            onPress={() => handleChat(item.id)}
+                                            onPress={() => handleChat(item.conversationId)}
                                             style={[styles.cardChatBtn, { backgroundColor: colors.primary + '10' }]}
                                         >
                                             <Ionicons name="chatbubble-ellipses" size={16} color={colors.primary} />
@@ -208,7 +208,7 @@ export default function OrderListScreen() {
                 ref={orderSheet.ref}
                 order={selectedOrder}
                 onClose={() => orderSheet.close()}
-                onChat={handleChat}
+                onChat={(id) => handleChat(id)}
                 onReview={handleReview}
                 onDispute={handleDispute}
             />

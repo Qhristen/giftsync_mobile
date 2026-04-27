@@ -1,6 +1,7 @@
 import MessageBubble from '@/components/chat/MessageBubble';
 import Avatar from '@/components/ui/Avatar';
 import Typography from '@/components/ui/Typography';
+import { usePlatformConfig } from '@/hooks/usePlatformConfig';
 import { useTheme } from '@/hooks/useTheme';
 import { AiChatHistoryItem, useChatMutation } from '@/store/api/aiApi';
 import { useAppSelector } from '@/store/hooks';
@@ -45,6 +46,7 @@ const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 export default function AIChatScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
+    const { aiChatCost } = usePlatformConfig();
     const insets = useSafeAreaInsets();
     const flatListRef = useRef<FlatList>(null);
     const [isOptionsVisible, setIsOptionsVisible] = useState(false);
@@ -141,6 +143,19 @@ export default function AIChatScreen() {
 
     const handleSend = async () => {
         if (!messageText.trim()) return;
+
+        // Check wallet balance
+        const coinBalance = user?.coinBalance || 0;
+        if (coinBalance < aiChatCost) {
+            toast.error("Insufficient Balance", {
+                description: `Each message costs ${aiChatCost} coins. Please top up your wallet.`,
+                action: {
+                    label: 'Top Up',
+                    onClick: () => router.push('/wallet')
+                }
+            });
+            return;
+        }
 
         const currentText = messageText.trim();
         const userMsg: AIMessage = {
@@ -482,6 +497,9 @@ export default function AIChatScreen() {
                                 }
                             ]}
                         />
+                        <Typography variant="caption" color={colors.textSecondary} style={{ marginLeft: 16, marginTop: 4 }}>
+                            Each message costs <Typography variant="caption" color={colors.primary} style={{ fontWeight: 'bold' }}>{aiChatCost} coins</Typography>
+                        </Typography>
                     </View>
                     <Pressable
                         onPress={handleSend}

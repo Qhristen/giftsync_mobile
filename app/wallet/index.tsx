@@ -4,6 +4,7 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
+import { usePlatformConfig } from '@/hooks/usePlatformConfig';
 import { useTheme } from '@/hooks/useTheme';
 import { RootState } from '@/store';
 import { useGetCoinPackagesQuery, useGetWalletBalanceQuery, useInitializeFundingMutation, useRequestWithdrawalMutation, useVerifyFundingMutation } from '@/store/api/walletApi';
@@ -31,6 +32,7 @@ const getPackageStyle = (index: number) => packageStyles[index % 4];
 export default function WalletTopUpScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
+  
     const coins = useSelector((state: RootState) => state.wallet.coins);
 
     const { data: coinPackages = [], isLoading, isFetching: isFetchingPackages, refetch: refetchPackages } = useGetCoinPackagesQuery();
@@ -180,7 +182,8 @@ export default function WalletTopUpScreen() {
                     <Typography variant="h1" color="#FFF" style={{ marginTop: 4 }}>
                         {wallet?.balance.toLocaleString()} <Typography variant="h3" color="rgba(255,255,255,0.8)">Coins</Typography>
                     </Typography>
-                                   </Card>
+
+                </Card>
             </Animated.View>
 
             {/* Transaction History Link */}

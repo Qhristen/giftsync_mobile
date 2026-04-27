@@ -16,7 +16,7 @@ export default function MessagesScreen() {
         isLoading,
         isFetching,
         refetch
-    } = useGetConversationsQuery({ page: 1, limit: 50 });
+    } = useGetConversationsQuery({ page: 1, limit: 20 });
 
     const conversations = data?.items || [];
 

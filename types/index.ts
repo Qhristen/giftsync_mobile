@@ -82,7 +82,9 @@ export interface CreateBusinessDto {
   location?: string;
 }
 
-export interface UpdateBusinessDto extends Partial<CreateBusinessDto> { }
+export interface UpdateBusinessDto extends Partial<CreateBusinessDto> {
+  id: string;
+}
 
 export interface Contact {
   id: string;
@@ -284,7 +286,7 @@ export interface OrderItem {
 
 export type PaymentMethod = 'paystack' | 'flutterwave' | 'card' | 'cash' | 'coins';
 export type PaymentStatus = 'pending' | 'paid' | 'failed';
-export type OrderStatus = 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
+export type OrderStatus = 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled' | 'Disputed';
 
 export interface Order {
   id: string;

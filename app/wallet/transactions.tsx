@@ -80,7 +80,7 @@ export default function WalletTransactionsScreen() {
 
         const balanceText = item.paymentMethod !== 'paystack' || item?.reference?.startsWith('DEPOSIT')
             ? `Bal: ${item.balanceAfter?.toLocaleString()} Coins`
-            : `Bal: ${item.balanceAfter?.toLocaleString()}`;
+            : `Direct payment`;
 
         return (
             <Animated.View entering={FadeInDown.delay(index * 50).duration(300)}>

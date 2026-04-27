@@ -2,6 +2,7 @@ import Avatar from '@/components/ui/Avatar';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
+import { usePlatformConfig } from '@/hooks/usePlatformConfig';
 import { useTheme } from '@/hooks/useTheme';
 import { useGetOccasionDetailQuery } from '@/store/api/occasionApi';
 import { useGetProductByIdQuery } from '@/store/api/productApi';
@@ -17,6 +18,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'reac
 export default function CheckoutEntry() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
+    const { deliveryFeeNgn, packagingFeeNgn } = usePlatformConfig();
     const { occasionId, productId } = useLocalSearchParams<{ occasionId: string; productId: string }>();
 
     const { data: occasion, isLoading: initialOccasionLoading, isFetching: isOccasionFetching } = useGetOccasionDetailQuery(occasionId as string, { skip: !occasionId });
@@ -135,7 +137,7 @@ export default function CheckoutEntry() {
                                 <Typography variant="bodyBold">{product?.name || 'Select a Gift'}</Typography>
                                 {product && <Typography variant="caption" color={colors.textSecondary}>Provider: {product.business?.name}</Typography>}
                                 <Typography variant="label" color={colors.primary} style={{ marginTop: 4 }}>
-                                    {product ? formatCurrency((Number(product.price) || 0) + (Number(product.deliveryFee) || 0) + (Number(product.packagingFee) || 0), product.currency) : '---'}
+                                    {product ? formatCurrency((Number(product.price) || 0) + (Number(product.deliveryFee || deliveryFeeNgn) || 0) + (Number(product.packagingFee || packagingFeeNgn) || 0), product.currency) : '---'}
                                 </Typography>
                             </View>
                         </>

@@ -19,7 +19,7 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
     const { colors, spacing } = useTheme();
     const router = useRouter();
     const sheetRef = useRef<BottomSheetRef>(null);
-    const { data: subscribers, isLoading: isSubscribersLoading } = useGetContactByTemplateIdQuery(holiday?.id || '');
+    const { data: subscribers, isLoading: isSubscribersLoading } = useGetContactByTemplateIdQuery(holiday?.id || '', {skip: !holiday?.id});
 
     useImperativeHandle(ref, () => ({
         expand: () => sheetRef.current?.expand(),
@@ -74,7 +74,7 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
                             onPress={handleBulkMessage}
                             disabled={subscribers?.length === 0}
                         />
-                        <Button
+                        {/* <Button
                             title="Send Gifts"
                             variant="primary"
                             size="sm"
@@ -82,7 +82,7 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
                             style={{ flex: 1 }}
                             onPress={handleBulkGift}
                             disabled={subscribers?.length === 0}
-                        />
+                        /> */}
                     </View>
 
                     <Typography variant="label" color={colors.textSecondary} style={{ marginBottom: spacing.md, marginTop: spacing.lg }}>

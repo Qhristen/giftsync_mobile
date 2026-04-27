@@ -12,7 +12,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, SectionList, StyleSheet, View } from 'react-native';
 
 import { useGetContactsQuery } from '@/store/api/contactsApi';
-import { useGetMonthlyOccasionsQuery } from '@/store/api/occasionApi';
+import { useGetMonthlyOccasionsQuery, useGetUpcomingOccasionsQuery } from '@/store/api/occasionApi';
 import { spacing } from '@/theme';
 import { Contact, Occasion } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
@@ -34,36 +34,19 @@ export default function OccasionsScreen() {
         year: currentYear
     });
 
-    // Pre-fetch ALL remaining months of the year (fixed 12 slots, skipped when out of range)
-    // This keeps hooks calls stable regardless of which month is selected.
-    const month0 = useGetMonthlyOccasionsQuery({ month: 1, year: currentYear }, { skip: currentMonth > 0 });
-    const month1 = useGetMonthlyOccasionsQuery({ month: 2, year: currentYear }, { skip: currentMonth > 1 });
-    const month2 = useGetMonthlyOccasionsQuery({ month: 3, year: currentYear }, { skip: currentMonth > 2 });
-    const month3 = useGetMonthlyOccasionsQuery({ month: 4, year: currentYear }, { skip: currentMonth > 3 });
-    const month4 = useGetMonthlyOccasionsQuery({ month: 5, year: currentYear }, { skip: currentMonth > 4 });
-    const month5 = useGetMonthlyOccasionsQuery({ month: 6, year: currentYear }, { skip: currentMonth > 5 });
-    const month6 = useGetMonthlyOccasionsQuery({ month: 7, year: currentYear }, { skip: currentMonth > 6 });
-    const month7 = useGetMonthlyOccasionsQuery({ month: 8, year: currentYear }, { skip: currentMonth > 7 });
-    const month8 = useGetMonthlyOccasionsQuery({ month: 9, year: currentYear }, { skip: currentMonth > 8 });
-    const month9 = useGetMonthlyOccasionsQuery({ month: 10, year: currentYear }, { skip: currentMonth > 9 });
-    const month10 = useGetMonthlyOccasionsQuery({ month: 11, year: currentYear }, { skip: currentMonth > 10 });
-    const month11 = useGetMonthlyOccasionsQuery({ month: 12, year: currentYear }, { skip: false });
+    // Use the upcoming occasions query for "Other Occasions" instead of individual monthly fetches
+    // This is much more efficient than firing 11 extra requests.
+    const { data: upcomingOccasions = [], isFetching: isUpcomingFetching, refetch: refetchUpcoming } = useGetUpcomingOccasionsQuery();
 
-    // All per-month results indexed 0–11
-    const allMonthResults = [month0, month1, month2, month3, month4, month5, month6, month7, month8, month9, month10, month11];
-
-    // Occasions from every visible month EXCEPT the selected one
-    const otherOccasions = allMonthResults
-        .flatMap((result, i) => {
-            if (i === selectedMonthIndex) return []; // exclude selected month
-            if (i < currentMonth) return [];          // exclude past months
-            return result.data?.items ?? [];
+    const otherOccasions = upcomingOccasions
+        .filter(o => {
+            const date = new Date(o.date);
+            // Exclude occasions in the currently selected month to avoid duplication
+            return date.getMonth() !== selectedMonthIndex || date.getFullYear() !== currentYear;
         })
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-    const isOtherFetching = allMonthResults.some((r, i) => i !== selectedMonthIndex && i >= currentMonth && r.isFetching);
-    const refetchOtherMonths = () => allMonthResults.forEach((r, i) => { if (i >= currentMonth) r.refetch(); });
-
+    const isRefreshing = isMonthlyFetching || isUpcomingFetching;
 
     const [viewMode, setViewMode] = useState<'calendar' | 'contacts'>('calendar');
     const [page, setPage] = useState(1);
@@ -72,14 +55,12 @@ export default function OccasionsScreen() {
     // We get all accumulated items directly from RTKQ since we used merge/serializeQueryArgs
     const allContacts = contactsData?.items || [];
 
-    const isRefreshing = isMonthlyFetching || isOtherFetching || isContactsFetching;
-
     const onRefresh = React.useCallback(() => {
         setPage(1);
         refetchMonthly();
-        refetchOtherMonths();
+        refetchUpcoming();
         refetchContacts();
-    }, [refetchMonthly, refetchContacts]);
+    }, [refetchMonthly, refetchUpcoming, refetchContacts]);
 
     const loadMore = () => {
         if (contactsData?.meta && page < contactsData.meta.totalPages && !isContactsFetching) {
@@ -288,7 +269,7 @@ export default function OccasionsScreen() {
                 ref={contactSheetRef}
                 onSuccess={() => {
                     refetchMonthly();
-                    refetchOtherMonths();
+                    // refetchOtherMonths();
                     refetchContacts();
                 }}
             />

@@ -35,7 +35,7 @@ import { RootState } from '@/store';
 import { useRegisterDeviceTokenMutation } from '@/store/api/notificationApi';
 import { useLazyGetProfileQuery } from '@/store/api/userApi';
 import { useAppDispatch } from '@/store/hooks';
-import { logoutUser, setCredentials } from '@/store/slices/authSlice';
+import { logoutUser } from '@/store/slices/authSlice';
 import { tokenCache } from '@/utils/cache';
 import { ActivityIndicator, Platform, View } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -54,6 +54,21 @@ function RootLayoutContent() {
 
   const [getProfile] = useLazyGetProfileQuery();
   const [registerDeviceToken] = useRegisterDeviceTokenMutation()
+  const [getPlatformConfig] = useLazyGetPlatformConfigQuery();
+
+  useEffect(() => {
+    const fetchPlatformConfig = async () => {
+      try {
+        const platformConfigs = await getPlatformConfig().unwrap();
+        if (platformConfigs) {
+          dispatch(setConfigs(platformConfigs));
+        }
+      } catch (error) {
+        console.error("❌ Failed to fetch platform config:", error);
+      }
+    };
+    fetchPlatformConfig();
+  }, []);
 
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
@@ -166,6 +181,8 @@ function RootLayoutContent() {
 }
 
 import { KeyboardProvider } from 'react-native-keyboard-controller';
+import { useGetPlatformConfigQuery, useLazyGetPlatformConfigQuery } from '@/store/api/platformConfigApi';
+import { setConfigs } from '@/store/slices/configSlice';
 
 export default function RootLayout() {
   const [frauncesLoaded, frauncesError] = useFraunces({

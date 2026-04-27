@@ -39,7 +39,7 @@ export default function ProductOrdersScreen() {
         // will automatically refetch the list.
     };
 
-    const getStatusVariant = (status: OrderStatus): "primary" | "secondary" | "success" | "amber" | "error" | "muted" => {
+    const getStatusVariant = (status: OrderStatus) => {
         switch (status) {
             case 'Processing': return 'amber';
             case 'Shipped': return 'primary';
@@ -78,9 +78,10 @@ export default function ProductOrdersScreen() {
                 <Typography variant="h4" color={colors.primary}>{formatCurrency(item.total, 'NGN')}</Typography>
             </View>
 
-            {item.status !== 'Delivered' && item.status !== 'Cancelled' && (
+            {item.status !== 'Delivered' && item.status !== 'Cancelled' && item.status !== 'Disputed' && (
                 <View style={{ marginTop: 12 }}>
                     <Button
+                        disabled={item.status.toLowerCase() === 'disputed'}
                         title="Mark as Delivered"
                         onPress={() => handleOpenConfirm(item)}
                         size="sm"

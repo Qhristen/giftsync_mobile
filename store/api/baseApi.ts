@@ -121,6 +121,9 @@ export const getValidToken = async (forceRefresh = false): Promise<string | null
 
 axiosInstance.interceptors.request.use(
     (config: InternalAxiosRequestConfig<any>) => {
+        // Add timestamp to track request duration
+        (config as any).metadata = { startTime: Date.now() };
+
         config.headers.Accept = "application/json";
         config.headers["Content-Type"] = "application/json";
 
@@ -147,8 +150,21 @@ axiosInstance.interceptors.request.use(
 
 
 axiosInstance.interceptors.response.use(
-    (response) => response,
+    (response) => {
+        const startTime = (response.config as any).metadata?.startTime;
+        if (startTime) {
+            const duration = Date.now() - startTime;
+            console.log(`[BaseApi] ✅ ${response.config.method?.toUpperCase()} ${response.config.url} - ${duration}ms`);
+        }
+        return response;
+    },
     async (error: AxiosError) => {
+        const startTime = (error.config as any)?.metadata?.startTime;
+        if (startTime) {
+            const duration = Date.now() - startTime;
+            console.log(`[BaseApi] ❌ ${error.config?.method?.toUpperCase()} ${error.config?.url} - ${duration}ms (Error: ${error.message})`);
+        }
+
         const originalRequest = error.config as InternalAxiosRequestConfig & {
             _retry?: boolean;
         };

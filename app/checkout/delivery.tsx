@@ -5,6 +5,7 @@ import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
+import { usePlatformConfig } from '@/hooks/usePlatformConfig';
 import { useTheme } from '@/hooks/useTheme';
 import { useGetOccasionDetailQuery } from '@/store/api/occasionApi';
 import { useCreateOrderMutation } from '@/store/api/orderApi';
@@ -19,6 +20,7 @@ import { ActivityIndicator, KeyboardAvoidingView, Pressable, ScrollView, StyleSh
 export default function DeliveryScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
+    const { deliveryFeeNgn, packagingFeeNgn } = usePlatformConfig();
     const { occasionId, productId } = useLocalSearchParams<{ occasionId: string; productId: string }>();
 
     const { data: product, isLoading: initialProductLoading, isFetching: isProductFetching } = useGetProductByIdQuery(productId as string, { skip: !productId });
@@ -142,7 +144,7 @@ export default function DeliveryScreen() {
                     <Card variant="raised" style={[styles.packagingCard, { marginTop: spacing.xl }]}>
                         <View style={{ flex: 1 }}>
                             <Typography variant="bodyBold">Premium Packaging</Typography>
-                            <Typography variant="caption" color={colors.textSecondary}>Ribbon-wrapped box + Silk paper (+ NGN {(Number(product?.packagingFee || 500)).toLocaleString()})</Typography>
+                            <Typography variant="caption" color={colors.textSecondary}>Ribbon-wrapped box + Silk paper (+ NGN {(Number(product?.packagingFee || packagingFeeNgn)).toLocaleString()})</Typography>
                         </View>
                         <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
                     </Card>
@@ -180,17 +182,17 @@ export default function DeliveryScreen() {
                         </View>
                         <View style={styles.summaryRow}>
                             <Typography variant="caption">Delivery Fee</Typography>
-                            <Typography variant="caption">{formatCurrency(product?.deliveryFee || 1500, product?.currency || 'NGN')}</Typography>
+                            <Typography variant="caption">{formatCurrency(product?.deliveryFee || deliveryFeeNgn, product?.currency || 'NGN')}</Typography>
                         </View>
                         <View style={styles.summaryRow}>
                             <Typography variant="caption">Packaging</Typography>
-                            <Typography variant="caption">{formatCurrency(product?.packagingFee || 500, product?.currency || 'NGN')}</Typography>
+                            <Typography variant="caption">{formatCurrency(product?.packagingFee || packagingFeeNgn, product?.currency || 'NGN')}</Typography>
                         </View>
                         <View style={[styles.divider, { backgroundColor: colors.border, marginVertical: 8 }]} />
                         <View style={styles.summaryRow}>
                             <Typography variant="bodyBold">Estimated Total</Typography>
                             <Typography variant="bodyBold" color={colors.primary}>
-                                {formatCurrency((Number(product?.price || 0) + Number(product?.deliveryFee || 1500) + Number(product?.packagingFee || 500)) || 0, product?.currency || 'NGN')}
+                                {formatCurrency((Number(product?.price || 0) + Number(product?.deliveryFee || deliveryFeeNgn) + Number(product?.packagingFee || packagingFeeNgn)) || 0, product?.currency || 'NGN')}
                             </Typography>
                         </View>
                     </Card>

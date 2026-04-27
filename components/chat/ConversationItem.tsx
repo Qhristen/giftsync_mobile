@@ -4,7 +4,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useGetProfileQuery } from '@/store/api/userApi';
 import { Conversation } from '@/types';
 import { moderateFontScale } from '@/utils/scaling';
-import { formatDistanceToNow } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
@@ -21,7 +21,7 @@ const ConversationItem: React.FC<ConversationItemProps> = ({ conversation, onPre
     const displayName = conversation?.order?.item?.product?.name
 
     const lastMessageDate = conversation.lastMessageAt
-        ? formatDistanceToNow(new Date(conversation.lastMessageAt), { addSuffix: true })
+        ? format(new Date(conversation.lastMessageAt), 'dd/MM/yyyy')
         : '';
 
     // Avatar group width: first avatar full-width + each additional offset by overlap
@@ -73,7 +73,7 @@ const ConversationItem: React.FC<ConversationItemProps> = ({ conversation, onPre
                 <View style={styles.footer}>
                     <Typography
                         variant="body"
-                        color={colors.textSecondary}
+                        color={colors.textSecondaryForeground}
                         numberOfLines={1}
                         style={styles.preview}
                     >

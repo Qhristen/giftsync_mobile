@@ -50,7 +50,7 @@ export default function UpcomingHolidays({ templates }: UpcomingHolidaysProps) {
     return (
         <View>
             <Animated.View entering={FadeInDown.delay(500).duration(600)} style={{ paddingVertical: spacing.md }}>
-                <View style={{ paddingHorizontal: spacing.xl, marginBottom: spacing.sm }}>
+                <View style={{ paddingHorizontal: spacing.xl, marginBottom: spacing.xs }}>
                     <Typography variant="h4">Upcoming Holidays</Typography>
                 </View>
                 <ScrollView

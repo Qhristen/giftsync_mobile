@@ -13,6 +13,7 @@ import { useGetConversationQuery, useGetMessagesQuery, useMarkConversationAsRead
 import { useBlockUserMutation } from '@/store/api/trustSafetyApi';
 import { useUploadMutation } from '@/store/api/uploadApi';
 import { useGetProfileQuery } from '@/store/api/userApi';
+import { useAppSelector } from '@/store/hooks';
 import { selectTypingUsers } from '@/store/slices/chatSlice';
 import { ChatMessage } from '@/types';
 import { moderateFontScale } from '@/utils/scaling';
@@ -61,26 +62,25 @@ export default function ChatDetailScreen() {
     const { width: screenWidth, height: screenHeight } = useWindowDimensions();
     const socketService = useChatSocket();
 
-    const { data: profile } = useGetProfileQuery();
+    const { user } = useAppSelector(s => s.auth);
     const { data: conversation, isLoading: isConvLoading } = useGetConversationQuery(conversationId);
     const {
         data,
         isLoading: isMessagesLoading,
     } = useGetMessagesQuery({ conversationId, limit: 50 });
 
-    const [markAsRead] = useMarkConversationAsReadMutation();
-    const [upload, { isLoading: isUploading }] = useUploadMutation();
+    const [upload] = useUploadMutation();
     const [blockUser] = useBlockUserMutation();
     const typingUsers = useSelector((state: RootState) => selectTypingUsers(state, conversationId));
 
     const messages = data?.items || [];
     const memoizedMessages = useMemo(() => [...messages].reverse(), [messages]);
     const isLoading = isMessagesLoading && messages.length === 0;
-    const currentUserId = profile?.id;
+    const currentUserId = user?.id;
 
     const participants = useMemo(() =>
-        conversation?.participants?.filter(p => p.id !== profile?.id) || [],
-        [conversation?.participants, profile?.id]
+        conversation?.participants?.filter(p => p.id !== user?.id) || [],
+        [conversation?.participants, user?.id]
     );
 
     const displayName = conversation?.order?.item?.product?.name || 'Chat';
@@ -93,9 +93,7 @@ export default function ChatDetailScreen() {
     useEffect(() => {
         if (conversationId) {
             socketService.joinConversation(conversationId);
-            markAsRead(conversationId);
             socketService.markAsRead(conversationId);
-
             return () => {
                 socketService.leaveConversation(conversationId);
             };
@@ -252,7 +250,7 @@ export default function ChatDetailScreen() {
         }, 500);
     };
 
-    if (isConvLoading && !conversation) {
+    if (isConvLoading) {
         return (
             <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center' }]}>
                 <ActivityIndicator size="large" color={colors.primary} />
@@ -474,13 +472,7 @@ export default function ChatDetailScreen() {
                 onViewOrder={handleViewOrder}
                 onBlockUser={handleBlockUser}
                 onReportUser={handleReportUser}
-                onViewProfile={() => {
-                    const otherParticipant = conversation?.participants?.find(p => p.id !== profile?.id);
-                    // if (otherParticipant) {
-                    //     router.push(`/profile/${otherParticipant.id}`);
-                    // }
-                }}
-            />
+                          />
 
             <OrderDetailSheet
                 ref={orderDetailsRef}

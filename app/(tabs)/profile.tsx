@@ -68,6 +68,7 @@ export default function ProfileScreen() {
             title: 'Vendors point',
             items: [
                 { label: 'Business Info', icon: 'business-outline', onPress: () => router.push('/profile/business-info') },
+                ...(user?.business ? [{ label: 'Seller Guide', icon: 'information-circle-outline', onPress: () => router.push('/profile/seller-guide') }] : []),
                 ...(user?.business ? [{ label: 'My Products', icon: 'cube-outline', onPress: () => router.push('/profile/my-products') }] : []),
             ],
         },
@@ -140,14 +141,14 @@ export default function ProfileScreen() {
                     <Button
                         title="Sign Out"
                         variant="outline"
-                        onPress={() => logoutSheet.open()}
+                        onPress={() => requestAnimationFrame(() => logoutSheet.open())}
                         style={{ borderColor: colors.border }}
                         color={colors.textPrimary}
                     />
                     <Button
                         title="Delete Account"
                         variant="ghost"
-                        onPress={() => deleteUserSheet.open()}
+                        onPress={() => requestAnimationFrame(() => deleteUserSheet.open())}
                         color={colors.error}
                     />
                 </View>
@@ -177,9 +178,8 @@ export default function ProfileScreen() {
                 description="Are you sure you want to sign out of GiftSync?"
                 confirmLabel="Sign Out"
                 onConfirm={async () => {
-                    await dispatch(logoutUser());
                     logoutSheet.close();
-                    router.replace('/(auth)/welcome');
+                    await dispatch(logoutUser());
                 }}
             />
 
@@ -192,10 +192,9 @@ export default function ProfileScreen() {
                 onConfirm={async () => {
                     try {
                         await deleteAccount().unwrap();
-                        toast.success('Account deleted', { description: 'Your account has been deleted.' });
                         deleteUserSheet.close();
-                        router.replace('/(auth)/welcome');
-                        dispatch(logoutUser());
+                        toast.success('Account deleted', { description: 'Your account has been deleted.' });
+                        await dispatch(logoutUser());
                     } catch (error: any) {
                         toast.error('Error', { description: error?.data?.message || 'Failed to delete account' });
                     }

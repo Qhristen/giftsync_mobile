@@ -11,6 +11,8 @@ import onboardingReducer from './slices/onboardingSlice';
 import themeReducer from './slices/themeSlice';
 import walletReducer from './slices/walletSlice';
 
+import configReducer from './slices/configSlice';
+
 const appReducer = combineReducers({
     auth: authReducer,
     theme: themeReducer,
@@ -19,6 +21,7 @@ const appReducer = combineReducers({
     occasions: occasionReducer,
     wallet: walletReducer,
     chat: chatReducer,
+    config: configReducer,
     [baseApi.reducerPath]: baseApi.reducer,
 });
 
@@ -34,7 +37,7 @@ const rootReducer = (state: any, action: UnknownAction) => {
 const persistConfig = {
     key: 'root',
     storage: AsyncStorage,
-    whitelist: ['auth', 'theme', 'onboarding', baseApi.reducerPath] // Cache RTK Query APIs permanently
+    whitelist: ['auth', 'theme', 'onboarding', 'config', baseApi.reducerPath] // Cache RTK Query APIs permanently
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -45,6 +48,7 @@ export const store = configureStore({
         getDefaultMiddleware({
             serializableCheck: {
                 ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+                warnAfter: 128,
             },
             immutableCheck: false, // Prevents Redux from freezing the JS thread doing deep equality checks on large API arrays
         }).concat(baseApi.middleware),

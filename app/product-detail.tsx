@@ -7,7 +7,6 @@ import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
-import { useGetBusinessReviewsQuery } from '@/store/api/businessApi';
 import { useGetUpcomingOccasionsQuery } from '@/store/api/occasionApi';
 import { useGetProductByIdQuery } from '@/store/api/productApi';
 import { Occasion } from '@/types';
@@ -16,13 +15,27 @@ import { formatCurrency } from '@/utils/formatCurrency';
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
+import * as Location from 'expo-location';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Dimensions, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
+
+function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
+    const R = 6371; // Radius of the earth in km
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lon2 - lon1) * (Math.PI / 180);
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c; // Distance in km
+}
 
 export default function ShopItemDetailScreen() {
     const { id, occasionId } = useLocalSearchParams();
@@ -33,6 +46,17 @@ export default function ShopItemDetailScreen() {
     const [descriptionExpanded, setDescriptionExpanded] = useState(false);
     const occasionSheet = useBottomSheet();
     const vendorSheet = useBottomSheet();
+
+    const [userLocation, setUserLocation] = useState<Location.LocationObject | null>(null);
+
+    useEffect(() => {
+        (async () => {
+            let { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') return;
+            let location = await Location.getCurrentPositionAsync({});
+            setUserLocation(location);
+        })();
+    }, []);
 
     const toggleDescription = useCallback(() => setDescriptionExpanded(v => !v), []);
 
@@ -52,6 +76,17 @@ export default function ShopItemDetailScreen() {
         return calculateDeliveryStatus(selectedOccasion.date, product.deliveryDays, selectedOccasion.contact?.name);
     }, [product, selectedOccasion]);
 
+    const businessLocationCoords = useMemo(() => {
+        if (!product?.business?.location) return null;
+        const [lat, lng] = product?.business?.location.split(',').map(Number);
+        if (!isNaN(lat) && !isNaN(lng)) {
+            return { latitude: lat, longitude: lng };
+        }
+        return null;
+    }, [product?.business?.location]);
+
+
+    console.log("businessLocationCoords", product?.business?.location)
     if (isLoading || isFetching) {
         return <ShopItemDetailSkeleton />;
     }
@@ -149,7 +184,44 @@ export default function ShopItemDetailScreen() {
                         </Card>
                     </Pressable>
 
-                    {deliveryStatus && (
+                    {businessLocationCoords ? (
+                        <View style={{ marginTop: spacing.xl }}>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: spacing.sm }}>
+                                <Typography variant="h4">Business Location</Typography>
+                                {userLocation ? (
+                                    <Typography variant="bodyBold" color={colors.primary}>
+                                        {getDistance(
+                                            userLocation.coords.latitude,
+                                            userLocation.coords.longitude,
+                                            businessLocationCoords.latitude,
+                                            businessLocationCoords.longitude
+                                        ).toFixed(1)} km away
+                                    </Typography>
+                                ) : null}
+                            </View>
+                            {product.business?.businessAddress ? (
+                                <Typography variant="body" color={colors.textSecondary} style={{ marginBottom: spacing.md }}>
+                                    {product.business.businessAddress}
+                                </Typography>
+                            ) : null}
+                            <View style={{ height: 200, borderRadius: 16, overflow: 'hidden' }}>
+                                <MapView
+                                    style={{ flex: 1 }}
+                                    // provider={PROVIDER_GOOGLE}
+                                    initialRegion={{
+                                        latitude: businessLocationCoords.latitude,
+                                        longitude: businessLocationCoords.longitude,
+                                        latitudeDelta: 0.05,
+                                        longitudeDelta: 0.05,
+                                    }}
+                                >
+                                    <Marker coordinate={businessLocationCoords} title={product.business?.name || 'Local Vendor'} />
+                                </MapView>
+                            </View>
+                        </View>
+                    ) : null}
+
+                    {deliveryStatus ? (
                         <View style={{ marginTop: spacing.xl }}>
                             <Typography variant="h4" style={{ marginBottom: spacing.md }}>Delivery Status</Typography>
                             <Card
@@ -180,7 +252,7 @@ export default function ShopItemDetailScreen() {
                                 </View>
                             </Card>
                         </View>
-                    )}
+                    ) : null}
 
                     <View style={{ marginTop: spacing.xl }}>
                         <Typography variant="h4" style={{ marginBottom: spacing.sm }}>Category</Typography>
@@ -190,7 +262,7 @@ export default function ShopItemDetailScreen() {
                     </View>
 
                     {/* Description */}
-                    {product.description && (
+                    {product.description ? (
                         <View style={{ marginTop: spacing.xl }}>
                             <Typography variant="h4" style={{ marginBottom: spacing.sm }}>Description</Typography>
                             <Typography
@@ -207,7 +279,7 @@ export default function ShopItemDetailScreen() {
                                 </Typography>
                             </Pressable>
                         </View>
-                    )}
+                    ) : null}
 
                     {/* Product Details */}
                     <View style={{ marginTop: spacing.xl }}>
@@ -249,7 +321,7 @@ export default function ShopItemDetailScreen() {
                     </View>
 
                     {/* Tags */}
-                    {product.tags && product.tags.length > 0 && (
+                    {product.tags && product.tags.length > 0 ? (
                         <View style={{ marginTop: spacing.xl }}>
                             <Typography variant="h4" style={{ marginBottom: spacing.md }}>Tags</Typography>
                             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
@@ -260,23 +332,23 @@ export default function ShopItemDetailScreen() {
                                 ))}
                             </View>
                         </View>
-                    )}
+                    ) : null}
                 </Animated.View>
             </ScrollView>
-                <View style={[styles.footer, { backgroundColor: colors.surface, paddingBottom: insets.bottom + 20 }]}>
-                    <Button
-                        title="Send as Gift"
-                        variant="primary"
-                        leftIcon={<Ionicons name="gift-outline" size={20} color="#FFF" style={{ marginRight: 8 }} />}
-                        onPress={() => {
-                            if (occasionId) {
-                                router.push({ pathname: '/checkout', params: { productId: id, occasionId: occasionId as string } });
-                            } else {
-                                occasionSheet.open();
-                            }
-                        }}
-                    />
-                </View>
+            <View style={[styles.footer, { backgroundColor: colors.surface, paddingBottom: insets.bottom + 20 }]}>
+                <Button
+                    title="Send as Gift"
+                    variant="primary"
+                    leftIcon={<Ionicons name="gift-outline" size={20} color="#FFF" style={{ marginRight: 8 }} />}
+                    onPress={() => {
+                        if (occasionId) {
+                            router.push({ pathname: '/checkout', params: { productId: id, occasionId: occasionId as string } });
+                        } else {
+                            occasionSheet.open();
+                        }
+                    }}
+                />
+            </View>
 
             {/* Sticky Footer — sits above the absolute-positioned floating tab bar                 (tab bar: ~55px tall + 15px margin + device bottom inset) */}
 
@@ -294,7 +366,7 @@ export default function ShopItemDetailScreen() {
                 business={product.business}
                 ratingAvg={product?.ratingAvg}
                 ratingCount={product?.ratingCount}
-                          />
+            />
         </View>
     );
 }

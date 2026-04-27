@@ -3,7 +3,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useDeleteNotificationMutation, useGetNotificationsQuery, useMarkAllAsReadMutation, useMarkAsReadMutation } from '@/store/api/notificationApi';
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
-import { formatDistanceToNow } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
@@ -96,7 +96,8 @@ export default function NotificationsScreen() {
                     refreshing={isLoading}
                     renderItem={({ item, index }) => {
                         const iconConfig = getIcon(item.type);
-                        const timeAgo = formatDistanceToNow(new Date(item.createdAt), { addSuffix: true });
+                        const timeAgo = format(new Date(item.createdAt), 'dd/MM/yyyy');
+
 
                         const renderLeftActions = () => (
                             <View style={[styles.swipeAction, { backgroundColor: colors.primary }]}>
@@ -138,10 +139,10 @@ export default function NotificationsScreen() {
                                         </View>
                                         <View style={styles.textContainer}>
                                             <View style={styles.titleRow}>
-                                                <Typography variant="bodyBold" numberOfLines={2} color={colors.textPrimary}>{item.title}</Typography>
+                                                <Typography variant="bodyBold" numberOfLines={2} color={colors.textSecondary}>{item.title}</Typography>
                                                 <Typography variant="caption" color={colors.textSecondary}>{timeAgo}</Typography>
                                             </View>
-                                            <Typography variant="body" numberOfLines={2} color={colors.textSecondary} style={{ marginTop: 4 }}>
+                                            <Typography variant="body" numberOfLines={2} color={colors.textSecondaryForeground} style={{ marginTop: 4 }}>
                                                 {item.body}
                                             </Typography>
                                         </View>

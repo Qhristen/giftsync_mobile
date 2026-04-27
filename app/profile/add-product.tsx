@@ -4,6 +4,7 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
+import { usePlatformConfig } from '@/hooks/usePlatformConfig';
 import { useTheme } from '@/hooks/useTheme';
 import { useGetBusinessQuery } from '@/store/api/businessApi';
 import { useCreateProductMutation, useUpdateProductMutation } from '@/store/api/productApi';
@@ -21,6 +22,7 @@ export default function AddProductScreen() {
     const router = useRouter();
     const params = useLocalSearchParams();
     const { colors, spacing } = useTheme();
+    const { productCreationCost } = usePlatformConfig();
 
     const isEditing = !!params.id;
     const categorySheet = useBottomSheet();
@@ -331,7 +333,7 @@ export default function AddProductScreen() {
                     </View>
 
                     <Button
-                        title={(isSubmitting || isUploading) ? 'Saving...' : (isEditing ? 'Update Product' : 'Create Product')}
+                        title={(isSubmitting || isUploading) ? 'Saving...' : (isEditing ? 'Update Product' : `Create Product (${productCreationCost} coins)`)}
                         onPress={handleSave}
                         disabled={isSubmitting || isUploading || isUpdating}
                         style={{ marginTop: spacing.xl * 2 }}

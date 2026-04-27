@@ -2,7 +2,9 @@ import Avatar from '@/components/ui/Avatar';
 import BottomSheetWrapper, { BottomSheetRef } from '@/components/ui/BottomSheetWrapper';
 import Button from '@/components/ui/Button';
 import Typography from '@/components/ui/Typography';
+import { usePlatformConfig } from '@/hooks/usePlatformConfig';
 import { useTheme } from '@/hooks/useTheme';
+import { RootState } from '@/store';
 import { useGetContactsQuery } from '@/store/api/contactsApi';
 import { useGetOccasionTemplatesQuery, useSubscribeToTemplateMutation } from '@/store/api/occasionApi';
 import { spacing } from '@/theme';
@@ -13,11 +15,13 @@ import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { useSelector } from 'react-redux';
 import { toast } from 'sonner-native';
 
 export default function GlobalOccasionsScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
+    const { occasionCreationCost } = usePlatformConfig();
 
     const { data: templates, isLoading: isTemplatesLoading } = useGetOccasionTemplatesQuery();
     const { data: contactsData } = useGetContactsQuery({ page: 1, limit: 100 });
@@ -46,8 +50,27 @@ export default function GlobalOccasionsScreen() {
         );
     };
 
+    const { user } = useSelector((state: RootState) => state.auth);
     const handleSubscribe = async () => {
         if (!selectedTemplate || selectedContactIds.length === 0) return;
+
+        // Check balance
+        const totalCost = occasionCreationCost * selectedContactIds.length;
+        const currentBalance = user?.coinBalance || 0;
+
+        if (currentBalance < totalCost) {
+            toast.error("Insufficient Balance", {
+                description: `Adding ${selectedContactIds.length} people costs ${totalCost} coins. Please top up your wallet.`,
+                action: {
+                    label: 'Top Up',
+                    onClick: () => {
+                        contactPickerRef.current?.close();
+                        router.push('/wallet');
+                    }
+                }
+            });
+            return;
+        }
 
         try {
             await subscribeToTemplate({
@@ -135,7 +158,7 @@ export default function GlobalOccasionsScreen() {
                         </Typography>
 
                         <Button
-                            title="Add People"
+                            title={`Add People (${occasionCreationCost} coins)`}
                             onPress={handleOpenContactPicker}
                             leftIcon={<Ionicons name="people-outline" size={20} color="#FFF" />}
                         />
