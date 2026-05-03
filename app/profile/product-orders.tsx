@@ -1,5 +1,5 @@
 import ConfirmDeliverySheet from '@/components/sheets/ConfirmDeliverySheet';
-import ListSkeleton from '@/components/skeletons/ListSkeleton';
+import OrderListSkeleton from '@/components/skeletons/OrderListSkeleton';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
@@ -103,9 +103,10 @@ export default function ProductOrdersScreen() {
                 </View>
             </View>
 
+
             {isLoading ? (
                 <View style={{ flex: 1, paddingTop: 20 }}>
-                    <ListSkeleton />
+                    <OrderListSkeleton />
                 </View>
             ) : (
                 <FlatList

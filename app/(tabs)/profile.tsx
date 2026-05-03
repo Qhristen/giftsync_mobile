@@ -68,8 +68,9 @@ export default function ProfileScreen() {
             title: 'Vendors point',
             items: [
                 { label: 'Business Info', icon: 'business-outline', onPress: () => router.push('/profile/business-info') },
-                ...(user?.business ? [{ label: 'Seller Guide', icon: 'information-circle-outline', onPress: () => router.push('/profile/seller-guide') }] : []),
                 ...(user?.business ? [{ label: 'My Products', icon: 'cube-outline', onPress: () => router.push('/profile/my-products') }] : []),
+                ...(user?.business ? [{ label: 'Seller Guide', icon: 'information-circle-outline', onPress: () => router.push('/profile/seller-guide') }] : []),
+                ...(user?.business ? [{ label: 'Seller FAQs', icon: 'help-buoy-outline', onPress: () => router.push('/profile/seller-faqs') }] : []),
             ],
         },
         {

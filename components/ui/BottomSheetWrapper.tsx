@@ -10,6 +10,7 @@ import {
 } from '@gorhom/bottom-sheet';
 import React, { forwardRef, useCallback, useImperativeHandle, useMemo, useRef } from 'react';
 import { View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export interface BottomSheetRef {
     expand: () => void;
@@ -38,7 +39,7 @@ const BottomSheetWrapper = forwardRef<BottomSheetRef, Props>(
         const { colors, spacing } = useTheme();
         const Container = scrollable ? BottomSheetScrollView : (enableFlex ? View : BottomSheetView);
         const modalRef = useRef<BottomSheetModal>(null);
-
+        const insets = useSafeAreaInsets();
         useImperativeHandle(ref, () => ({
             expand: () => modalRef.current?.present(),
             close: () => modalRef.current?.dismiss(),
@@ -87,11 +88,12 @@ const BottomSheetWrapper = forwardRef<BottomSheetRef, Props>(
                 android_keyboardInputMode={android_keyboardInputMode}
                 onDismiss={onClose}
                 footerComponent={renderFooter ? renderFooterComponent : undefined}
+
             >
                 <Container
                     style={[
                         enableFlex && { flex: 1 },
-                        !disablePadding && { paddingHorizontal: spacing.lg, paddingBottom: spacing.xl }
+                        !disablePadding && { paddingHorizontal: spacing.lg, paddingBottom: insets.bottom + spacing['3xl'] }
                     ]}
                     {...(scrollable ? { showsVerticalScrollIndicator: false } : {})}
                 >

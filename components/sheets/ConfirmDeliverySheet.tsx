@@ -7,6 +7,7 @@ import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Typography from '../ui/Typography';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface Props {
     order: Order | null;
@@ -17,7 +18,7 @@ const ConfirmDeliverySheet = forwardRef<BottomSheetRef, Props>(
     ({ order, onSuccess }, ref) => {
         const { spacing, colors } = useTheme();
         const [deliveryCode, setDeliveryCode] = useState('');
-
+  const insets = useSafeAreaInsets();
         const [confirmDelivery, { isLoading }] = useConfirmDeliveryMutation();
 
         const handleConfirm = async () => {
@@ -38,40 +39,40 @@ const ConfirmDeliverySheet = forwardRef<BottomSheetRef, Props>(
             }
         };
 
-        if (!order) return null;
-
         return (
             <BottomSheetWrapper ref={ref}
                 snapPoints={['35%', '40%']}
                 scrollable
                 keyboardBehavior="interactive"
                 android_keyboardInputMode="adjustPan">
-                <View style={styles.content}>
-                    <Typography variant="h2" align="center" style={{ marginBottom: spacing.sm }}>
-                        Confirm Delivery
-                    </Typography>
-                    <Typography variant="body" align="center" color={colors.textSecondary} style={{ marginBottom: spacing.xl }}>
-                        Enter the unique confirmation code provided by the recipient to mark Order #{order.id.slice(-6).toUpperCase()} as delivered.
-                    </Typography>
+                {order ? (
+                    <View style={styles.content}>
+                        <Typography variant="h2" align="center" style={{ marginBottom: spacing.sm }}>
+                            Confirm Delivery
+                        </Typography>
+                        <Typography variant="body" align="center" color={colors.textSecondary} style={{ marginBottom: spacing.xl }}>
+                            Enter the unique confirmation code provided by the recipient to mark Order #{order.id.slice(-6).toUpperCase()} as delivered.
+                        </Typography>
 
-                    <Input
-                        label="Recipient's Delivery Code"
-                        placeholder="e.g. GS-4821"
-                        value={deliveryCode}
-                        onChangeText={setDeliveryCode}
-                        isBottomSheet
-                        keyboardType="default"
-                        autoCapitalize="characters"
-                    />
+                        <Input
+                            label="Recipient's Delivery Code"
+                            placeholder="e.g. GS-4821"
+                            value={deliveryCode}
+                            onChangeText={setDeliveryCode}
+                            isBottomSheet
+                            keyboardType="default"
+                            autoCapitalize="characters"
+                        />
 
-                    <Button
-                        title="Mark as Delivered"
-                        onPress={handleConfirm}
-                        isLoading={isLoading}
-                        disabled={!deliveryCode.trim()}
-                        style={{ marginTop: spacing.xl }}
-                    />
-                </View>
+                        <Button
+                            title="Mark as Delivered"
+                            onPress={handleConfirm}
+                            isLoading={isLoading}
+                            disabled={!deliveryCode.trim()}
+                            style={{ marginTop: spacing.xl, marginBottom: insets.bottom + spacing['2xl'] }}
+                        />
+                    </View>
+                ) : <View style={{ height: 100 }} />}
             </BottomSheetWrapper>
         );
     }

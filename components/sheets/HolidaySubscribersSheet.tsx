@@ -12,6 +12,7 @@ import * as Contacts from 'expo-contacts';
 import { useRouter } from 'expo-router';
 import React, { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface Props {
     holiday: OccasionTemplate | null;
@@ -27,7 +28,7 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [pageOffset, setPageOffset] = useState(0);
     const [hasMore, setHasMore] = useState(true);
-
+    const insets = useSafeAreaInsets();
     const [selectedContactsMap, setSelectedContactsMap] = useState<Map<string, Contacts.Contact & { id: string }>>(new Map());
 
     // New states for search and AI generation
@@ -175,7 +176,7 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
             disablePadding
             enableFlex
             renderFooter={() => (
-                <View style={[{ paddingHorizontal: spacing.md, paddingTop: spacing.md, paddingBottom: spacing['3xl'], backgroundColor: colors.surface }]}>
+                <View style={[{ paddingHorizontal: spacing.md, paddingTop: spacing.md, paddingBottom: insets.bottom + 20, backgroundColor: colors.surface }]}>
                     <Button
                         title={isGenerating ? "Sending..." : `Send Messages (${selectedContactsMap.size}) (${Number(directSmsCost * selectedContactsMap.size).toFixed(1) ?? 0} coins)`}
                         variant="primary"

@@ -1,7 +1,7 @@
 import DisputeSheet from '@/components/sheets/DisputeSheet';
 import OrderDetailSheet from '@/components/sheets/OrderDetailSheet';
 import ReviewBusinessSheet from '@/components/sheets/ReviewBusinessSheet';
-import ListSkeleton from '@/components/skeletons/ListSkeleton';
+import OrderListSkeleton from '@/components/skeletons/OrderListSkeleton';
 import Badge from '@/components/ui/Badge';
 import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
@@ -120,9 +120,10 @@ export default function OrderListScreen() {
                 </View>
             </View>
 
+
             {isLoading ? (
                 <View style={{ flex: 1, paddingTop: 20 }}>
-                    <ListSkeleton />
+                    <OrderListSkeleton />
                 </View>
             ) : (
                 <FlashList

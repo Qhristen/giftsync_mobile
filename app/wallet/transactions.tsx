@@ -1,4 +1,4 @@
-import ListSkeleton from '@/components/skeletons/ListSkeleton';
+import TransactionListSkeleton from '@/components/skeletons/TransactionListSkeleton';
 import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
@@ -146,7 +146,7 @@ export default function WalletTransactionsScreen() {
             {/* Transactions List */}
             {isLoading ? (
                 <View style={{ flex: 1, paddingTop: 20 }}>
-                    <ListSkeleton />
+                    <TransactionListSkeleton />
                 </View>
             ) : (
                 <SectionList

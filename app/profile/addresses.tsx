@@ -1,5 +1,5 @@
 import AddressPickerSheet from '@/components/sheets/AddressPickerSheet';
-import ListSkeleton from '@/components/skeletons/ListSkeleton';
+import AddressListSkeleton from '@/components/skeletons/AddressListSkeleton';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
@@ -44,7 +44,7 @@ export default function SavedAddressesScreen() {
 
             {isLoading ? (
                 <View style={{ flex: 1, paddingTop: 20 }}>
-                    <ListSkeleton />
+                    <AddressListSkeleton />
                 </View>
             ) : (
                 <FlashList

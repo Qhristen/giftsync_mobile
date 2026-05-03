@@ -1,3 +1,4 @@
+import NotificationListSkeleton from '@/components/skeletons/NotificationListSkeleton';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { useDeleteNotificationMutation, useGetNotificationsQuery, useMarkAllAsReadMutation, useMarkAsReadMutation } from '@/store/api/notificationApi';
@@ -81,9 +82,10 @@ export default function NotificationsScreen() {
                 </Pressable>
             </View>
 
+
             {isLoading && notifications.length === 0 ? (
-                <View style={[styles.emptyContainer, { flex: 1 }]}>
-                    <ActivityIndicator size="large" color={colors.primary} />
+                <View style={{ flex: 1, paddingTop: 20 }}>
+                    <NotificationListSkeleton />
                 </View>
             ) : (
                 <FlashList

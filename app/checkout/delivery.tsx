@@ -57,6 +57,7 @@ export default function DeliveryScreen() {
                 deliveryTimeWindow: timeWindowFormatted,
                 giftMessage: giftMessage,
                 anonymity: isAnonymous,
+                quantity: 1
             }).unwrap();
 
             router.push({

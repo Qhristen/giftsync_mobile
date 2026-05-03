@@ -10,6 +10,7 @@ export interface CreateOrderDto {
     deliveryTimeWindow: string;
     giftMessage?: string;
     anonymity: boolean;
+    quantity: number;
 }
 
 

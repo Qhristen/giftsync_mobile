@@ -1,4 +1,5 @@
 import HolidaySubscribersSheet from '@/components/sheets/HolidaySubscribersSheet';
+import GridSkeleton from '@/components/skeletons/GridSkeleton';
 import { BottomSheetRef } from '@/components/ui/BottomSheetWrapper';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
@@ -29,8 +30,14 @@ export default function GlobalOccasionsScreen() {
 
     if (isTemplatesLoading) {
         return (
-            <View style={[styles.centered, { backgroundColor: colors.background }]}>
-                <ActivityIndicator size="large" color={colors.primary} />
+            <View style={[styles.container, { backgroundColor: colors.background }]}>
+                <View style={styles.header}>
+                    <Pressable onPress={() => router.back()} style={styles.backBtn}>
+                        <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+                    </Pressable>
+                    <Typography variant="h2">Browse Holidays</Typography>
+                </View>
+                <GridSkeleton />
             </View>
         );
     }

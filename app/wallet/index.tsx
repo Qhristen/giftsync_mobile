@@ -1,5 +1,5 @@
 import PaymentMethodSheet from '@/components/sheets/PaymentMethodSheet';
-import ListSkeleton from '@/components/skeletons/ListSkeleton';
+import PackageListSkeleton from '@/components/skeletons/PackageListSkeleton';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
@@ -15,6 +15,7 @@ import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import { Alert, Modal, Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import { useSelector } from 'react-redux';
 import { toast } from 'sonner-native';
@@ -50,6 +51,7 @@ export default function WalletTopUpScreen() {
     const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
     const paymentSheet = useBottomSheet();
     const isNavHandlingRef = useRef(false);
+      const insets = useSafeAreaInsets();
 
     const formatPrice = (price: number, currency: string) => {
         return new Intl.NumberFormat('en-NG', {
@@ -208,7 +210,7 @@ export default function WalletTopUpScreen() {
             <View style={{ flex: 1 }}>
                 {isLoading ? (
                     <View style={{ flex: 1, paddingTop: 20 }}>
-                        <ListSkeleton />
+                        <PackageListSkeleton />
                     </View>
                 ) : (
                     <FlashList
@@ -270,7 +272,7 @@ export default function WalletTopUpScreen() {
             </View>
 
             {/* Footer */}
-            <View pointerEvents="box-none" style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
+            <View pointerEvents="box-none" style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border, paddingBottom: insets.bottom + spacing.md }]}>
                 <Button
                     title={selectedPackage ? `Pay ${formatPrice(selectedPackage.price, selectedPackage.currency)}` : 'Select a package'}
                     variant="primary"

@@ -6,6 +6,7 @@ import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
 import Typography from '../ui/Typography';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export const PAYMENT_METHODS = [
     { id: 'paystack', name: 'Paystack', icon: 'card-outline', color: '#0BA4DB' },
@@ -29,6 +30,7 @@ const PaymentMethodSheet = forwardRef<BottomSheetRef, PaymentMethodSheetProps>((
     isProcessing = false
 }, ref) => {
     const { colors, spacing } = useTheme();
+      const insets = useSafeAreaInsets();
 
     return (
         <BottomSheetWrapper ref={ref} snapPoints={['40%']}>
@@ -68,7 +70,7 @@ const PaymentMethodSheet = forwardRef<BottomSheetRef, PaymentMethodSheetProps>((
                 })}
             </View>
 
-            <View style={{ marginTop: 'auto', marginBottom: spacing.xl }}>
+            <View style={{ marginTop: 'auto', marginBottom: insets.bottom + spacing.xl }}>
                 <Button
                     title={confirmButtonText}
                     variant="primary"

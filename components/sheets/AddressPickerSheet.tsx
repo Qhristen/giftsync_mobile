@@ -1,15 +1,17 @@
+import AddressListSkeleton from '../skeletons/AddressListSkeleton';
 import { useTheme } from '@/hooks/useTheme';
 import { useCreateAddressMutation, useDeleteAddressMutation, useGetAddressesQuery, useUpdateAddressMutation } from '@/store/api/addressApi';
 import { Address } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 import * as Contacts from 'expo-contacts';
 import React, { forwardRef, useState } from 'react';
-import { ActivityIndicator, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Typography from '../ui/Typography';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface Props {
     selectedAddressId?: string;
@@ -27,7 +29,7 @@ const AddressPickerSheet = forwardRef<BottomSheetRef, Props>(
 
         const [mode, setMode] = useState<'list' | 'create' | 'edit'>('list');
         const [editingId, setEditingId] = useState<string | null>(null);
-
+  const insets = useSafeAreaInsets();
         // Form state
         const [recipientName, setRecipientName] = useState('');
         const [line1, setLine1] = useState('');
@@ -116,7 +118,7 @@ const AddressPickerSheet = forwardRef<BottomSheetRef, Props>(
             <BottomSheetWrapper ref={ref} snapPoints={['80%']} scrollable keyboardBehavior="interactive"
                 android_keyboardInputMode="adjustPan">
                 {mode === 'list' ? (
-                    <View style={{ flex: 1, paddingBottom: spacing.xl }}>
+                    <View style={{ flex: 1, paddingBottom: insets.bottom + spacing['3xl'] }}>
                         <View style={styles.header}>
                             <Typography variant="h2">Select Address</Typography>
                             <Button title="Add New" size="sm" variant="ghost" onPress={() => { resetForm(); setMode('create'); }} />
@@ -126,7 +128,9 @@ const AddressPickerSheet = forwardRef<BottomSheetRef, Props>(
                         </Typography>
 
                         {isLoading ? (
-                            <ActivityIndicator color={colors.primary} style={{ marginTop: spacing.xl }} />
+                            <View style={{ marginTop: spacing.md, paddingHorizontal: 0 }}>
+                                <AddressListSkeleton />
+                            </View>
                         ) : (
                             <View style={styles.list}>
                                 {addresses.map((addr) => {

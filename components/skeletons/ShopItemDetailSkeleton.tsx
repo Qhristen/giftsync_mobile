@@ -56,6 +56,30 @@ export default function ShopItemDetailSkeleton() {
                         <Skeleton width={100} height={20} borderRadius={4} />
                         <Skeleton width={80} height={16} borderRadius={4} />
                     </View>
+
+                    {/* Description */}
+                    <View style={{ marginTop: spacing.xl, gap: 12 }}>
+                        <Skeleton width={120} height={20} borderRadius={4} />
+                        <Skeleton width="100%" height={16} borderRadius={4} />
+                        <Skeleton width="100%" height={16} borderRadius={4} />
+                        <Skeleton width="60%" height={16} borderRadius={4} />
+                    </View>
+
+                    {/* Product Details */}
+                    <View style={{ marginTop: spacing.xl, gap: 12 }}>
+                        <Skeleton width={150} height={20} borderRadius={4} />
+                        <View style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 16, overflow: 'hidden' }}>
+                            {[1, 2, 3].map((_, i) => (
+                                <View key={i} style={{ flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 }}>
+                                    <Skeleton width={36} height={36} borderRadius={10} />
+                                    <View style={{ flex: 1, gap: 4 }}>
+                                        <Skeleton width={60} height={12} borderRadius={4} />
+                                        <Skeleton width={100} height={16} borderRadius={4} />
+                                    </View>
+                                </View>
+                            ))}
+                        </View>
+                    </View>
                 </View>
             </ScrollView>
 

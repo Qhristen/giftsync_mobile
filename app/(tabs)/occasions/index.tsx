@@ -1,6 +1,7 @@
 import ContactDetailSheet from '@/components/sheets/ContactDetailSheet';
 import CreateContactSheet from '@/components/sheets/CreateContactSheet';
 import CreateOccasionSheet from '@/components/sheets/CreateOccasionSheet';
+import OccasionGridSkeleton from '@/components/skeletons/OccasionGridSkeleton';
 import Avatar from '@/components/ui/Avatar';
 import { BottomSheetRef } from '@/components/ui/BottomSheetWrapper';
 import Typography from '@/components/ui/Typography';
@@ -168,9 +169,16 @@ export default function OccasionsScreen() {
                     ))}
                 </ScrollView>
 
+
             </View>
-            <SectionList
-                sections={sections}
+
+            {(isMonthlyFetching || isUpcomingFetching) && sections.length === 0 ? (
+                <View style={{ flex: 1, paddingTop: 20 }}>
+                    <OccasionGridSkeleton />
+                </View>
+            ) : (
+                <SectionList
+                    sections={sections}
                 refreshControl={
                     <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={colors.primary} />
                 }
@@ -222,6 +230,7 @@ export default function OccasionsScreen() {
                 )}
                 contentContainerStyle={{ paddingBottom: 100 }}
             />
+            )}
 
 
             {/* Add Contact FAB */}

@@ -16,6 +16,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { ActivityIndicator, Image, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
 export default function AddProductScreen() {
@@ -23,7 +24,7 @@ export default function AddProductScreen() {
     const params = useLocalSearchParams();
     const { colors, spacing } = useTheme();
     const { productCreationCost } = usePlatformConfig();
-
+    const insets = useSafeAreaInsets();
     const isEditing = !!params.id;
     const categorySheet = useBottomSheet();
     const currencySheet = useBottomSheet();
@@ -51,12 +52,12 @@ export default function AddProductScreen() {
         quantity: params.quantity ? parseInt(params.quantity as string) : 1,
     });
 
-    const addTag = () => {
-        const trimmed = tagInput.trim().toLowerCase();
-        if (trimmed && !formData.tags?.includes(trimmed)) {
+    const addTag = (value?: string) => {
+        const text = (value ?? tagInput).trim().toLowerCase();
+        if (text && !formData.tags?.includes(text)) {
             setFormData(prev => ({
                 ...prev,
-                tags: [...(prev.tags || []), trimmed]
+                tags: [...(prev.tags || []), text]
             }));
         }
         setTagInput('');
@@ -292,16 +293,34 @@ export default function AddProductScreen() {
                             rightIcon={<Typography variant="caption" color={colors.textSecondary}>days</Typography>}
                         />
 
+                        <Input
+                            label="Available Quantity"
+                            placeholder="e.g. 10"
+                            keyboardType="numeric"
+                            value={formData.quantity?.toString() ?? ""}
+                            onChangeText={(text) => setFormData({ ...formData, quantity: parseInt(text) || 0 })}
+                        />
+
+
                         <View>
                             <Input
                                 label="Tags"
                                 placeholder="e.g. organic, handmade"
                                 value={tagInput}
-                                onChangeText={setTagInput}
-                                onSubmitEditing={addTag}
+                                onChangeText={(text) => {
+                                    if (text.includes(',')) {
+                                        const parts = text.split(',');
+                                        const last = parts.pop() || '';
+                                        parts.forEach(t => addTag(t));
+                                        setTagInput(last);
+                                    } else {
+                                        setTagInput(text);
+                                    }
+                                }}
+                                onSubmitEditing={() => addTag()}
                                 // blurOnSubmit={false}
                                 rightIcon={
-                                    <Pressable onPress={addTag} hitSlop={10}>
+                                    <Pressable onPress={() => addTag()} hitSlop={10}>
                                         <Ionicons name="add-circle" size={24} color={colors.primary} />
                                     </Pressable>
                                 }
@@ -333,14 +352,17 @@ export default function AddProductScreen() {
                         </View>
                     </View>
 
+                </ScrollView>
+            </KeyboardAvoidingView>
+              <View style={[styles.footer, { backgroundColor: colors.surface, paddingBottom: insets.bottom + 20 }]}>
+                        
                     <Button
                         title={(isSubmitting || isUploading) ? 'Saving...' : (isEditing ? 'Update Product' : `Create Product (${productCreationCost} coins)`)}
                         onPress={handleSave}
                         disabled={isSubmitting || isUploading || isUpdating}
-                        style={{ marginTop: spacing.xl * 2 }}
+                        style={{ marginTop: spacing.xl}}
                     />
-                </ScrollView>
-            </KeyboardAvoidingView>
+                        </View>
 
             <CategoryPickerSheet
                 ref={categorySheet.ref}
@@ -426,5 +448,10 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 20,
-    }
+    },
+     footer: {
+        width: '100%',
+        paddingHorizontal: 24,
+        
+     },
 });

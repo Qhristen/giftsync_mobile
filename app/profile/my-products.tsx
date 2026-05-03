@@ -1,5 +1,5 @@
 import ConfirmDeleteSheet from '@/components/sheets/ConfirmDeleteSheet';
-import ListSkeleton from '@/components/skeletons/ListSkeleton';
+import ProductListSkeleton from '@/components/skeletons/ProductListSkeleton';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
@@ -16,10 +16,12 @@ import React, { useState } from 'react';
 import { FlatList, Image, Pressable, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { toast } from 'sonner-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function MyProductsScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
+    const insets = useSafeAreaInsets();
     const user = useSelector((state: RootState) => state.auth.user);
     const deleteSheet = useBottomSheet();
     const [productToDelete, setProductToDelete] = useState<Product | null>(null);
@@ -124,9 +126,10 @@ export default function MyProductsScreen() {
                 </Pressable>
             </View>
 
+
             {isLoading ? (
                 <View style={{ flex: 1, paddingTop: 20 }}>
-                    <ListSkeleton />
+                    <ProductListSkeleton />
                 </View>
             ) : (
                 <FlatList
@@ -150,6 +153,24 @@ export default function MyProductsScreen() {
                 onConfirm={handleDelete}
                 isLoading={isDeleting}
             />
+
+            <Pressable
+                onPress={() => router.push('/profile/add-product')}
+                style={[
+                    styles.floatingButton,
+                    {
+                        backgroundColor: colors.primary,
+                        bottom: insets.bottom + 24,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        height: 56,
+                        gap: 8
+                    }
+                ]}
+            >
+                <Ionicons name="add" size={24} color="#FFF" />
+                <Typography variant="bodyBold" color="#FFF">Add Product</Typography>
+            </Pressable>
         </View>
     );
 }

@@ -15,30 +15,30 @@ export default function ShopScreenSkeleton() {
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             {/* Header Title */}
-            <View style={[styles.header, { paddingHorizontal: spacing.xl, paddingTop: insets.top + spacing.md }]}>
+            {/* <View style={[styles.header, { paddingHorizontal: spacing.xl, paddingTop: insets.top + spacing.md }]}>
                 <Skeleton width={120} height={32} borderRadius={8} />
                 <Skeleton width={200} height={16} borderRadius={4} style={{ marginTop: 8 }} />
-            </View>
+            </View> */}
 
             {/* Sticky-like Search Bar */}
-            <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing.xl, marginBottom: spacing.lg }}>
+            {/* <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing.xl, marginBottom: spacing.lg }}>
                 <View style={styles.searchRow}>
                     <Skeleton width={width - spacing.xl * 2 - 64} height={52} borderRadius={16} />
                     <Skeleton width={52} height={52} borderRadius={16} />
                 </View>
-            </View>
+            </View> */}
 
             {/* Hero Banner Carousel */}
-            <View style={{ marginBottom: spacing.xl, paddingHorizontal: spacing.xl }}>
+            {/* <View style={{ marginBottom: spacing.xl, paddingHorizontal: spacing.xl }}>
                 <Skeleton width={width - spacing.xl * 2} height={180} borderRadius={24} />
-            </View>
+            </View> */}
 
             {/* Dynamic Category Pills */}
-            <View style={{ flexDirection: 'row', paddingHorizontal: spacing.xl, marginBottom: spacing.md, gap: 10 }}>
+            {/* <View style={{ flexDirection: 'row', paddingHorizontal: spacing.xl, marginBottom: spacing.md, gap: 10 }}>
                 {[1, 2, 3, 4].map((_, idx) => (
                     <Skeleton key={idx} width={80} height={36} borderRadius={18} />
                 ))}
-            </View>
+            </View> */}
 
             {/* Grid */}
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: spacing.xl - 8, marginTop: 10 }}>

@@ -1,5 +1,5 @@
 import ConversationItem from '@/components/chat/ConversationItem';
-import ListSkeleton from '@/components/skeletons/ListSkeleton';
+import ConversationListSkeleton from '@/components/skeletons/ConversationListSkeleton';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { useGetConversationsQuery } from '@/store/api/chatApi';
@@ -30,7 +30,7 @@ export default function MessagesScreen() {
                 <View style={[styles.header, { paddingHorizontal: spacing.xl, paddingVertical: spacing.md }]}>
                     <Typography variant="h1">Messages</Typography>
                 </View>
-                <ListSkeleton />
+                <ConversationListSkeleton />
             </View>
         );
     }
