@@ -51,14 +51,14 @@ const VendorDetailSheet = forwardRef<BottomSheetRef, Props>(
                         )}
                         <View style={{ flex: 1, marginLeft: 16 }}>
                             <Typography variant="h2" numberOfLines={2}>{business.name}</Typography>
-                            {business.location && (
+                            {/* {business.location && (
                                 <View style={styles.infoRow}>
                                     <Ionicons name="location-outline" size={14} color={colors.textSecondary} />
                                     <Typography variant="caption" color={colors.textSecondary} style={{ marginLeft: 4 }}>
                                         {business.location}
                                     </Typography>
                                 </View>
-                            )}
+                            )} */}
                             <View style={[styles.infoRow, { marginTop: 6 }]}>
                                 <Ionicons name="star" size={14} color="#FFD700" />
                                 <Typography variant="caption" color={colors.textSecondary} style={{ marginLeft: 4 }}>

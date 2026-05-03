@@ -74,7 +74,7 @@ export default function ConfirmationScreen() {
 
                 {/* Actions */}
                 <Animated.View entering={FadeInDown.delay(1200).duration(800)} style={styles.actionsBox}>
-                    <Button title="Track Order" variant="primary" style={styles.actionBtn} onPress={() => router.push('/orders')} />
+                    <Button title="Track Order" variant="primary" style={styles.actionBtn} onPress={() => router.replace('/orders')} />
                     <Button title="Go Home" variant="ghost" style={styles.actionBtn} onPress={handleFinish} />
                 </Animated.View>
             </View>

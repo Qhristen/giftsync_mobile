@@ -12,6 +12,7 @@ export const usePlatformConfig = () => {
         status,
         getConfig,
         aiChatCost: getConfig('ai_chat_cost'),
+        directSmsCost: getConfig('direct_sms_cost'),
         ngnUsdRate: getConfig('ngn_usd_rate'),
         usdPerCoin: getConfig('usd_per_coin'),
         occasionCreationCost: getConfig('occasion_creation_cost'),

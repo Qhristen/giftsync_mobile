@@ -48,6 +48,7 @@ export default function AddProductScreen() {
         deliveryFee: params.deliveryFee ? parseFloat(params.deliveryFee as string) : 0,
         packagingFee: params.packagingFee ? parseFloat(params.packagingFee as string) : 0,
         deliveryDays: params.deliveryDays ? parseInt(params.deliveryDays as string) : undefined,
+        quantity: params.quantity ? parseInt(params.quantity as string) : 1,
     });
 
     const addTag = () => {

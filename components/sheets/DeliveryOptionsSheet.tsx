@@ -43,7 +43,7 @@ const DeliveryOptionsSheet = forwardRef<BottomSheetRef, Props>(
         };
 
         return (
-            <BottomSheetWrapper ref={ref} snapPoints={['65%']} scrollable>
+            <BottomSheetWrapper ref={ref} snapPoints={['75%', "85%"]} scrollable>
                 <Typography variant="h2" style={{ marginBottom: spacing.sm }}>
                     Delivery Preference
                 </Typography>

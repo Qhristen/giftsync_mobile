@@ -190,6 +190,7 @@ export interface Product {
   tags: string[];
   ratingAvg: number;
   ratingCount: number;
+  quantity: number;
   isAvailable: boolean;
   deliveryDays: number;
   business: Business;
@@ -199,6 +200,7 @@ export interface CreateProductDto {
   name: string;
   description: string;
   price: number;
+  quantity: number;
   packagingFee: number;
   deliveryFee: number;
   currency?: string;
@@ -240,10 +242,12 @@ export interface WalletTransaction {
   id: string;
   type: 'purchase' | 'spend' | 'deposit' | 'withdrawal' | 'refund';
   amount: number;
-  balanceAfter: number;
+  coinAmount?: number;
+  coinBalanceAfter: number;
   description: string;
   reference: string;
   paymentMethod: string;
+  status: string;
   createdAt: string;
 }
 

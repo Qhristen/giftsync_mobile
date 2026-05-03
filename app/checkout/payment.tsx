@@ -12,6 +12,7 @@ import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, View } fro
 import { WebView } from 'react-native-webview';
 import { useDispatch } from 'react-redux';
 import { toast } from 'sonner-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function PaymentScreen() {
     const router = useRouter();
@@ -21,6 +22,7 @@ export default function PaymentScreen() {
     const { data: order, isLoading: isOrderLoading } = useGetOrderByIdQuery(orderId as string, { skip: !orderId });
     const [handlePayment] = useHandlePaymentMutation();
     const { data: wallet, refetch } = useGetWalletBalanceQuery()
+    const insets = useSafeAreaInsets();
 
     const { data: coinQuote, isLoading: isQuoteLoading } = useGetCoinQuoteQuery({
         amount: order?.total ?? 0,
@@ -62,11 +64,14 @@ export default function PaymentScreen() {
         if (!url) return;
 
         // Backend redirects to success or fail URLs
-        if (url.includes('success') || url.includes('callback')) {
+        if (url.includes('success') || url.includes('callback') || url.includes('trxref')) {
             setPaymentUrl(null);
             router.push({
                 pathname: '/checkout/confirmation',
                 params: { orderId }
+            });
+            toast.success('Payment Successful!', {
+                description: `Your order has been placed.`,
             });
         }
         if (url.includes('cancel') || url.includes('fail')) {
@@ -169,7 +174,7 @@ export default function PaymentScreen() {
             </ScrollView>
 
             {/* Footer */}
-            <View style={[styles.footer, { padding: spacing.xl, borderTopWidth: 1, borderTopColor: colors.border }]}>
+            <View style={[styles.footer, { padding: spacing.xl, paddingBottom: insets.bottom + 20 }]}>
                 <Button
                     title={isProcessing ? "Processing..." : paymentMethod === 'coins' ? `Pay with ${coinQuote?.coins ? coinQuote.coins.toLocaleString() : '...'} Coins` : `Pay ${formatCurrency(order?.total ?? 0, order?.item?.product.currency)}`}
                     onPress={handlePay}
@@ -187,6 +192,9 @@ export default function PaymentScreen() {
                     </View>
                     <WebView
                         source={{ uri: paymentUrl || '' }}
+                        javaScriptEnabled
+                        domStorageEnabled
+                        originWhitelist={["*"]}
                         onNavigationStateChange={handleWebViewStateChange}
                         startInLoadingState={true}
                     />

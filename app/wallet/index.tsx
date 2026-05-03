@@ -4,7 +4,6 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
-import { usePlatformConfig } from '@/hooks/usePlatformConfig';
 import { useTheme } from '@/hooks/useTheme';
 import { RootState } from '@/store';
 import { useGetCoinPackagesQuery, useGetWalletBalanceQuery, useInitializeFundingMutation, useRequestWithdrawalMutation, useVerifyFundingMutation } from '@/store/api/walletApi';
@@ -32,7 +31,7 @@ const getPackageStyle = (index: number) => packageStyles[index % 4];
 export default function WalletTopUpScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
-  
+
     const coins = useSelector((state: RootState) => state.wallet.coins);
 
     const { data: coinPackages = [], isLoading, isFetching: isFetchingPackages, refetch: refetchPackages } = useGetCoinPackagesQuery();
@@ -49,8 +48,8 @@ export default function WalletTopUpScreen() {
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('paystack');
     const [isPurchasing, setIsPurchasing] = useState(false);
     const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
-    const paymentReferenceRef = useRef<string | null>(null);
     const paymentSheet = useBottomSheet();
+    const isNavHandlingRef = useRef(false);
 
     const formatPrice = (price: number, currency: string) => {
         return new Intl.NumberFormat('en-NG', {
@@ -64,6 +63,7 @@ export default function WalletTopUpScreen() {
         if (!selectedPackage || !selectedPaymentMethod) return;
 
         setIsPurchasing(true);
+        isNavHandlingRef.current = false;
 
         try {
             const response = await initializeFunding({
@@ -72,8 +72,6 @@ export default function WalletTopUpScreen() {
                 packageId: selectedPackage.id,
             }).unwrap();
 
-            // Store reference for later verification
-            paymentReferenceRef.current = response.data.reference;
 
             // Close the payment method sheet first
             paymentSheet.close();
@@ -88,51 +86,62 @@ export default function WalletTopUpScreen() {
         }
     };
 
-    const handleVerifyPayment = async () => {
-        const reference = paymentReferenceRef.current;
-        if (!reference) return;
+    // const handleVerifyPayment = async (reference: string) => {
 
-        try {
-            const result = await verifyFunding({ reference }).unwrap();
+    //     console.log(reference, "reference");
+    //     if (!reference) return;
 
-            // Refetch wallet balance to reflect new coins
-            refetchWallet();
+    //     try {
+    //         const result = await verifyFunding({ reference }).unwrap();
 
-            toast.success('Deposit Successful!', {
-                description: result.message || `Your wallet has been credited.`,
-                action: {
-                    label: 'Great',
-                    onClick: () => router.back()
-                }
-            });
-        } catch (error: any) {
-            console.error('Payment verification error:', error);
-            toast.error(error?.data?.message || 'Payment verification failed. If you were charged, your wallet will be credited shortly.');
-        } finally {
-            paymentReferenceRef.current = null;
-        }
-    };
+    //         // Refetch wallet balance to reflect new coins
+    //         refetchWallet();
+
+    //         toast.success('Deposit Successful!', {
+    //             description: result.message || `Your wallet has been credited.`,
+    //             action: {
+    //                 label: 'Great',
+    //                 onClick: () => router.back()
+    //             }
+    //         });
+    //     } catch (error: any) {
+    //         console.error('Payment verification error:', error);
+    //         toast.error(error?.data?.message || 'Payment verification failed. If you were charged, your wallet will be credited shortly.');
+    //     } finally {
+
+    //     }
+    // };
 
     const handleWebViewNavChange = (newNavState: any) => {
+        console.log(newNavState, "newNavState");
         const { url } = newNavState;
         if (!url) return;
 
         // Detect Paystack callback/success/cancel URLs
         if (url.includes('success') || url.includes('callback') || url.includes('trxref')) {
+            if (isNavHandlingRef.current) return;
+            isNavHandlingRef.current = true;
+
             setPaymentUrl(null);
-            handleVerifyPayment();
+            toast.success('Deposit Successful!', {
+                description: `Your wallet has been credited.`,
+            });
+            return;
         }
 
         if (url.includes('cancel') || url.includes('fail')) {
+            if (isNavHandlingRef.current) return;
+            isNavHandlingRef.current = true;
+
             setPaymentUrl(null);
-            paymentReferenceRef.current = null;
             toast.error('Payment cancelled or failed.');
+            return;
         }
     };
 
     const handleCancelPayment = () => {
+        isNavHandlingRef.current = true;
         setPaymentUrl(null);
-        paymentReferenceRef.current = null;
         toast('Payment cancelled');
     };
 
@@ -290,8 +299,13 @@ export default function WalletTopUpScreen() {
                     </View>
                     <WebView
                         source={{ uri: paymentUrl || '' }}
+                        javaScriptEnabled
+                        domStorageEnabled
+                        originWhitelist={["*"]}
                         onNavigationStateChange={handleWebViewNavChange}
                         startInLoadingState={true}
+                        onLoadStart={() => console.log('[Paystack] WebView Load Start')}
+                        onLoadEnd={() => console.log('[Paystack] WebView Load End')}
                         style={{ flex: 1 }}
                     />
                 </View>
@@ -323,10 +337,7 @@ const styles = StyleSheet.create({
         width: '100%',
         alignItems: 'center',
         paddingVertical: 32,
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
-        borderTopLeftRadius: 0,
-        borderTopRightRadius: 0,
+        borderRadius: 24,
     },
     packageCard: {
         flexDirection: 'row',

@@ -1,4 +1,4 @@
-import { CreateOccasionDto, Occasion, OccasionTemplate, PaginationMeta, SubscribeOccasionDto, UpdateOccasionDto } from '@/types';
+import { Contact, CreateOccasionDto, Occasion, OccasionTemplate, PaginationMeta, SubscribeOccasionDto, UpdateOccasionDto } from '@/types';
 import { baseApi } from './baseApi';
 
 /**
@@ -21,13 +21,17 @@ const getNearbyMonthKeys = (date?: string): { month: number; year: number }[] =>
     return keys;
 };
 
+type UpcommingOccasion = Occasion & {
+    contacts: Contact[]
+}
+
 export const occasionApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
         getOccasionTemplates: builder.query<OccasionTemplate[], void>({
             query: () => ({ url: '/api/v1/occasions/templates', method: 'GET' }),
             providesTags: ['Occasions'],
         }),
-        getUpcomingOccasions: builder.query<Occasion[], void>({
+        getUpcomingOccasions: builder.query<UpcommingOccasion[], void>({
             query: () => ({ url: '/api/v1/occasions/upcoming', method: 'GET' }),
             providesTags: ['Occasions'],
         }),
@@ -74,7 +78,7 @@ export const occasionApi = baseApi.injectEndpoints({
 
                 const patchUpcoming = dispatch(
                     occasionApi.util.updateQueryData('getUpcomingOccasions', undefined, (draft) => {
-                        draft.push(newOccasion);
+                        draft.push({ ...newOccasion, contacts: [] });
                         draft.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
                     })
                 );

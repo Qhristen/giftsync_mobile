@@ -85,8 +85,6 @@ export default function ShopItemDetailScreen() {
         return null;
     }, [product?.business?.location]);
 
-
-    console.log("businessLocationCoords", product?.business?.location)
     if (isLoading || isFetching) {
         return <ShopItemDetailSkeleton />;
     }
@@ -184,42 +182,7 @@ export default function ShopItemDetailScreen() {
                         </Card>
                     </Pressable>
 
-                    {businessLocationCoords ? (
-                        <View style={{ marginTop: spacing.xl }}>
-                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: spacing.sm }}>
-                                <Typography variant="h4">Business Location</Typography>
-                                {userLocation ? (
-                                    <Typography variant="bodyBold" color={colors.primary}>
-                                        {getDistance(
-                                            userLocation.coords.latitude,
-                                            userLocation.coords.longitude,
-                                            businessLocationCoords.latitude,
-                                            businessLocationCoords.longitude
-                                        ).toFixed(1)} km away
-                                    </Typography>
-                                ) : null}
-                            </View>
-                            {product.business?.businessAddress ? (
-                                <Typography variant="body" color={colors.textSecondary} style={{ marginBottom: spacing.md }}>
-                                    {product.business.businessAddress}
-                                </Typography>
-                            ) : null}
-                            <View style={{ height: 200, borderRadius: 16, overflow: 'hidden' }}>
-                                <MapView
-                                    style={{ flex: 1 }}
-                                    // provider={PROVIDER_GOOGLE}
-                                    initialRegion={{
-                                        latitude: businessLocationCoords.latitude,
-                                        longitude: businessLocationCoords.longitude,
-                                        latitudeDelta: 0.05,
-                                        longitudeDelta: 0.05,
-                                    }}
-                                >
-                                    <Marker coordinate={businessLocationCoords} title={product.business?.name || 'Local Vendor'} />
-                                </MapView>
-                            </View>
-                        </View>
-                    ) : null}
+
 
                     {deliveryStatus ? (
                         <View style={{ marginTop: spacing.xl }}>
@@ -330,6 +293,43 @@ export default function ShopItemDetailScreen() {
                                         <Typography variant="caption" color={colors.textPrimary}>{tag}</Typography>
                                     </View>
                                 ))}
+                            </View>
+                        </View>
+                    ) : null}
+
+                    {businessLocationCoords ? (
+                        <View style={{ marginTop: spacing.xl }}>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: spacing.sm }}>
+                                <Typography variant="h4">{`${product.business?.name || 'Vendor'}'s Location`}</Typography>
+                                {userLocation ? (
+                                    <Typography variant="bodyBold" color={colors.primary}>
+                                        {getDistance(
+                                            userLocation.coords.latitude,
+                                            userLocation.coords.longitude,
+                                            businessLocationCoords.latitude,
+                                            businessLocationCoords.longitude
+                                        ).toFixed(1)} km away
+                                    </Typography>
+                                ) : null}
+                            </View>
+                            {/* {product.business?.businessAddress ? (
+                                <Typography variant="body" color={colors.textSecondary} style={{ marginBottom: spacing.md }}>
+                                    {product.business.businessAddress}
+                                </Typography>
+                            ) : null} */}
+                            <View style={{ height: 100, borderRadius: 16, overflow: 'hidden' }}>
+                                <MapView
+                                    style={{ flex: 1 }}
+                                    provider={PROVIDER_GOOGLE}
+                                    initialRegion={{
+                                        latitude: businessLocationCoords.latitude,
+                                        longitude: businessLocationCoords.longitude,
+                                        latitudeDelta: 0.05,
+                                        longitudeDelta: 0.05,
+                                    }}
+                                >
+                                    <Marker coordinate={businessLocationCoords} title={product.business?.name || 'Local Vendor'} />
+                                </MapView>
                             </View>
                         </View>
                     ) : null}

@@ -2,11 +2,14 @@ import { useTheme } from '@/hooks/useTheme';
 import {
     BottomSheetBackdrop,
     BottomSheetBackdropProps,
+    BottomSheetFooter,
+    BottomSheetFooterProps,
     BottomSheetModal,
     BottomSheetScrollView,
     BottomSheetView,
 } from '@gorhom/bottom-sheet';
-import React, { forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
+import React, { forwardRef, useCallback, useImperativeHandle, useMemo, useRef } from 'react';
+import { View } from 'react-native';
 
 export interface BottomSheetRef {
     expand: () => void;
@@ -25,12 +28,15 @@ interface Props {
     keyboardBehavior?: 'extend' | 'fillParent' | 'interactive';
     keyboardBlurBehavior?: 'none' | 'restore';
     android_keyboardInputMode?: 'adjustResize' | 'adjustPan';
+    renderFooter?: (props: BottomSheetFooterProps) => React.ReactElement;
+    disablePadding?: boolean;
+    enableFlex?: boolean;
 }
 
 const BottomSheetWrapper = forwardRef<BottomSheetRef, Props>(
-    ({ snapPoints, children, scrollable = false, onClose, index = 0, keyboardBehavior = 'fillParent', keyboardBlurBehavior = 'restore', android_keyboardInputMode = 'adjustResize' }, ref) => {
+    ({ snapPoints, children, scrollable = false, onClose, index = 0, keyboardBehavior = 'fillParent', keyboardBlurBehavior = 'restore', android_keyboardInputMode = 'adjustResize', renderFooter, disablePadding = false, enableFlex = false }, ref) => {
         const { colors, spacing } = useTheme();
-        const Container = scrollable ? BottomSheetScrollView : BottomSheetView;
+        const Container = scrollable ? BottomSheetScrollView : (enableFlex ? View : BottomSheetView);
         const modalRef = useRef<BottomSheetModal>(null);
 
         useImperativeHandle(ref, () => ({
@@ -53,6 +59,20 @@ const BottomSheetWrapper = forwardRef<BottomSheetRef, Props>(
             []
         );
 
+        const renderFooterComponent = useCallback(
+            (props: BottomSheetFooterProps) => {
+                if (renderFooter) {
+                    return (
+                        <BottomSheetFooter {...props}>
+                            {renderFooter(props)}
+                        </BottomSheetFooter>
+                    );
+                }
+                return null;
+            },
+            [renderFooter]
+        );
+
         return (
             <BottomSheetModal
                 ref={modalRef}
@@ -66,10 +86,14 @@ const BottomSheetWrapper = forwardRef<BottomSheetRef, Props>(
                 keyboardBlurBehavior={keyboardBlurBehavior}
                 android_keyboardInputMode={android_keyboardInputMode}
                 onDismiss={onClose}
+                footerComponent={renderFooter ? renderFooterComponent : undefined}
             >
                 <Container
-                    style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.xl }}
-                    showsVerticalScrollIndicator={false}
+                    style={[
+                        enableFlex && { flex: 1 },
+                        !disablePadding && { paddingHorizontal: spacing.lg, paddingBottom: spacing.xl }
+                    ]}
+                    {...(scrollable ? { showsVerticalScrollIndicator: false } : {})}
                 >
                     {children}
                 </Container>

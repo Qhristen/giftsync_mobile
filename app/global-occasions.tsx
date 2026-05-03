@@ -1,93 +1,31 @@
-import Avatar from '@/components/ui/Avatar';
-import BottomSheetWrapper, { BottomSheetRef } from '@/components/ui/BottomSheetWrapper';
-import Button from '@/components/ui/Button';
+import HolidaySubscribersSheet from '@/components/sheets/HolidaySubscribersSheet';
+import { BottomSheetRef } from '@/components/ui/BottomSheetWrapper';
 import Typography from '@/components/ui/Typography';
-import { usePlatformConfig } from '@/hooks/usePlatformConfig';
 import { useTheme } from '@/hooks/useTheme';
-import { RootState } from '@/store';
-import { useGetContactsQuery } from '@/store/api/contactsApi';
-import { useGetOccasionTemplatesQuery, useSubscribeToTemplateMutation } from '@/store/api/occasionApi';
+import { useGetOccasionTemplatesQuery } from '@/store/api/occasionApi';
 import { spacing } from '@/theme';
 import { OccasionTemplate } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { useSelector } from 'react-redux';
-import { toast } from 'sonner-native';
 
 export default function GlobalOccasionsScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
-    const { occasionCreationCost } = usePlatformConfig();
-
+ 
     const { data: templates, isLoading: isTemplatesLoading } = useGetOccasionTemplatesQuery();
-    const { data: contactsData } = useGetContactsQuery({ page: 1, limit: 100 });
-    const allContacts = contactsData?.items || [];
 
     const [selectedTemplate, setSelectedTemplate] = useState<OccasionTemplate | null>(null);
-    const [selectedContactIds, setSelectedContactIds] = useState<string[]>([]);
-    const detailSheetRef = useRef<BottomSheetRef>(null);
-    const contactPickerRef = useRef<BottomSheetRef>(null);
-
-    const [subscribeToTemplate, { isLoading: isSubscribing }] = useSubscribeToTemplateMutation();
+    const subscribersSheetRef = useRef<BottomSheetRef>(null);
 
     const handleOpenDetail = (template: OccasionTemplate) => {
         setSelectedTemplate(template);
-        detailSheetRef.current?.expand();
+        subscribersSheetRef.current?.expand();
     };
 
-    const handleOpenContactPicker = () => {
-        detailSheetRef.current?.close();
-        contactPickerRef.current?.expand();
-    };
-
-    const toggleContact = (id: string) => {
-        setSelectedContactIds(prev =>
-            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-        );
-    };
-
-    const { user } = useSelector((state: RootState) => state.auth);
-    const handleSubscribe = async () => {
-        if (!selectedTemplate || selectedContactIds.length === 0) return;
-
-        // Check balance
-        const totalCost = occasionCreationCost * selectedContactIds.length;
-        const currentBalance = user?.coinBalance || 0;
-
-        if (currentBalance < totalCost) {
-            toast.error("Insufficient Balance", {
-                description: `Adding ${selectedContactIds.length} people costs ${totalCost} coins. Please top up your wallet.`,
-                action: {
-                    label: 'Top Up',
-                    onClick: () => {
-                        contactPickerRef.current?.close();
-                        router.push('/wallet');
-                    }
-                }
-            });
-            return;
-        }
-
-        try {
-            await subscribeToTemplate({
-                templateId: selectedTemplate.id,
-                contactIds: selectedContactIds
-            }).unwrap();
-
-
-            toast.success("Success", { description: `${selectedTemplate.title} added for ${selectedContactIds.length} people! 🎉` });
-            contactPickerRef.current?.close();
-            setSelectedContactIds([]);
-            setSelectedTemplate(null);
-        } catch (err) {
-            console.error(err);
-            toast.error("Error", { description: "Failed to subscribe contacts." });
-        }
-    };
 
     if (isTemplatesLoading) {
         return (
@@ -137,77 +75,10 @@ export default function GlobalOccasionsScreen() {
                 )}
             />
 
-            {/* Template Detail Sheet */}
-            <BottomSheetWrapper ref={detailSheetRef} snapPoints={['40%']} scrollable>
-                {selectedTemplate && (
-                    <View style={styles.detailContainer}>
-                        <View style={styles.detailHeader}>
-                            <View style={[styles.iconContainerLarge, { backgroundColor: colors.primary + '15' }]}>
-                                <Ionicons name="gift-outline" size={40} color={colors.primary} />
-                            </View>
-                            <View style={{ flex: 1 }}>
-                                <Typography variant="h2">{selectedTemplate.title}</Typography>
-                                <Typography variant="body" color={colors.textSecondary}>
-                                    {new Date(2024, selectedTemplate.month - 1, selectedTemplate.day).toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}
-                                </Typography>
-                            </View>
-                        </View>
-
-                        <Typography variant="body" color={colors.textSecondary} style={{ marginVertical: spacing.lg }}>
-                            {selectedTemplate.description || `Never forget ${selectedTemplate.title}. Add your friends and family to this celebration group.`}
-                        </Typography>
-
-                        <Button
-                            title={`Add People (${occasionCreationCost} coins)`}
-                            onPress={handleOpenContactPicker}
-                            leftIcon={<Ionicons name="people-outline" size={20} color="#FFF" />}
-                        />
-                    </View>
-                )}
-            </BottomSheetWrapper>
-            {/* Multi-select Contact Picker Sheet */}
-            <BottomSheetWrapper ref={contactPickerRef} snapPoints={['80%']} scrollable>
-                <View style={{ flex: 1 }}>
-                    <Typography variant="h2" style={{ marginBottom: spacing.md }}>Select Contacts</Typography>
-                    <Typography variant="body" color={colors.textSecondary} style={{ marginBottom: spacing.lg }}>
-                        Who would you like to celebrate {selectedTemplate?.title} with?
-                    </Typography>
-
-                    <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-                        {allContacts.map((contact) => (
-                            <Pressable
-                                key={contact.id}
-                                onPress={() => toggleContact(contact.id)}
-                                style={styles.contactItem}
-                            >
-                                <Avatar uri={contact.avatar} name={contact.name} size="md" />
-                                <View style={{ flex: 1, marginLeft: 12 }}>
-                                    <Typography variant="bodyBold">{contact.name}</Typography>
-                                    <Typography variant="caption" color={colors.textSecondary}>{contact.phoneNumber}</Typography>
-                                </View>
-                                <View style={[
-                                    styles.checkbox,
-                                    { borderColor: colors.border },
-                                    selectedContactIds.includes(contact.id) && { backgroundColor: colors.primary, borderColor: colors.primary }
-                                ]}>
-                                    {selectedContactIds.includes(contact.id) && (
-                                        <Ionicons name="checkmark" size={16} color="#FFF" />
-                                    )}
-                                </View>
-                            </Pressable>
-                        ))}
-                    </ScrollView>
-
-                    <View style={{ paddingTop: spacing.md }}>
-                        <Button
-                            title={`Subscribe ${selectedContactIds.length} ${selectedContactIds.length === 1 ? 'Person' : 'People'}`}
-                            onPress={handleSubscribe}
-                            isLoading={isSubscribing}
-                            disabled={selectedContactIds.length === 0}
-                        />
-                    </View>
-                </View>
-            </BottomSheetWrapper>
+            <HolidaySubscribersSheet
+                ref={subscribersSheetRef}
+                holiday={selectedTemplate}
+            />
         </View>
     );
 }

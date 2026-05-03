@@ -58,10 +58,10 @@ export default function OccasionDetailScreen() {
 
             <ScrollView contentContainerStyle={{ paddingBottom: 20 }} showsVerticalScrollIndicator={false}>
                 {/* Header Area */}
-                <View style={[styles.headerBg, { backgroundColor: colors.primary }]}>
+                <View style={[styles.headerBg, { backgroundColor: colors.surface }]}>
                     <View style={[styles.header, { top: spacing.xl, paddingHorizontal: spacing.xl }]}>
                         <Pressable onPress={() => router.back()} style={styles.iconBtn}>
-                            <Ionicons name="arrow-back" size={24} color="#FFF" />
+                            <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
                         </Pressable>
                         {/* <Typography variant="h4" color="#FFF">Occasion Details</Typography> */}
                         <Pressable style={styles.iconBtn} onPress={() => editSheet.open()}>

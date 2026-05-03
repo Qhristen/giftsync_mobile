@@ -33,7 +33,7 @@ export default function ShopScreen() {
     const [categoryLayouts, setCategoryLayouts] = useState<Record<string, { x: number; width: number }>>({});
     const giftSheet = useBottomSheet();
     const filterSheet = useBottomSheet();
-    const { data: categoriesData = [], refetch: refetchCategories, isFetching: isCategoriesFetching } = useGetCategoriesQuery();
+    const { data: categoriesData = [], refetch: refetchCategories, isFetching: isCategoriesFetching } = useGetCategoriesQuery({ hasProductsOnly: true });
     const categories = [{ id: 'All', name: 'All' }, ...categoriesData];
 
     const [priceRange, setPriceRange] = useState('All');

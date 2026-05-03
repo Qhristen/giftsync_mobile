@@ -53,6 +53,7 @@ const RELATIONSHIPS = [
     { value: 'Sister', label: 'Sister' },
     { value: 'Mother', label: 'Mother' },
     { value: 'Father', label: 'Father' },
+    { value: 'Other', label: 'Other' },
 ];
 
 const INTERESTS_PRESETS = ['Tech', 'Fashion', 'Sports', 'Books', 'Cooking', 'Travel', 'Gaming'];
@@ -82,6 +83,7 @@ const OccasionForm: React.FC<OccasionFormProps> = ({
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [recurrenceType, setRecurrenceType] = useState<'MONTHLY' | 'YEARLY' | 'NONE' | 'WEEKLY'>('YEARLY');
     const [relationship, setRelationship] = useState('Friend');
+    const [customRelationship, setCustomRelationship] = useState("");
 
     // Optional Details (Collapsed)
     const [isExpanded, setIsExpanded] = useState(false);
@@ -126,7 +128,15 @@ const OccasionForm: React.FC<OccasionFormProps> = ({
             if (occasionDetail.recurrenceType) setRecurrenceType(occasionDetail.recurrenceType);
             if (occasionDetail.contact?.interests) setInterests(occasionDetail.contact.interests);
             if (occasionDetail.contact?.notes) setNotes(occasionDetail.contact.notes);
-            if (occasionDetail.contact?.relationship) setRelationship(occasionDetail.contact.relationship);
+            if (occasionDetail.contact?.relationship) {
+                const rel = occasionDetail.contact.relationship;
+                if (RELATIONSHIPS.find(r => r.value === rel && rel !== 'Other')) {
+                    setRelationship(rel);
+                } else {
+                    setRelationship('Other');
+                    setCustomRelationship(rel);
+                }
+            }
             setSelectedContact(occasionDetail.contact as Contact);
         }
     }, [isEditing, occasionDetail]);
@@ -173,6 +183,11 @@ const OccasionForm: React.FC<OccasionFormProps> = ({
             toast.error("Required Fields", { description: "Please enter a custom occasion title." });
             return;
         }
+        
+        if (relationship === 'Other' && !customRelationship.trim()) {
+            toast.error("Required Fields", { description: "Please enter the relationship." });
+            return;
+        }
 
         // Check balance for new occasions
         if (!isEditing) {
@@ -210,7 +225,7 @@ const OccasionForm: React.FC<OccasionFormProps> = ({
                     phoneNumber: phone,
                     interests,
                     notes,
-                    relationship
+                    relationship: relationship === 'Other' ? customRelationship.trim() : relationship
                 }).unwrap();
                 dispatch(spendCoins(occasionCreationCost));
                 toast.success("Occasion Added 🎉");
@@ -298,6 +313,16 @@ const OccasionForm: React.FC<OccasionFormProps> = ({
                                 </Pressable>
                             ))}
                         </View>
+                        {relationship === 'Other' && (
+                            <Animated.View entering={FadeIn} style={{ marginTop: spacing.sm }}>
+                                <Input
+                                    placeholder="e.g. Mentor, Coach"
+                                    value={customRelationship}
+                                    onChangeText={setCustomRelationship}
+                                    isBottomSheet
+                                />
+                            </Animated.View>
+                        )}
                     </View>
 
                     <View style={{ marginTop: spacing.sm }}>

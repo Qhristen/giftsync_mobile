@@ -26,27 +26,37 @@ export const productApi = baseApi.injectEndpoints({
                 params,
             }),
             serializeQueryArgs: ({ endpointName, queryArgs }) => {
-                const queryArgsCopy = queryArgs || {};
-                delete queryArgsCopy.page;
-                return `${endpointName}-${JSON.stringify(queryArgsCopy)}`;
+                const { page, ...other } = queryArgs || {};
+                return `${endpointName}-${JSON.stringify(other)}`;
             },
             merge: (currentCache, newItems, { arg }) => {
                 const params = arg as { page?: number } | undefined;
                 if (!params || params.page === 1) {
                     return newItems;
                 }
-                const existingIds = new Set(currentCache.items.map(item => item.id));
-                currentCache.items.push(
-                    ...newItems.items.filter(item => !existingIds.has(item.id))
-                );
+                
+                // Update existing items if they are already in the cache, otherwise append
+                newItems.items.forEach(newItem => {
+                    const index = currentCache.items.findIndex(item => item.id === newItem.id);
+                    if (index !== -1) {
+                        currentCache.items[index] = newItem;
+                    } else {
+                        currentCache.items.push(newItem);
+                    }
+                });
+                
                 currentCache.meta = newItems.meta;
             },
-            forceRefetch: ({ currentArg, previousArg }) => {
-                const curr = currentArg as { page?: number } | undefined;
-                const prev = previousArg as { page?: number } | undefined;
-                return curr?.page !== prev?.page;
+            forceRefetch: ({ currentArg, previousArg, endpointState }) => {
+                return currentArg?.page !== previousArg?.page || endpointState?.status === 'uninitialized';
             },
-            providesTags: ['Products'],
+            providesTags: (result) =>
+                result
+                    ? [
+                        ...result.items.map(({ id }) => ({ type: 'Products' as const, id })),
+                        { type: 'Products', id: 'LIST' },
+                    ]
+                    : [{ type: 'Products', id: 'LIST' }],
         }),
         getProductsByBusiness: builder.query<Product[], string>({
             query: (businessId) => ({
@@ -68,7 +78,7 @@ export const productApi = baseApi.injectEndpoints({
                 method: 'POST',
                 data,
             }),
-            invalidatesTags: ['Products'],
+            invalidatesTags: [{ type: 'Products', id: 'LIST' }],
         }),
         updateProduct: builder.mutation<Product, { businessId: string; productId: string; data: UpdateProductDto }>({
             query: ({ businessId, productId, data }) => ({
@@ -76,19 +86,23 @@ export const productApi = baseApi.injectEndpoints({
                 method: 'PATCH',
                 data,
             }),
-            invalidatesTags: ['Products'],
+            invalidatesTags: (result, error, { productId }) => [
+                { type: 'Products', id: productId },
+                { type: 'Products', id: 'LIST' }
+            ],
         }),
         deleteProduct: builder.mutation<void, { businessId: string; productId: string }>({
             query: ({ businessId, productId }) => ({
                 url: `/api/v1/products/business/${businessId}/${productId}`,
                 method: 'DELETE',
             }),
-            invalidatesTags: ['Products'],
+            invalidatesTags: [{ type: 'Products', id: 'LIST' }],
         }),
-        getCategories: builder.query<Category[], void>({
-            query: () => ({
+        getCategories: builder.query<Category[], { hasProductsOnly: boolean }>({
+            query: (params) => ({
                 url: '/api/v1/categories',
                 method: 'GET',
+                params
             }),
         }),
         getCategoryById: builder.query<Category, string>({

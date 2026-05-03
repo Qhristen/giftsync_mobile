@@ -25,6 +25,7 @@ import { useDispatch } from 'react-redux';
 
 import { GOOGLE_CLIENT_ID } from '@/utils/constants';
 import { toast } from 'sonner-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width, height } = Dimensions.get('window');
 
@@ -40,7 +41,7 @@ export default function WelcomeScreen() {
     const dispatch = useDispatch();
     const [googleAuth, { error }] = useGoogleAuthMutation();
     const [isSigningIn, setIsSigningIn] = React.useState(false);
-
+    const insets = useSafeAreaInsets();
     // Animation values
     const logoScale = useSharedValue(0);
     const logoOpacity = useSharedValue(0);
@@ -101,6 +102,7 @@ export default function WelcomeScreen() {
 
                 // Fetch birthdays from Google Calendar (optional)
                 const birthdays = await fetchGoogleBirthdays();
+                console.log(birthdays, "birthdays")
                 dispatch(setOccasions(birthdays));
 
                 router.replace('/(tabs)');
@@ -154,7 +156,7 @@ export default function WelcomeScreen() {
                 </Animated.View>
             </View>
 
-            <Animated.View entering={FadeInDown.delay(450).duration(400)} style={[styles.footer, { padding: spacing.xl }]}>
+            <Animated.View entering={FadeInDown.delay(450).duration(400)} style={[styles.footer, { padding: spacing.xl, paddingBottom: insets.bottom + 20 }]}>
                 <Button
                     title="Sign In with Google"
                     onPress={handleGoogleLogin}

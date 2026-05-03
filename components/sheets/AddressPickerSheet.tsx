@@ -208,8 +208,8 @@ const AddressPickerSheet = forwardRef<BottomSheetRef, Props>(
                                 leftIcon={<Ionicons name="person-add-outline" size={18} color={colors.primary} style={{ marginRight: 8 }} />}
                             />
 
-                            <Input label="Recipient Name" value={recipientName} onChangeText={setRecipientName} placeholder="Alex Johnson" editable={false} isBottomSheet />
-                            <Input label="Phone Number" value={phone} onChangeText={setPhone} placeholder="+234 810 000 0000" keyboardType="phone-pad" editable={false} isBottomSheet />
+                            <Input label="Recipient Name" value={recipientName} onChangeText={setRecipientName} placeholder="Alex Johnson" isBottomSheet />
+                            <Input label="Phone Number" value={phone} onChangeText={setPhone} placeholder="+234 810 000 0000" keyboardType="phone-pad" isBottomSheet />
                             <Input label="Address Line 1" value={line1} onChangeText={setLine1} placeholder="123 Victoria Island" isBottomSheet />
                             <Input label="Address Line 2 (Optional)" value={line2} onChangeText={setLine2} placeholder="Apt 4B" isBottomSheet />
                             <View style={{ flexDirection: 'row', gap: spacing.md }}>

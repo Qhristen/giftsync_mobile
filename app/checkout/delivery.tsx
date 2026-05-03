@@ -16,13 +16,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function DeliveryScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
     const { deliveryFeeNgn, packagingFeeNgn } = usePlatformConfig();
     const { occasionId, productId } = useLocalSearchParams<{ occasionId: string; productId: string }>();
-
+   const insets = useSafeAreaInsets();
     const { data: product, isLoading: initialProductLoading, isFetching: isProductFetching } = useGetProductByIdQuery(productId as string, { skip: !productId });
     const isProductLoading = initialProductLoading || isProductFetching;
 
@@ -177,7 +178,10 @@ export default function DeliveryScreen() {
                     {/* Summary Mini */}
                     <Card variant="raised" style={{ marginTop: 40, padding: 16 }}>
                         <View style={styles.summaryRow}>
-                            <Typography variant="caption">{product?.name || 'Item'} Subtotal</Typography>
+                            <Typography variant="caption">{product?.name || 'Item'}</Typography>
+                        </View>
+                        <View style={styles.summaryRow}>
+                            <Typography variant="caption">Subtotal</Typography>
                             <Typography variant="caption">{formatCurrency(product?.price || 0, product?.currency || 'NGN')}</Typography>
                         </View>
                         <View style={styles.summaryRow}>
@@ -199,7 +203,7 @@ export default function DeliveryScreen() {
                 </ScrollView>
 
                 {/* Footer CTA */}
-                <View style={[styles.footer, { padding: spacing.xl, borderTopWidth: 1, borderTopColor: colors.border }]}>
+                <View style={[styles.footer, { padding: spacing.xl,  paddingBottom: insets.bottom }]}>
                     <Button
                         title="Continue to Payment →"
                         onPress={handleNext}

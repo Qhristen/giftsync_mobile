@@ -28,7 +28,6 @@ export default function HomeScreen() {
     const { data: profile, isLoading: isProfileLoading, refetch: refetchProfile } = useGetProfileQuery();
     const { data: upcoming = [], isLoading: isUpcomingLoading, refetch: refetchUpcoming } = useGetUpcomingOccasionsQuery();
     const { data: unreadCount, refetch: refetchUnreadCount } = useGetUnreadCountQuery();
-
     const { data: templates, isLoading: isTemplatesLoading, refetch: refetchTemplates } = useGetOccasionTemplatesQuery();
 
     // Use the first upcoming occasion for specific recommendations, otherwise generic
@@ -43,7 +42,7 @@ export default function HomeScreen() {
         refetchUpcoming();
         refetchUnreadCount();
         refetchTemplates();
-        refetchRecs();
+        // refetchRecs();
     }, [refetchProfile, refetchUpcoming, refetchUnreadCount, refetchTemplates, refetchRecs]);
 
     const isLoading = isProfileLoading || isUpcomingLoading;
@@ -81,7 +80,7 @@ export default function HomeScreen() {
             </Animated.View>
 
             <ScrollView
-                contentContainerStyle={{ paddingBottom: 100 }}
+                contentContainerStyle={{ paddingBottom: 20 }}
                 showsVerticalScrollIndicator={false}
                 style={{}}
                 refreshControl={
@@ -104,16 +103,71 @@ export default function HomeScreen() {
                             keyExtractor={(item) => item.id}
                             renderItem={({ item }) => (
                                 <View style={{ width, paddingHorizontal: spacing.xl }}>
-                                    <Card variant="elevated" style={[styles.heroCard, { backgroundColor: colors.primary }]}>
-                                        <View style={styles.heroHeader}>
-                                            <Avatar uri={item.contact?.avatar} name={item.contact?.name} size="lg" />
-                                            <View>
-                                                <Typography variant="h3" color="#FFFFFF">{item.contact?.name}</Typography>
-                                                <Typography variant="body" color="#FFFFFF" style={{ opacity: 0.9 }}>{item.title}</Typography>
+                                    <Card variant="elevated" style={[styles.heroCard, { backgroundColor: colors.surface }]}>
+                                        {/* Decorative Pattern Background */}
+                                        <View pointerEvents="none" style={[StyleSheet.absoluteFillObject, { overflow: 'hidden', borderRadius: 24 }]}>
+                                            <View style={{ flexDirection: 'row', flexWrap: 'wrap', opacity: 0.02, width: '150%', height: '150%', top: '-25%', left: '-25%', transform: [{ rotate: '-15deg' }], justifyContent: 'center', alignItems: 'center' }}>
+                                                {Array.from({ length: 80 }).map((_, i) => (
+                                                    <Ionicons
+                                                        key={i}
+                                                        name={i % 4 === 0 ? "gift" : i % 4 === 1 ? "star" : i % 4 === 2 ? "heart" : "sparkles"}
+                                                        size={20}
+                                                        color={colors.textPrimary}
+                                                        style={{ margin: 16 }}
+                                                    />
+                                                ))}
                                             </View>
                                         </View>
-                                        <View style={styles.heroFooter}>
-                                            <Typography variant="h2" color="#FFFFFF">{getCountdown(item.date)}</Typography>
+
+                                        <View style={[styles.heroHeader, { zIndex: 1 }]}>
+                                            {item.contacts && item.contacts.length > 1 ? (
+                                                <>
+                                                    {/* Stacked avatars for multiple contacts */}
+                                                    <View style={styles.stackedAvatars}>
+                                                        {item.contacts.slice(0, 3).map((c, idx) => (
+                                                            <View
+                                                                key={c.id}
+                                                                style={[
+                                                                    styles.stackedAvatarWrapper,
+                                                                    { marginLeft: idx === 0 ? 0 : -16, zIndex: 3 - idx, borderColor: colors.surface },
+                                                                ]}
+                                                            >
+                                                                <Avatar uri={c.avatar} name={c.name} size={48} />
+                                                            </View>
+                                                        ))}
+                                                        {item.contacts.length > 3 && (
+                                                            <View style={[styles.stackedAvatarOverflow, { marginLeft: -16, backgroundColor: colors.primary }]}>
+                                                                <Typography variant="caption" color="#fff" style={{ fontWeight: '700' }}>
+                                                                    +{item.contacts.length - 3}
+                                                                </Typography>
+                                                            </View>
+                                                        )}
+                                                    </View>
+                                                    <View style={{ flex: 1 }}>
+                                                        <Typography variant="h3" color={colors.textPrimary} numberOfLines={1}>
+                                                            {(() => {
+                                                                const names = item.contacts.map(c => c.name.split(' ')[0]);
+                                                                if (names.length === 2) return `${names[0]} & ${names[1]}`;
+                                                                return `${names[0]}, ${names[1]} & ${names.length - 2} other${names.length - 2 > 1 ? 's' : ''}`;
+                                                            })()}
+                                                        </Typography>
+                                                        <Typography variant="body" color={colors.textSecondaryForeground} style={{ opacity: 0.9 }}>
+                                                            {item.contacts.length} people · {item.title}
+                                                        </Typography>
+                                                    </View>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Avatar uri={item.contact?.avatar ?? item.contacts?.[0]?.avatar} name={item.contact?.name ?? item.contacts?.[0]?.name} size="lg" />
+                                                    <View>
+                                                        <Typography variant="h3" color={colors.textPrimary}>{item.contact?.name ?? item.contacts?.[0]?.name}</Typography>
+                                                        <Typography variant="body" color={colors.textSecondaryForeground} style={{ opacity: 0.9 }}>{item.title}</Typography>
+                                                    </View>
+                                                </>
+                                            )}
+                                        </View>
+                                        <View style={[styles.heroFooter, { zIndex: 1 }]}>
+                                            <Typography variant="h2" color={colors.textPrimary}>{getCountdown(item.date)}</Typography>
                                             <Button
                                                 title="Get a Gift →"
                                                 variant="secondary"
@@ -185,7 +239,7 @@ export default function HomeScreen() {
                 <Animated.View entering={FadeInDown.duration(600)} style={{ marginTop: 20 }}>
                     <View style={[styles.sectionHeader, { paddingHorizontal: spacing.xl }]}>
                         <Typography variant="h4">
-                            {firstUpcoming ? `Picked for ${firstUpcoming.contact?.name}` : 'Recommendations'}
+                            {firstUpcoming ? `Picked for ${firstUpcoming.contact?.name ?? firstUpcoming.contacts?.[0]?.name ?? 'them'}` : 'Recommendations'}
                         </Typography>
                         <Pressable onPress={() => router.push('/(tabs)/shop')}><Typography variant="label" color={colors.primary}>See all →</Typography></Pressable>
                     </View>
@@ -273,13 +327,8 @@ const styles = StyleSheet.create({
         right: 12,
     },
     heroCard: {
-        paddingLeft: 18,
-        paddingRight: 18,
-        paddingBottom: 18,
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
-        borderTopLeftRadius: 0,
-        borderTopRightRadius: 0,
+        padding: 24,
+        borderRadius: 24,
         gap: 20,
     },
     heroHeader: {
@@ -343,6 +392,21 @@ const styles = StyleSheet.create({
         width: 64,
         height: 64,
         borderRadius: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    stackedAvatars: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    stackedAvatarWrapper: {
+        borderWidth: 2.5,
+        borderRadius: 25,
+    },
+    stackedAvatarOverflow: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
         justifyContent: 'center',
         alignItems: 'center',
     },

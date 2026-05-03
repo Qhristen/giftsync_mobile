@@ -30,6 +30,7 @@ import { Toaster } from 'sonner-native';
 SplashScreen.preventAutoHideAsync();
 
 import { useChatSocket } from '@/hooks/useChatSocket';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import notificationService from '@/services/notificationService';
 import { RootState } from '@/store';
 import { useRegisterDeviceTokenMutation } from '@/store/api/notificationApi';
@@ -49,6 +50,7 @@ function RootLayoutContent() {
   const router = useRouter();
 
   useChatSocket();
+  useNetworkStatus();
 
   const { isLoading, isAuthenticated } = useSelector((state: RootState) => state.auth);
 
@@ -171,7 +173,7 @@ function RootLayoutContent() {
         </Stack>
         <StatusBar style={isDark ? 'light' : 'dark'} />
       </BottomSheetModalProvider>
-      <Toaster theme={isDark ? "dark" : "light"} position="top-center" closeButton={true} toastOptions={{
+      <Toaster theme={isDark ? "dark" : "light"} position="top-center" toastOptions={{
         actionButtonStyle: {
           borderRadius: spacing.md,
         }
@@ -180,9 +182,10 @@ function RootLayoutContent() {
   );
 }
 
-import { KeyboardProvider } from 'react-native-keyboard-controller';
-import { useGetPlatformConfigQuery, useLazyGetPlatformConfigQuery } from '@/store/api/platformConfigApi';
+import { useLazyGetPlatformConfigQuery } from '@/store/api/platformConfigApi';
 import { setConfigs } from '@/store/slices/configSlice';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
+
 
 export default function RootLayout() {
   const [frauncesLoaded, frauncesError] = useFraunces({

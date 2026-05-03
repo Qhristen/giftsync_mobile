@@ -3,26 +3,27 @@ import { moderateFontScale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import React from 'react';
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 
 export default function TabLayout() {
-  const { colors, spacing } = useTheme();
+  const { colors, spacing, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.secondary,
+        tabBarInactiveTintColor: colors.textSecondaryForeground,
         tabBarStyle: {
           backgroundColor: colors.surface,
-          borderTopColor: colors.border,
           borderTopWidth: 0,
-          paddingBottom: spacing.xxs,
-          paddingTop: spacing.sm,
-          margin: 15,
-          borderRadius: spacing.md,
-          position: 'absolute',
+          paddingTop: spacing.xs,
+          paddingBottom: insets.bottom > 0 ? insets.bottom : spacing.sm,
+          height: 64 + insets.bottom,
           elevation: 0,
+          borderTopColor: 'transparent',
         },
         tabBarLabelStyle: {
           fontSize: moderateFontScale(12),

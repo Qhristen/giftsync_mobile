@@ -10,6 +10,7 @@ import * as Contacts from 'expo-contacts';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, SectionList, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useGetContactsQuery } from '@/store/api/contactsApi';
 import { useGetMonthlyOccasionsQuery, useGetUpcomingOccasionsQuery } from '@/store/api/occasionApi';
@@ -21,17 +22,19 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 export default function OccasionsScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
+    const insets = useSafeAreaInsets();
     const { openAdd, view } = useLocalSearchParams<{ openAdd?: string; view?: string }>();
 
     // API Hooks
     const [selectedMonthIndex, setSelectedMonthIndex] = useState(new Date().getMonth());
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth(); // 0-indexed
+    const selectedYear = selectedMonthIndex < currentMonth ? currentYear + 1 : currentYear;
 
     // Fetch the selected month's occasions
     const { data: monthlyOccasions, isFetching: isMonthlyFetching, refetch: refetchMonthly } = useGetMonthlyOccasionsQuery({
         month: selectedMonthIndex + 1,
-        year: currentYear
+        year: selectedYear
     });
 
     // Use the upcoming occasions query for "Other Occasions" instead of individual monthly fetches
@@ -42,7 +45,7 @@ export default function OccasionsScreen() {
         .filter(o => {
             const date = new Date(o.date);
             // Exclude occasions in the currently selected month to avoid duplication
-            return date.getMonth() !== selectedMonthIndex || date.getFullYear() !== currentYear;
+            return date.getMonth() !== selectedMonthIndex || date.getFullYear() !== selectedYear;
         })
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
@@ -50,26 +53,19 @@ export default function OccasionsScreen() {
 
     const [viewMode, setViewMode] = useState<'calendar' | 'contacts'>('calendar');
     const [page, setPage] = useState(1);
-    const { data: contactsData, isFetching: isContactsFetching, refetch: refetchContacts } = useGetContactsQuery({ page, limit: 20 });
 
-    // We get all accumulated items directly from RTKQ since we used merge/serializeQueryArgs
-    const allContacts = contactsData?.items || [];
 
     const onRefresh = React.useCallback(() => {
         setPage(1);
         refetchMonthly();
         refetchUpcoming();
-        refetchContacts();
-    }, [refetchMonthly, refetchUpcoming, refetchContacts]);
-
-    const loadMore = () => {
-        if (contactsData?.meta && page < contactsData.meta.totalPages && !isContactsFetching) {
-            setPage(p => p + 1);
-        }
-    };
+    }, [refetchMonthly, refetchUpcoming]);
 
     const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-    const visibleMonths = months.map((m, i) => ({ name: m, index: i })).slice(currentMonth);
+    const visibleMonths = Array.from({ length: 6 }).map((_, i) => {
+        const index = (currentMonth + i) % 12;
+        return { name: months[index], index };
+    });
     const selectedMonthName = months[selectedMonthIndex];
 
     const createSheetRef = useRef<BottomSheetRef>(null);
@@ -117,19 +113,6 @@ export default function OccasionsScreen() {
                         const contactPhone = contact.phoneNumbers?.[0]?.number || '';
 
                         setSelectedPhoneContact({ name: contactName, phone: contactPhone });
-
-                        // Check if this contact exists in the app
-                        const existing = allContacts.find(
-                            c => c.name.toLowerCase() === contactName.toLowerCase() ||
-                                (contactPhone && c.phoneNumber === contactPhone)
-                        );
-
-                        if (existing) {
-                            setSelectedContact(existing);
-                        } else {
-                            setSelectedContact(null);
-                        }
-
                         createSheetRef.current?.expand();
                     }
                 }
@@ -137,11 +120,6 @@ export default function OccasionsScreen() {
                 console.error('Error picking contact:', err);
             }
         }
-    };
-
-    const handleContactClick = (contact: Contact) => {
-        setSelectedContact(contact);
-        contactDetailSheetRef.current?.expand();
     };
 
     const chunkArray = <T,>(arr: T[], size: number): T[][] => {
@@ -251,7 +229,11 @@ export default function OccasionsScreen() {
                 onPress={handleOpenCreateSheet}
                 style={({ pressed }) => [
                     styles.fab,
-                    { backgroundColor: colors.primary, bottom: spacing.xl + 80, right: spacing.xl },
+                    { 
+                        backgroundColor: colors.primary, 
+                        bottom: 64 + insets.bottom + spacing.md, 
+                        right: spacing.xl 
+                    },
                     pressed && { opacity: 0.9, transform: [{ scale: 0.95 }] }
                 ]}
             >
@@ -269,8 +251,6 @@ export default function OccasionsScreen() {
                 ref={contactSheetRef}
                 onSuccess={() => {
                     refetchMonthly();
-                    // refetchOtherMonths();
-                    refetchContacts();
                 }}
             />
 

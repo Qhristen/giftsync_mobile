@@ -11,7 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Clipboard from 'expo-clipboard';
 import { Image } from 'expo-image';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
     ActivityIndicator,
@@ -45,6 +45,8 @@ const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
 export default function AIChatScreen() {
     const router = useRouter();
+    const { initialMessage } = useLocalSearchParams<{ initialMessage?: string }>();
+    const initialMessageProcessed = useRef(false);
     const { colors, spacing } = useTheme();
     const { aiChatCost } = usePlatformConfig();
     const insets = useSafeAreaInsets();
@@ -124,6 +126,13 @@ export default function AIChatScreen() {
         saveCache();
     }, [messages, chatHistory, isCacheLoaded, cacheKey]);
 
+    useEffect(() => {
+        if (isCacheLoaded && initialMessage && !initialMessageProcessed.current) {
+            initialMessageProcessed.current = true;
+            handleSend(initialMessage);
+        }
+    }, [isCacheLoaded, initialMessage]);
+
     const handleMessageLongPress = (msg: any, event: GestureResponderEvent) => {
         const { pageX, pageY } = event.nativeEvent;
         setMenuPosition({ x: pageX, y: pageY });
@@ -141,8 +150,9 @@ export default function AIChatScreen() {
         setSelectedMessageText('');
     };
 
-    const handleSend = async () => {
-        if (!messageText.trim()) return;
+    const handleSend = async (customMessage?: string | any) => {
+        const textToSend = typeof customMessage === 'string' ? customMessage : messageText;
+        if (!textToSend.trim()) return;
 
         // Check wallet balance
         const coinBalance = user?.coinBalance || 0;
@@ -157,7 +167,7 @@ export default function AIChatScreen() {
             return;
         }
 
-        const currentText = messageText.trim();
+        const currentText = textToSend.trim();
         const userMsg: AIMessage = {
             id: Date.now().toString(),
             content: currentText,
@@ -166,7 +176,9 @@ export default function AIChatScreen() {
         };
 
         setMessages(prev => [...prev, userMsg]);
-        setMessageText('');
+        if (typeof customMessage !== 'string') {
+            setMessageText('');
+        }
         setIsAITyping(true);
 
         setTimeout(() => {
@@ -242,7 +254,7 @@ export default function AIChatScreen() {
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                                 <View style={[styles.statusDot, { backgroundColor: isAITyping ? colors.primary : colors.success }]} />
                                 <Typography variant="caption" color={colors.textSecondary}>
-                                    {isAITyping ? 'typing...' : 'Active now'}
+                                    {isAITyping ? 'Thinking...' : 'Active'}
                                 </Typography>
                             </View>
                         </View>
@@ -265,10 +277,12 @@ export default function AIChatScreen() {
                     }}
                     style={({ pressed }) => [
                         styles.headerAction,
+                        { backgroundColor: colors.surfaceRaised },
                         pressed && { opacity: 0.7 }
                     ]}
                 >
-                    <Ionicons name="refresh-outline" size={22} color={colors.textSecondary} />
+                    <Ionicons name="trash-outline" size={15} color={colors.textSecondary} />
+                    <Typography variant="caption" color={colors.textSecondary} style={{ fontSize: moderateFontScale(11) }}>Clear Chat</Typography>
                 </Pressable>
             </View>
 
@@ -484,7 +498,7 @@ export default function AIChatScreen() {
                 ]}>
                     <View style={styles.inputWrapper}>
                         <TextInput
-                            placeholder="Ask me anything..."
+                            placeholder={`Ask me anything... (${aiChatCost} coins)`}
                             value={messageText}
                             onChangeText={setMessageText}
                             onSubmitEditing={handleSend}
@@ -497,9 +511,9 @@ export default function AIChatScreen() {
                                 }
                             ]}
                         />
-                        <Typography variant="caption" color={colors.textSecondary} style={{ marginLeft: 16, marginTop: 4 }}>
+                        {/* <Typography variant="caption" color={colors.textSecondary} style={{ marginLeft: 16, marginTop: 4 }}>
                             Each message costs <Typography variant="caption" color={colors.primary} style={{ fontWeight: 'bold' }}>{aiChatCost} coins</Typography>
-                        </Typography>
+                        </Typography> */}
                     </View>
                     <Pressable
                         onPress={handleSend}
@@ -608,11 +622,12 @@ const styles = StyleSheet.create({
         borderRadius: 3,
     },
     headerAction: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        justifyContent: 'center',
+        flexDirection: 'row',
         alignItems: 'center',
+        gap: 6,
+        paddingHorizontal: 12,
+        height: 32,
+        borderRadius: 16,
         marginRight: 8,
     },
     aiAvatar: {

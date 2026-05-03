@@ -16,7 +16,7 @@ interface CategoryPickerSheetProps {
 
 const CategoryPickerSheet = forwardRef<BottomSheetRef, CategoryPickerSheetProps>(({ currentCategoryId, onSelect }, ref) => {
     const { colors, spacing } = useTheme();
-    const { data: categories = [], isLoading } = useGetCategoriesQuery();
+    const { data: categories = [], isLoading } = useGetCategoriesQuery({ hasProductsOnly: false });
     const [searchQuery, setSearchQuery] = useState('');
 
     const filteredCategories = useMemo(() => {

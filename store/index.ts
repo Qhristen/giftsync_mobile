@@ -37,7 +37,7 @@ const rootReducer = (state: any, action: UnknownAction) => {
 const persistConfig = {
     key: 'root',
     storage: AsyncStorage,
-    whitelist: ['auth', 'theme', 'onboarding', 'config', baseApi.reducerPath] // Cache RTK Query APIs permanently
+    whitelist: ['auth', 'theme', 'onboarding', 'config'] // Do not persist API cache to prevent stale data issues
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

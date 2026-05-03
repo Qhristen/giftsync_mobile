@@ -73,13 +73,13 @@ export default function WalletTransactionsScreen() {
         const isCredit = item.type === 'purchase' || item.type === 'deposit' || item.type === 'refund';
 
         const amountText = item.paymentMethod === 'coins' || item?.reference?.startsWith('DEPOSIT')
-            ? `${Math.abs(item.amount).toLocaleString()} Coins`
+            ? `${Math.abs(item.coinAmount || 0).toLocaleString()} Coins`
             : item?.reference?.startsWith('ORDER')
                 ? formatCurrency(Math.abs(item.amount), 'NGN')
-                : `${Math.abs(item.amount).toLocaleString()} Coins`;
+                : `${Math.abs(item.coinAmount || 0).toLocaleString()} Coins`;
 
         const balanceText = item.paymentMethod !== 'paystack' || item?.reference?.startsWith('DEPOSIT')
-            ? `Bal: ${item.balanceAfter?.toLocaleString()} Coins`
+            ? `Bal: ${item.coinBalanceAfter?.toLocaleString()} Coins`
             : `Direct payment`;
 
         return (
@@ -213,10 +213,7 @@ const styles = StyleSheet.create({
     },
     balanceCard: {
         padding: 20,
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
-        borderTopLeftRadius: 0,
-        borderTopRightRadius: 0,
+        borderRadius: 24,
     },
     txCard: {
         flexDirection: 'row',

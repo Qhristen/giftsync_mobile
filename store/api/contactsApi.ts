@@ -10,27 +10,36 @@ export const contactsApi = baseApi.injectEndpoints({
                 params
             }),
             serializeQueryArgs: ({ endpointName, queryArgs }) => {
-                const queryArgsCopy = queryArgs || {};
-                delete queryArgsCopy.page;
-                return `${endpointName}-${JSON.stringify(queryArgsCopy)}`;
+                const { page, ...other } = (queryArgs as any) || {};
+                return `${endpointName}-${JSON.stringify(other)}`;
             },
             merge: (currentCache, newItems, { arg }) => {
-                const params = arg;
+                const params = arg as { page?: number } | undefined;
                 if (!params || params.page === 1) {
                     return newItems;
                 }
-                const existingIds = new Set(currentCache.items.map(item => item.id));
-                currentCache.items.push(
-                    ...newItems.items.filter(item => !existingIds.has(item.id))
-                );
+                
+                newItems.items.forEach(newItem => {
+                    const index = currentCache.items.findIndex(item => item.id === newItem.id);
+                    if (index !== -1) {
+                        currentCache.items[index] = newItem;
+                    } else {
+                        currentCache.items.push(newItem);
+                    }
+                });
+                
                 currentCache.meta = newItems.meta;
             },
-            forceRefetch: ({ currentArg, previousArg }) => {
-                const curr = currentArg as any;
-                const prev = previousArg as any;
-                return curr?.page !== prev?.page;
+            forceRefetch: ({ currentArg, previousArg, endpointState }) => {
+                return (currentArg as any)?.page !== (previousArg as any)?.page || endpointState?.status === 'uninitialized';
             },
-            providesTags: ['Contacts'],
+            providesTags: (result) =>
+                result
+                    ? [
+                        ...result.items.map(({ id }) => ({ type: 'Contacts' as const, id })),
+                        { type: 'Contacts', id: 'LIST' },
+                    ]
+                    : [{ type: 'Contacts', id: 'LIST' }],
         }),
         createContact: builder.mutation<Contact, CreateContactDto>({
             query: (data) => ({
@@ -38,7 +47,7 @@ export const contactsApi = baseApi.injectEndpoints({
                 method: 'POST',
                 data,
             }),
-            invalidatesTags: ['Contacts'],
+            invalidatesTags: [{ type: 'Contacts', id: 'LIST' }],
         }),
         bulkImportContacts: builder.mutation<void, CreateContactDto[]>({
             query: (contacts) => ({
@@ -46,7 +55,7 @@ export const contactsApi = baseApi.injectEndpoints({
                 method: 'POST',
                 data: { contacts },
             }),
-            invalidatesTags: ['Contacts'],
+            invalidatesTags: [{ type: 'Contacts', id: 'LIST' }],
         }),
         updateContact: builder.mutation<Contact, { id: string; data: UpdateContactDto }>({
             query: ({ id, data }) => ({
@@ -54,7 +63,10 @@ export const contactsApi = baseApi.injectEndpoints({
                 method: 'PATCH',
                 data,
             }),
-            invalidatesTags: (result, error, { id }) => ['Contacts', { type: 'Contacts', id }],
+            invalidatesTags: (result, error, { id }) => [
+                { type: 'Contacts', id: 'LIST' },
+                { type: 'Contacts', id }
+            ],
         }),
         getContact: builder.query<Contact, string>({
             query: (id) => ({
@@ -75,7 +87,7 @@ export const contactsApi = baseApi.injectEndpoints({
                 url: `/api/v1/contacts/${id}`,
                 method: 'DELETE',
             }),
-            invalidatesTags: ['Contacts'],
+            invalidatesTags: [{ type: 'Contacts', id: 'LIST' }],
         }),
     }),
     overrideExisting: true,

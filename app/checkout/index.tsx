@@ -14,12 +14,14 @@ import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useMemo } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function CheckoutEntry() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
     const { deliveryFeeNgn, packagingFeeNgn } = usePlatformConfig();
     const { occasionId, productId } = useLocalSearchParams<{ occasionId: string; productId: string }>();
+   const insets = useSafeAreaInsets();
 
     const { data: occasion, isLoading: initialOccasionLoading, isFetching: isOccasionFetching } = useGetOccasionDetailQuery(occasionId as string, { skip: !occasionId });
     const isOccasionLoading = initialOccasionLoading || isOccasionFetching;
@@ -146,7 +148,7 @@ export default function CheckoutEntry() {
             </ScrollView>
 
             {/* Footer CTA */}
-            <View style={[styles.footer, { padding: spacing.xl, borderTopWidth: 1, borderTopColor: colors.border }]}>
+            <View style={[styles.footer, { padding: spacing.xl, paddingBottom: insets.bottom}]}>
                 <Button
                     title="Looks good, Continue →"
                     onPress={handleNext}
