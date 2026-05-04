@@ -69,7 +69,7 @@ export default function ProductOrdersScreen() {
                 </View>
                 <View style={styles.detailRow}>
                     <Ionicons name="location-outline" size={16} color={colors.textSecondary} />
-                    <Typography variant="body" color={colors.textSecondary} numberOfLines={1}>{item.deliveryAddress.line1}</Typography>
+                    <Typography variant="body" color={colors.textSecondary} numberOfLines={1}>{item?.deliveryAddress?.line1 ?? ""}</Typography>
                 </View>
             </View>
 

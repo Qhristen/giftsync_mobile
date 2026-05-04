@@ -96,6 +96,7 @@ const ReviewBusinessSheet = forwardRef<BottomSheetRef, Props>(
 
                     <Button
                         title="Submit Review"
+                        variant='primary'
                         onPress={handleSubmit}
                         isLoading={isLoading}
                         disabled={rating === 0}

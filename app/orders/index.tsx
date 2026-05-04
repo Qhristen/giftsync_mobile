@@ -87,7 +87,7 @@ export default function OrderListScreen() {
                     <Typography variant="h1">Orders</Typography>
                     <View style={{ flex: 1 }} />
                     <Pressable
-                        onPress={() => refetch()}
+                        onPress={() => { setPage(1); refetch(); }}
                         style={({ pressed }) => [
                             styles.refreshBtn,
                             { backgroundColor: colors.surface },

@@ -240,7 +240,7 @@ export interface UnreadCount {
 
 export interface WalletTransaction {
   id: string;
-  type: 'purchase' | 'spend' | 'deposit' | 'withdrawal' | 'refund';
+  type: 'purchase' | 'spend' | 'deposit' | 'withdrawal' | 'refund' | 'referral_bonus';
   amount: number;
   coinAmount?: number;
   coinBalanceAfter: number;

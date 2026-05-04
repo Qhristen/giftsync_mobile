@@ -3,6 +3,7 @@ import { tokenCache } from '@/utils/cache';
 import { BASE_URL } from '@/utils/constants';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { baseApi } from '../api/baseApi';
 import axios from 'axios';
 import * as jose from 'jose';
 
@@ -29,14 +30,25 @@ const initialState: AuthState = {
 
 export const logoutUser = createAsyncThunk(
     'auth/logout',
-    async () => {
+    async (_, { dispatch }) => {
         try {
             await GoogleSignin.signOut();
         } catch (error) {
             console.log('Google sign out error (possibly not signed in with Google):', error);
         }
-        await tokenCache.deleteToken('accessToken');
-        await tokenCache.deleteToken('refreshToken');
+
+        try {
+            // Clear from SecureStore
+            await tokenCache.deleteToken('accessToken');
+            await tokenCache.deleteToken('refreshToken');
+        } catch (error) {
+            console.error('Error clearing tokens from SecureStore:', error);
+        }
+
+        // Always clear memory cache and reset API state
+        tokenCache.clearAll();
+        dispatch(baseApi.util.resetApiState());
+        
         return null;
     }
 );

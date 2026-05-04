@@ -15,6 +15,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 const TX_ICONS: Record<string, { name: string; color: string; bg: string }> = {
     purchase: { name: 'arrow-down-circle', color: '#10B981', bg: '#10B98115' },
     deposit: { name: 'arrow-down-circle', color: '#10B981', bg: '#10B98115' },
+    referral_bonus: { name: 'arrow-down-circle', color: '#10B981', bg: '#10B98115' },
     spend: { name: 'arrow-up-circle', color: '#EF4444', bg: '#EF444415' },
     withdrawal: { name: 'arrow-up-circle', color: '#EF4444', bg: '#EF444415' },
     refund: { name: 'refresh-circle', color: '#3B82F6', bg: '#3B82F615' },
@@ -70,7 +71,7 @@ export default function WalletTransactionsScreen() {
 
     const renderTransaction = ({ item, index }: { item: WalletTransaction; index: number }) => {
         const style = getTxStyle(item.type);
-        const isCredit = item.type === 'purchase' || item.type === 'deposit' || item.type === 'refund';
+        const isCredit = item.type === 'purchase' || item.type === 'deposit' || item.type === 'refund' || item.type === 'referral_bonus';
 
         const amountText = item.paymentMethod === 'coins' || item?.reference?.startsWith('DEPOSIT')
             ? `${Math.abs(item.coinAmount || 0).toLocaleString()} Coins`

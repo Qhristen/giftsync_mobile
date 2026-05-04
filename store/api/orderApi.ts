@@ -32,19 +32,25 @@ export const orderApi = baseApi.injectEndpoints({
                 params: params || {},
             }),
             serializeQueryArgs: ({ endpointName, queryArgs }) => {
-                const queryArgsCopy = queryArgs || {};
-                delete queryArgsCopy.page;
-                return `${endpointName}-${JSON.stringify(queryArgsCopy)}`;
+                const { page, ...rest } = queryArgs || {};
+                return `${endpointName}-${JSON.stringify(rest)}`;
             },
             merge: (currentCache, newItems, { arg }) => {
                 const params = arg as { page?: number } | undefined;
                 if (!params || params.page === 1) {
                     return newItems;
                 }
-                const existingIds = new Set(currentCache.items.map(item => item.id));
-                currentCache.items.push(
-                    ...newItems.items.filter(item => !existingIds.has(item.id))
-                );
+                
+                // Update existing items if they are already in the cache, otherwise append
+                newItems.items.forEach(newItem => {
+                    const index = currentCache.items.findIndex(item => item.id === newItem.id);
+                    if (index !== -1) {
+                        currentCache.items[index] = newItem;
+                    } else {
+                        currentCache.items.push(newItem);
+                    }
+                });
+                
                 currentCache.meta = newItems.meta;
             },
             forceRefetch: ({ currentArg, previousArg }) => {

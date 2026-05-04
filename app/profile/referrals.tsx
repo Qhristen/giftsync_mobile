@@ -254,8 +254,8 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
     },
     statsHeader: {
-        borderBottomLeftRadius: 32,
-        borderBottomRightRadius: 32,
+        // borderBottomLeftRadius: 32,
+        // borderBottomRightRadius: 32,
         alignItems: 'center',
         justifyContent: 'center',
     },

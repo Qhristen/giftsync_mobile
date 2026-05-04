@@ -85,7 +85,6 @@ const DisputeSheet = forwardRef<BottomSheetRef, Props>(
                             onPress={handleSubmit}
                             isLoading={isLoading}
                             variant="primary"
-                            color={colors.error}
                             style={{ marginTop: spacing.md }}
                         />
                     </View>
