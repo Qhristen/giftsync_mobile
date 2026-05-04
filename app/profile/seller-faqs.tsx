@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     },
     faqItem: {
         padding: 16,
-        borderRadius: 16,
+        borderRadius: 10,
         marginBottom: 12,
         borderWidth: 1,
     },

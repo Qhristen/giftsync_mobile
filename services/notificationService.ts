@@ -376,6 +376,10 @@ class NotificationService {
         case 'Profile':
           deepLinkPath = 'profile';
           break;
+        case 'Referrals':
+        case 'Referral':
+          deepLinkPath = 'profile/referrals';
+          break;
         case 'EditProfile':
         case 'Settings':
           deepLinkPath = 'profile/edit';
@@ -451,6 +455,9 @@ class NotificationService {
    */
   private handleCustomAction(action: string, data: NotificationData): void {
     switch (action) {
+      case "referral_reward":
+        this.navigateToScreen('Referrals');
+        break;
       case "view_product":
       case "view_listing":
         if (data.productId || data.listingId) {

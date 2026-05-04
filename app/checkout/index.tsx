@@ -148,7 +148,7 @@ export default function CheckoutEntry() {
             </ScrollView>
 
             {/* Footer CTA */}
-            <View style={[styles.footer, { padding: spacing.xl, paddingBottom: insets.bottom}]}>
+            <View style={[styles.footer, { padding: spacing.xl, paddingBottom: insets.bottom + 20}]}>
                 <Button
                     title="Looks good, Continue →"
                     onPress={handleNext}

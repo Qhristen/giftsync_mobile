@@ -76,11 +76,11 @@ export const orderApi = baseApi.injectEndpoints({
             }),
             invalidatesTags: (result, error, { orderId }) => ['Orders', { type: 'Orders', id: orderId }],
         }),
-        handlePayment: builder.mutation<PaymentResponse, { orderId: string; method: string }>({
-            query: ({ orderId, method }) => ({
+        handlePayment: builder.mutation<PaymentResponse, { orderId: string; method: string; couponCode?: string }>({
+            query: ({ orderId, method, couponCode }) => ({
                 url: `/api/v1/orders/${orderId}/pay`,
                 method: 'POST',
-                data: { method, orderId },
+                data: { method, orderId, couponCode },
             }),
             invalidatesTags: (result, error, { orderId }) => ['Orders', { type: 'Orders', id: orderId }, 'Wallet'],
         }),

@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Button from '../ui/Button';
 import Typography from '../ui/Typography';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface Props {
     title: string;
@@ -18,9 +19,10 @@ interface Props {
 const ConfirmDeleteSheet = forwardRef<BottomSheetRef, Props>(
     ({ title, description, confirmLabel = 'Delete', cancelLabel = 'Cancel', onConfirm, onCancel, isLoading }, ref) => {
         const { spacing, colors } = useTheme();
+        const insets = useSafeAreaInsets();
 
         return (
-            <BottomSheetWrapper ref={ref} snapPoints={['25%']}>
+            <BottomSheetWrapper ref={ref} snapPoints={['35%']}>
                 <View style={styles.content}>
                     <Typography variant="h3" align="center" style={{ marginBottom: spacing.sm }}>
                         {title}
@@ -29,7 +31,7 @@ const ConfirmDeleteSheet = forwardRef<BottomSheetRef, Props>(
                         {description}
                     </Typography>
 
-                    <View style={styles.actions}>
+                    <View style={[styles.actions, {marginBottom: insets.bottom + 20}]}>
                         <Button
                             title={cancelLabel}
                             variant="outline"

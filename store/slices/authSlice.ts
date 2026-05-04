@@ -13,6 +13,7 @@ interface AuthState {
     isAuthenticated: boolean;
     isLoading: boolean;
     error: string | null;
+    pendingReferralCode: string | null;
 }
 
 const initialState: AuthState = {
@@ -22,13 +23,18 @@ const initialState: AuthState = {
     isAuthenticated: false,
     isLoading: false,
     error: null,
+    pendingReferralCode: null,
 };
 
 
 export const logoutUser = createAsyncThunk(
     'auth/logout',
     async () => {
-        await GoogleSignin.signOut();
+        try {
+            await GoogleSignin.signOut();
+        } catch (error) {
+            console.log('Google sign out error (possibly not signed in with Google):', error);
+        }
         await tokenCache.deleteToken('accessToken');
         await tokenCache.deleteToken('refreshToken');
         return null;
@@ -49,6 +55,9 @@ const authSlice = createSlice({
         },
         setError: (state, action: PayloadAction<string | null>) => {
             state.error = action.payload;
+        },
+        setPendingReferralCode: (state, action: PayloadAction<string | null>) => {
+            state.pendingReferralCode = action.payload;
         }
     },
     extraReducers: (builder) => {
@@ -62,6 +71,6 @@ const authSlice = createSlice({
     },
 });
 
-export const { setCredentials, setLoading, setError } = authSlice.actions;
+export const { setCredentials, setLoading, setError, setPendingReferralCode } = authSlice.actions;
 export default authSlice.reducer;
 

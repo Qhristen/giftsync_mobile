@@ -44,14 +44,14 @@ export default function ProfileScreen() {
 
     const { user } = useAppSelector((state: RootState) => state.auth);
     const [currency, setCurrency] = useState('NGN');
-
-
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     const sections: SettingSection[] = [
         {
             title: 'Account',
             items: [
                 { label: 'Edit Profile', icon: 'person-outline', onPress: () => router.push('/profile/edit') },
+                { label: 'Refer & Earn', icon: 'gift-outline', onPress: () => router.push('/profile/referrals') },
                 { label: 'Saved Addresses', icon: 'location-outline', onPress: () => addressSheet.open() },
                 { label: 'Blocked Users', icon: 'shield-outline', onPress: () => router.push('/profile/blocked') },
             ],
@@ -142,7 +142,7 @@ export default function ProfileScreen() {
                     <Button
                         title="Sign Out"
                         variant="outline"
-                        onPress={() => requestAnimationFrame(() => logoutSheet.open())}
+                        onPress={() => logoutSheet.open()}
                         style={{ borderColor: colors.border }}
                         color={colors.textPrimary}
                     />
@@ -178,9 +178,17 @@ export default function ProfileScreen() {
                 title="Sign Out"
                 description="Are you sure you want to sign out of GiftSync?"
                 confirmLabel="Sign Out"
+                isLoading={isLoggingOut}
                 onConfirm={async () => {
-                    logoutSheet.close();
-                    await dispatch(logoutUser());
+                    try {
+                        setIsLoggingOut(true);
+                        await dispatch(logoutUser()).unwrap();
+                        logoutSheet.close();
+                    } catch (error: any) {
+                        toast.error('Error', { description: 'Failed to sign out. Please try again.' });
+                    } finally {
+                        setIsLoggingOut(false);
+                    }
                 }}
             />
 

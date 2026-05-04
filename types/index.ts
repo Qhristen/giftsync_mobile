@@ -307,6 +307,7 @@ export interface Order {
   deliveryFee: number;
   packagingFee: number;
   deliveryAddress: Address
+  discountAmount?: number;
   total: number;
   deliveryCode: string;
   anonymity: boolean;
@@ -436,3 +437,44 @@ export interface Dispute {
   createdAt: string;
 }
 
+// ── Coupons ──────────────────────────────────────────────────────────────────
+
+export interface Coupon {
+  id: string;
+  code: string;
+  type: 'FIXED' | 'PERCENTAGE';
+  value: number;
+  maxDiscountAmount?: number;
+  minOrderAmount?: number;
+  expiresAt?: string;
+  isActive: boolean;
+}
+
+export interface ValidateCouponDto {
+  code: string;
+  orderAmount: number;
+  businessId: string;
+}
+
+export interface ValidateCouponResponse {
+  coupon: Coupon;
+  discountAmount: number;
+}
+
+
+// ── Referrals ────────────────────────────────────────────────────────────────
+
+export interface ReferralInfo {
+  referralCode: string;
+  referredBy: string | null;
+  referralCount: number;
+}
+
+export interface ReferralRecord {
+  id: string;
+  userId: string;
+  name: string;
+  avatarUrl: string;
+  bonusEarned: number;
+  createdAt: string;
+}

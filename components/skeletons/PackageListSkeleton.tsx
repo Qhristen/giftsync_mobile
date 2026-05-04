@@ -7,7 +7,7 @@ export default function PackageListSkeleton() {
     const { colors, spacing } = useTheme();
 
     return (
-        <View style={{ gap: spacing.md }}>
+        <View style={{ gap: spacing.md, paddingHorizontal: spacing.xl }}>
             {[1, 2, 3, 4].map((_, index) => (
                 <View key={index} style={[styles.packageCard, { backgroundColor: colors.surface }]}>
                     <Skeleton width={48} height={48} borderRadius={24} />

@@ -13,6 +13,9 @@ import { WebView } from 'react-native-webview';
 import { useDispatch } from 'react-redux';
 import { toast } from 'sonner-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Input from '@/components/ui/Input';
+import { useValidateCouponMutation } from '@/store/api/couponApi';
+import { ValidateCouponResponse } from '@/types';
 
 export default function PaymentScreen() {
     const router = useRouter();
@@ -23,9 +26,13 @@ export default function PaymentScreen() {
     const [handlePayment] = useHandlePaymentMutation();
     const { data: wallet, refetch } = useGetWalletBalanceQuery()
     const insets = useSafeAreaInsets();
+    
+    const [couponCode, setCouponCode] = useState('');
+    const [appliedCoupon, setAppliedCoupon] = useState<ValidateCouponResponse | null>(null);
+    const [validateCoupon, { isLoading: isValidating }] = useValidateCouponMutation();
 
     const { data: coinQuote, isLoading: isQuoteLoading } = useGetCoinQuoteQuery({
-        amount: order?.total ?? 0,
+        amount: (order?.total ?? 0) - (appliedCoupon?.discountAmount ?? 0),
         currency: order?.item?.product.currency,
     }, {
         skip: !order?.total,
@@ -35,12 +42,32 @@ export default function PaymentScreen() {
     const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
 
+    const handleApplyCoupon = async () => {
+        if (!couponCode.trim()) return;
+        try {
+            const result = await validateCoupon({
+                code: couponCode.trim(),
+                orderAmount: Number(order?.total) ?? 0,
+                businessId: order?.businessId as string
+            }).unwrap();
+            setAppliedCoupon(result);
+            toast.success('Coupon Applied!', {
+                description: `You saved ${formatCurrency(result.discountAmount, order?.item?.product.currency)}`,
+            });
+        } catch (error: any) {
+            console.error('Coupon Error:', error);
+            toast.error(error?.data?.message || 'Invalid coupon code.');
+            setAppliedCoupon(null);
+        }
+    };
+
     const handlePay = async () => {
         try {
             setIsProcessing(true);
             const response = await handlePayment({
                 orderId: order?.id as string,
-                method: paymentMethod
+                method: paymentMethod,
+                couponCode: appliedCoupon?.coupon.code
             }).unwrap();
 
             if (response.paymentMethod === 'paystack' && response.status === "payment_initiated") {
@@ -150,6 +177,50 @@ export default function PaymentScreen() {
                     )}
                 </Card>
 
+                {/* Coupon Section */}
+                <Typography variant="label" style={{ marginTop: spacing.xl, marginBottom: spacing.sm }}>Have a Coupon?</Typography>
+                {!appliedCoupon ? (
+                    <View style={styles.couponInputWrapper}>
+                        <Input
+                            placeholder="Enter coupon code"
+                            value={couponCode}
+                            onChangeText={setCouponCode}
+                            autoCapitalize="characters"
+                            leftIcon={<Ionicons name="pricetag-outline" size={20} color={colors.textSecondary} />}
+                            style={{ flex: 1 }}
+                        />
+                        <Button
+                            title="Apply"
+                            variant="primary"
+                            size="sm"
+                            onPress={handleApplyCoupon}
+                            isLoading={isValidating}
+                            disabled={!couponCode}
+                            style={styles.applyBtn}
+                        />
+                    </View>
+                ) : (
+                    <Card style={[styles.appliedCouponCard, { backgroundColor: colors.success + '0A', borderColor: colors.success, borderWidth: 1, borderStyle: 'dashed' }]}>
+                        <View style={styles.couponInfo}>
+                            <View style={[styles.couponIconContainer, { backgroundColor: colors.success }]}>
+                                <Ionicons name="checkmark" size={16} color="white" />
+                            </View>
+                            <View>
+                                <Typography variant="bodyBold">{appliedCoupon.coupon.code}</Typography>
+                                <Typography variant="caption" color={colors.textSecondary}>
+                                    Saved {formatCurrency(appliedCoupon.discountAmount, order?.item?.product.currency)}
+                                </Typography>
+                            </View>
+                        </View>
+                        <Pressable 
+                            onPress={() => { setAppliedCoupon(null); setCouponCode(''); }}
+                            style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1, padding: 4 })}
+                        >
+                            <Ionicons name="trash-outline" size={20} color={colors.error} />
+                        </Pressable>
+                    </Card>
+                )}
+
                 {/* Breakdown */}
                 <View style={styles.breakdown}>
                     <View style={styles.breakdownRow}>
@@ -166,9 +237,17 @@ export default function PaymentScreen() {
                             <Typography variant="body">{formatCurrency(order?.packagingFee ?? 0, order?.item?.product.currency)}</Typography>
                         </View>
                     ) : null}
+                    {appliedCoupon && (
+                        <View style={styles.breakdownRow}>
+                            <Typography variant="body" color={colors.success}>Discount ({appliedCoupon.coupon.code})</Typography>
+                            <Typography variant="body" color={colors.success}>-{formatCurrency(appliedCoupon.discountAmount, order?.item?.product.currency)}</Typography>
+                        </View>
+                    )}
                     <View style={styles.breakdownRow}>
                         <Typography variant="bodyBold">Total</Typography>
-                        <Typography variant="h3" color={colors.primary}>{formatCurrency(order?.total ?? 0, order?.item?.product.currency)}</Typography>
+                        <Typography variant="h3" color={colors.primary}>
+                            {formatCurrency((order?.total ?? 0) - (appliedCoupon?.discountAmount ?? 0), order?.item?.product.currency)}
+                        </Typography>
                     </View>
                 </View>
             </ScrollView>
@@ -176,7 +255,7 @@ export default function PaymentScreen() {
             {/* Footer */}
             <View style={[styles.footer, { padding: spacing.xl, paddingBottom: insets.bottom + 20 }]}>
                 <Button
-                    title={isProcessing ? "Processing..." : paymentMethod === 'coins' ? `Pay with ${coinQuote?.coins ? coinQuote.coins.toLocaleString() : '...'} Coins` : `Pay ${formatCurrency(order?.total ?? 0, order?.item?.product.currency)}`}
+                    title={isProcessing ? "Processing..." : paymentMethod === 'coins' ? `Pay with ${coinQuote?.coins ? coinQuote.coins.toLocaleString() : '...'} Coins` : `Pay ${formatCurrency((order?.total ?? 0) - (appliedCoupon?.discountAmount ?? 0), order?.item?.product.currency)}`}
                     onPress={handlePay}
                     isLoading={isProcessing || isOrderLoading || (paymentMethod === 'coins' && isQuoteLoading)}
                     style={styles.submitBtn}
@@ -258,5 +337,34 @@ const styles = StyleSheet.create({
     },
     submitBtn: {
         width: '100%',
+    },
+    couponInputWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    applyBtn: {
+        height: 56, // Match input height
+        paddingHorizontal: 20,
+        borderRadius: 12,
+    },
+    appliedCouponCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: 12,
+        borderRadius: 16,
+    },
+    couponInfo: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    couponIconContainer: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
 });

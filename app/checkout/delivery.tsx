@@ -204,7 +204,7 @@ export default function DeliveryScreen() {
                 </ScrollView>
 
                 {/* Footer CTA */}
-                <View style={[styles.footer, { padding: spacing.xl,  paddingBottom: insets.bottom }]}>
+                <View style={[styles.footer, { padding: spacing.xl,  paddingBottom: insets.bottom + 20}]}>
                     <Button
                         title="Continue to Payment →"
                         onPress={handleNext}

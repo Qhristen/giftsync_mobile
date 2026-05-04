@@ -14,6 +14,7 @@ import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
 export default function EditProfileScreen() {
@@ -25,6 +26,7 @@ export default function EditProfileScreen() {
     const [uploadImage, { isLoading: isUploadingImage }] = useUploadMutation();
     const currencySheet = useBottomSheet();
     const themeSheet = useBottomSheet();
+    const insets = useSafeAreaInsets();
 
     const [name, setName] = useState('');
     const [avatarUrl, setAvatarUrl] = useState('');
@@ -159,7 +161,7 @@ export default function EditProfileScreen() {
                 onSelect={(val) => setTheme(val)}
             />
 
-            <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
+            <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border, paddingBottom: insets.bottom + 16 }]}>
                 <Button
                     title="Save Changes"
                     variant="primary"
