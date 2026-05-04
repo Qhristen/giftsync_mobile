@@ -76,9 +76,9 @@ export default function ProfileScreen() {
         {
             title: 'Support',
             items: [
-                { label: 'GiftSync Help', icon: 'help-circle-outline', onPress: () => router.push({ pathname: '/profile/legal', params: { type: 'help' } }) },
-                { label: 'Terms & Conditions', icon: 'document-text-outline', onPress: () => router.push({ pathname: '/profile/legal', params: { type: 'terms' } }) },
-                { label: 'Privacy Policy', icon: 'shield-checkmark-outline', onPress: () => router.push({ pathname: '/profile/legal', params: { type: 'privacy' } }) },
+                { label: 'GiftSync Help', icon: 'help-circle-outline', onPress: () => router.push('/profile/help') },
+                { label: 'Terms & Conditions', icon: 'document-text-outline', onPress: () => router.push('/profile/terms') },
+                { label: 'Privacy Policy', icon: 'shield-checkmark-outline', onPress: () => router.push('/profile/privacy') },
             ],
         },
     ];

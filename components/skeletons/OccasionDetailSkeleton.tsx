@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
         width: 220,
         borderRadius: 16,
         overflow: 'hidden',
-        borderWidth: 1,
+        // borderWidth: 1,
         borderColor: 'rgba(0,0,0,0.05)',
     },
     recFooter: {

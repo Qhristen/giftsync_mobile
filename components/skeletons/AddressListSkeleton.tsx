@@ -7,7 +7,7 @@ export default function AddressListSkeleton() {
     const { colors, spacing } = useTheme();
 
     return (
-        <View style={{ paddingHorizontal: spacing.xl }}>
+        <View style={{ paddingHorizontal: spacing.sm }}>
             {[1, 2].map((_, index) => (
                 <View key={index} style={[styles.addressCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                     <Skeleton width={48} height={48} borderRadius={24} />
@@ -33,6 +33,6 @@ const styles = StyleSheet.create({
         marginBottom: 16,
         gap: 16,
         borderRadius: 20,
-        borderWidth: 1,
+        // borderWidth: 1,
     },
 });

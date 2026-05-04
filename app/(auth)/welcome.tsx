@@ -232,6 +232,29 @@ export default function WelcomeScreen() {
                     style={[styles.mainBtn, { backgroundColor: colors.primary }]}
                     color="#FFFFFF"
                 />
+
+                <View style={styles.legalNotice}>
+                    <Typography variant="caption" color="#FFFFFF" align="center" style={{ opacity: 0.7 }}>
+                        By continuing, you agree to our{' '}
+                        <Typography 
+                            variant="caption" 
+                            color="#FFFFFF" 
+                            style={{ fontWeight: 'bold', textDecorationLine: 'underline' }}
+                            onPress={() => router.push('/profile/terms')}
+                        >
+                            Terms
+                        </Typography>
+                        {' '}and{' '}
+                        <Typography 
+                            variant="caption" 
+                            color="#FFFFFF" 
+                            style={{ fontWeight: 'bold', textDecorationLine: 'underline' }}
+                            onPress={() => router.push('/profile/privacy')}
+                        >
+                            Privacy Policy
+                        </Typography>
+                    </Typography>
+                </View>
             </Animated.View>
         </View>
     );
@@ -299,5 +322,9 @@ const styles = StyleSheet.create({
     },
     patternIcon: {
         position: 'absolute',
+    },
+    legalNotice: {
+        marginTop: 20,
+        paddingHorizontal: 20,
     },
 });

@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 16,
         gap: 12,
-        borderBottomWidth: 1,
+        // borderBottomWidth: 1,
     },
     avatarGroup: {
         width: 70, // Rough estimate of group width

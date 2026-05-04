@@ -54,7 +54,7 @@ const Input: React.FC<Props> = ({
     const containerStyles = [
         styles.inputContainer,
         {
-            backgroundColor: colors.surfaceRaised,
+            backgroundColor: colors.surface,
             borderColor: error ? colors.error : isFocused ? colors.primary : colors.border,
             minHeight: multiline ? 100 : 56,
             paddingTop: multiline ? spacing.md : 0,

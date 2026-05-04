@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
     card: {
         padding: 16,
         borderRadius: 20,
-        borderWidth: 1,
+        // borderWidth: 1,
         gap: 12,
     },
     topRow: {

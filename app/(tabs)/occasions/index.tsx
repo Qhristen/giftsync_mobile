@@ -240,7 +240,7 @@ export default function OccasionsScreen() {
                     styles.fab,
                     { 
                         backgroundColor: colors.primary, 
-                        bottom: 64 + insets.bottom + spacing.md, 
+                        bottom: insets.bottom + spacing.md, 
                         right: spacing.xl 
                     },
                     pressed && { opacity: 0.9, transform: [{ scale: 0.95 }] }

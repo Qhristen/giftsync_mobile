@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
     card: {
         padding: 12,
         borderRadius: 20,
-        borderWidth: 1,
+        // borderWidth: 1,
     },
     content: {
         flexDirection: 'row',

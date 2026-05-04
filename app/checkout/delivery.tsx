@@ -17,6 +17,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { toast } from 'sonner-native';
 
 export default function DeliveryScreen() {
     const router = useRouter();
@@ -64,9 +65,9 @@ export default function DeliveryScreen() {
                 pathname: '/checkout/payment',
                 params: { orderId: result.id }
             });
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to create order', error);
-            alert('Failed to create order. Please try again.');
+            toast.error(error?.data?.message || 'Failed to create order. Please try again.');
         }
     };
 
@@ -143,7 +144,7 @@ export default function DeliveryScreen() {
                     </Card>
 
                     {/* Premium Packaging */}
-                    <Card variant="raised" style={[styles.packagingCard, { marginTop: spacing.xl }]}>
+                    <Card variant="outline" style={[styles.packagingCard, { marginTop: spacing.xl }]}>
                         <View style={{ flex: 1 }}>
                             <Typography variant="bodyBold">Premium Packaging</Typography>
                             <Typography variant="caption" color={colors.textSecondary}>Ribbon-wrapped box + Silk paper (+ NGN {(Number(product?.packagingFee || packagingFeeNgn)).toLocaleString()})</Typography>
@@ -163,7 +164,7 @@ export default function DeliveryScreen() {
                     />
 
                     {/* Anonymous Delivery */}
-                    <Card variant="raised" style={[styles.packagingCard, { marginTop: spacing.xl }]}>
+                    <Card variant="outline" style={[styles.packagingCard, { marginTop: spacing.xl }]}>
                         <View style={{ flex: 1, paddingRight: spacing.md }}>
                             <Typography variant="bodyBold">Send Anonymously</Typography>
                             <Typography variant="caption" color={colors.textSecondary}>Keep your identity a secret from the recipient</Typography>
@@ -177,7 +178,7 @@ export default function DeliveryScreen() {
                     </Card>
 
                     {/* Summary Mini */}
-                    <Card variant="raised" style={{ marginTop: 40, padding: 16 }}>
+                    <Card variant="outline" style={{ marginTop: 40, padding: 16 }}>
                         <View style={styles.summaryRow}>
                             <Typography variant="caption">{product?.name || 'Item'}</Typography>
                         </View>

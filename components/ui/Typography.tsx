@@ -9,6 +9,8 @@ interface Props {
     color?: string;
     align?: 'auto' | 'left' | 'center' | 'right' | 'justify';
     numberOfLines?: number;
+    onPress?: () => void;
+    onLongPress?: () => void;
     style?: StyleProp<TextStyle>;
 }
 
@@ -18,6 +20,8 @@ const Typography: React.FC<Props> = ({
     color,
     align = 'auto',
     numberOfLines,
+    onPress,
+    onLongPress,
     style,
 }) => {
     const { colors, typography: themeTypography } = useTheme();
@@ -87,6 +91,8 @@ const Typography: React.FC<Props> = ({
     return (
         <Text
             numberOfLines={numberOfLines}
+            onPress={onPress}
+            onLongPress={onLongPress}
             style={[
                 variantStyles,
                 { color: color || colors.textPrimary, textAlign: align },
