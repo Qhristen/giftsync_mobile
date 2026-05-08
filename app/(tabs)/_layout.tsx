@@ -3,16 +3,29 @@ import { useTheme } from '@/hooks/useTheme';
 import { moderateFontScale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { selectUnreadCount, setUnreadCount } from '@/store/slices/chatSlice';
 
 
 export default function TabLayout() {
   const { colors, spacing } = useTheme();
   const insets = useSafeAreaInsets();
+  const dispatch = useAppDispatch();
+  
   const { data: chatUnread } = useGetChatUnreadCountQuery();
-  const hasUnreadMessages = (chatUnread?.count || 0) > 0;
+  const reduxUnreadCount = useAppSelector(selectUnreadCount);
+  
+  // Sync query data to redux state for consistent global access
+  useEffect(() => {
+    if (chatUnread !== undefined) {
+      dispatch(setUnreadCount(chatUnread.count));
+    }
+  }, [chatUnread, dispatch]);
+
+  const hasUnreadMessages = reduxUnreadCount > 0;
 
   return (
     <Tabs

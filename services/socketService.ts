@@ -3,7 +3,7 @@ import { AppDispatch, RootState } from '../store';
 import { chatApi } from '../store/api/chatApi';
 
 import { getValidToken } from '@/store/api/baseApi';
-import { setUserStopTyping, setUserTyping } from '@/store/slices/chatSlice';
+import { setUnreadCount, setUserStopTyping, setUserTyping } from '@/store/slices/chatSlice';
 import { ChatMessage, Conversation, PaginationMeta } from '../types';
 
 // ─── Types matching the server contract ──────────────────────────────────────
@@ -24,6 +24,10 @@ interface NewNotificationPayload {
     conversationId: string;
     senderName: string;
     content: string;
+}
+
+interface UnreadCountPayload {
+    count: number;
 }
 
 // ─── Service ─────────────────────────────────────────────────────────────────
@@ -83,6 +87,8 @@ class SocketService {
 
         this.socket.on('connect', () => {
             console.log('Connected to chat gateway:', this.socket?.id);
+            // Fetch initial unread count on connect
+            this.getUnreadCount();
         });
 
         this.socket.on('disconnect', (reason) => {
@@ -111,6 +117,13 @@ class SocketService {
 
         this.socket.on('exception', (error: { status: string; message: string }) => {
             console.error('Socket exception:', error);
+        });
+
+        // ── unreadCount ───────────────────────────────────────────────────────
+
+        this.socket.on('unreadCount', ({ count }: UnreadCountPayload) => {
+            console.log('Socket: Received unreadCount:', count);
+            dispatch(setUnreadCount(count));
         });
 
         // ── newMessage ────────────────────────────────────────────────────────
@@ -199,6 +212,14 @@ class SocketService {
 
             // Always refresh unread count
             dispatch(chatApi.util.invalidateTags([{ type: 'Chat', id: 'UNREAD_COUNT' }]));
+
+            // If we are actively viewing this conversation, mark the message as read immediately
+            if (
+                message.senderId !== currentUserId &&
+                this.activeConversationId === message.conversationId
+            ) {
+                this.markAsRead(message.conversationId);
+            }
         });
 
         // ── typing ────────────────────────────────────────────────────────────
@@ -270,6 +291,19 @@ class SocketService {
             dispatch(chatApi.util.invalidateTags([{ type: 'Chat', id: 'UNREAD_COUNT' }]));
             dispatch(chatApi.util.invalidateTags([{ type: 'Chat', id: 'CONV_LIST' }]));
         });
+    }
+
+    /**
+     * Request the current unread count via socket.
+     */
+    getUnreadCount() {
+        if (this.socket?.connected) {
+            this.socket.emit('getUnreadCount', (response: { count: number }) => {
+                if (this.dispatch) {
+                    this.dispatch(setUnreadCount(response.count));
+                }
+            });
+        }
     }
 
     /**
