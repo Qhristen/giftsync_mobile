@@ -3,7 +3,7 @@ import { tokenCache } from '@/utils/cache';
 import { BASE_URL } from '@/utils/constants';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { baseApi } from '../api/baseApi';
+import { baseApi, clearCachedToken } from '../api/baseApi';
 import axios from 'axios';
 import * as jose from 'jose';
 
@@ -47,6 +47,7 @@ export const logoutUser = createAsyncThunk(
 
         // Always clear memory cache and reset API state
         tokenCache.clearAll();
+        clearCachedToken();
         dispatch(baseApi.util.resetApiState());
         
         return null;
@@ -74,6 +75,12 @@ const authSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
+            .addCase(logoutUser.pending, (state) => {
+                state.user = null;
+                state.accessToken = null;
+                state.refreshToken = null;
+                state.isAuthenticated = false;
+            })
             .addCase(logoutUser.fulfilled, (state) => {
                 state.user = null;
                 state.accessToken = null;

@@ -4,7 +4,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useGetProfileQuery } from '@/store/api/userApi';
 import { Conversation } from '@/types';
 import { moderateFontScale } from '@/utils/scaling';
-import { format, formatDistanceToNow } from 'date-fns';
+import { format } from 'date-fns';
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
@@ -30,6 +30,8 @@ const ConversationItem: React.FC<ConversationItemProps> = ({ conversation, onPre
     const groupWidth = participants.length > 0
         ? avatarSize + (participants.length - 1) * (avatarSize - overlap)
         : avatarSize;
+
+    const hasUnread = conversation.unreadCount !== undefined && conversation.unreadCount > 0;
 
     return (
         <Pressable
@@ -63,25 +65,33 @@ const ConversationItem: React.FC<ConversationItemProps> = ({ conversation, onPre
             </View>
             <View style={styles.content}>
                 <View style={styles.header}>
-                    <Typography variant="bodyBold" numberOfLines={1} style={styles.name}>
+                    <Typography 
+                        variant="bodyBold" 
+                        numberOfLines={1} 
+                        style={styles.name}
+                        color={hasUnread ? colors.textPrimary : colors.textSecondary}
+                    >
                         {displayName}
                     </Typography>
-                    <Typography variant="caption" color={colors.textSecondary}>
+                    <Typography variant="caption" color={hasUnread ? colors.primary : colors.textSecondary}>
                         {lastMessageDate}
                     </Typography>
                 </View>
                 <View style={styles.footer}>
                     <Typography
                         variant="body"
-                        color={colors.textSecondaryForeground}
+                        color={hasUnread ? colors.textPrimary : colors.textSecondaryForeground}
                         numberOfLines={1}
-                        style={styles.preview}
+                        style={[
+                            styles.preview,
+                            hasUnread && { fontWeight: '500' }
+                        ]}
                     >
                         {conversation.lastMessagePreview || 'No messages yet'}
                     </Typography>
-                    {conversation.unreadCount !== undefined && conversation.unreadCount > 0 && (
+                    {hasUnread && (
                         <View style={[styles.badge, { backgroundColor: colors.primary }]}>
-                            <Typography variant="caption" color="#FFFFFF">
+                            <Typography variant="caption" color="#FFFFFF" style={{ fontWeight: 'bold' }}>
                                 {conversation.unreadCount}
                             </Typography>
                         </View>

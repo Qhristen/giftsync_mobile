@@ -89,6 +89,11 @@ class SocketService {
             console.log('Connected to chat gateway:', this.socket?.id);
             // Fetch initial unread count on connect
             this.getUnreadCount();
+
+            // If we joined a conversation while the socket was disconnected, mark it as read now
+            if (this.activeConversationId) {
+                this.markAsRead(this.activeConversationId);
+            }
         });
 
         this.socket.on('disconnect', (reason) => {
@@ -260,6 +265,9 @@ class SocketService {
                 ),
             );
 
+            // Always refresh global unread count when messages are read
+            dispatch(chatApi.util.invalidateTags([{ type: 'Chat', id: 'UNREAD_COUNT' }]));
+
             // Also update messages cache to show read status (blue ticks)
             dispatch(
                 chatApi.util.updateQueryData(
@@ -329,7 +337,8 @@ class SocketService {
             updatedAt: new Date().toISOString(),
         };
 
-        const patch = this.dispatch(
+        // 1. Optimistically update messages cache
+        const patchMessages = this.dispatch(
             chatApi.util.updateQueryData(
                 'getMessages',
                 { conversationId, limit: 50 },
@@ -348,7 +357,43 @@ class SocketService {
             ),
         );
 
-        return { optimisticMessage, patch };
+        // 2. Optimistically update conversation list cache
+        const patchConversations = this.dispatch(
+            chatApi.util.updateQueryData(
+                'getConversations',
+                { page: 1, limit: 50 },
+                (draft: { items: Conversation[]; meta: PaginationMeta } | undefined) => {
+                    if (!draft?.items) return;
+
+                    const convIndex = draft.items.findIndex(
+                        (c: any) => c.id === conversationId,
+                    );
+                    if (convIndex !== -1) {
+                        const conv = draft.items[convIndex];
+                        conv.lastMessagePreview = content || (attachments?.[0] ? 'Sent an image' : '');
+                        conv.lastMessageAt = optimisticMessage.createdAt;
+
+                        // Bubble to top
+                        const [updatedConv] = draft.items.splice(convIndex, 1);
+                        draft.items.unshift(updatedConv);
+                    } else {
+                        // If not in the list, we might want to invalidate to fetch the new/updated conversation
+                        // but since it's optimistic, we probably just leave it for the socket event to handle
+                        // or we could potentially invalidate here. For now, matching newMessage behavior.
+                    }
+                },
+            ),
+        );
+
+        return {
+            optimisticMessage,
+            patch: {
+                undo: () => {
+                    patchMessages.undo();
+                    patchConversations.undo();
+                }
+            }
+        };
     }
 
     // ── Emitters ──────────────────────────────────────────────────────────────
@@ -552,6 +597,28 @@ class SocketService {
      * Notifies other participants via the `messagesRead` event.
      */
     markAsRead(conversationId: string) {
+        if (!this.dispatch) return;
+
+        const dispatch = this.dispatch;
+
+        // 1. Optimistic update for the conversation list to clear the badge immediately
+        dispatch(
+            chatApi.util.updateQueryData(
+                'getConversations',
+                { page: 1, limit: 50 },
+                (draft: { items: Conversation[]; meta: PaginationMeta } | undefined) => {
+                    if (!draft?.items) return;
+                    const conv = draft.items.find((c: any) => c.id === conversationId);
+                    if (conv && (conv.unreadCount || 0) > 0) {
+                        conv.unreadCount = 0;
+                    }
+                }
+            )
+        );
+
+        // 2. Invalidate unread count to trigger a global badge refresh
+        dispatch(chatApi.util.invalidateTags([{ type: 'Chat', id: 'UNREAD_COUNT' }]));
+
         if (this.socket?.connected) {
             this.socket.emit('markAsRead', { conversationId });
         }

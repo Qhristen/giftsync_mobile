@@ -70,6 +70,7 @@ export const chatApi = baseApi.injectEndpoints({
             invalidatesTags: (_result, _err, conversationId) => [
                 { type: 'Chat', id: 'UNREAD_COUNT' },
                 { type: 'Chat', id: `MESSAGES_${conversationId}` },
+                { type: 'Chat', id: 'CONV_LIST' },
                 { type: 'Chat', id: `CONV_${conversationId}` }
             ],
         }),

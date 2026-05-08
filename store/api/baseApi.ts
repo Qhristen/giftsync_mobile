@@ -62,6 +62,11 @@ export const refreshAuthToken = async () => {
 
 
 let cachedToken: string | null = null;
+
+export const clearCachedToken = () => {
+    cachedToken = null;
+};
+
 export const getValidToken = async (forceRefresh = false): Promise<string | null> => {
 
     if (cachedToken && !isTokenExpired(cachedToken)) {

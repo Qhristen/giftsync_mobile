@@ -8,17 +8,37 @@ import { useRouter } from 'expo-router';
 import React from 'react';
 import { FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { selectUnreadCount } from '@/store/slices/chatSlice';
+import { useAppSelector } from '@/store/hooks';
+import { moderateFontScale } from '@/utils/scaling';
+
 export default function MessagesScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
+    const unreadCount = useAppSelector(selectUnreadCount);
+    
     const {
         data,
         isLoading,
         isFetching,
         refetch
-    } = useGetConversationsQuery({ page: 1, limit: 20 });
+    } = useGetConversationsQuery({ page: 1, limit: 50 });
 
-    const conversations = data?.items || [];
+    const conversations = React.useMemo(() => {
+        if (!data?.items) return [];
+        return [...data.items].sort((a, b) => {
+            const aHasUnread = (a.unreadCount || 0) > 0;
+            const bHasUnread = (b.unreadCount || 0) > 0;
+
+            if (aHasUnread && !bHasUnread) return -1;
+            if (!aHasUnread && bHasUnread) return 1;
+
+            // If both have same unread status, sort by date descending
+            const aDate = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+            const bDate = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+            return bDate - aDate;
+        });
+    }, [data?.items]);
 
     const onRefresh = React.useCallback(() => {
         refetch();
@@ -38,7 +58,16 @@ export default function MessagesScreen() {
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             <Animated.View entering={FadeInDown.duration(600)} style={[styles.header, { paddingHorizontal: spacing.xl }]}>
-                <Typography variant="h1">Messages</Typography>
+                <View style={styles.titleContainer}>
+                    <Typography variant="h1">Messages</Typography>
+                    {unreadCount > 0 && (
+                        <View style={[styles.headerBadge, { backgroundColor: colors.primary }]}>
+                            <Typography variant="caption" color="#FFFFFF" style={styles.headerBadgeText}>
+                                {unreadCount}
+                            </Typography>
+                        </View>
+                    )}
+                </View>
                 <Pressable
                     onPress={onRefresh}
                     style={({ pressed }) => [
@@ -95,6 +124,24 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: 8,
+    },
+    titleContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    headerBadge: {
+        minWidth: 24,
+        height: 24,
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 6,
+        marginTop: 4,
+    },
+    headerBadgeText: {
+        fontSize: moderateFontScale(12),
+        fontWeight: 'bold',
     },
     refreshBtn: {
         width: 40,
