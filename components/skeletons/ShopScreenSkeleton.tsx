@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     newProductCard: {
         borderRadius: 20,
         overflow: 'hidden',
-        borderWidth: 1,
+        // borderWidth: 1,
     },
     cardContent: {
         padding: 12,

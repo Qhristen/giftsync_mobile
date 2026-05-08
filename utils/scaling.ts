@@ -31,6 +31,6 @@ export function moderateScale(size: number, factor: number = 0.5): number {
  * Font-specific moderate scale.
  * Rounds to the nearest pixel for crisp text rendering.
  */
-export function moderateFontScale(size: number, factor: number = 0.5): number {
+export function moderateFontScale(size: number, factor: number = 0.2): number {
     return PixelRatio.roundToNearestPixel(moderateScale(size, factor));
 }

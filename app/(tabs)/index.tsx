@@ -151,8 +151,8 @@ export default function HomeScreen() {
                                                                 return `${names[0]}, ${names[1]} & ${names.length - 2} other${names.length - 2 > 1 ? 's' : ''}`;
                                                             })()}
                                                         </Typography>
-                                                        <Typography variant="body" color={colors.textSecondaryForeground} style={{ opacity: 0.9 }}>
-                                                            {item.contacts.length} people · {item.title}
+                                                        <Typography variant="label" color={colors.textSecondaryForeground} style={{ opacity: 0.9 }}>
+                                                           {item.contacts.length} {item.contacts.length === 1 ? 'person' : `occasions ${getCountdown(item.date)}`}
                                                         </Typography>
                                                     </View>
                                                 </>

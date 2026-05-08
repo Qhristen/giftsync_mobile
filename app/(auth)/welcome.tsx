@@ -158,6 +158,7 @@ export default function WelcomeScreen() {
             const idToken = userInfo.data?.idToken;
 
             if (userInfo.type === 'success' && idToken) {
+                console.log(idToken, "idToken")
                 await googleAuth({ idToken }).unwrap();
                 const birthdays = await fetchGoogleBirthdays();
                 dispatch(setOccasions(birthdays));

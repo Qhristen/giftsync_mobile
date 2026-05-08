@@ -192,13 +192,13 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
             {!holiday ? (
                 <View style={{ height: 100 }} />
             ) : (
-                <View style={[styles.container, { paddingHorizontal: spacing.none }]}>
+                <View style={[styles.container, { paddingHorizontal: spacing.none, }]}>
                     <BottomSheetFlatList
                         data={localContacts}
                         style={{ flex: 1 }}
                         renderItem={renderItem}
                         keyExtractor={(item: Contacts.Contact & { id: string }) => item.id}
-                        contentContainerStyle={{ paddingHorizontal: spacing.md, paddingBottom: 20 }}
+                        contentContainerStyle={{ paddingHorizontal: spacing.md, paddingBottom: 100 }}
                         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
                         ListHeaderComponent={
                             <View>

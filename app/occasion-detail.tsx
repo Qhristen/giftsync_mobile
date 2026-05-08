@@ -71,7 +71,7 @@ export default function OccasionDetailScreen() {
 
                     <Animated.View entering={FadeInDown.duration(500)} style={styles.heroContent}>
                         <Avatar uri={occasion.contact?.avatar} name={occasion.contact?.name} size="xl" />
-                        <Typography variant="h1" color="#FFF" style={{ marginTop: 16 }}>{occasion.contact?.name}</Typography>
+                        <Typography variant="h1" style={{ marginTop: 16 }}>{occasion.contact?.name}</Typography>
                         <Badge label={occasion.title} variant="primary" style={{ marginTop: 8, alignSelf: 'center', backgroundColor: colors.background }} />
                     </Animated.View>
                 </View>

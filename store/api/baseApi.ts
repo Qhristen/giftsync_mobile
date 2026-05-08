@@ -2,7 +2,6 @@ import { tokenCache } from '@/utils/cache';
 import { BaseQueryFn, createApi } from '@reduxjs/toolkit/query/react';
 import axios, { AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
 import * as jose from 'jose';
-import { logoutUser } from '../slices/authSlice';
 
 interface AxiosBaseQueryArgs extends Omit<AxiosRequestConfig, 'url'> {
     url: string;
@@ -20,128 +19,97 @@ export type AxiosBaseQueryError = {
     data?: ErrorResponse;
 }
 
-let lastCheckedToken: string | null = null;
-let lastCheckedTokenExp: number = 0;
+
 
 export const isTokenExpired = (token: string): boolean => {
-    if (!token) return true;
-
-    let exp = lastCheckedTokenExp;
-    if (token !== lastCheckedToken) {
-        try {
-            const decoded = jose.decodeJwt(token);
-            lastCheckedToken = token;
-            lastCheckedTokenExp = decoded?.exp || 0;
-            exp = lastCheckedTokenExp;
-        } catch {
-            return true;
-        }
+    try {
+        const decoded = jose.decodeJwt(token);
+        // Check if the token has expired (current time is past expiration)
+        return decoded?.exp ? decoded.exp * 1000 <= Date.now() : true;
+    } catch {
+        return true;
     }
-
-    if (!exp) return true;
-
-    // Add a 10-second buffer to prevent edge cases
-    const BUFFER_MS = 10000;
-    return (exp * 1000) - BUFFER_MS <= Date.now();
 };
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
-
-let refreshPromise: Promise<string | null> | null = null;
 
 const axiosInstance = axios.create({
     baseURL: BASE_URL,
     timeout: 15000, // 15s timeout to prevent hanging requests
 });
 
-/**
- * Gets a valid access token, refreshing it if necessary.
- * Handles concurrent refresh requests by using a shared promise.
- * 
- * @param forceRefresh - If true, ignores memory/storage cache and attempts a network refresh.
- */
+export const refreshAuthToken = async () => {
+    const refreshToken = await tokenCache.getToken('refreshToken');
+
+    if (!refreshToken) {
+        return null;
+    }
+
+    try {
+        const response = await axiosInstance.post("/api/v1/auth/refresh", {
+            refreshToken
+        });
+
+        await tokenCache.saveToken('refreshToken', response.data.refreshToken);
+        await tokenCache.saveToken('accessToken', response.data.accessToken);
+
+        return response.data.accessToken;
+    } catch (error: any) {
+        throw error;
+    }
+};
+
+
+
+let cachedToken: string | null = null;
 export const getValidToken = async (forceRefresh = false): Promise<string | null> => {
-    // 1. Happy path: check storage/cache first unless forcing a refresh
-    if (!forceRefresh) {
-        const storedAccessToken = await tokenCache.getToken('accessToken');
-        if (storedAccessToken && !isTokenExpired(storedAccessToken)) {
-            return storedAccessToken;
-        }
+
+    if (cachedToken && !isTokenExpired(cachedToken)) {
+        return cachedToken;
     }
 
-    // 2. If a refresh is already in progress, wait for it
-    if (refreshPromise) {
-        return refreshPromise;
+    const latestToken = await tokenCache.getToken('accessToken');
+    if (!latestToken) return null;
+
+    if (isTokenExpired(latestToken)) {
+
+        const newToken = await refreshAuthToken()
+        cachedToken = newToken;
+        return newToken;
     }
 
-    // 3. Start refresh process
-    refreshPromise = (async () => {
-        try {
-            // Double check storage inside the promise to catch cases where another
-            // request already finished refreshing while we were waiting
-            if (!forceRefresh) {
-                const latestToken = await tokenCache.getToken('accessToken');
-                if (latestToken && !isTokenExpired(latestToken)) {
-                    return latestToken;
-                }
-            }
+    cachedToken = latestToken;
+    return latestToken;
 
-            const storedRefreshToken = await tokenCache.getToken('refreshToken');
-            if (!storedRefreshToken) {
-                return null;
-            }
-
-            const response = await axios.post(`${BASE_URL}/api/v1/auth/refresh`,
-                { refreshToken: storedRefreshToken },
-                {
-                    headers: { "Content-Type": "application/json" },
-                    timeout: 10000,
-                }
-            );
-
-            const { accessToken, refreshToken: newRefreshToken } = response.data;
-
-            await tokenCache.saveToken('accessToken', accessToken);
-            if (newRefreshToken) {
-                await tokenCache.saveToken('refreshToken', newRefreshToken);
-            }
-
-            return accessToken;
-        } catch (error) {
-            console.error('[BaseApi] Token refresh failed:', error);
-            return null;
-        } finally {
-            refreshPromise = null;
-        }
-    })();
-
-    return refreshPromise;
 };
 
 
 axiosInstance.interceptors.request.use(
-    (config: InternalAxiosRequestConfig<any>) => {
+    async (config: InternalAxiosRequestConfig<any>) => {
         // Add timestamp to track request duration
         (config as any).metadata = { startTime: Date.now() };
 
         config.headers.Accept = "application/json";
         config.headers["Content-Type"] = "application/json";
 
-        // Performance Optimization: Check memory cache synchronously first.
-        // This avoids the 'await' microtask delay for every single request.
-        const token = tokenCache.getTokenSync('accessToken');
-        if (token && !isTokenExpired(token)) {
-            config.headers.Authorization = `Bearer ${token}`;
+        if (config.url?.includes('/api/v1/auth/refresh')) {
             return config;
         }
 
-        // If not in memory or expired, use the async path (handles first load and refresh)
-        return getValidToken().then(newToken => {
-            if (newToken) {
-                config.headers.Authorization = `Bearer ${newToken}`;
+        try {
+            const token = await getValidToken();
+            if (token) {
+                config.headers.Authorization = `Bearer ${token}`;
             }
-            return config;
-        });
+        } catch (error) {
+            console.error('Token refresh failed in request interceptor:', error);
+            await tokenCache.deleteToken('refreshToken');
+            await tokenCache.deleteToken('accessToken');
+            await tokenCache.clearAll();
+
+        }
+
+        return config;
     },
     (error: AxiosError): Promise<AxiosError> => {
         return Promise.reject(error);
@@ -173,14 +141,28 @@ axiosInstance.interceptors.response.use(
             originalRequest._retry = true;
 
             try {
-                // If we get a 401, force a refresh to get a fresh token
-                const newToken = await getValidToken(true);
+                const currentToken = await tokenCache.getToken('accessToken');
 
-                if (newToken && originalRequest.headers) {
-                    originalRequest.headers.Authorization = `Bearer ${newToken}`;
-                    return axiosInstance(originalRequest);
+                // Only try to refresh if we have a token and it will expire within 24 hours
+                if (currentToken && isTokenExpired(currentToken)) {
+                    const newToken = await refreshAuthToken();
+                    if (newToken) {
+                        axiosInstance.defaults.headers.common.Authorization = `Bearer ${newToken}`;
+                        if (originalRequest && originalRequest.headers) {
+                            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+                            return axiosInstance(originalRequest);
+                        }
+                    }
                 }
+
+                await tokenCache.clearAll();
+                await tokenCache.deleteToken('accessToken');
+                await tokenCache.deleteToken('refreshToken');
+                return Promise.reject(error);
             } catch (refreshError) {
+                await tokenCache.clearAll();
+                await tokenCache.deleteToken('accessToken');
+                await tokenCache.deleteToken('refreshToken');
                 return Promise.reject(refreshError);
             }
         }
@@ -212,6 +194,7 @@ const axiosBaseQuery = (): BaseQueryFn<
         // Automatically log out user if we get a 401 Unauthorized
         // This handles cases where the refresh token has expired or is invalid
         if (status === 401) {
+            const { logoutUser } = require('../slices/authSlice');
             api.dispatch(logoutUser());
         }
 

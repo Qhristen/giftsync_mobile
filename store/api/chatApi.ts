@@ -73,6 +73,14 @@ export const chatApi = baseApi.injectEndpoints({
                 { type: 'Chat', id: `CONV_${conversationId}` }
             ],
         }),
+        // ── GET /api/v1/chat/unread-count ──────────────────────────────────
+        getUnreadCount: builder.query<{ count: number }, void>({
+            query: () => ({
+                url: '/api/v1/chat/unread-count',
+                method: 'GET',
+            }),
+            providesTags: [{ type: 'Chat', id: 'UNREAD_COUNT' }],
+        }),
     }),
     overrideExisting: true,
 });
@@ -83,4 +91,5 @@ export const {
     useCreateConversationMutation,
     useGetMessagesQuery,
     useMarkConversationAsReadMutation,
+    useGetUnreadCountQuery,
 } = chatApi;

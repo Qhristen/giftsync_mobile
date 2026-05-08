@@ -15,8 +15,18 @@ export interface AiChatResponse {
     response: {
         message: string;
         uiData?: {
-            type: 'products' | 'occasions' | 'contacts' | 'none';
+            type: 'products' | 'occasions' | 'contacts' | 'send_message' | 'businesses' | 'confirm_action' | 'none';
+            actionType?: 'send_direct_sms' | 'send_occasion_message' | 'purchase_product';
+            details?: {
+                recipients?: string[];
+                contactName?: string;
+                message?: string;
+                productId?: string;
+                productName?: string;
+                price?: string;
+            };
             items?: any[];
+            item?: { type: string; data: any[] };
         };
     };
 }

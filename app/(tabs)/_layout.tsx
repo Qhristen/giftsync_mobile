@@ -1,14 +1,18 @@
+import { useGetUnreadCountQuery as useGetChatUnreadCountQuery } from '@/store/api/chatApi';
 import { useTheme } from '@/hooks/useTheme';
 import { moderateFontScale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import React from 'react';
+import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 
 export default function TabLayout() {
-  const { colors, spacing, isDark } = useTheme();
+  const { colors, spacing } = useTheme();
   const insets = useSafeAreaInsets();
+  const { data: chatUnread } = useGetChatUnreadCountQuery();
+  const hasUnreadMessages = (chatUnread?.count || 0) > 0;
 
   return (
     <Tabs
@@ -64,7 +68,17 @@ export default function TabLayout() {
         options={{
           title: 'Messages',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'chatbubble' : 'chatbubble-outline'} size={24} color={color} />
+            <View>
+              <Ionicons name={focused ? 'chatbubble' : 'chatbubble-outline'} size={24} color={color} />
+              {hasUnreadMessages && (
+                <View
+                  style={[
+                    styles.notificationDot,
+                    { backgroundColor: colors.primary, borderColor: colors.surface }
+                  ]}
+                />
+              )}
+            </View>
           ),
         }}
       />
@@ -80,3 +94,15 @@ export default function TabLayout() {
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  notificationDot: {
+    position: 'absolute',
+    right: -2,
+    top: -2,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    borderWidth: 2,
+  },
+});

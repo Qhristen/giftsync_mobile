@@ -164,7 +164,7 @@ class SocketService {
                     'getConversations',
                     { page: 1, limit: 50 },
                     (draft: { items: Conversation[]; meta: PaginationMeta } | undefined) => {
-                        if (!draft?.items) return;
+                        if (!draft) return;
                         const conversations = draft;
 
                         const convIndex = conversations.items.findIndex(

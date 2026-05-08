@@ -1,4 +1,5 @@
 import MessageBubble from '@/components/chat/MessageBubble';
+import ConfirmActionCard from '@/components/chat/ConfirmActionCard';
 import Avatar from '@/components/ui/Avatar';
 import Typography from '@/components/ui/Typography';
 import { usePlatformConfig } from '@/hooks/usePlatformConfig';
@@ -35,8 +36,18 @@ interface AIMessage {
     createdAt: string;
     isTyping?: boolean;
     uiData?: {
-        type: 'products' | 'occasions' | 'contacts' | 'none';
+        type: 'products' | 'occasions' | 'contacts' | 'send_message' | 'businesses' | 'confirm_action' | 'none';
+        actionType?: 'send_direct_sms' | 'send_occasion_message' | 'purchase_product';
+        details?: {
+            recipients?: string[];
+            contactName?: string;
+            message?: string;
+            productId?: string;
+            productName?: string;
+            price?: string;
+        };
         items?: any[];
+        item?: { type: string; data: any[] };
     };
 }
 
@@ -51,6 +62,7 @@ export default function AIChatScreen() {
     const { aiChatCost } = usePlatformConfig();
     const insets = useSafeAreaInsets();
     const flatListRef = useRef<FlatList>(null);
+    const inputRef = useRef<TextInput>(null);
     const [isOptionsVisible, setIsOptionsVisible] = useState(false);
     const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
     const [selectedMessageIsOwn, setSelectedMessageIsOwn] = useState(false);
@@ -63,7 +75,7 @@ export default function AIChatScreen() {
     const [messages, setMessages] = useState<AIMessage[]>([
         {
             id: '1',
-            content: `Hello ${user?.name}! I am GiftSync AI. I can help you find the perfect gift, suggest personalized ideas, or answer any questions about our shop. How can I help you today?`,
+            content: `Hello! I'm your personal AI gift assistant. I can help you find the perfect gift, suggest personalized ideas, or answer any questions about our shop. How can I help you today?`,
             isOwnMessage: false,
             createdAt: new Date().toISOString(),
         }
@@ -469,6 +481,34 @@ export default function AIChatScreen() {
                             );
                         }
 
+                        if (item.uiData?.type === 'confirm_action') {
+                            return (
+                                <View>
+                                    <MessageBubble
+                                        message={{
+                                            id: item.id,
+                                            content: item.content,
+                                            createdAt: item.createdAt,
+                                            isOwnMessage: false,
+                                        } as any}
+                                        isOwnMessage={false}
+                                        onLongPress={handleMessageLongPress}
+                                    />
+                                    <ConfirmActionCard
+                                        actionType={item.uiData.actionType as any}
+                                        details={item.uiData.details as any}
+                                        currency={user?.currency}
+                                        onConfirm={() => handleSend(item.uiData?.actionType === 'purchase_product' ? 'Yes, place the order' : 'Yes, send it')}
+                                        onEdit={() => {
+                                            inputRef.current?.focus();
+                                            toast.info('You can type your changes in the message box below.');
+                                        }}
+                                        onCancel={() => handleSend('Cancel')}
+                                    />
+                                </View>
+                            );
+                        }
+
                         return (
                             <MessageBubble
                                 message={{
@@ -498,6 +538,7 @@ export default function AIChatScreen() {
                 ]}>
                     <View style={styles.inputWrapper}>
                         <TextInput
+                            ref={inputRef}
                             placeholder={`Ask me anything... (${aiChatCost} coins)`}
                             value={messageText}
                             onChangeText={setMessageText}

@@ -70,7 +70,7 @@ function RootLayoutContent() {
       }
     };
     fetchPlatformConfig();
-  }, []);
+  }, [isAuthenticated, dispatch]);
 
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
@@ -95,8 +95,12 @@ function RootLayoutContent() {
 
     const checkAuthStatus = async () => {
       try {
+        // Preload token cache into memory to speed up initial API calls
+        await tokenCache.preloadCache();
+
         const storedAccessToken = await tokenCache.getToken('accessToken');
         if (storedAccessToken) {
+          console.log(storedAccessToken, "storedAccessToken")
           await getProfile()
         } else {
           dispatch(logoutUser());
