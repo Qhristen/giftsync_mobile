@@ -10,8 +10,11 @@ import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, View, FlatList, TextInput } from 'react-native';
 import { toast } from 'sonner-native';
+import { useListBanksQuery, useVerifyAccountMutation } from '@/store/api/paymentApi';
+import BottomSheetWrapper, { BottomSheetRef } from '@/components/ui/BottomSheetWrapper';
+import { useRef } from 'react';
 
 export default function BusinessInfoScreen() {
     const router = useRouter();
@@ -21,6 +24,13 @@ export default function BusinessInfoScreen() {
     const [createBusiness, { isLoading: isCreating }] = useCreateBusinessMutation();
     const [updateBusiness, { isLoading: isUpdating }] = useUpdateBusinessMutation();
     const [uploadLogo, { isLoading: isUploading }] = useUploadMutation();
+
+    const { data: banks, isLoading: isLoadingBanks } = useListBanksQuery();
+    const [verifyAccount, { isLoading: isVerifying }] = useVerifyAccountMutation();
+
+    const bankSheetRef = useRef<BottomSheetRef>(null);
+    const [bankSearch, setBankSearch] = useState('');
+    const [isAccountVerified, setIsAccountVerified] = useState(false);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -61,6 +71,9 @@ export default function BusinessInfoScreen() {
                 cacNumber: business.cacNumber || '',
                 taxNumber: business.taxNumber || '',
             });
+            if (business.bankAccountNumber && business.bankName) {
+                setIsAccountVerified(true);
+            }
         }
     }, [business]);
 
@@ -87,6 +100,10 @@ export default function BusinessInfoScreen() {
     }, []);
 
     const handleSave = async () => {
+        if (!isAccountVerified && !business) {
+            toast.error('Please verify your bank account details first');
+            return;
+        }
         try {
             // Strip fields that aren't part of the API DTO
             const { isVerified, isRegistered, ...rest } = formData;
@@ -133,6 +150,40 @@ export default function BusinessInfoScreen() {
             }
         }
     };
+
+    const handleVerifyAccount = async (accountNumber?: string, bankName?: string) => {
+        console.log(accountNumber, accountNumber?.length, bankName, "accountNumber, bankName")
+        const accNo = accountNumber || formData.bankAccountNumber;
+        const bName = bankName || formData.bankName;
+
+        if (!accNo || !bName) {
+            if (!accountNumber) toast.error('Please select a bank and enter account number');
+            return;
+        }
+        const selectedBank = banks?.find(b => b.name === bName);
+        if (!selectedBank) {
+            if (!accountNumber) toast.error('Please select a valid bank from the list');
+            return;
+        }
+
+        try {
+            const result = await verifyAccount({
+                accountNumber: accNo,
+                bankCode: selectedBank.code
+            }).unwrap();
+            setFormData(prev => ({ ...prev, bankAccountName: result.accountName }));
+            setIsAccountVerified(true);
+            toast.success('Account verified successfully');
+        } catch (error: any) {
+            console.log(error, "verification error");
+            toast.error(error?.data?.message || 'Verification failed. Please check your details.');
+            setIsAccountVerified(false);
+        }
+    };
+
+    const filteredBanks = banks?.filter(bank =>
+        bank.name.toLowerCase().includes(bankSearch.toLowerCase())
+    );
 
     const InfoSection = ({ title, children, icon }: { title: string, children: React.ReactNode, icon?: string }) => (
         <View style={styles.section}>
@@ -317,22 +368,47 @@ export default function BusinessInfoScreen() {
                         <InfoSection title="Financial Details" icon="wallet-outline">
                             {showForm ? (
                                 <>
+                                    <Pressable onPress={() => bankSheetRef.current?.present()}>
+                                        <View pointerEvents="none">
+                                            <Input
+                                                label="Bank Name"
+                                                value={formData.bankName}
+                                                placeholder="Select your bank"
+                                                editable={false}
+                                                rightIcon={<Ionicons name="chevron-down" size={20} color={colors.textSecondary} />}
+                                            />
+                                        </View>
+                                    </Pressable>
+
                                     <Input
-                                        label="Bank Name"
-                                        value={formData.bankName}
-                                        onChangeText={(text) => setFormData({ ...formData, bankName: text })}
+                                        label="Account Number"
+                                        value={formData.bankAccountNumber}
+                                        onChangeText={(text) => {
+                                            setFormData({ ...formData, bankAccountNumber: text });
+                                            setIsAccountVerified(false);
+                                            if (text.length === 10) {
+                                                handleVerifyAccount(text);
+                                            }
+                                        }}
+                                        keyboardType="phone-pad"
+                                        maxLength={10}
+                                        rightIcon={isVerifying ? <ActivityIndicator size="small" color={colors.primary} /> : null}
                                     />
+
                                     <Input
                                         label="Account Name"
                                         value={formData.bankAccountName}
                                         onChangeText={(text) => setFormData({ ...formData, bankAccountName: text })}
+                                        editable={false}
+                                        placeholder="Verified account name will appear here"
+                                        style={{ backgroundColor: colors.surfaceRaised + '50' }}
                                     />
-                                    <Input
-                                        label="Account Number"
-                                        value={formData.bankAccountNumber}
-                                        onChangeText={(text) => setFormData({ ...formData, bankAccountNumber: text })}
-                                        keyboardType="phone-pad"
-                                    />
+                                    {isAccountVerified && (
+                                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: -8 }}>
+                                            <Ionicons name="checkmark-circle" size={16} color={colors.success} />
+                                            <Typography variant="label" color={colors.success}>Account verified</Typography>
+                                        </View>
+                                    )}
                                 </>
                             ) : (
                                 <>
@@ -348,12 +424,60 @@ export default function BusinessInfoScreen() {
                                 title={business ? "Save Changes" : "Create Business"}
                                 onPress={handleSave}
                                 isLoading={isCreating || isUpdating}
+                                disabled={!isAccountVerified && !business}
                                 style={{ marginTop: spacing.xl }}
                             />
                         )}
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
+
+            <BottomSheetWrapper
+                ref={bankSheetRef}
+                snapPoints={['80%', '95%']}
+                scrollable
+                keyboardBehavior="extend"
+            >
+                <View style={styles.bankSheetContent}>
+                    <Typography variant="h3" style={{ marginBottom: 20 }}>Select Bank</Typography>
+                    <Input
+                        placeholder="Search banks..."
+                        value={bankSearch}
+                        onChangeText={setBankSearch}
+                        isBottomSheet={true}
+                        leftIcon={<Ionicons name="search" size={20} color={colors.textSecondary} />}
+                    />
+
+                    {isLoadingBanks ? (
+                        <ActivityIndicator style={{ marginTop: 20 }} color={colors.primary} />
+                    ) : (
+                        <View style={{ gap: 4, paddingBottom: 40 }}>
+                            {filteredBanks?.map((bank, i) => (
+                                <Pressable
+                                    key={i}
+                                    style={({ pressed }) => [
+                                        styles.bankItem,
+                                        {
+                                            backgroundColor: pressed ? colors.surfaceRaised : 'transparent',
+                                            borderBottomColor: colors.border + '22'
+                                        }
+                                    ]}
+                                    onPress={() => {
+                                        setFormData({ ...formData, bankName: bank.name });
+                                        setIsAccountVerified(false);
+                                        bankSheetRef.current?.dismiss();
+                                    }}
+                                >
+                                    <Typography variant="body">{bank.name}</Typography>
+                                    {formData.bankName === bank.name && (
+                                        <Ionicons name="checkmark" size={20} color={colors.primary} />
+                                    )}
+                                </Pressable>
+                            ))}
+                        </View>
+                    )}
+                </View>
+            </BottomSheetWrapper>
         </View>
     );
 }
@@ -447,5 +571,16 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         zIndex: 1000,
+    },
+    bankSheetContent: {
+        paddingTop: 8,
+    },
+    bankItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingVertical: 16,
+        paddingHorizontal: 4,
+        borderBottomWidth: 1,
     },
 });

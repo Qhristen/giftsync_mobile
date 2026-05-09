@@ -25,6 +25,7 @@ interface Props {
     autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
     style?: StyleProp<ViewStyle>;
     isBottomSheet?: boolean;
+    maxLength?: number;
 }
 
 const Input: React.FC<Props> = ({
@@ -46,6 +47,7 @@ const Input: React.FC<Props> = ({
     style,
     isBottomSheet = false,
     editable = true,
+    maxLength,
 }) => {
     const { colors, spacing } = useTheme();
     const [isFocused, setIsFocused] = useState(false);
@@ -92,6 +94,7 @@ const Input: React.FC<Props> = ({
                         numberOfLines={numberOfLines}
                         autoCapitalize={autoCapitalize}
                         editable={editable}
+                        maxLength={maxLength}
                     />
                 ) : (
                     <TextInput
@@ -115,6 +118,7 @@ const Input: React.FC<Props> = ({
                         numberOfLines={numberOfLines}
                         autoCapitalize={autoCapitalize}
                         editable={editable}
+                        maxLength={maxLength}
                     />
                 )}
                 {secureTextEntry ? (
