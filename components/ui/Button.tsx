@@ -1,7 +1,7 @@
 import { useHaptics } from '@/hooks/useHaptics';
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/theme';
-import { moderateFontScale } from '@/utils/scaling';
+import { moderateScale } from '@/utils/scaling';
 import React, { useCallback } from 'react';
 import { ActivityIndicator, Pressable, StyleProp, StyleSheet, TextStyle, ViewStyle } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
@@ -63,7 +63,7 @@ const Button: React.FC<Props> = ({
 
     const textStyles = [
         styles.text,
-        { fontSize: size === 'sm' ? moderateFontScale(14) : size === 'lg' ? moderateFontScale(18) : moderateFontScale(16) },
+        { fontSize: size === 'sm' ? moderateScale(14) : size === 'lg' ? moderateScale(18) : moderateScale(16) },
         variant === 'primary' && { color: '#FFFFFF' },
         variant === 'secondary' && { color: colors.textPrimary },
         variant === 'ghost' && { color: colors.textPrimary },

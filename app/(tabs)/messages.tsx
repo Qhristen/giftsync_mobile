@@ -10,7 +10,7 @@ import { FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-nat
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { selectUnreadCount } from '@/store/slices/chatSlice';
 import { useAppSelector } from '@/store/hooks';
-import { moderateFontScale } from '@/utils/scaling';
+import { moderateScale } from '@/utils/scaling';
 
 export default function MessagesScreen() {
     const router = useRouter();
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
         marginTop: 4,
     },
     headerBadgeText: {
-        fontSize: moderateFontScale(12),
+        fontSize: moderateScale(12),
         fontWeight: 'bold',
     },
     refreshBtn: {

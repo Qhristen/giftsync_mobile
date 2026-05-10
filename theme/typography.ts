@@ -1,4 +1,4 @@
-import { moderateFontScale } from '@/utils/scaling';
+import { moderateScale } from '@/utils/scaling';
 
 export const typography = {
     fonts: {
@@ -8,14 +8,14 @@ export const typography = {
         bodyBold: 'DMSans_700Bold',
     },
     sizes: {
-        xs: moderateFontScale(12),
-        sm: moderateFontScale(14),
-        base: moderateFontScale(16),
-        lg: moderateFontScale(18),
-        xl: moderateFontScale(20),
-        '2xl': moderateFontScale(24),
-        '3xl': moderateFontScale(32),
-        '4xl': moderateFontScale(40),
+        xs: moderateScale(12),
+        sm: moderateScale(14),
+        base: moderateScale(16),
+        lg: moderateScale(18),
+        xl: moderateScale(20),
+        '2xl': moderateScale(24),
+        '3xl': moderateScale(32),
+        '4xl': moderateScale(40),
     },
     lineHeights: {
         tight: 1.25,

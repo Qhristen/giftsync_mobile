@@ -9,14 +9,13 @@ import Typography from '@/components/ui/Typography';
 import { useChatSocket } from '@/hooks/useChatSocket';
 import { useTheme } from '@/hooks/useTheme';
 import { RootState } from '@/store';
-import { useGetConversationQuery, useGetMessagesQuery, useMarkConversationAsReadMutation } from '@/store/api/chatApi';
+import { useGetConversationQuery, useGetMessagesQuery } from '@/store/api/chatApi';
 import { useBlockUserMutation } from '@/store/api/trustSafetyApi';
 import { useUploadMutation } from '@/store/api/uploadApi';
-import { useGetProfileQuery } from '@/store/api/userApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectTypingUsers } from '@/store/slices/chatSlice';
 import { ChatMessage } from '@/types';
-import { moderateFontScale } from '@/utils/scaling';
+import { moderateScale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { Image } from 'expo-image';
@@ -591,7 +590,7 @@ const styles = StyleSheet.create({
         height: 44,
         borderRadius: 22,
         paddingHorizontal: 16,
-        fontSize: moderateFontScale(16),
+        fontSize: moderateScale(16),
     },
     sendBtn: {
         width: 44,

@@ -9,7 +9,7 @@ import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Rating from '../ui/Rating';
 import Typography from '../ui/Typography';
-import { moderateFontScale } from '@/utils/scaling';
+import { moderateScale } from '@/utils/scaling';
 
 interface Props {
     order: Order | null;
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
         // minHeight: 120,
     },
     input: {
-        fontSize: moderateFontScale(16),
+        fontSize: moderateScale(16),
     },
 });
 

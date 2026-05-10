@@ -2,7 +2,7 @@ import Button from '@/components/ui/Button';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { formatCurrency } from '@/utils/formatCurrency';
-import { moderateFontScale } from '@/utils/scaling';
+import { moderateScale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -103,7 +103,7 @@ const ConfirmActionCard: React.FC<ConfirmActionCardProps> = ({
             ]}
         >
             <View style={styles.header}>
-                <Typography variant="bodyBold" style={{ fontSize: moderateFontScale(14) }}>{getTitle()}</Typography>
+                <Typography variant="bodyBold" style={{ fontSize: moderateScale(14) }}>{getTitle()}</Typography>
                 <Ionicons
                     name={actionType === 'purchase_product' ? "cart" : "mail"}
                     size={18}
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     detailText: {
-        fontSize: moderateFontScale(14),
+        fontSize: moderateScale(14),
     },
     messagePreview: {
         padding: 12,

@@ -1,6 +1,6 @@
 import { useGetUnreadCountQuery as useGetChatUnreadCountQuery } from '@/store/api/chatApi';
 import { useTheme } from '@/hooks/useTheme';
-import { moderateFontScale } from '@/utils/scaling';
+import { moderateScale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import React, { useEffect } from 'react';
@@ -43,7 +43,7 @@ export default function TabLayout() {
           borderTopColor: 'transparent',
         },
         tabBarLabelStyle: {
-          fontSize: moderateFontScale(12),
+          fontSize: moderateScale(12),
           fontFamily: 'DMSans_500Medium',
         },
       }}

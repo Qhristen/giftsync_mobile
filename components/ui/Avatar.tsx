@@ -1,6 +1,6 @@
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/theme';
-import { moderateFontScale } from '@/utils/scaling';
+import { moderateScale } from '@/utils/scaling';
 import { Image } from 'expo-image';
 import React from 'react';
 import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
@@ -59,7 +59,7 @@ const Avatar: React.FC<Props> = ({ uri, name, size = 'md', style }) => {
                     transition={200}
                 />
             ) : (
-                <Text style={[styles.initials, { fontSize: moderateFontScale(px / 2.5), color: colors.textSecondary }]}>
+                <Text style={[styles.initials, { fontSize: moderateScale(px / 2.5), color: colors.textSecondary }]}>
                     {initials}
                 </Text>
             )}

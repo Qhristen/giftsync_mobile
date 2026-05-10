@@ -1,6 +1,6 @@
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/theme';
-import { moderateFontScale } from '@/utils/scaling';
+import { moderateScale } from '@/utils/scaling';
 import React, { useEffect } from 'react';
 import { StyleSheet, Text } from 'react-native';
 import Animated, {
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     },
     text: {
         fontFamily: typography.fonts.bodyMedium,
-        fontSize: moderateFontScale(14),
+        fontSize: moderateScale(14),
         flex: 1,
     },
 });

@@ -3,7 +3,7 @@ import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { useGetOrderByIdQuery } from '@/store/api/orderApi';
-import { moderateFontScale } from '@/utils/scaling';
+import { moderateScale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
@@ -103,11 +103,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     title: {
-        fontSize: moderateFontScale(36),
+        fontSize: moderateScale(36),
         marginBottom: 8,
     },
     tagline: {
-        fontSize: moderateFontScale(18),
+        fontSize: moderateScale(18),
         marginBottom: 40,
     },
     summaryCardBox: {

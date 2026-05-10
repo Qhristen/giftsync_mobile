@@ -1,36 +1,41 @@
-import { Dimensions, PixelRatio } from 'react-native';
+import { Dimensions, PixelRatio, Platform } from 'react-native';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
-/**
- * Base design width (iPhone X / standard design).
- * All sizes in the app are assumed to be designed for this width.
- */
-const BASE_WIDTH = 375;
-
-const scaleRatio = SCREEN_WIDTH / BASE_WIDTH;
+// Guideline sizes are based on standard ~5" screen mobile device
+const guidelineBaseWidth = 375;
+const guidelineBaseHeight = 812;
 
 /**
- * Linear scale — directly proportional to screen width.
- * Use sparingly; prefer `moderateScale` for most cases.
+ * Linear scale: scales a given size proportionally to the screen width.
+ * Useful for horizontal spacing and element widths.
  */
-export function scale(size: number): number {
-    return size * scaleRatio;
-}
+export const scale = (size: number) => (width / guidelineBaseWidth) * size;
 
 /**
- * Moderate scale — scales with a dampening factor.
- * @param size   The base size (designed for 375pt width)
- * @param factor How aggressively to scale (0 = none, 1 = full). Default 0.5
+ * Vertical scale: scales a given size proportionally to the screen height.
+ * Useful for vertical spacing and element heights.
  */
-export function moderateScale(size: number, factor: number = 0.5): number {
-    return size + (scaleRatio - 1) * size * factor;
-}
+export const verticalScale = (size: number) => (height / guidelineBaseHeight) * size;
 
 /**
- * Font-specific moderate scale.
- * Rounds to the nearest pixel for crisp text rendering.
+ * Moderate scale: linearly scales a size but limits the growth using a factor.
+ * Ideal for typography and elements where you don't want extreme size differences
+ * on tablets compared to small phones.
+ * @param size Target size
+ * @param factor Growth factor, default is 0.5 (scales halfway between original and linearly scaled size)
  */
-export function moderateFontScale(size: number, factor: number = 0.2): number {
-    return PixelRatio.roundToNearestPixel(moderateScale(size, factor));
+export const moderateScale = (size: number, factor = 0.2) => size + (scale(size) - size) * factor;
+
+/**
+ * Pixel ratio-based scaling for typography.
+ * Adapts to device pixel density and ensures text rendering is sharp.
+ */
+export function normalize(size: number, factor = 0.2) {
+    const newSize = moderateScale(size, factor);
+    if (Platform.OS === 'ios') {
+        return Math.round(PixelRatio.roundToNearestPixel(newSize));
+    } else {
+        return Math.round(PixelRatio.roundToNearestPixel(newSize)) - 1;
+    }
 }

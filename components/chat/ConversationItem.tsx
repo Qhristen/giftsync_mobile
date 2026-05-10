@@ -3,7 +3,7 @@ import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { useGetProfileQuery } from '@/store/api/userApi';
 import { Conversation } from '@/types';
-import { moderateFontScale } from '@/utils/scaling';
+import { moderateScale } from '@/utils/scaling';
 import { format } from 'date-fns';
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
     preview: {
         flex: 1,
         marginRight: 8,
-        fontSize: moderateFontScale(12)
+        fontSize: moderateScale(12)
     },
     badge: {
         minWidth: 20,

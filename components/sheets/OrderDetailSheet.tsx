@@ -2,7 +2,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { Order } from '@/types';
 import { formatDate } from '@/utils/dateUtils';
 import { formatCurrency } from '@/utils/formatCurrency';
-import { moderateFontScale } from '@/utils/scaling';
+import { moderateScale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { forwardRef } from 'react';
@@ -109,7 +109,7 @@ const OrderDetailSheet = forwardRef<BottomSheetRef, OrderDetailSheetProps>(({ or
                                             ]}
                                         >
                                             <Ionicons name="chatbubble-ellipses" size={16} color={colors.primary} />
-                                            <Typography variant="label" color={colors.primary} style={{ fontSize: moderateFontScale(13) }}>Chat Vendor</Typography>
+                                            <Typography variant="label" color={colors.primary} style={{ fontSize: moderateScale(13) }}>Chat Vendor</Typography>
                                         </Pressable>
                                     )}
                                     {order.paymentStatus === 'paid' && order.status !== 'Cancelled' && (

@@ -6,7 +6,7 @@ import Avatar from '@/components/ui/Avatar';
 import { BottomSheetRef } from '@/components/ui/BottomSheetWrapper';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
-import { moderateFontScale } from '@/utils/scaling';
+import { moderateScale } from '@/utils/scaling';
 import * as Contacts from 'expo-contacts';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
@@ -202,13 +202,13 @@ export default function OccasionsScreen() {
                                 >
                                     <Avatar uri={item.contact?.avatar} name={item.contact?.name} size="md" />
                                     <View style={styles.gridCardContent}>
-                                        <Typography variant="bodyBold" numberOfLines={1} style={{ textAlign: 'center', fontSize: moderateFontScale(13) }}>
+                                        <Typography variant="bodyBold" numberOfLines={1} style={{ textAlign: 'center', fontSize: moderateScale(13) }}>
                                             {item.contact?.name?.split(' ')[0]}
                                         </Typography>
-                                        <Typography variant="caption" color={colors.textSecondary} numberOfLines={1} style={{ textAlign: 'center', fontSize: moderateFontScale(10) }}>
+                                        <Typography variant="caption" color={colors.textSecondary} numberOfLines={1} style={{ textAlign: 'center', fontSize: moderateScale(10) }}>
                                             {item.title}
                                         </Typography>
-                                        <Typography variant="caption" color={colors.primary} style={{ textAlign: 'center', fontSize: moderateFontScale(10), marginTop: 2 }}>
+                                        <Typography variant="caption" color={colors.primary} style={{ textAlign: 'center', fontSize: moderateScale(10), marginTop: 2 }}>
                                             {new Date(item.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                                         </Typography>
                                     </View>

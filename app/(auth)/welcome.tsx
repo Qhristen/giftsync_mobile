@@ -4,7 +4,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useGoogleAuthMutation } from '@/store/api/authApi';
 import { setOccasions } from '@/store/slices/occasionSlice';
 import { fetchGoogleBirthdays } from '@/utils/calendar';
-import { moderateFontScale } from '@/utils/scaling';
+import { moderateScale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import { GoogleSignin, statusCodes, } from '@react-native-google-signin/google-signin';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -160,8 +160,6 @@ export default function WelcomeScreen() {
             if (userInfo.type === 'success' && idToken) {
                 console.log(idToken, "idToken")
                 await googleAuth({ idToken }).unwrap();
-                const birthdays = await fetchGoogleBirthdays();
-                dispatch(setOccasions(birthdays));
                 router.replace('/(tabs)');
             } else if (userInfo.type !== 'cancelled') {
                 toast.error('Failed to retrieve Google ID Token.');
@@ -306,11 +304,11 @@ const styles = StyleSheet.create({
         paddingHorizontal: 30,
     },
     title: {
-        fontSize: moderateFontScale(40),
+        fontSize: moderateScale(40),
         marginBottom: 16,
     },
     tagline: {
-        fontSize: moderateFontScale(17),
+        fontSize: moderateScale(17),
         lineHeight: 26,
         opacity: 0.8,
     },

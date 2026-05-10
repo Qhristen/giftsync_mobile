@@ -7,7 +7,7 @@ import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
 import { useGetAddressesQuery } from '@/store/api/addressApi';
 import { Address } from '@/types';
-import { moderateFontScale } from '@/utils/scaling';
+import { moderateScale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
@@ -69,7 +69,7 @@ export default function SavedAddressesScreen() {
                                         <Typography variant="bodyBold">{item.recipientName}</Typography>
                                         {item.isDefault && (
                                             <View style={[styles.defaultBadge, { backgroundColor: colors.primarySoft }]}>
-                                                <Typography variant="caption" color={colors.primary} style={{ fontSize: moderateFontScale(10) }}>DEFAULT</Typography>
+                                                <Typography variant="caption" color={colors.primary} style={{ fontSize: moderateScale(10) }}>DEFAULT</Typography>
                                             </View>
                                         )}
                                     </View>

@@ -1,6 +1,6 @@
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/theme';
-import { moderateFontScale } from '@/utils/scaling';
+import { moderateScale } from '@/utils/scaling';
 import React from 'react';
 import { StyleProp, StyleSheet, Text, TextStyle, View, ViewStyle } from 'react-native';
 
@@ -49,7 +49,7 @@ const Badge: React.FC<Props> = ({
         styles.text,
         {
             color: text,
-            fontSize: size === 'xs' ? moderateFontScale(10) : size === 'sm' ? moderateFontScale(12) : moderateFontScale(14),
+            fontSize: size === 'xs' ? moderateScale(10) : size === 'sm' ? moderateScale(12) : moderateScale(14),
         },
     ] as TextStyle[];
 

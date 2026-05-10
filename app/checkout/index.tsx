@@ -8,7 +8,7 @@ import { useGetOccasionDetailQuery } from '@/store/api/occasionApi';
 import { useGetProductByIdQuery } from '@/store/api/productApi';
 import { calculateDeliveryStatus } from '@/utils/dateUtils';
 import { formatCurrency } from '@/utils/formatCurrency';
-import { moderateFontScale } from '@/utils/scaling';
+import { moderateScale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -63,9 +63,9 @@ export default function CheckoutEntry() {
                                 <Avatar name={occasion?.contact?.name || 'Recipient'} uri={occasion?.contact?.avatar} size="lg" />
                                 <View style={{ flex: 1 }}>
                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                        <Typography variant="bodyBold" style={{ fontSize: moderateFontScale(16) }}>{occasion?.contact?.name || 'Not Selected'}</Typography>
+                                        <Typography variant="bodyBold" style={{ fontSize: moderateScale(16) }}>{occasion?.contact?.name || 'Not Selected'}</Typography>
                                         <View style={[styles.badge, { backgroundColor: colors.primarySoft }]}>
-                                            <Typography variant="caption" color={colors.primary} style={{ fontSize: moderateFontScale(10) }}>RECIPIENT</Typography>
+                                            <Typography variant="caption" color={colors.primary} style={{ fontSize: moderateScale(10) }}>RECIPIENT</Typography>
                                         </View>
                                     </View>
                                     {occasion && <Typography variant="caption" color={colors.textSecondary}>{occasion.title}</Typography>}
