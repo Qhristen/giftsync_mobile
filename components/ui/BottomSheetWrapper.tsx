@@ -88,6 +88,7 @@ const BottomSheetWrapper = forwardRef<BottomSheetRef, Props>(
                 android_keyboardInputMode={android_keyboardInputMode}
                 onDismiss={onClose}
                 footerComponent={renderFooter ? renderFooterComponent : undefined}
+                
 
             >
                 <Container

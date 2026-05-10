@@ -227,7 +227,7 @@ export default function PaymentScreen() {
                         <Typography variant="body" color={colors.textSecondary}>Subtotal</Typography>
                         <Typography variant="body">{formatCurrency(order?.subtotal ?? 0, order?.item?.product.currency)}</Typography>
                     </View>
-                    <View style={styles.breakdownRow}>
+                    {/* <View style={styles.breakdownRow}>
                         <Typography variant="body" color={colors.textSecondary}>Delivery</Typography>
                         <Typography variant="body">{formatCurrency(order?.deliveryFee ?? 0, order?.item?.product.currency)}</Typography>
                     </View>
@@ -236,7 +236,7 @@ export default function PaymentScreen() {
                             <Typography variant="body" color={colors.textSecondary}>Packaging</Typography>
                             <Typography variant="body">{formatCurrency(order?.packagingFee ?? 0, order?.item?.product.currency)}</Typography>
                         </View>
-                    ) : null}
+                    ) : null} */}
                     {appliedCoupon && (
                         <View style={styles.breakdownRow}>
                             <Typography variant="body" color={colors.success}>Discount ({appliedCoupon.coupon.code})</Typography>

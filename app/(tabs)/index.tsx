@@ -273,7 +273,7 @@ export default function HomeScreen() {
                                             </View>
                                         </View>
                                         <Button
-                                            title="Send as Gift →"
+                                            title="Send Gift →"
                                             size="sm"
                                             style={{ marginTop: 12 }}
                                             onPress={() => router.push({ pathname: `/product-detail`, params: { occasionId: firstUpcoming?.id, id: item.id } })}

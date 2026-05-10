@@ -45,7 +45,7 @@ const Card: React.FC<Props> = ({
 
 const styles = StyleSheet.create({
     base: {
-        borderRadius: 16,
+        borderRadius: 10,
         overflow: 'hidden',
     },
     shadow: {

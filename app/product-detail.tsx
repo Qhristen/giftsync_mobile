@@ -337,7 +337,7 @@ export default function ShopItemDetailScreen() {
             </ScrollView>
             <View style={[styles.footer, { backgroundColor: colors.surface, paddingBottom: insets.bottom + 20 }]}>
                 <Button
-                    title="Send as Gift"
+                    title="Send Gift"
                     variant="primary"
                     leftIcon={<Ionicons name="gift-outline" size={20} color="#FFF" style={{ marginRight: 8 }} />}
                     onPress={() => {
