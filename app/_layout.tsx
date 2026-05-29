@@ -13,7 +13,7 @@ import {
 } from '@expo-google-fonts/fraunces';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Redirect, Stack, useRouter, useSegments } from 'expo-router';
 
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -36,7 +36,7 @@ import { RootState } from '@/store';
 import { useRegisterDeviceTokenMutation } from '@/store/api/notificationApi';
 import { useLazyGetProfileQuery } from '@/store/api/userApi';
 import { useAppDispatch } from '@/store/hooks';
-import { logoutUser } from '@/store/slices/authSlice';
+import { logout } from '@/store/slices/authSlice';
 import { tokenCache } from '@/utils/cache';
 import { ActivityIndicator, Platform, View } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -52,7 +52,7 @@ function RootLayoutContent() {
   useChatSocket();
   useNetworkStatus();
 
-  const { isLoading, isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
 
   const [getProfile] = useLazyGetProfileQuery();
   const [registerDeviceToken] = useRegisterDeviceTokenMutation()
@@ -95,20 +95,22 @@ function RootLayoutContent() {
 
     const checkAuthStatus = async () => {
       try {
-        // Preload token cache into memory to speed up initial API calls
-        await tokenCache.preloadCache();
 
-        const storedAccessToken = await tokenCache.getToken('accessToken');
+        const storedAccessToken = await tokenCache.get('accessToken');
         if (storedAccessToken) {
           console.log(storedAccessToken, "storedAccessToken")
           await getProfile()
         } else {
-          dispatch(logoutUser());
+          dispatch(logout());
+          await tokenCache.remove('accessToken');
+          await tokenCache.remove('refreshToken');
         }
       } catch (error) {
         console.log('Auth check error:', error);
-        dispatch(logoutUser());
-      } finally {
+        dispatch(logout());
+        await tokenCache.remove('accessToken');
+        await tokenCache.remove('refreshToken');
+            } finally {
         setIsCheckingAuth(false);
       }
     };
@@ -142,18 +144,19 @@ function RootLayoutContent() {
     };
   }, [isAuthenticated]);
 
-  useEffect(() => {
-    const inAuthGroup = segments[0] === '(auth)';
 
-    if (!isAuthenticated && !inAuthGroup) {
-      // Redirect to welcome if not authenticated
-      router.replace('/welcome');
-    } else if (isAuthenticated && inAuthGroup) {
-      // Redirect to tabs if authenticated
-      router.replace('/(tabs)');
+  // Root authentication routing logic - handled in render to prevent glitch
+  const inAuthGroup = segments[0] === '(auth)';
+  const isPublicRoute = segments[0] === 'profile' && (segments[1] === 'terms' || segments[1] === 'privacy');
+
+  if (!isCheckingAuth) {
+    if (!isAuthenticated && !inAuthGroup && !isPublicRoute) {
+      return <Redirect href="/welcome" />;
     }
-  }, [isAuthenticated, segments, isLoading]);
-
+    if (isAuthenticated && inAuthGroup) {
+      return <Redirect href="/(tabs)" />;
+    }
+  }
 
   if (isCheckingAuth) {
     return (

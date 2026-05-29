@@ -321,11 +321,11 @@ export default function ShopItemDetailScreen() {
                                 <MapView
                                     style={{ flex: 1 }}
                                     provider={PROVIDER_GOOGLE}
-                                    initialRegion={{
+                                    region={{
                                         latitude: businessLocationCoords.latitude,
                                         longitude: businessLocationCoords.longitude,
-                                        latitudeDelta: 0.05,
-                                        longitudeDelta: 0.05,
+                                        latitudeDelta: 0.01,
+                                        longitudeDelta: 0.01,
                                     }}
                                 >
                                     <Marker coordinate={businessLocationCoords} title={product.business?.name || 'Local Vendor'} />

@@ -9,9 +9,10 @@ import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
 import { RootState } from '@/store';
+import { useLogoutMutation } from '@/store/api/authApi';
 import { useDeleteAccountMutation } from '@/store/api/userApi';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { logoutUser } from '@/store/slices/authSlice';
+import { logout } from '@/store/slices/authSlice';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -41,10 +42,10 @@ export default function ProfileScreen() {
     const addressSheet = useBottomSheet();
 
     const [deleteAccount, { isLoading: isDeleting }] = useDeleteAccountMutation();
+    const [logoutTrigger, { isLoading: isLoggingOut }] = useLogoutMutation();
 
     const { user } = useAppSelector((state: RootState) => state.auth);
     const [currency, setCurrency] = useState('NGN');
-    const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     const sections: SettingSection[] = [
         {
@@ -53,7 +54,7 @@ export default function ProfileScreen() {
                 { label: 'Edit Profile', icon: 'person-outline', onPress: () => router.push('/profile/edit') },
                 { label: 'Refer & Earn', icon: 'gift-outline', onPress: () => router.push('/profile/referrals') },
                 { label: 'Saved Addresses', icon: 'location-outline', onPress: () => addressSheet.open() },
-                { label: 'Blocked Users', icon: 'shield-outline', onPress: () => router.push('/profile/blocked') },
+                // { label: 'Blocked Users', icon: 'shield-outline', onPress: () => router.push('/profile/blocked') },
             ],
         },
         {
@@ -181,15 +182,14 @@ export default function ProfileScreen() {
                 isLoading={isLoggingOut}
                 onConfirm={async () => {
                     try {
-                        setIsLoggingOut(true);
-                        await dispatch(logoutUser()).unwrap();
+
+                        await logoutTrigger().unwrap();
                         logoutSheet.close();
                     } catch (error: any) {
-                        toast.error('Error', { description: 'Failed to sign out. Please try again.' });
-                    } finally {
-                        setIsLoggingOut(false);
-                    }
-                }}
+                        console.log(error, "error logging out")
+                        // toast.error('Error', { description: 'Failed to sign out. Please try again.' });
+
+                }}}
             />
 
             <ConfirmDeleteSheet
@@ -203,7 +203,7 @@ export default function ProfileScreen() {
                         await deleteAccount().unwrap();
                         deleteUserSheet.close();
                         toast.success('Account deleted', { description: 'Your account has been deleted.' });
-                        await dispatch(logoutUser());
+                        await logoutTrigger().unwrap();
                     } catch (error: any) {
                         toast.error('Error', { description: error?.data?.message || 'Failed to delete account' });
                     }

@@ -35,24 +35,24 @@ const ConversationOptionsSheet = forwardRef<BottomSheetRef, Props>(
                 },
                 color: colors.textPrimary,
             },
-            {
-                label: 'Block User',
-                icon: 'ban-outline',
-                onPress: onBlockUser,
-                color: colors.error,
-            },
-            {
-                label: 'Clear Chat',
-                icon: 'trash-outline',
-                onPress: onClearChat,
-                color: colors.error,
-            },
-            {
-                label: 'Delete Conversation',
-                icon: 'trash-bin-outline',
-                onPress: onDelete,
-                color: colors.error,
-            },
+            // {
+            //     label: 'Block User',
+            //     icon: 'ban-outline',
+            //     onPress: onBlockUser,
+            //     color: colors.error,
+            // },
+            // {
+            //     label: 'Clear Chat',
+            //     icon: 'trash-outline',
+            //     onPress: onClearChat,
+            //     color: colors.error,
+            // },
+            // {
+            //     label: 'Delete Conversation',
+            //     icon: 'trash-bin-outline',
+            //     onPress: onDelete,
+            //     color: colors.error,
+            // },
         ];
 
 

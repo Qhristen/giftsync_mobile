@@ -7,7 +7,7 @@ export default function OrderListSkeleton() {
     const { colors, spacing } = useTheme();
 
     return (
-        <View style={{ gap: spacing.md, paddingHorizontal: spacing.xl }}>
+        <View style={{ gap: spacing.md, paddingHorizontal: spacing.md }}>
             {[1, 2, 3].map((_, index) => (
                 <View key={index} style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                     <View style={styles.topRow}>

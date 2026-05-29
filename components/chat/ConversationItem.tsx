@@ -3,6 +3,7 @@ import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { useGetProfileQuery } from '@/store/api/userApi';
 import { Conversation } from '@/types';
+import { formatDateString, formatTime } from '@/utils/dateUtils';
 import { moderateScale } from '@/utils/scaling';
 import { format } from 'date-fns';
 import React from 'react';
@@ -67,14 +68,14 @@ const ConversationItem: React.FC<ConversationItemProps> = ({ conversation, onPre
                 <View style={styles.header}>
                     <Typography 
                         variant="bodyBold" 
-                        numberOfLines={1} 
+                        numberOfLines={2} 
                         style={styles.name}
                         color={hasUnread ? colors.textPrimary : colors.textSecondary}
                     >
                         {displayName}
                     </Typography>
                     <Typography variant="caption" color={hasUnread ? colors.primary : colors.textSecondary}>
-                        {lastMessageDate}
+                        {formatDateString(conversation.lastMessageAt)} • {formatTime(conversation.lastMessageAt)}
                     </Typography>
                 </View>
                 <View style={styles.footer}>

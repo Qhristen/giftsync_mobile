@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Button from '../ui/Button';
 import Typography from '../ui/Typography';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface Props {
     initialTimeWindow: 'morning' | 'afternoon' | 'evening' | null;
@@ -14,7 +15,7 @@ const DeliveryOptionsSheet = forwardRef<BottomSheetRef, Props>(
     ({ initialTimeWindow, onSave }, ref) => {
         const { spacing, colors } = useTheme();
         const [timeWindow, setTimeWindow] = useState<'morning' | 'afternoon' | 'evening'>(initialTimeWindow || 'morning');
-
+ const insets = useSafeAreaInsets();
         useEffect(() => {
             if (initialTimeWindow) setTimeWindow(initialTimeWindow);
         }, [initialTimeWindow]);
@@ -30,7 +31,7 @@ const DeliveryOptionsSheet = forwardRef<BottomSheetRef, Props>(
         };
 
         return (
-            <BottomSheetWrapper ref={ref} snapPoints={['50%', "60%"]} scrollable>
+            <BottomSheetWrapper ref={ref} snapPoints={['75%']} scrollable>
                 <Typography variant="h2" style={{ marginBottom: spacing.sm }}>
                     Delivery Time
                 </Typography>
@@ -64,7 +65,7 @@ const DeliveryOptionsSheet = forwardRef<BottomSheetRef, Props>(
                     ))}
                 </View>
 
-                <Button title="Save Selection" onPress={handleSave} />
+                <Button style={{ marginBottom: insets.bottom + 50, }} title="Save Selection" onPress={handleSave} />
             </BottomSheetWrapper>
         );
     }

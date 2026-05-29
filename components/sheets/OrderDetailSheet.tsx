@@ -82,12 +82,13 @@ const OrderDetailSheet = forwardRef<BottomSheetRef, OrderDetailSheetProps>(({ or
                             />
                         )
                             : (
-                                <View style={{ gap: 12 }}>
+                                <View style={styles.actions}>
                                     {order.status === 'Delivered' && (
                                         <Button
-                                            title="Write a Review"
+                                            title="Review"
                                             variant="secondary"
                                             onPress={() => onReview?.(order)}
+                                            style={{ flex: 1 }}
                                         />
                                     )}
                                     {order.conversationId && (
@@ -104,21 +105,21 @@ const OrderDetailSheet = forwardRef<BottomSheetRef, OrderDetailSheetProps>(({ or
                                                     gap: 6,
                                                     paddingHorizontal: 12,
                                                     height: 48,
-                                                    borderRadius: 16,
+                                                    borderRadius: 50,
+                                                    flex: 1
                                                 }
                                             ]}
                                         >
                                             <Ionicons name="chatbubble-ellipses" size={16} color={colors.primary} />
-                                            <Typography variant="label" color={colors.primary} style={{ fontSize: moderateScale(13) }}>Chat Vendor</Typography>
+                                            <Typography variant="label" color={colors.primary} style={{ fontSize: moderateScale(11) }}>Chat</Typography>
                                         </Pressable>
                                     )}
                                     {order.paymentStatus === 'paid' && order.status !== 'Cancelled' && (
                                         <Button
-                                            title="Raise a Dispute"
-                                            variant="ghost"
-                                            color={colors.error}
+                                            title="Dispute"
+                                            variant="destructive"
                                             onPress={() => onDispute?.(order)}
-                                            style={{ marginTop: 8 }}
+                                            style={{ flex: 1 }}
                                         />
                                     )}
                                 </View>
@@ -162,7 +163,7 @@ const styles = StyleSheet.create({
     },
     actions: {
         flexDirection: 'row',
-        gap: 12,
+        gap: 5,
         marginTop: 'auto',
     },
 });

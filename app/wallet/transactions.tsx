@@ -4,6 +4,7 @@ import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { useGetTransactionsQuery, useGetWalletBalanceQuery } from '@/store/api/walletApi';
 import { WalletTransaction } from '@/types';
+import { formatDateString, formatTime } from '@/utils/dateUtils';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { moderateScale } from '@/utils/scaling';
 import { FontAwesome5, Ionicons } from '@expo/vector-icons';
@@ -36,29 +37,14 @@ export default function WalletTransactionsScreen() {
     const meta = txData?.meta;
     const hasMore = meta ? page < meta.totalPages : false;
 
-    const formatDate = (dateStr: string) => {
-        const d = new Date(dateStr);
-        const today = new Date();
-        const yesterday = new Date(today);
-        yesterday.setDate(yesterday.getDate() - 1);
 
-        if (d.toDateString() === today.toDateString()) return 'Today';
-        if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
-
-        return d.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
-    };
-
-    const formatTime = (dateStr: string) => {
-        const d = new Date(dateStr);
-        return d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
-    };
-
+ 
     const groupedTransactions = useMemo(() => {
         const groups: { title: string; data: WalletTransaction[] }[] = [];
         const map = new Map<string, WalletTransaction[]>();
 
         transactions.forEach(tx => {
-            const dateStr = formatDate(tx.createdAt);
+            const dateStr = formatDateString(tx.createdAt);
             if (!map.has(dateStr)) {
                 map.set(dateStr, []);
                 groups.push({ title: dateStr, data: map.get(dateStr)! });
@@ -92,7 +78,7 @@ export default function WalletTransactionsScreen() {
                     <View style={{ flex: 1 }}>
                         <Typography variant="bodyBold" numberOfLines={1}>{item.description || item.type}</Typography>
                         <Typography variant="caption" color={colors.textSecondary}>
-                            {formatDate(item.createdAt)} • {formatTime(item.createdAt)}
+                            {formatDateString(item.createdAt)} • {formatTime(item.createdAt)}
                         </Typography>
                     </View>
                     <View style={{ alignItems: 'flex-end' }}>

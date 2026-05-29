@@ -28,6 +28,7 @@ import { useRouter } from 'expo-router';
 // Removed Dimensions import as width was unused
 
 import { GOOGLE_CLIENT_ID } from '@/utils/constants';
+import { tokenCache } from '@/utils/cache';
 import { toast } from 'sonner-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -143,10 +144,16 @@ export default function WelcomeScreen() {
     const insets = useSafeAreaInsets();
 
     useEffect(() => {
-        GoogleSignin.configure({
-            webClientId: GOOGLE_CLIENT_ID,
-            offlineAccess: true,
-        });
+        const initGoogleAuth = async () => {
+            const token = await tokenCache.get('accessToken');
+            if (!token) {
+                GoogleSignin.configure({
+                    webClientId: GOOGLE_CLIENT_ID,
+                    offlineAccess: true,
+                });
+            }
+        };
+        initGoogleAuth();
     }, []);
 
     const handleGoogleLogin = async () => {

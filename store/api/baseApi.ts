@@ -39,7 +39,7 @@ const axiosInstance = axios.create({
 });
 
 export const refreshAuthToken = async () => {
-    const refreshToken = await tokenCache.getToken('refreshToken');
+    const refreshToken = await tokenCache.get('refreshToken');
 
     if (!refreshToken) {
         return null;
@@ -50,8 +50,8 @@ export const refreshAuthToken = async () => {
             refreshToken
         });
 
-        await tokenCache.saveToken('refreshToken', response.data.refreshToken);
-        await tokenCache.saveToken('accessToken', response.data.accessToken);
+        await tokenCache.save('refreshToken', response.data.refreshToken);
+        await tokenCache.save('accessToken', response.data.accessToken);
 
         return response.data.accessToken;
     } catch (error: any) {
@@ -73,7 +73,7 @@ export const getValidToken = async (forceRefresh = false): Promise<string | null
         return cachedToken;
     }
 
-    const latestToken = await tokenCache.getToken('accessToken');
+    const latestToken = await tokenCache.get('accessToken');
     if (!latestToken) return null;
 
     if (isTokenExpired(latestToken)) {
@@ -108,9 +108,8 @@ axiosInstance.interceptors.request.use(
             }
         } catch (error) {
             console.error('Token refresh failed in request interceptor:', error);
-            await tokenCache.deleteToken('refreshToken');
-            await tokenCache.deleteToken('accessToken');
-            await tokenCache.clearAll();
+            await tokenCache.remove('refreshToken');
+            await tokenCache.remove('accessToken');
 
         }
 
@@ -142,11 +141,19 @@ axiosInstance.interceptors.response.use(
             _retry?: boolean;
         };
 
+        // Don't retry if it's the refresh token endpoint itself that failed
+        if (originalRequest.url?.includes('/api/v1/auth/refresh')) {
+            tokenCache.remove('accessToken');
+            tokenCache.remove('refreshToken');
+            clearCachedToken();
+            return Promise.reject(error);
+        }
+
         if (error?.response?.status === 401 && !originalRequest._retry) {
             originalRequest._retry = true;
 
             try {
-                const currentToken = await tokenCache.getToken('accessToken');
+                const currentToken = await tokenCache.get('accessToken');
 
                 // Only try to refresh if we have a token and it will expire within 24 hours
                 if (currentToken && isTokenExpired(currentToken)) {
@@ -160,14 +167,16 @@ axiosInstance.interceptors.response.use(
                     }
                 }
 
-                await tokenCache.clearAll();
-                await tokenCache.deleteToken('accessToken');
-                await tokenCache.deleteToken('refreshToken');
+             
+                await tokenCache.remove('accessToken');
+                await tokenCache.remove('refreshToken');
+                clearCachedToken();
                 return Promise.reject(error);
             } catch (refreshError) {
-                await tokenCache.clearAll();
-                await tokenCache.deleteToken('accessToken');
-                await tokenCache.deleteToken('refreshToken');
+             
+                await tokenCache.remove('accessToken');
+                await tokenCache.remove('refreshToken');
+                clearCachedToken();
                 return Promise.reject(refreshError);
             }
         }
@@ -199,8 +208,12 @@ const axiosBaseQuery = (): BaseQueryFn<
         // Automatically log out user if we get a 401 Unauthorized
         // This handles cases where the refresh token has expired or is invalid
         if (status === 401) {
-            const { logoutUser } = require('../slices/authSlice');
-            api.dispatch(logoutUser());
+            const { logout } = require('../slices/authSlice');
+            api.dispatch(logout());
+            // Clear tokens
+            tokenCache.remove('accessToken');
+            tokenCache.remove('refreshToken');
+            clearCachedToken();
         }
 
         return {
@@ -221,5 +234,6 @@ export const baseApi = createApi({
     keepUnusedDataFor: 300,
     // Refetch on reconnect and on focus for freshness
     refetchOnReconnect: true,
+    refetchOnFocus: true,
     endpoints: () => ({}),
 });

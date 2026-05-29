@@ -24,6 +24,7 @@ const { width } = Dimensions.get('window');
 export default function HomeScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
+    const [activeIndex, setActiveIndex] = React.useState(0);
 
     const { data: profile, isLoading: isProfileLoading, refetch: refetchProfile } = useGetProfileQuery();
     const { data: upcoming = [], isLoading: isUpcomingLoading, refetch: refetchUpcoming } = useGetUpcomingOccasionsQuery();
@@ -100,6 +101,9 @@ export default function HomeScreen() {
                             horizontal
                             pagingEnabled
                             showsHorizontalScrollIndicator={false}
+                            onMomentumScrollEnd={(e) => {
+                                setActiveIndex(Math.round(e.nativeEvent.contentOffset.x / width));
+                            }}
                             keyExtractor={(item) => item.id}
                             renderItem={({ item }) => (
                                 <View style={{ width, paddingHorizontal: spacing.xl }}>
@@ -152,7 +156,7 @@ export default function HomeScreen() {
                                                             })()}
                                                         </Typography>
                                                         <Typography variant="label" color={colors.textSecondaryForeground} style={{ opacity: 0.9 }}>
-                                                           {item.contacts.length} {item.contacts.length === 1 ? 'person' : `occasions ${getCountdown(item.date)}`}
+                                                            {item.contacts.length} {item.contacts.length === 1 ? 'person' : `occasions ${getCountdown(item.date)}`}
                                                         </Typography>
                                                     </View>
                                                 </>
@@ -181,6 +185,22 @@ export default function HomeScreen() {
                                 </View>
                             )}
                         />
+                        {upcoming.length > 1 && (
+                            <View style={styles.pagination}>
+                                {upcoming.map((_, i) => (
+                                    <View
+                                        key={i}
+                                        style={[
+                                            styles.dot,
+                                            {
+                                                backgroundColor: i === activeIndex ? colors.primary : colors.border,
+                                                width: i === activeIndex ? 16 : 6,
+                                            },
+                                        ]}
+                                    />
+                                ))}
+                            </View>
+                        )}
                     </Animated.View>
                 ) : (
                     <Animated.View entering={FadeInDown.duration(600)} style={{ paddingHorizontal: spacing.xl }}>
@@ -409,5 +429,17 @@ const styles = StyleSheet.create({
         borderRadius: 24,
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    pagination: {
+        position: 'absolute',
+        top: 15,
+        right: 46,
+        zIndex: 10,
+        flexDirection: 'row',
+        gap: 6,
+    },
+    dot: {
+        height: 4,
+        borderRadius: 2,
     },
 });

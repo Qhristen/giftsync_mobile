@@ -28,31 +28,6 @@ const initialState: AuthState = {
 };
 
 
-export const logoutUser = createAsyncThunk(
-    'auth/logout',
-    async (_, { dispatch }) => {
-        try {
-            await GoogleSignin.signOut();
-        } catch (error) {
-            console.log('Google sign out error (possibly not signed in with Google):', error);
-        }
-
-        try {
-            // Clear from SecureStore
-            await tokenCache.deleteToken('accessToken');
-            await tokenCache.deleteToken('refreshToken');
-        } catch (error) {
-            console.error('Error clearing tokens from SecureStore:', error);
-        }
-
-        // Always clear memory cache and reset API state
-        tokenCache.clearAll();
-        clearCachedToken();
-        dispatch(baseApi.util.resetApiState());
-        
-        return null;
-    }
-);
 
 const authSlice = createSlice({
     name: 'auth',
@@ -71,25 +46,17 @@ const authSlice = createSlice({
         },
         setPendingReferralCode: (state, action: PayloadAction<string | null>) => {
             state.pendingReferralCode = action.payload;
+        },
+        logout: (state) => {
+            state.user = null;
+            state.accessToken = null;
+            state.refreshToken = null;
+            state.isAuthenticated = false;
         }
     },
-    extraReducers: (builder) => {
-        builder
-            .addCase(logoutUser.pending, (state) => {
-                state.user = null;
-                state.accessToken = null;
-                state.refreshToken = null;
-                state.isAuthenticated = false;
-            })
-            .addCase(logoutUser.fulfilled, (state) => {
-                state.user = null;
-                state.accessToken = null;
-                state.refreshToken = null;
-                state.isAuthenticated = false;
-            });
-    },
+    extraReducers: (builder) => {},
 });
 
-export const { setCredentials, setLoading, setError, setPendingReferralCode } = authSlice.actions;
+export const { setCredentials, setLoading, setError, setPendingReferralCode, logout } = authSlice.actions;
 export default authSlice.reducer;
 

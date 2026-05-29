@@ -7,13 +7,13 @@ import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
 import { RootState } from '@/store';
-import { useDeleteProductMutation, useGetProductsByBusinessQuery } from '@/store/api/productApi';
+import { useDeleteProductMutation, useGetProductsByBusinessQuery, useUpdateProductMutation } from '@/store/api/productApi';
 import { Product } from '@/types';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { FlatList, Image, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, Switch, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { toast } from 'sonner-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -25,12 +25,31 @@ export default function MyProductsScreen() {
     const user = useSelector((state: RootState) => state.auth.user);
     const deleteSheet = useBottomSheet();
     const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+    const [page, setPage] = useState(1);
 
-    const { data: products = [], isLoading } = useGetProductsByBusinessQuery(user?.business?.id || '', {
-        skip: !user?.business?.id,
-    });
+    const { data: productsData, isLoading, isFetching } = useGetProductsByBusinessQuery(
+        { businessId: user?.business?.id || '', page, limit: 10 },
+        { skip: !user?.business?.id }
+    );
 
+    const products = productsData?.items || [];
+    const meta = productsData?.meta;
+
+    const [updateProduct] = useUpdateProductMutation();
     const [deleteProduct, { isLoading: isDeleting }] = useDeleteProductMutation();
+
+    const handleToggleAvailability = async (item: Product) => {
+        if (!user?.business?.id) return;
+        try {
+            await updateProduct({
+                businessId: user.business.id,
+                productId: item.id,
+                data: { isAvailable: !item.isAvailable },
+            }).unwrap();
+        } catch (error: any) {
+            toast.error(error?.data?.message || 'Failed to update availability.');
+        }
+    };
 
     const handleDelete = async () => {
         if (!productToDelete || !user?.business?.id) {
@@ -64,7 +83,7 @@ export default function MyProductsScreen() {
                 <View style={styles.productInfo}>
                     <View style={styles.titleRow}>
                         <Typography variant="h4" numberOfLines={1} style={{ flex: 1 }}>{item.name}</Typography>
-                        <Badge variant={item.isAvailable ? 'success' : 'amber'} label={item.isAvailable ? 'In Stock' : 'Out of Stock'} />
+                        {/* <Badge variant={item.isAvailable ? 'success' : 'amber'} label={item.isAvailable ? 'In Stock' : 'Out of Stock'} /> */}
                     </View>
                     <Typography variant="caption" color={colors.textSecondary} numberOfLines={2} style={{ marginTop: 2 }}>
                         {item.description}
@@ -74,6 +93,16 @@ export default function MyProductsScreen() {
                     </Typography>
                 </View>
             </Pressable>
+
+            <View style={styles.availabilityRow}>
+                <Badge variant={item.isAvailable ? 'success' : 'amber'} label={item.isAvailable ? 'In Stock' : 'Out of Stock'} />
+                <Switch
+                    value={item.isAvailable}
+                    onValueChange={() => handleToggleAvailability(item)}
+                    trackColor={{ false: colors.border, true: colors.primary + '66' }}
+                    thumbColor={item.isAvailable ? colors.primary : colors.textSecondary}
+                />
+            </View>
 
             <View style={styles.actionRow}>
                 <Button
@@ -92,7 +121,11 @@ export default function MyProductsScreen() {
                             imageUrls: JSON.stringify(item.imageUrls),
                             tags: JSON.stringify(item.tags),
                             isAvailable: item.isAvailable ? 'true' : 'false',
-                            currency: item.currency
+                            currency: item.currency,
+                            quantity: item.quantity.toString(),
+                            deliveryFee: item.deliveryFee.toString(),
+                            packagingFee: item.packagingFee.toString(),
+                            deliveryDays: item.deliveryDays?.toString() || ''
                         }
                     })}
                     style={{ flex: 1 }}
@@ -127,7 +160,7 @@ export default function MyProductsScreen() {
             </View>
 
 
-            {isLoading ? (
+            {isLoading && page === 1 ? (
                 <View style={{ flex: 1, paddingTop: 20 }}>
                     <ProductListSkeleton />
                 </View>
@@ -138,10 +171,23 @@ export default function MyProductsScreen() {
                     keyExtractor={(item) => item.id}
                     contentContainerStyle={{ padding: spacing.xl, paddingBottom: 100 }}
                     showsVerticalScrollIndicator={false}
+                    onEndReached={() => {
+                        if (!isLoading && !isFetching && meta && page < meta.totalPages) {
+                            setPage(prev => prev + 1);
+                        }
+                    }}
+                    onEndReachedThreshold={0.5}
                     ListEmptyComponent={
                         <View style={styles.emptyContainer}>
                             <Typography variant="body" color={colors.textSecondary}>No products found.</Typography>
                         </View>
+                    }
+                    ListFooterComponent={
+                        isFetching && page > 1 ? (
+                            <View style={{ paddingVertical: 20 }}>
+                                <ActivityIndicator size="small" color={colors.primary} />
+                            </View>
+                        ) : null
                     }
                 />
             )}
@@ -213,6 +259,15 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
+    },
+    availabilityRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 4,
+        marginBottom: 8,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: '#ffffff15',
     },
     actionRow: {
         flexDirection: 'row',
