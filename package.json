@@ -11,8 +11,9 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "dev": "APP_VARIANT=development expo start",
-    "build:preview": "eas build -p android --profile preview",
-    "build:dev": "eas build -p android --profile development"
+    "build:preview": "eas build -p android --profile preview --clear-cache",
+    "build:dev": "eas build -p android --profile development --clear-cache",
+    "build:prod": "eas build -p android --profile production --clear-cache"
   },
   "dependencies": {
     "@expo-google-fonts/dm-sans": "^0.4.2",

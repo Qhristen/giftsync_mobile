@@ -212,12 +212,12 @@ export default function HomeScreen() {
                                 <View style={{ flex: 1, gap: 4 }}>
                                     <Typography variant="h3">Never miss a moment</Typography>
                                     <Typography variant="body" color={colors.textSecondary}>
-                                        Add your first contact and we'll help you track their special occasions with personalized gift ideas.
+                                        Add your occasion and we'll help you track their special occasions with personalized gift ideas.
                                     </Typography>
                                 </View>
                             </View>
                             <Button
-                                title="Add Your First Occasion"
+                                title="Add Occasion"
                                 onPress={() => router.push('/(tabs)/occasions')}
                                 style={{ marginTop: 8 }}
                             />

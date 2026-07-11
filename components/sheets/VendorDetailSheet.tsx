@@ -21,7 +21,10 @@ const VendorDetailSheet = forwardRef<BottomSheetRef, Props>(
 
         const handleWebsite = () => {
             if (business?.websiteUrl) {
-                Linking.openURL(business.websiteUrl).catch(() => { });
+                const url = /^https?:\/\//i.test(business.websiteUrl)
+                    ? business.websiteUrl
+                    : `https://${business.websiteUrl}`;
+                Linking.openURL(url).catch(() => { });
             }
         };
 

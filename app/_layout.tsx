@@ -175,8 +175,10 @@ function RootLayoutContent() {
             contentStyle: { backgroundColor: isDark ? '#000000' : '#FFFFFF' },
           }}
         >
-          <Stack.Screen name="(auth)" options={{ animation: 'fade', headerShown: false }} />
+          <Stack.Protected guard={isAuthenticated}>
           <Stack.Screen name="(tabs)" options={{ animation: 'fade', headerShown: false }} />
+          </Stack.Protected>
+          <Stack.Screen name="(auth)" options={{ animation: 'fade', headerShown: false }} />
         </Stack>
         <StatusBar style={isDark ? 'light' : 'dark'} />
       </BottomSheetModalProvider>
