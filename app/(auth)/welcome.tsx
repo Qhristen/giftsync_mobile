@@ -144,16 +144,10 @@ export default function WelcomeScreen() {
     const insets = useSafeAreaInsets();
 
     useEffect(() => {
-        const initGoogleAuth = async () => {
-            const token = await tokenCache.get('accessToken');
-            if (!token) {
-                GoogleSignin.configure({
-                    webClientId: GOOGLE_CLIENT_ID,
-                    offlineAccess: true,
-                });
-            }
-        };
-        initGoogleAuth();
+        GoogleSignin.configure({
+            webClientId: GOOGLE_CLIENT_ID,
+            offlineAccess: true,
+        });
     }, []);
 
     const handleGoogleLogin = async () => {
@@ -161,6 +155,8 @@ export default function WelcomeScreen() {
         setIsSigningIn(true);
         try {
             await GoogleSignin.hasPlayServices();
+            // Sign out first to force the account picker to show
+            try { await GoogleSignin.signOut(); } catch {}
             const userInfo = await GoogleSignin.signIn();
             const idToken = userInfo.data?.idToken;
 

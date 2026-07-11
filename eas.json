@@ -13,6 +13,7 @@
       "channel": "development"
     },
     "preview": {
+      "developmentClient": true,
       "android": {
         "buildType": "apk"
       },
@@ -23,7 +24,10 @@
     },
     "production": {
       "autoIncrement": true,
-      "channel": "production"
+      "channel": "production",
+        "env": {
+        "APP_VARIANT": "production"
+      }
     }
   },
   "submit": {

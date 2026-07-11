@@ -182,14 +182,15 @@ export default function ProfileScreen() {
                 isLoading={isLoggingOut}
                 onConfirm={async () => {
                     try {
-
                         await logoutTrigger().unwrap();
-                        logoutSheet.close();
                     } catch (error: any) {
-                        console.log(error, "error logging out")
-                        // toast.error('Error', { description: 'Failed to sign out. Please try again.' });
-
-                }}}
+                        console.log(error, "error logging out");
+                        // Force local cleanup even if the API/Google signout failed
+                        dispatch(logout());
+                    } finally {
+                        logoutSheet.close();
+                    }
+                }}
             />
 
             <ConfirmDeleteSheet
