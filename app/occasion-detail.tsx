@@ -103,7 +103,7 @@ export default function OccasionDetailScreen() {
                         <Card style={[styles.collectionCard, { backgroundColor: '#1A1A1A' }]} onPress={() => router.push('/(tabs)/shop')}>
                             <Image
                                 source={{ uri: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&q=80&w=800' }}
-                                style={[StyleSheet.absoluteFillObject, { opacity: 0.5 }]}
+                                style={[StyleSheet.absoluteFill, { opacity: 0.5 }]}
                                 contentFit="cover"
                             />
                             <View style={styles.collectionOverlay}>

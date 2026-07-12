@@ -7,13 +7,12 @@ import { BottomSheetRef } from '@/components/ui/BottomSheetWrapper';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { moderateScale } from '@/utils/scaling';
-import * as Contacts from 'expo-contacts';
+import * as Contacts from "expo-contacts/legacy";
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, SectionList, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useGetContactsQuery } from '@/store/api/contactsApi';
 import { useGetMonthlyOccasionsQuery, useGetUpcomingOccasionsQuery } from '@/store/api/occasionApi';
 import { spacing } from '@/theme';
 import { Contact, Occasion } from '@/types';
