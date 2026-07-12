@@ -222,7 +222,7 @@ const OccasionForm: React.FC<OccasionFormProps> = ({
                     date: date.toISOString(),
                     recurrenceType,
                     name,
-                    phoneNumber: phone,
+                    phoneNumber: phone.trim(),
                     interests,
                     notes,
                     relationship: relationship === 'Other' ? customRelationship.trim() : relationship
@@ -291,7 +291,7 @@ const OccasionForm: React.FC<OccasionFormProps> = ({
                         label="Phone Number"
                         placeholder="+234..."
                         value={phone}
-                        onChangeText={setPhone}
+                        onChangeText={(text) => setPhone(text.trim())}
                         keyboardType="phone-pad"
                         isBottomSheet
                     />

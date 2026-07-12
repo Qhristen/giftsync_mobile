@@ -109,7 +109,7 @@ export default function HomeScreen() {
                                 <View style={{ width, paddingHorizontal: spacing.xl }}>
                                     <Card variant="elevated" style={[styles.heroCard, { backgroundColor: colors.surface }]}>
                                         {/* Decorative Pattern Background */}
-                                        <View pointerEvents="none" style={[StyleSheet.absoluteFillObject, { overflow: 'hidden', borderRadius: 24 }]}>
+                                        <View pointerEvents="none" style={[StyleSheet.absoluteFill, { overflow: 'hidden', borderRadius: 24 }]}>
                                             <View style={{ flexDirection: 'row', flexWrap: 'wrap', opacity: 0.02, width: '150%', height: '150%', top: '-25%', left: '-25%', transform: [{ rotate: '-15deg' }], justifyContent: 'center', alignItems: 'center' }}>
                                                 {Array.from({ length: 80 }).map((_, i) => (
                                                     <Ionicons

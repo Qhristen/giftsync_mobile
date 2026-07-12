@@ -8,7 +8,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { OccasionTemplate } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 import { BottomSheetFlatList, BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import * as Contacts from 'expo-contacts';
+import * as Contacts from "expo-contacts/legacy";
 import { useRouter } from 'expo-router';
 import React, { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
