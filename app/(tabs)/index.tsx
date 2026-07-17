@@ -55,7 +55,7 @@ export default function HomeScreen() {
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             {/* Header */}
-            <Animated.View entering={FadeInDown.duration(600)} style={[styles.header, { padding: spacing.xl, paddingBottom: spacing.md }]}>
+            <Animated.View entering={FadeInDown.duration(300)} style={[styles.header, { padding: spacing.xl, paddingBottom: spacing.md }]}>
                 <View>
                     <Typography variant="h1">GiftSync</Typography>
                 </View>
@@ -87,7 +87,7 @@ export default function HomeScreen() {
 
                 {/* Hero Carousel or Onboarding */}
                 {upcoming.length > 0 ? (
-                    <Animated.View entering={FadeInDown.duration(600)}>
+                    <Animated.View entering={FadeInDown.duration(300)}>
                         <FlashList
                             data={upcoming}
                             horizontal
@@ -195,7 +195,7 @@ export default function HomeScreen() {
                         )}
                     </Animated.View>
                 ) : (
-                    <Animated.View entering={FadeInDown.duration(600)} style={{ paddingHorizontal: spacing.xl }}>
+                    <Animated.View entering={FadeInDown.duration(300)} style={{ paddingHorizontal: spacing.xl }}>
                         <Card variant="elevated" style={[styles.onboardingCard, { backgroundColor: colors.surfaceRaised }]}>
                             <View style={styles.onboardingContent}>
                                 <View style={[styles.onboardingIcon, { backgroundColor: colors.primary + '15' }]}>
@@ -218,7 +218,7 @@ export default function HomeScreen() {
                 )}
 
                 {/* Quick Actions */}
-                <Animated.View entering={FadeInDown.duration(600)} style={[styles.quickActions, { padding: spacing.xl }]}>
+                <Animated.View entering={FadeInDown.duration(300)} style={[styles.quickActions, { padding: spacing.xl }]}>
                     {[
                         { label: 'AI Chat', icon: 'sparkles-outline', route: '/ai-chat' },
                         { label: 'Browse Holidays', icon: 'gift-outline', route: '/global-events' },
@@ -248,7 +248,7 @@ export default function HomeScreen() {
                 <UpcomingHolidays templates={templates} />
 
                 {/* AI Recommendations */}
-                <Animated.View entering={FadeInDown.duration(600)} style={{ marginTop: 20 }}>
+                <Animated.View entering={FadeInDown.duration(300)} style={{ marginTop: 20 }}>
                     <View style={[styles.sectionHeader, { paddingHorizontal: spacing.xl }]}>
                         <Typography variant="h4">
                             {firstUpcoming ? `Picked for ${firstUpcoming.contact?.name ?? firstUpcoming.contacts?.[0]?.name ?? 'them'}` : 'Recommendations'}

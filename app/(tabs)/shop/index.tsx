@@ -246,7 +246,7 @@ export default function ShopScreen() {
         const totalPrice = Number(product.price) + Number(product.deliveryFee) + Number(product.packagingFee);
         return (
             <Animated.View
-                entering={FadeInDown.delay(index * 100).duration(500)} style={[
+                entering={FadeInDown.delay(index * 100).duration(200)} style={[
                     styles.productWrapper,
                     isLeft ? { paddingLeft: spacing.xl, paddingRight: 8 } : { paddingRight: spacing.xl, paddingLeft: 8 }
                 ]}>

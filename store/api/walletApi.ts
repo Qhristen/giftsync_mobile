@@ -40,7 +40,7 @@ export const walletApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
         getWalletBalance: builder.query<WalletBalance, void>({
             query: () => ({ url: '/api/v1/wallet/balance', method: 'GET' }),
-            providesTags: ['Wallet'],
+            providesTags: [{ type: 'Wallet', id: 'BALANCE' }],
         }),
         getCoinPackages: builder.query<CoinPackage[], void>({
             query: () => ({ url: '/api/v1/coin-packages', method: 'GET' }),

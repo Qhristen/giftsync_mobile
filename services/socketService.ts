@@ -5,6 +5,7 @@ import { chatApi } from '../store/api/chatApi';
 import { getValidToken } from '@/store/api/baseApi';
 import { setUnreadCount, setUserStopTyping, setUserTyping } from '@/store/slices/chatSlice';
 import { ChatMessage, Conversation, PaginationMeta } from '../types';
+import { walletApi } from '@/store/api/walletApi';
 
 // ─── Types matching the server contract ──────────────────────────────────────
 
@@ -51,7 +52,7 @@ class SocketService {
         try {
             token = await getValidToken();
         } catch (error: any) {
-            console.log('Chat Socket: Failed to get valid token on connect', error?.message || 'Unknown error');
+            console.log('Socket: Failed to get valid token on connect', error?.message || 'Unknown error');
             return;
         }
 
@@ -61,7 +62,7 @@ class SocketService {
         const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
         try {
-            this.socket = io(`${BASE_URL}/chat`, {
+            this.socket = io(`${BASE_URL}/socket`, {
                 auth: { token },
                 transports: ['websocket'],
                 autoConnect: false,
@@ -86,7 +87,7 @@ class SocketService {
         // ── Connection lifecycle ──────────────────────────────────────────────
 
         this.socket.on('connect', () => {
-            console.log('Connected to chat gateway:', this.socket?.id);
+            console.log('Connected to socket gateway:', this.socket?.id);
             // Fetch initial unread count on connect
             this.getUnreadCount();
 
@@ -97,7 +98,7 @@ class SocketService {
         });
 
         this.socket.on('disconnect', (reason) => {
-            console.log('Chat Socket disconnected:', reason);
+            console.log('Socket disconnected:', reason);
         });
 
         this.socket.on('connect_error', async (error) => {
@@ -115,7 +116,7 @@ class SocketService {
                         this.socket.connect();
                     }
                 } catch (refreshError: any) {
-                    console.log('Chat Socket: Failed to refresh token on connect_error', refreshError?.message || 'Unknown error');
+                    console.log('Socket: Failed to refresh token on connect_error', refreshError?.message || 'Unknown error');
                 }
             }
         });
@@ -298,6 +299,10 @@ class SocketService {
             );
             dispatch(chatApi.util.invalidateTags([{ type: 'Chat', id: 'UNREAD_COUNT' }]));
             dispatch(chatApi.util.invalidateTags([{ type: 'Chat', id: 'CONV_LIST' }]));
+        });
+
+        this.socket.on('walletUpdate', (data: { balance: number }) => {
+            dispatch(walletApi.util.invalidateTags([{ type: 'Wallet', id: 'BALANCE' }]));
         });
     }
 
