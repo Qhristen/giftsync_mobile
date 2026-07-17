@@ -12,7 +12,7 @@ import { formatDate } from '@/utils/dateUtils';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 
 export default function ProductOrdersScreen() {
@@ -61,7 +61,7 @@ export default function ProductOrdersScreen() {
             <View style={styles.orderDetail}>
                 <View style={styles.detailRow}>
                     <Ionicons name="person-outline" size={16} color={colors.textSecondary} />
-                    <Typography variant="body" color={colors.textSecondary}>{item?.occasion?.contact?.name ?? ""}</Typography>
+                    <Typography variant="body" color={colors.textSecondary}>{item?.event?.contact?.name ?? ""}</Typography>
                 </View>
                 <View style={styles.detailRow}>
                     <Ionicons name="calendar-outline" size={16} color={colors.textSecondary} />

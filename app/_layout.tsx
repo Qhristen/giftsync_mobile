@@ -12,11 +12,11 @@ import {
   useFonts as useFraunces
 } from '@expo-google-fonts/fraunces';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
-import { DarkTheme, DefaultTheme, Redirect, Stack, ThemeProvider, useRouter, useSegments } from 'expo-router';
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider, useRouter, useSegments } from 'expo-router';
 
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import React, { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Provider } from 'react-redux';
 
@@ -28,16 +28,13 @@ import { Toaster } from 'sonner-native';
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
-import { useChatSocket } from '@/hooks/useChatSocket';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+import { useSocket } from '@/hooks/useSocket';
 import notificationService from '@/services/notificationService';
 import { RootState } from '@/store';
 import { useRegisterDeviceTokenMutation } from '@/store/api/notificationApi';
-import { useLazyGetProfileQuery } from '@/store/api/userApi';
 import { useAppDispatch } from '@/store/hooks';
-import { logout } from '@/store/slices/authSlice';
-import { tokenCache } from '@/utils/cache';
-import { ActivityIndicator, Platform, View } from 'react-native';
+import { Platform } from 'react-native';
 import { useSelector } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 
@@ -48,30 +45,70 @@ function RootLayoutContent() {
   const segments = useSegments();
   const router = useRouter();
 
-  useChatSocket();
+  useSocket();
   useNetworkStatus();
 
-  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
-
-  const [getProfile] = useLazyGetProfileQuery();
+  const { isAuthenticated, isLoading } = useSelector((state: RootState) => state.auth);
   const [registerDeviceToken] = useRegisterDeviceTokenMutation()
   const [getPlatformConfig] = useLazyGetPlatformConfigQuery();
 
   useEffect(() => {
-    const fetchPlatformConfig = async () => {
-      try {
-        const platformConfigs = await getPlatformConfig().unwrap();
-        if (platformConfigs) {
-          dispatch(setConfigs(platformConfigs));
-        }
-      } catch (error) {
-        console.error("❌ Failed to fetch platform config:", error);
-      }
-    };
+
+    const inAuthGroup = segments[0] === '(auth)';
+    const isPublicRoute = segments[0] === 'profile' && (segments[1] === 'terms' || segments[1] === 'privacy');
+
+    // Initialize authentication routing logic
+    if (!isAuthenticated && !inAuthGroup && !isPublicRoute) {
+      router.replace('/welcome');
+    }
+
+    // Initialize authenticated routing logic
+    if (isAuthenticated && inAuthGroup) {
+      router.replace('/(tabs)');
+
+    }
+
+    // Initialize notification service
+    initNotifications();
+
+    // Initialize platform config
     fetchPlatformConfig();
+    // Cleanup on unmount
+    return () => {
+      notificationService.cleanup();
+    };
+
+
   }, [isAuthenticated, dispatch]);
 
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+  const initNotifications = async () => {
+    try {
+      await notificationService.initialize();
+      console.log("🔔 Notification service ready");
+
+      // If already authenticated, sync token
+      if (isAuthenticated) {
+        syncDeviceToken();
+      }
+    } catch (error) {
+      console.log("❌ Failed to initialize notifications:", error);
+    }
+  };
+
+
+
+  const fetchPlatformConfig = async () => {
+    try {
+      const platformConfigs = await getPlatformConfig().unwrap();
+      if (platformConfigs) {
+        dispatch(setConfigs(platformConfigs));
+      }
+    } catch (error) {
+      console.error("❌ Failed to fetch platform config:", error);
+    }
+  };
+
 
   const syncDeviceToken = async () => {
     const status = await notificationService.getNotificationStatus();
@@ -85,85 +122,12 @@ function RootLayoutContent() {
         }).unwrap();
         console.log("✅ Device token synced with server");
       } catch (error) {
-        console.error("❌ Failed to sync device token:", error);
+        console.log("❌ Failed to sync device token:", error);
       }
     }
   };
 
-  useEffect(() => {
 
-    const checkAuthStatus = async () => {
-      try {
-
-        const storedAccessToken = await tokenCache.get('accessToken');
-        if (storedAccessToken) {
-          console.log(storedAccessToken, "storedAccessToken")
-          await getProfile()
-        } else {
-          dispatch(logout());
-          await tokenCache.remove('accessToken');
-          await tokenCache.remove('refreshToken');
-        }
-      } catch (error) {
-        console.log('Auth check error:', error);
-        dispatch(logout());
-        await tokenCache.remove('accessToken');
-        await tokenCache.remove('refreshToken');
-            } finally {
-        setIsCheckingAuth(false);
-      }
-    };
-
-    checkAuthStatus();
-  }, []);
-
-
-
-  // Initialize notification service
-  useEffect(() => {
-    const initNotifications = async () => {
-      try {
-        await notificationService.initialize();
-        console.log("🔔 Notification service ready");
-
-        // If already authenticated, sync token
-        if (isAuthenticated) {
-          syncDeviceToken();
-        }
-      } catch (error) {
-        console.error("❌ Failed to initialize notifications:", error);
-      }
-    };
-
-    initNotifications();
-
-    // Cleanup on unmount
-    return () => {
-      notificationService.cleanup();
-    };
-  }, [isAuthenticated]);
-
-
-  // Root authentication routing logic - handled in render to prevent glitch
-  const inAuthGroup = segments[0] === '(auth)';
-  const isPublicRoute = segments[0] === 'profile' && (segments[1] === 'terms' || segments[1] === 'privacy');
-
-  if (!isCheckingAuth) {
-    if (!isAuthenticated && !inAuthGroup && !isPublicRoute) {
-      return <Redirect href="/welcome" />;
-    }
-    if (isAuthenticated && inAuthGroup) {
-      return <Redirect href="/(tabs)" />;
-    }
-  }
-
-  if (isCheckingAuth) {
-    return (
-      <View style={{ flex: 1, backgroundColor: isDark ? '#000000' : '#FFFFFF', justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
-    );
-  }
 
   return (
     <ThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
@@ -174,10 +138,12 @@ function RootLayoutContent() {
             contentStyle: { backgroundColor: isDark ? '#000000' : '#FFFFFF' },
           }}
         >
-          <Stack.Protected guard={isAuthenticated}>
-          <Stack.Screen name="(tabs)" options={{ animation: 'fade', headerShown: false }} />
+          <Stack.Protected guard={!isLoading && isAuthenticated}>
+            <Stack.Screen name="(tabs)" options={{ animation: 'fade', headerShown: false }} />
           </Stack.Protected>
-          <Stack.Screen name="(auth)" options={{ animation: 'fade', headerShown: false }} />
+          <Stack.Protected guard={!isLoading && !isAuthenticated}>
+            <Stack.Screen name="(auth)" options={{ animation: 'fade', headerShown: false }} />
+          </Stack.Protected>
         </Stack>
         <StatusBar style={isDark ? 'light' : 'dark'} />
       </BottomSheetModalProvider>

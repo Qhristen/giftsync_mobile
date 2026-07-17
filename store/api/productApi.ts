@@ -4,7 +4,7 @@ import type { EndpointBuilder } from '@reduxjs/toolkit/query';
 
 export const productApi = baseApi.injectEndpoints({
     endpoints: (builder: EndpointBuilder<any, string, string>) => ({
-        getRecommendations: builder.query<Product[], { contactId?: string; occasionId?: string }>({
+        getRecommendations: builder.query<Product[], { contactId?: string; eventId?: string }>({
             query: (params) => ({
                 url: '/api/v1/recommendations',
                 method: 'GET',
@@ -12,7 +12,7 @@ export const productApi = baseApi.injectEndpoints({
             }),
             providesTags: ['Recommendations'],
         }),
-        getRecommendationsV2: builder.query<Product[], { occasionId: string; limit?: number }>({
+        getRecommendationsV2: builder.query<Product[], { eventId: string; limit?: number }>({
             query: (data) => ({
                 url: '/api/v1/recommendations/v2',
                 method: 'POST',

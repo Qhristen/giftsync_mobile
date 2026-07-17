@@ -1,5 +1,5 @@
-import CreateOccasionSheet from '@/components/sheets/CreateOccasionSheet';
-import OccasionDetailSkeleton from '@/components/skeletons/OccasionDetailSkeleton';
+import CreateEventSheet from '@/components/sheets/CreateEventSheet';
+import EventDetailSkeleton from '@/components/skeletons/EventDetailSkeleton';
 import Avatar from '@/components/ui/Avatar';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
@@ -7,47 +7,46 @@ import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
-import { useGetOccasionDetailQuery } from '@/store/api/occasionApi';
+import { useGetEventDetailQuery } from '@/store/api/event';
 import { useGetRecommendationsV2Query } from '@/store/api/productApi';
 import { getCountdown } from '@/utils/dateUtils';
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React from 'react';
 import { ActivityIndicator, Dimensions, Pressable, StyleSheet, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 
 const { width } = Dimensions.get('window');
 
-export default function OccasionDetailScreen() {
+export default function EventDetailScreen() {
     const { id } = useLocalSearchParams();
     const router = useRouter();
     const { colors, spacing } = useTheme();
 
-    const { data: occasion, isLoading, isFetching, error, refetch } = useGetOccasionDetailQuery(id as string, { skip: !id });
+    const { data: event, isLoading, isFetching, error, refetch } = useGetEventDetailQuery(id as string, { skip: !id });
     const editSheet = useBottomSheet();
     const createSheet = useBottomSheet();
 
     const { data: recs = [], isLoading: isRecsLoading } = useGetRecommendationsV2Query(
-        { occasionId: occasion?.id as string, limit: 10 },
-        { skip: !occasion?.id }
+        { occasionId: event?.id as string, limit: 10 },
+        { skip: !event?.id }
     );
 
 
-    const otherOccasions = occasion?.contact?.occasions?.filter(
-        (o) => o.id !== occasion.id
+    const otherEvents = event?.contact?.occasions?.filter(
+        (o) => o.id !== event.id
     ) || [];
 
     if (isLoading || isFetching) {
-        return <OccasionDetailSkeleton />;
+        return <EventDetailSkeleton />;
     }
 
-    if (!occasion || error) {
+    if (!event || error) {
         return (
             <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
-                <Typography>Occasion not found</Typography>
+                <Typography>event not found</Typography>
                 <Button title="Go Back" onPress={() => router.back()} style={{ marginTop: 16 }} />
             </View>
         );
@@ -63,33 +62,33 @@ export default function OccasionDetailScreen() {
                         <Pressable onPress={() => router.back()} style={styles.iconBtn}>
                             <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
                         </Pressable>
-                        {/* <Typography variant="h4" color="#FFF">Occasion Details</Typography> */}
+                        {/* <Typography variant="h4" color="#FFF">event Details</Typography> */}
                         <Pressable style={styles.iconBtn} onPress={() => editSheet.open()}>
                             <Ionicons name="create-outline" size={24} color="#FFF" />
                         </Pressable>
                     </View>
 
                     <Animated.View entering={FadeInDown.duration(500)} style={styles.heroContent}>
-                        <Avatar uri={occasion.contact?.avatar} name={occasion.contact?.name} size="xl" />
-                        <Typography variant="h1" style={{ marginTop: 16 }}>{occasion.contact?.name}</Typography>
-                        <Badge label={occasion.title} variant="primary" style={{ marginTop: 8, alignSelf: 'center', backgroundColor: colors.background }} />
+                        <Avatar uri={event.contact?.avatar} name={event.contact?.name} size="xl" />
+                        <Typography variant="h1" style={{ marginTop: 16 }}>{event.contact?.name}</Typography>
+                        <Badge label={event.title} variant="primary" style={{ marginTop: 8, alignSelf: 'center', backgroundColor: colors.background }} />
                     </Animated.View>
                 </View>
                 <Animated.View entering={FadeInUp.delay(200).duration(500)} style={[styles.content, { padding: spacing.xl }]}>
 
-                    {/* Premium Occasion Summary Card */}
+                    {/* Premium event Summary Card */}
                     <Card style={[styles.premiumCard, { backgroundColor: colors.surfaceRaised }]}>
                         <View style={styles.detailRow}>
                             <View style={[styles.detailIconBg, { backgroundColor: colors.primary + '15' }]}>
                                 <Ionicons name="calendar-clear-outline" size={24} color={colors.primary} />
                             </View>
                             <View style={{ flex: 1, marginLeft: 16 }}>
-                                <Typography variant="caption" color={colors.textSecondary}>Date of Occasion</Typography>
+                                <Typography variant="caption" color={colors.textSecondary}>Date of event</Typography>
                                 <Typography variant="h4" style={{ marginTop: 2 }}>
-                                    {new Date(occasion.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                                    {new Date(event.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                                 </Typography>
                                 <Typography variant="bodyBold" color={colors.primary} style={{ marginTop: 4 }}>
-                                    {getCountdown(occasion.date)}
+                                    {getCountdown(event.date)}
                                 </Typography>
                             </View>
                         </View>
@@ -108,9 +107,9 @@ export default function OccasionDetailScreen() {
                             />
                             <View style={styles.collectionOverlay}>
                                 <View>
-                                    <Typography variant="h2" color="#FFFFFF">The {occasion.title} Edit</Typography>
+                                    <Typography variant="h2" color="#FFFFFF">The {event.title} Edit</Typography>
                                     <Typography variant="body" color="#FFFFFF" style={{ opacity: 0.8, marginTop: 4 }}>
-                                        Exclusive gifts curated for {occasion.contact?.name}
+                                        Exclusive gifts curated for {event.contact?.name}
                                     </Typography>
                                 </View>
                                 <View style={[styles.exploreBtn, { backgroundColor: colors.primary }]}>
@@ -123,7 +122,7 @@ export default function OccasionDetailScreen() {
 
                     <View style={[styles.sectionHeader, { paddingTop: spacing['4xl'] }]}>
                         <Typography variant="h4">
-                            {`Picked for ${occasion.contact?.name}`}
+                            {`Picked for ${event.contact?.name}`}
                         </Typography>
                         <Pressable onPress={() => router.push('/(tabs)/shop')}><Typography variant="label" color={colors.primary}>See all →</Typography></Pressable>
                     </View>
@@ -160,7 +159,7 @@ export default function OccasionDetailScreen() {
                                             title="Send as Gift →"
                                             size="sm"
                                             style={{ marginTop: 12 }}
-                                            onPress={() => router.push({ pathname: '/product-detail', params: { id: item.id, occasionId: occasion.id } })}
+                                            onPress={() => router.push({ pathname: '/product-detail', params: { id: item.id, occasionId: event.id } })}
                                         />
                                     </View>
                                 </Card>
@@ -175,17 +174,17 @@ export default function OccasionDetailScreen() {
                 </Animated.View>
             </ScrollView>
 
-            <CreateOccasionSheet
+            <CreateEventSheet
                 ref={editSheet.ref}
                 isEditing
-                occasionId={occasion.id}
+                occasionId={event.id}
                 onSuccess={() => refetch()}
             />
 
-            <CreateOccasionSheet
+            <CreateEventSheet
                 ref={createSheet.ref}
-                fixedContactId={occasion.contactId}
-                fixedContactName={occasion.contact?.name}
+                fixedContactId={event.contactId}
+                fixedContactName={event.contact?.name}
                 onSuccess={() => refetch()}
             />
         </View >
@@ -283,7 +282,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginTop: 4,
     },
-    otherOccasionCard: {
+    otherEventCard: {
         flexDirection: 'row',
         alignItems: 'center',
         padding: 16,
@@ -291,12 +290,12 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         gap: 14,
     },
-    otherOccasionDot: {
+    otherEventDot: {
         width: 12,
         height: 12,
         borderRadius: 6,
     },
-    emptyOccasionCard: {
+    emptyEventCard: {
         alignItems: 'center',
         justifyContent: 'center',
         padding: 28,
@@ -304,14 +303,14 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderStyle: 'dashed',
     },
-    emptyOccasionIcon: {
+    emptyEventIcon: {
         width: 56,
         height: 56,
         borderRadius: 28,
         justifyContent: 'center',
         alignItems: 'center',
     },
-    addOccasionBtn: {
+    addEventBtn: {
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 20,

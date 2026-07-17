@@ -93,7 +93,7 @@ export interface Contact {
   phoneNumber: string;
   email?: string;
   avatar?: string;
-  occasions?: Occasion[];
+  events?: Event[];
   relationship?: string;
   interests?: string[];
   budget?: 'LOW' | 'MID' | 'HIGH' | string;
@@ -122,7 +122,7 @@ export interface CreateContactDto {
 
 export interface UpdateContactDto extends Partial<CreateContactDto> { }
 
-export interface OccasionTemplate {
+export interface EventTemplate {
   id: string;
   title: string;
   type: string;
@@ -133,7 +133,7 @@ export interface OccasionTemplate {
   description?: string;
 }
 
-export interface Occasion {
+export interface Event {
   id: string;
   userId: string;
   contactId?: string;
@@ -153,7 +153,7 @@ export interface Occasion {
   updatedAt: string;
 }
 
-export interface CreateOccasionDto {
+export interface CreateEventDto {
   title: string;
   date: string;
   recurrenceType?: 'NONE' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
@@ -164,9 +164,9 @@ export interface CreateOccasionDto {
   notes?: string;
 }
 
-export interface UpdateOccasionDto extends Partial<CreateOccasionDto> { }
+export interface UpdateEventDto extends Partial<CreateEventDto> { }
 
-export interface SubscribeOccasionDto {
+export interface SubscribeEventDto {
   templateId: string;
   contactIds: string[];
 }
@@ -214,7 +214,7 @@ export interface CreateProductDto {
 export interface UpdateProductDto extends Partial<CreateProductDto> { }
 
 export interface RecommendationInputDto {
-  occasionId: string;
+  eventId: string;
   limit?: number;
 }
 
@@ -301,7 +301,7 @@ export interface Order {
   giftMessage: string;
   paymentMethod: PaymentMethod;
   paymentStatus: PaymentStatus;
-  occasion: Occasion;
+  event: Event;
   conversationId: string;
   subtotal: number;
   deliveryFee: number;
@@ -329,7 +329,6 @@ export interface Address {
   id: string;
   userId: string;
   recipientName: string;
-  phone: string;
   line1: string;
   line2?: string;
   city: string;
@@ -342,7 +341,6 @@ export interface Address {
 
 export interface CreateAddressDto {
   recipientName: string;
-  phone: string;
   line1: string;
   line2?: string;
   city: string;

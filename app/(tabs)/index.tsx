@@ -1,12 +1,12 @@
-import UpcomingHolidays from '@/components/occasions/UpcomingHolidays';
+import UpcomingHolidays from '@/components/event/UpcomingHolidays';
 import HomeScreenSkeleton from '@/components/skeletons/HomeScreenSkeleton';
 import Avatar from '@/components/ui/Avatar';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
+import { useGetEventTemplatesQuery, useGetUpcomingEventsQuery } from '@/store/api/event';
 import { useGetUnreadCountQuery } from '@/store/api/notificationApi';
-import { useGetOccasionTemplatesQuery, useGetUpcomingOccasionsQuery } from '@/store/api/occasionApi';
 import { useGetRecommendationsV2Query } from '@/store/api/productApi';
 import { useGetProfileQuery } from '@/store/api/userApi';
 import { getCountdown } from '@/utils/dateUtils';
@@ -27,14 +27,14 @@ export default function HomeScreen() {
     const [activeIndex, setActiveIndex] = React.useState(0);
 
     const { data: profile, isLoading: isProfileLoading, refetch: refetchProfile } = useGetProfileQuery();
-    const { data: upcoming = [], isLoading: isUpcomingLoading, refetch: refetchUpcoming } = useGetUpcomingOccasionsQuery();
+    const { data: upcoming = [], isLoading: isUpcomingLoading, refetch: refetchUpcoming } = useGetUpcomingEventsQuery();
     const { data: unreadCount, refetch: refetchUnreadCount } = useGetUnreadCountQuery();
-    const { data: templates, isLoading: isTemplatesLoading, refetch: refetchTemplates } = useGetOccasionTemplatesQuery();
+    const { data: templates, isLoading: isTemplatesLoading, refetch: refetchTemplates } = useGetEventTemplatesQuery();
 
-    // Use the first upcoming occasion for specific recommendations, otherwise generic
+    // Use the first upcoming event for specific recommendations, otherwise generic
     const firstUpcoming = upcoming[0];
     const { data: recs = [], isLoading: isRecsLoading, refetch: refetchRecs } = useGetRecommendationsV2Query(
-        { occasionId: firstUpcoming?.id as string, limit: 10 },
+        { eventId: firstUpcoming?.id as string, limit: 10 },
         { skip: !firstUpcoming || isUpcomingLoading }
     );
 
@@ -57,14 +57,6 @@ export default function HomeScreen() {
             {/* Header */}
             <Animated.View entering={FadeInDown.duration(600)} style={[styles.header, { padding: spacing.xl, paddingBottom: spacing.md }]}>
                 <View>
-                    <Typography variant="body" color={colors.textSecondary}>
-                        {(() => {
-                            const hour = new Date().getHours();
-                            if (hour < 12) return 'Good morning';
-                            if (hour < 17) return 'Good afternoon';
-                            return 'Good evening';
-                        })()}, {profile?.name?.split(' ')[0] || 'Alex'} 👋
-                    </Typography>
                     <Typography variant="h1">GiftSync</Typography>
                 </View>
                 <View style={styles.headerIcons}>
@@ -156,7 +148,7 @@ export default function HomeScreen() {
                                                             })()}
                                                         </Typography>
                                                         <Typography variant="label" color={colors.textSecondaryForeground} style={{ opacity: 0.9 }}>
-                                                            {item.contacts.length} {item.contacts.length === 1 ? 'person' : `occasions ${getCountdown(item.date)}`}
+                                                            {item.contacts.length} {item.contacts.length === 1 ? 'person' : `events ${getCountdown(item.date)}`}
                                                         </Typography>
                                                     </View>
                                                 </>
@@ -212,13 +204,13 @@ export default function HomeScreen() {
                                 <View style={{ flex: 1, gap: 4 }}>
                                     <Typography variant="h3">Never miss a moment</Typography>
                                     <Typography variant="body" color={colors.textSecondary}>
-                                        Add your occasion and we'll help you track their special occasions with personalized gift ideas.
+                                        Add your event and we'll help you track their special events with personalized gift ideas.
                                     </Typography>
                                 </View>
                             </View>
                             <Button
-                                title="Add Occasion"
-                                onPress={() => router.push('/(tabs)/occasions')}
+                                title="Add Event"
+                                onPress={() => router.push('/(tabs)/events')}
                                 style={{ marginTop: 8 }}
                             />
                         </Card>
@@ -229,7 +221,7 @@ export default function HomeScreen() {
                 <Animated.View entering={FadeInDown.duration(600)} style={[styles.quickActions, { padding: spacing.xl }]}>
                     {[
                         { label: 'AI Chat', icon: 'sparkles-outline', route: '/ai-chat' },
-                        { label: 'Browse Holidays', icon: 'gift-outline', route: '/global-occasions' },
+                        { label: 'Browse Holidays', icon: 'gift-outline', route: '/global-events' },
                         { label: 'View Orders', icon: 'list-outline', route: '/orders' },
                         { label: 'Coins', icon: 'coins', route: '/wallet' }
                     ].map((act, idx) => (
@@ -296,7 +288,7 @@ export default function HomeScreen() {
                                             title="Send Gift →"
                                             size="sm"
                                             style={{ marginTop: 12 }}
-                                            onPress={() => router.push({ pathname: `/product-detail`, params: { occasionId: firstUpcoming?.id, id: item.id } })}
+                                            onPress={() => router.push({ pathname: `/product-detail`, params: { eventId: firstUpcoming?.id, id: item.id } })}
                                         />
                                     </View>
                                 </Card>
@@ -306,7 +298,7 @@ export default function HomeScreen() {
                         <View style={{ paddingHorizontal: spacing.xl, paddingVertical: spacing.xl, alignItems: 'center', gap: 12 }}>
                             <Ionicons name="sparkles-outline" size={32} color={colors.textSecondary} style={{ opacity: 0.5 }} />
                             <Typography variant="body" color={colors.textSecondary} align="center">
-                                Once you add an occasion, we'll suggest the perfect gifts right here.
+                                Once you add an event, we'll suggest the perfect gifts right here.
                             </Typography>
                         </View>
                     )}

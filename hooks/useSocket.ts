@@ -3,7 +3,7 @@ import { useDispatch, useSelector, useStore } from 'react-redux';
 import { RootState } from '../store';
 import { socketService } from '../services/socketService';
 
-export const useChatSocket = () => {
+export const useSocket = () => {
     const dispatch = useDispatch();
     const { user } = useSelector((state: RootState) => state.auth);
 

@@ -353,11 +353,11 @@ class NotificationService {
             deepLinkPath = 'shop';
           }
           break;
-        case 'Occasions':
-        case 'OccasionsHome':
+        case 'Events':
+        case 'EventsHome':
           deepLinkPath = 'occasions';
           break;
-        case 'OccasionDetail':
+        case 'EventDetail':
           if (parsedParams.id) {
             deepLinkPath = `occasions/${parsedParams.id}`;
           } else {
@@ -466,7 +466,7 @@ class NotificationService {
         break;
       case "view_occasion":
         if (data.occasionId) {
-          this.navigateToScreen('OccasionDetail', { id: data.occasionId });
+          this.navigateToScreen('EventDetail', { id: data.occasionId });
         }
         break;
       case "view_order":

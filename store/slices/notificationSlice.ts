@@ -4,7 +4,7 @@ interface Notification {
     id: string;
     title: string;
     body: string;
-    type: 'occasion' | 'gift' | 'system' | 'autopilot';
+    type: 'event' | 'gift' | 'system' | 'autopilot';
     timestamp: string;
     isRead: boolean;
     deepLink?: string;

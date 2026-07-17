@@ -2,14 +2,12 @@ import Button from '@/components/ui/Button';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { useGoogleAuthMutation } from '@/store/api/authApi';
-import { setOccasions } from '@/store/slices/occasionSlice';
-import { fetchGoogleBirthdays } from '@/utils/calendar';
 import { moderateScale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import { GoogleSignin, statusCodes, } from '@react-native-google-signin/google-signin';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Animated, {
     Easing,
     FadeInDown,
@@ -28,9 +26,8 @@ import { useRouter } from 'expo-router';
 // Removed Dimensions import as width was unused
 
 import { GOOGLE_CLIENT_ID } from '@/utils/constants';
-import { tokenCache } from '@/utils/cache';
-import { toast } from 'sonner-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { toast } from 'sonner-native';
 
 interface BubbleProps {
     size: number;
@@ -71,7 +68,7 @@ const Bubble = ({ size, color, icon, delay, top, left, right, bottom, iconColor 
     // Determine icon color if not provided
     const resolvedIconColor = iconColor || (
         (color === colors.surface || color === colors.surfaceRaised || color === colors.background)
-            ? colors.textPrimary 
+            ? colors.textPrimary
             : '#FFFFFF'
     );
 
@@ -101,35 +98,35 @@ const BackgroundPattern = () => {
 
     return (
         <View style={StyleSheet.absoluteFill} pointerEvents="none">
-            <Ionicons 
-                name="gift-outline" 
-                size={300} 
-                color={patternColor} 
-                style={[styles.patternIcon, { top: -50, left: -100, opacity, transform: [{ rotate: '-15deg' }] }]} 
+            <Ionicons
+                name="gift-outline"
+                size={300}
+                color={patternColor}
+                style={[styles.patternIcon, { top: -50, left: -100, opacity, transform: [{ rotate: '-15deg' }] }]}
             />
-            <Ionicons 
-                name="heart-outline" 
-                size={250} 
-                color={patternColor} 
-                style={[styles.patternIcon, { bottom: 100, right: -80, opacity, transform: [{ rotate: '20deg' }] }]} 
+            <Ionicons
+                name="heart-outline"
+                size={250}
+                color={patternColor}
+                style={[styles.patternIcon, { bottom: 100, right: -80, opacity, transform: [{ rotate: '20deg' }] }]}
             />
-            <Ionicons 
-                name="star-outline" 
-                size={180} 
-                color={patternColor} 
-                style={[styles.patternIcon, { top: '30%', right: -40, opacity, transform: [{ rotate: '45deg' }] }]} 
+            <Ionicons
+                name="star-outline"
+                size={180}
+                color={patternColor}
+                style={[styles.patternIcon, { top: '30%', right: -40, opacity, transform: [{ rotate: '45deg' }] }]}
             />
-            <Ionicons 
-                name="calendar-outline" 
-                size={220} 
-                color={patternColor} 
-                style={[styles.patternIcon, { bottom: -60, left: -40, opacity, transform: [{ rotate: '-10deg' }] }]} 
+            <Ionicons
+                name="calendar-outline"
+                size={220}
+                color={patternColor}
+                style={[styles.patternIcon, { bottom: -60, left: -40, opacity, transform: [{ rotate: '-10deg' }] }]}
             />
-            <Ionicons 
-                name="notifications-outline" 
-                size={150} 
-                color={patternColor} 
-                style={[styles.patternIcon, { top: '15%', right: '15%', opacity, transform: [{ rotate: '-20deg' }] }]} 
+            <Ionicons
+                name="notifications-outline"
+                size={150}
+                color={patternColor}
+                style={[styles.patternIcon, { top: '15%', right: '15%', opacity, transform: [{ rotate: '-20deg' }] }]}
             />
         </View>
     );
@@ -156,7 +153,7 @@ export default function WelcomeScreen() {
         try {
             await GoogleSignin.hasPlayServices();
             // Sign out first to force the account picker to show
-            try { await GoogleSignin.signOut(); } catch {}
+            try { await GoogleSignin.signOut(); } catch { }
             const userInfo = await GoogleSignin.signIn();
             const idToken = userInfo.data?.idToken;
 
@@ -186,7 +183,7 @@ export default function WelcomeScreen() {
                 style={StyleSheet.absoluteFill}
             />
             <BackgroundPattern />
-             
+
             <View style={styles.content}>
                 <View style={styles.clusterWrapper}>
                     <View style={styles.clusterContainer}>
@@ -200,7 +197,7 @@ export default function WelcomeScreen() {
                             left={0}
                             iconColor={colors.primary}
                         />
-                        
+
                         {/* Orbiting Bubbles - Using Theme Colors */}
                         <Bubble size={75} color={colors.accent} icon="calendar" delay={200} top={-90} left={25} />
                         <Bubble size={55} color={colors.success} icon="heart" delay={400} top={-35} right={-55} />
@@ -222,8 +219,8 @@ export default function WelcomeScreen() {
                 </Animated.View>
             </View>
 
-            <Animated.View 
-                entering={FadeInDown.delay(1000).duration(800)} 
+            <Animated.View
+                entering={FadeInDown.delay(1000).duration(800)}
                 style={[styles.footer, { padding: spacing.xl, paddingBottom: insets.bottom + 20 }]}
             >
                 <Button
@@ -238,18 +235,18 @@ export default function WelcomeScreen() {
                 <View style={styles.legalNotice}>
                     <Typography variant="caption" color="#FFFFFF" align="center" style={{ opacity: 0.7 }}>
                         By continuing, you agree to our{' '}
-                        <Typography 
-                            variant="caption" 
-                            color="#FFFFFF" 
+                        <Typography
+                            variant="caption"
+                            color="#FFFFFF"
                             style={{ fontWeight: 'bold', textDecorationLine: 'underline' }}
                             onPress={() => router.push('/profile/terms')}
                         >
                             Terms
                         </Typography>
                         {' '}and{' '}
-                        <Typography 
-                            variant="caption" 
-                            color="#FFFFFF" 
+                        <Typography
+                            variant="caption"
+                            color="#FFFFFF"
                             style={{ fontWeight: 'bold', textDecorationLine: 'underline' }}
                             onPress={() => router.push('/profile/privacy')}
                         >

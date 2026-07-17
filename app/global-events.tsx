@@ -3,26 +3,26 @@ import GridSkeleton from '@/components/skeletons/GridSkeleton';
 import { BottomSheetRef } from '@/components/ui/BottomSheetWrapper';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
-import { useGetOccasionTemplatesQuery } from '@/store/api/occasionApi';
+import { useGetEventTemplatesQuery } from '@/store/api/event';
 import { spacing } from '@/theme';
-import { OccasionTemplate } from '@/types';
+import { EventTemplate } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
-import React, { useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
-export default function GlobalOccasionsScreen() {
+export default function GlobalEventsScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
- 
-    const { data: templates, isLoading: isTemplatesLoading } = useGetOccasionTemplatesQuery();
 
-    const [selectedTemplate, setSelectedTemplate] = useState<OccasionTemplate | null>(null);
+    const { data: templates, isLoading: isTemplatesLoading } = useGetEventTemplatesQuery();
+
+    const [selectedTemplate, setSelectedTemplate] = useState<EventTemplate | null>(null);
     const subscribersSheetRef = useRef<BottomSheetRef>(null);
 
-    const handleOpenDetail = (template: OccasionTemplate) => {
+    const handleOpenDetail = (template: EventTemplate) => {
         setSelectedTemplate(template);
         subscribersSheetRef.current?.expand();
     };

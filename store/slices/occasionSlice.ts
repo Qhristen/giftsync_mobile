@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-export interface Occasion {
+export interface event {
     id: string;
     name: string;
     type: string;
@@ -10,11 +10,11 @@ export interface Occasion {
     dotColor: string;
 }
 
-interface OccasionState {
-    items: Occasion[];
+interface EventState {
+    items: event[];
 }
 
-const initialState: OccasionState = {
+const initialState: EventState = {
     items: [],
 };
 
@@ -22,17 +22,17 @@ const occasionSlice = createSlice({
     name: 'occasions',
     initialState,
     reducers: {
-        setOccasions: (state, action: PayloadAction<Occasion[]>) => {
+        setEvents: (state, action: PayloadAction<event[]>) => {
             state.items = action.payload;
         },
-        addOccasion: (state, action: PayloadAction<Occasion>) => {
+        addEvent: (state, action: PayloadAction<event>) => {
             state.items.push(action.payload);
         },
-        clearOccasions: (state) => {
+        clearEvents: (state) => {
             state.items = [];
         },
     },
 });
 
-export const { setOccasions, addOccasion, clearOccasions } = occasionSlice.actions;
+export const { setEvents, addEvent, clearEvents } = occasionSlice.actions;
 export default occasionSlice.reducer;

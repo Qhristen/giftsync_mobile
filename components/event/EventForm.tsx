@@ -10,7 +10,7 @@ import Typography from '../ui/Typography';
 
 import { usePlatformConfig } from '@/hooks/usePlatformConfig';
 import { useGetContactsQuery } from '@/store/api/contactsApi';
-import { useCreateOccasionMutation, useGetOccasionDetailQuery, useGetOccasionTemplatesQuery, useUpdateOccasionMutation } from '@/store/api/occasionApi';
+import { useCreateEventMutation, useGetEventDetailQuery, useGetEventTemplatesQuery, useUpdateEventMutation } from '@/store/api/event';
 import { useAppSelector } from '@/store/hooks';
 import { spendCoins } from '@/store/slices/walletSlice';
 import { Contact } from '@/types';
@@ -18,7 +18,7 @@ import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useDispatch } from 'react-redux';
 import { toast } from 'sonner-native';
 
-interface OccasionFormProps {
+interface EventFormProps {
     onSuccess?: () => void;
     onCompleted?: () => void;
     onBack?: () => void;
@@ -58,7 +58,7 @@ const RELATIONSHIPS = [
 
 const INTERESTS_PRESETS = ['Tech', 'Fashion', 'Sports', 'Books', 'Cooking', 'Travel', 'Gaming'];
 
-const OccasionForm: React.FC<OccasionFormProps> = ({
+const EventForm: React.FC<EventFormProps> = ({
     onSuccess,
     onCompleted,
     onBack,
@@ -96,10 +96,10 @@ const OccasionForm: React.FC<OccasionFormProps> = ({
 
     // API Hooks
     const { data: contactsData } = useGetContactsQuery({ page: 1, limit: 50 }, { skip: !!fixedContactId });
-    const { data: templates } = useGetOccasionTemplatesQuery();
-    const [createOccasion, { isLoading: isCreating }] = useCreateOccasionMutation();
-    const [updateOccasion, { isLoading: isUpdating }] = useUpdateOccasionMutation();
-    const { data: occasionDetail, isLoading: isDetailLoading } = useGetOccasionDetailQuery(occasionId as string, { skip: !isEditing || !occasionId });
+    const { data: templates } = useGetEventTemplatesQuery();
+    const [createEvent, { isLoading: isCreating }] = useCreateEventMutation();
+    const [updateEvent, { isLoading: isUpdating }] = useUpdateEventMutation();
+    const { data: occasionDetail, isLoading: isDetailLoading } = useGetEventDetailQuery(occasionId as string, { skip: !isEditing || !occasionId });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -180,10 +180,10 @@ const OccasionForm: React.FC<OccasionFormProps> = ({
         }
 
         if (selectedType === 'Custom' && !customTitle.trim()) {
-            toast.error("Required Fields", { description: "Please enter a custom occasion title." });
+            toast.error("Required Fields", { description: "Please enter a custom event title." });
             return;
         }
-        
+
         if (relationship === 'Other' && !customRelationship.trim()) {
             toast.error("Required Fields", { description: "Please enter the relationship." });
             return;
@@ -194,7 +194,7 @@ const OccasionForm: React.FC<OccasionFormProps> = ({
             const currentBalance = user?.coinBalance || 0;
             if (currentBalance < occasionCreationCost) {
                 toast.error("Insufficient Balance", {
-                    description: `Creating an occasion costs ${occasionCreationCost} coins. Please top up your wallet.`,
+                    description: `Creating an event costs ${occasionCreationCost} coins. Please top up your wallet.`,
                 });
                 return;
             }
@@ -207,7 +207,7 @@ const OccasionForm: React.FC<OccasionFormProps> = ({
             const finalTitle = selectedType === 'Custom' ? customTitle.trim() : selectedType;
 
             if (isEditing && occasionId) {
-                await updateOccasion({
+                await updateEvent({
                     id: occasionId,
                     data: {
                         title: finalTitle,
@@ -215,9 +215,9 @@ const OccasionForm: React.FC<OccasionFormProps> = ({
                         recurrenceType,
                     }
                 }).unwrap();
-                toast.success("Occasion Updated 🎉");
+                toast.success("event Updated 🎉");
             } else {
-                await createOccasion({
+                await createEvent({
                     title: finalTitle,
                     date: date.toISOString(),
                     recurrenceType,
@@ -228,7 +228,7 @@ const OccasionForm: React.FC<OccasionFormProps> = ({
                     relationship: relationship === 'Other' ? customRelationship.trim() : relationship
                 }).unwrap();
                 dispatch(spendCoins(occasionCreationCost));
-                toast.success("Occasion Added 🎉");
+                toast.success("event Added 🎉");
             }
 
             onSuccess?.();
@@ -326,7 +326,7 @@ const OccasionForm: React.FC<OccasionFormProps> = ({
                     </View>
 
                     <View style={{ marginTop: spacing.sm }}>
-                        <Typography variant="label" style={{ marginBottom: spacing.xs }}>Occasion Type</Typography>
+                        <Typography variant="label" style={{ marginBottom: spacing.xs }}>event Type</Typography>
                         <View style={styles.chipsContainer}>
                             {OCCASION_TYPES.map(type => (
                                 <Pressable
@@ -444,7 +444,7 @@ const OccasionForm: React.FC<OccasionFormProps> = ({
 
                 {/* Section 4: Submit */}
                 <Button
-                    title={isEditing ? "Save Changes" : `Save Occasion (${occasionCreationCost} coins)`}
+                    title={isEditing ? "Save Changes" : `Save event (${occasionCreationCost} coins)`}
                     onPress={handleSubmit}
                     isLoading={isSubmitting || isCreating || isUpdating}
                     disabled={!name || !phone || isSubmitting}
@@ -504,5 +504,5 @@ const styles = StyleSheet.create({
     }
 });
 
-export default OccasionForm;
+export default EventForm;
 

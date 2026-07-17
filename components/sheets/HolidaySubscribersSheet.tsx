@@ -5,17 +5,17 @@ import Input from '@/components/ui/Input';
 import Typography from '@/components/ui/Typography';
 import { usePlatformConfig } from '@/hooks/usePlatformConfig';
 import { useTheme } from '@/hooks/useTheme';
-import { OccasionTemplate } from '@/types';
+import { EventTemplate } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
-import { BottomSheetFlatList, BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import * as Contacts from "expo-contacts/legacy";
 import { useRouter } from 'expo-router';
-import React, { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react';
+import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface Props {
-    holiday: OccasionTemplate | null;
+    holiday: EventTemplate | null;
 }
 
 const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, ref) => {
@@ -223,7 +223,7 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
                                         leftIcon={<Ionicons name="search" size={20} color={colors.textSecondary} />}
                                     />
                                 </View>
-                                
+
                                 {isLoadingContacts && localContacts.length === 0 && (
                                     <ActivityIndicator size="small" color={colors.primary} style={{ marginVertical: spacing.xl }} />
                                 )}

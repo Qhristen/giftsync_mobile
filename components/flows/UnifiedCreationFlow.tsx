@@ -2,9 +2,9 @@ import { Contact } from '@/types';
 import React, { useState } from 'react';
 import ContactDetails from '../contacts/ContactDetails';
 import ContactForm from '../contacts/ContactForm';
-import OccasionForm from '../occasions/OccasionForm';
+import EventForm from '../event/EventForm';
 
-type FlowStep = 'create-contact' | 'contact-details' | 'create-occasion';
+type FlowStep = 'create-contact' | 'contact-details' | 'create-event';
 
 interface UnifiedCreationFlowProps {
     onSuccess?: () => void;
@@ -22,8 +22,8 @@ const UnifiedCreationFlow: React.FC<UnifiedCreationFlowProps> = ({ onSuccess, on
         }
     };
 
-    const handleAddOccasion = () => {
-        setStep('create-occasion');
+    const handleAddEvent = () => {
+        setStep('create-event');
     };
 
     if (step === 'create-contact') {
@@ -38,14 +38,14 @@ const UnifiedCreationFlow: React.FC<UnifiedCreationFlowProps> = ({ onSuccess, on
         return (
             <ContactDetails
                 contact={createdContact}
-                onAddOccasion={handleAddOccasion}
+                onAddEvent={handleAddEvent}
             />
         );
     }
 
-    if (step === 'create-occasion' && createdContact) {
+    if (step === 'create-event' && createdContact) {
         return (
-            <OccasionForm
+            <EventForm
                 fixedContactId={createdContact.id}
                 fixedContactName={createdContact.name}
                 onSuccess={onSuccess}

@@ -1,23 +1,23 @@
 import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
-import { OccasionTemplate } from '@/types';
+import { EventTemplate } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import HolidaySubscribersSheet from '../sheets/HolidaySubscribersSheet';
 import { BottomSheetRef } from '../ui/BottomSheetWrapper';
 
 interface UpcomingHolidaysProps {
-    templates: OccasionTemplate[] | undefined;
+    templates: EventTemplate[] | undefined;
 }
 
 export default function UpcomingHolidays({ templates }: UpcomingHolidaysProps) {
     const { spacing, colors } = useTheme();
     const router = useRouter();
-    const [selectedHoliday, setSelectedHoliday] = useState<OccasionTemplate | null>(null);
+    const [selectedHoliday, setSelectedHoliday] = useState<EventTemplate | null>(null);
     const subscribersSheetRef = useRef<BottomSheetRef>(null);
 
     const today = new Date();
@@ -40,7 +40,7 @@ export default function UpcomingHolidays({ templates }: UpcomingHolidaysProps) {
         return dateA.getTime() - dateB.getTime();
     });
 
-    const handleHolidayPress = (holiday: OccasionTemplate) => {
+    const handleHolidayPress = (holiday: EventTemplate) => {
         setSelectedHoliday(holiday);
         subscribersSheetRef.current?.expand();
     };

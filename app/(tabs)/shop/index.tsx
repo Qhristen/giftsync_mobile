@@ -1,11 +1,11 @@
+import GiftOptionsSheet from '@/components/sheets/EventPickerSheet';
 import FilterSheet from '@/components/sheets/FilterSheet';
-import GiftOptionsSheet from '@/components/sheets/OccasionPickerSheet';
 import ShopScreenSkeleton from '@/components/skeletons/ShopScreenSkeleton';
 import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useTheme } from '@/hooks/useTheme';
-import { useGetUpcomingOccasionsQuery } from '@/store/api/occasionApi';
+import { useGetUpcomingEventsQuery } from '@/store/api/event';
 import { useGetCategoriesQuery, useGetProductsQuery } from '@/store/api/productApi';
 import { Product } from '@/types';
 import { formatCurrency } from '@/utils/formatCurrency';
@@ -67,14 +67,14 @@ export default function ShopScreen() {
         queryParams
     );
 
-    const { data: upcomingOccasions = [], refetch: refetchOccasions, isFetching: isOccasionsFetching } = useGetUpcomingOccasionsQuery();
+    const { data: upcomingEvents = [], refetch: refetchEvents, isFetching: isEventsFetching } = useGetUpcomingEventsQuery();
 
     const onRefresh = React.useCallback(() => {
         setPage(1);
         refetchProducts();
-        refetchOccasions();
+        refetchEvents();
         refetchCategories();
-    }, [refetchProducts, refetchOccasions, refetchCategories]);
+    }, [refetchProducts, refetchEvents, refetchCategories]);
 
     const loadMore = () => {
         if (productsData?.meta && page < productsData.meta.totalPages && !isProductsFetching) {
@@ -82,7 +82,7 @@ export default function ShopScreen() {
         }
     };
 
-    const isRefreshing = isProductsFetching || isOccasionsFetching || isCategoriesFetching;
+    const isRefreshing = isProductsFetching || isEventsFetching || isCategoriesFetching;
 
     const banners = [
         {
@@ -114,7 +114,7 @@ export default function ShopScreen() {
             <View style={[styles.header, { paddingHorizontal: spacing.xl, paddingTop: insets.top + spacing.md }]}>
                 <Typography variant="h1">Discover</Typography>
                 <Typography variant="body" color={colors.textSecondary} style={{ marginTop: 4 }}>
-                    Find the perfect gift for any occasion
+                    Find the perfect gift for any event
                 </Typography>
             </View>
 
@@ -317,11 +317,11 @@ export default function ShopScreen() {
 
             <GiftOptionsSheet
                 ref={giftSheet.ref}
-                occasions={upcomingOccasions}
-                onSelect={(occasion) => {
+                events={upcomingEvents}
+                onSelect={(event) => {
                     giftSheet.close();
                     if (selectedProductId) {
-                        router.push({ pathname: '/checkout', params: { occasionId: occasion.id, productId: selectedProductId } });
+                        router.push({ pathname: '/checkout', params: { eventId: event.id, productId: selectedProductId } });
                     }
                 }}
             />

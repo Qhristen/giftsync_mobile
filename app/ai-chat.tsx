@@ -1,5 +1,5 @@
-import MessageBubble from '@/components/chat/MessageBubble';
 import ConfirmActionCard from '@/components/chat/ConfirmActionCard';
+import MessageBubble from '@/components/chat/MessageBubble';
 import Avatar from '@/components/ui/Avatar';
 import Typography from '@/components/ui/Typography';
 import { usePlatformConfig } from '@/hooks/usePlatformConfig';
@@ -13,7 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Clipboard from 'expo-clipboard';
 import { Image } from 'expo-image';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
     ActivityIndicator,
     FlatList,
@@ -325,7 +325,7 @@ export default function AIChatScreen() {
                     ) : null}
                     renderItem={({ item }) => {
                         const hasProducts = item.uiData?.type === 'products' && item.uiData.items && item.uiData.items.length > 0;
-                        const hasOccasions = item.uiData?.type === 'occasions' && item.uiData.items && item.uiData.items.length > 0;
+                        const hasEvents = item.uiData?.type === 'occasions' && item.uiData.items && item.uiData.items.length > 0;
                         const hasContacts = item.uiData?.type === 'contacts' && item.uiData.items && item.uiData.items.length > 0;
 
                         if (hasProducts) {
@@ -371,7 +371,7 @@ export default function AIChatScreen() {
                             );
                         }
 
-                        if (hasOccasions) {
+                        if (hasEvents) {
                             return (
                                 <View>
                                     <MessageBubble
@@ -393,7 +393,7 @@ export default function AIChatScreen() {
                                                     style={{ width: '48%', marginBottom: 12 }}
                                                 >
                                                     <Pressable
-                                                        onPress={() => router.push({ pathname: '/occasion-detail', params: { id: rec.id } })}
+                                                        onPress={() => router.push({ pathname: '/event-detail', params: { id: rec.id } })}
                                                         style={({ pressed }) => [
                                                             styles.gridCardInner,
                                                             { backgroundColor: colors.surfaceRaised },

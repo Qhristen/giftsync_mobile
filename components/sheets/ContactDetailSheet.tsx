@@ -1,8 +1,8 @@
 import { useTheme } from '@/hooks/useTheme';
-import { useGetOccasionTemplatesQuery, useGetUpcomingOccasionsQuery, useSubscribeToTemplateMutation } from '@/store/api/occasionApi';
+import { useGetEventTemplatesQuery, useGetUpcomingEventsQuery, useSubscribeToTemplateMutation } from '@/store/api/event';
 import { Contact } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { toast } from 'sonner-native';
 import Avatar from '../ui/Avatar';
@@ -13,28 +13,28 @@ import Typography from '../ui/Typography';
 
 interface Props {
     contact?: Contact | null;
-    onAddOccasion: (contact: Contact) => void;
-    onEditOccasion: (occasionId: string) => void;
+    onAddEvent: (contact: Contact) => void;
+    onEditEvent: (occasionId: string) => void;
     onClose?: () => void;
 }
 
 const ContactDetailSheet = forwardRef<BottomSheetRef, Props>(
-    ({ contact, onAddOccasion, onEditOccasion, onClose }, ref) => {
+    ({ contact, onAddEvent, onEditEvent, onClose }, ref) => {
         const { spacing, colors } = useTheme();
-        const { data: allOccasions = [] } = useGetUpcomingOccasionsQuery();
-        const { data: templates = [] } = useGetOccasionTemplatesQuery();
+        const { data: allEvents = [] } = useGetUpcomingEventsQuery();
+        const { data: templates = [] } = useGetEventTemplatesQuery();
         const [subscribe] = useSubscribeToTemplateMutation();
 
-        const contactOccasions = allOccasions.filter(o => o.contactId === contact?.id);
+        const contactEvents = allEvents.filter(o => o.contactId === contact?.id);
 
         // Find which templates this contact is subscribed to
-        const subscribedTemplateIds = contactOccasions
+        const subscribedTemplateIds = contactEvents
             .filter(o => o.templateId)
             .map(o => o.templateId);
 
         const handleToggleHoliday = async (templateId: string, isSubscribed: boolean) => {
             if (isSubscribed) {
-                toast.info("Unsubscribe", { description: "Please delete the occasion manually from the list below." });
+                toast.info("Unsubscribe", { description: "Please delete the event manually from the list below." });
                 return;
             }
             if (!contact) return;
@@ -112,24 +112,24 @@ const ContactDetailSheet = forwardRef<BottomSheetRef, Props>(
 
                         <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
-                        {/* Occasions List */}
+                        {/* Events List */}
                         <View style={styles.occasionsHeader}>
-                            <Typography variant="h4">Tracked Occasions</Typography>
+                            <Typography variant="h4">Tracked Events</Typography>
                             <Button
                                 title="Add New"
                                 size="sm"
                                 variant="outline"
-                                onPress={() => onAddOccasion(contact)}
+                                onPress={() => onAddEvent(contact)}
                                 leftIcon={<Ionicons name="add" size={16} color={colors.primary} />}
                             />
                         </View>
 
-                        {contactOccasions.length > 0 ? (
+                        {contactEvents.length > 0 ? (
                             <View style={styles.listContainer}>
-                                {contactOccasions.map((item) => (
+                                {contactEvents.map((item) => (
                                     <Pressable
                                         key={item.id}
-                                        onPress={() => onEditOccasion(item.id)}
+                                        onPress={() => onEditEvent(item.id)}
                                         style={({ pressed }) => [
                                             styles.occasionItem,
                                             { backgroundColor: pressed ? colors.surfaceRaised : 'transparent' }

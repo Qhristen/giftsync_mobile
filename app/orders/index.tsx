@@ -16,7 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 export default function OrderListScreen() {
@@ -33,6 +33,7 @@ export default function OrderListScreen() {
 
     // We get all accumulated items directly from RTKQ since we used merge/serializeQueryArgs
     const allOrders = data?.items || [];
+    console.log(allOrders, "all orders")
 
     const loadMore = () => {
         if (data?.meta && page < data.meta.totalPages && !isFetching) {
@@ -134,8 +135,9 @@ export default function OrderListScreen() {
                     onEndReached={loadMore}
                     onEndReachedThreshold={0.5}
                     renderItem={({ item }) => {
-                        const productName = item.item.product?.name;
-                        const productImage = item.item.product?.imageUrls?.[0];
+                        console.log(item.item?.product, "item product")
+                        const productName = item.item?.product?.name;
+                        const productImage = item.item?.product?.imageUrls?.[0];
 
                         return (
                             <Card
@@ -159,7 +161,7 @@ export default function OrderListScreen() {
                                     )}
                                     <View style={{ flex: 1 }}>
                                         <Typography variant="bodyBold">{productName}</Typography>
-                                        <Typography variant="caption" color={colors.textSecondary}>To {item.occasion?.contact?.name}</Typography>
+                                        <Typography variant="caption" color={colors.textSecondary}>To {item.event?.contact?.name}</Typography>
                                     </View>
                                     <Badge
                                         label={item.status}
@@ -171,7 +173,7 @@ export default function OrderListScreen() {
                                 <View style={styles.orderFooter}>
                                     <View>
                                         <Typography variant="caption" color={colors.textMuted}>{formatDate(item.createdAt)}</Typography>
-                                        <Typography variant="label" color={colors.primary}>{formatCurrency(item.total, item.item.product.currency || 'NGN')}</Typography>
+                                        <Typography variant="label" color={colors.primary}>{formatCurrency(item.total, item.item?.product?.currency || 'NGN')}</Typography>
                                     </View>
 
                                     <View style={{ flexDirection: 'row', gap: 8 }}>

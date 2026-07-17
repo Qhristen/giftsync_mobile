@@ -60,7 +60,6 @@ const AddressPickerSheet = forwardRef<BottomSheetRef, Props>(
                 city,
                 state: stateName,
                 country,
-                phone,
             };
 
             try {
@@ -84,7 +83,7 @@ const AddressPickerSheet = forwardRef<BottomSheetRef, Props>(
             setCity(addr.city);
             setStateName(addr.state);
             setCountry(addr.country);
-            setPhone(addr.phone);
+            // setPhone(addr.phone);
             setEditingId(addr.id || null);
             setMode('edit');
         };
@@ -177,7 +176,7 @@ const AddressPickerSheet = forwardRef<BottomSheetRef, Props>(
                                                 <View style={styles.itemContent}>
                                                     <Typography variant="bodyBold">{addr.recipientName}</Typography>
                                                     <Typography variant="caption" color={colors.textSecondary}>
-                                                        {addr.line1}{addr.line2 ? `, ${addr.line2}` : ''}, {addr.city}, {addr.state}, {addr.country}. {addr.phone}
+                                                        {addr.line1}{addr.line2 ? `, ${addr.line2}` : ''}, {addr.city}, {addr.state}, {addr.country}
                                                     </Typography>
                                                 </View>
                                                 {selectedAddressId === addr.id && (

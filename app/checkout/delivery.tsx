@@ -7,14 +7,14 @@ import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { usePlatformConfig } from '@/hooks/usePlatformConfig';
 import { useTheme } from '@/hooks/useTheme';
-import { useGetOccasionDetailQuery } from '@/store/api/occasionApi';
+import { useGetEventDetailQuery } from '@/store/api/event';
 import { useCreateOrderMutation } from '@/store/api/orderApi';
 import { useGetProductByIdQuery } from '@/store/api/productApi';
 import { Address } from '@/types';
 import { formatCurrency } from '@/utils/formatCurrency';
-import { addDays, format, startOfDay, subDays } from 'date-fns';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { addDays, format, startOfDay, subDays } from 'date-fns';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useMemo } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
@@ -26,12 +26,12 @@ export default function DeliveryScreen() {
     const { colors, spacing } = useTheme();
     const { deliveryFeeNgn, packagingFeeNgn } = usePlatformConfig();
     const { occasionId, productId } = useLocalSearchParams<{ occasionId: string; productId: string }>();
-   const insets = useSafeAreaInsets();
+    const insets = useSafeAreaInsets();
     const { data: product, isLoading: initialProductLoading, isFetching: isProductFetching } = useGetProductByIdQuery(productId as string, { skip: !productId });
     const isProductLoading = initialProductLoading || isProductFetching;
 
-    const { data: occasion, isLoading: initialOccasionLoading, isFetching: isOccasionFetching } = useGetOccasionDetailQuery(occasionId as string, { skip: !occasionId });
-    const isOccasionLoading = initialOccasionLoading || isOccasionFetching;
+    const { data: event, isLoading: initialEventLoading, isFetching: isEventFetching } = useGetEventDetailQuery(occasionId as string, { skip: !occasionId });
+    const isEventLoading = initialEventLoading || isEventFetching;
 
     const [deliveryAddress, setDeliveryAddress] = React.useState<Address | null>(null);
     const [deliveryDate, setDeliveryDate] = React.useState<string | null>(null);
@@ -46,15 +46,15 @@ export default function DeliveryScreen() {
     const [showDatePicker, setShowDatePicker] = React.useState(false);
 
     const maxDate = useMemo(() => {
-        if (!occasion?.date) return addDays(new Date(), 14);
-        return subDays(startOfDay(new Date(occasion.date)), 1);
-    }, [occasion?.date]);
+        if (!event?.date) return addDays(new Date(), 14);
+        return subDays(startOfDay(new Date(event.date)), 1);
+    }, [event?.date]);
 
     const minDate = useMemo(() => startOfDay(new Date()), []);
 
     // Set initial date if not set
     React.useEffect(() => {
-        if (!deliveryDate && occasion) {
+        if (!deliveryDate && event) {
             const today = startOfDay(new Date());
             if (today <= maxDate) {
                 setDeliveryDate(format(today, 'yyyy-MM-dd'));
@@ -62,7 +62,7 @@ export default function DeliveryScreen() {
                 setDeliveryDate(format(maxDate, 'yyyy-MM-dd'));
             }
         }
-    }, [deliveryDate, maxDate, occasion]);
+    }, [deliveryDate, maxDate, event]);
 
     const onDateChange = (event: any, selectedDate?: Date) => {
         setShowDatePicker(Platform.OS === 'ios');
@@ -81,9 +81,9 @@ export default function DeliveryScreen() {
             const timeWindowFormatted = deliveryTimeWindow.charAt(0).toUpperCase() + deliveryTimeWindow.slice(1);
             const result = await createOrder({
                 productId: product?.id as string,
-                occasionId: occasion?.id as string,
+                eventId: event?.id as string,
                 deliveryAddressId: deliveryAddress.id as string,
-                recipientName: occasion?.contact?.name as string,
+                recipientName: event?.contact?.name as string,
                 deliveryDate: deliveryDate,
                 deliveryTimeWindow: timeWindowFormatted,
                 giftMessage: giftMessage,
@@ -111,7 +111,7 @@ export default function DeliveryScreen() {
         optionsSheet.close();
     };
 
-    if (isProductLoading || isOccasionLoading) {
+    if (isProductLoading || isEventLoading) {
         return (
             <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
                 <ActivityIndicator size="large" color={colors.primary} />
@@ -140,8 +140,8 @@ export default function DeliveryScreen() {
                             <Ionicons name="person" size={24} color={colors.primary} />
                         </View>
                         <View style={{ flex: 1 }}>
-                            <Typography variant="bodyBold">{occasion?.contact?.name || 'Someone Special'}</Typography>
-                            <Typography variant="caption" color={colors.textSecondary}>Recipient for {occasion?.title || 'this occasion'}</Typography>
+                            <Typography variant="bodyBold">{event?.contact?.name || 'Someone Special'}</Typography>
+                            <Typography variant="caption" color={colors.textSecondary}>Recipient for {event?.title || 'this event'}</Typography>
                         </View>
                         <View style={[styles.badge, { backgroundColor: colors.primary + '15' }]}>
                             <Typography variant="caption" color={colors.primary} style={{ fontWeight: 'bold' }}>GIFTING</Typography>
@@ -151,7 +151,7 @@ export default function DeliveryScreen() {
                     {/* Logistics Section */}
                     <View style={styles.section}>
                         <Typography variant="label" style={styles.sectionLabel}>Where & When</Typography>
-                        
+
                         <Card variant="outline" style={styles.detailCard}>
                             <View style={styles.cardHeader}>
                                 <Ionicons name="location-outline" size={18} color={colors.textMuted} />
@@ -273,7 +273,7 @@ export default function DeliveryScreen() {
                 </ScrollView>
 
                 {/* Footer CTA */}
-                <View style={[styles.footer, { padding: spacing.xl,  paddingBottom: insets.bottom + 20}]}>
+                <View style={[styles.footer, { padding: spacing.xl, paddingBottom: insets.bottom + 20 }]}>
                     <Button
                         title="Continue to Payment →"
                         onPress={handleNext}

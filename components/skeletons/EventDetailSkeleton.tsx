@@ -1,11 +1,10 @@
 import { useTheme } from '@/hooks/useTheme';
-import React from 'react';
 import { Dimensions, ScrollView, StyleSheet, View } from 'react-native';
 import Skeleton from './Skeleton';
 
 const { width } = Dimensions.get('window');
 
-export default function OccasionDetailSkeleton() {
+export default function EventDetailSkeleton() {
     const { colors, spacing } = useTheme();
 
     return (
@@ -27,7 +26,7 @@ export default function OccasionDetailSkeleton() {
                 </View>
 
                 <View style={[styles.content, { padding: spacing.xl }]}>
-                    {/* Premium Occasion Summary Card */}
+                    {/* Premium event Summary Card */}
                     <View style={[styles.premiumCard, { backgroundColor: colors.surfaceRaised }]}>
                         <View style={styles.detailRow}>
                             <Skeleton width={48} height={48} borderRadius={24} />

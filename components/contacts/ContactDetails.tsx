@@ -1,5 +1,5 @@
 import { useTheme } from '@/hooks/useTheme';
-import { useGetUpcomingOccasionsQuery } from '@/store/api/occasionApi';
+import { useGetUpcomingEventsQuery } from '@/store/api/event';
 import { Contact } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
@@ -11,15 +11,15 @@ import Typography from '../ui/Typography';
 
 interface ContactDetailsProps {
     contact: Contact;
-    onAddOccasion?: (contact: Contact) => void;
-    onEditOccasion?: (occasionId: string) => void;
+    onAddEvent?: (contact: Contact) => void;
+    onEditEvent?: (occasionId: string) => void;
 }
 
-const ContactDetails: React.FC<ContactDetailsProps> = ({ contact, onAddOccasion, onEditOccasion }) => {
+const ContactDetails: React.FC<ContactDetailsProps> = ({ contact, onAddEvent, onEditEvent }) => {
     const { spacing, colors } = useTheme();
-    const { data: allOccasions = [] } = useGetUpcomingOccasionsQuery();
+    const { data: allEvents = [] } = useGetUpcomingEventsQuery();
 
-    const contactOccasions = allOccasions.filter(o => o.contactId === contact.id);
+    const contactEvents = allEvents.filter(o => o.contactId === contact.id);
 
     return (
         <View style={{ paddingBottom: spacing.xl * 2 }}>
@@ -49,24 +49,24 @@ const ContactDetails: React.FC<ContactDetailsProps> = ({ contact, onAddOccasion,
             <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
             <View style={styles.occasionsHeader}>
-                <Typography variant="h4">Occasions</Typography>
+                <Typography variant="h4">Events</Typography>
                 <Button
                     title="Add"
                     size="sm"
                     variant="primary"
-                    onPress={() => onAddOccasion?.(contact)}
+                    onPress={() => onAddEvent?.(contact)}
                     leftIcon={<Ionicons name="add" size={16} color="#FFF" />}
                 />
             </View>
 
-            {contactOccasions.length > 0 ? (
+            {contactEvents.length > 0 ? (
                 <FlatList
-                    data={contactOccasions}
+                    data={contactEvents}
                     keyExtractor={(item) => item.id}
                     scrollEnabled={false}
                     renderItem={({ item }) => (
                         <Pressable
-                            onPress={() => onEditOccasion?.(item.id)}
+                            onPress={() => onEditEvent?.(item.id)}
                             style={({ pressed }) => [
                                 styles.occasionItem,
                                 { backgroundColor: pressed ? colors.surfaceRaised : 'transparent' }

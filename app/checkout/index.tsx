@@ -4,7 +4,7 @@ import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import { usePlatformConfig } from '@/hooks/usePlatformConfig';
 import { useTheme } from '@/hooks/useTheme';
-import { useGetOccasionDetailQuery } from '@/store/api/occasionApi';
+import { useGetEventDetailQuery } from '@/store/api/event';
 import { useGetProductByIdQuery } from '@/store/api/productApi';
 import { calculateDeliveryStatus } from '@/utils/dateUtils';
 import { formatCurrency } from '@/utils/formatCurrency';
@@ -12,7 +12,7 @@ import { moderateScale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -21,18 +21,18 @@ export default function CheckoutEntry() {
     const { colors, spacing } = useTheme();
     const { deliveryFeeNgn, packagingFeeNgn } = usePlatformConfig();
     const { occasionId, productId } = useLocalSearchParams<{ occasionId: string; productId: string }>();
-   const insets = useSafeAreaInsets();
+    const insets = useSafeAreaInsets();
 
-    const { data: occasion, isLoading: initialOccasionLoading, isFetching: isOccasionFetching } = useGetOccasionDetailQuery(occasionId as string, { skip: !occasionId });
-    const isOccasionLoading = initialOccasionLoading || isOccasionFetching;
+    const { data: event, isLoading: initialEventLoading, isFetching: isEventFetching } = useGetEventDetailQuery(occasionId as string, { skip: !occasionId });
+    const isEventLoading = initialEventLoading || isEventFetching;
 
     const { data: product, isLoading: initialProductLoading, isFetching: isProductFetching } = useGetProductByIdQuery(productId as string, { skip: !productId });
     const isProductLoading = initialProductLoading || isProductFetching;
 
     const deliveryStatus = useMemo(() => {
-        if (!product || !occasion) return null;
-        return calculateDeliveryStatus(occasion.date, product.deliveryDays, occasion.contact?.name);
-    }, [product, occasion]);
+        if (!product || !event) return null;
+        return calculateDeliveryStatus(event.date, product.deliveryDays, event.contact?.name);
+    }, [product, event]);
 
     const handleNext = () => {
         router.push({ pathname: '/checkout/delivery', params: { occasionId, productId } });
@@ -53,22 +53,22 @@ export default function CheckoutEntry() {
                 showsVerticalScrollIndicator={false}
             >
                 {/* Recipient Card */}
-                <Typography variant="label" style={{ marginBottom: spacing.sm }}>Recipient & Occasion</Typography>
+                <Typography variant="label" style={{ marginBottom: spacing.sm }}>Recipient & event</Typography>
                 <Card variant="outline" style={styles.contextCard}>
-                    {isOccasionLoading ? (
+                    {isEventLoading ? (
                         <ActivityIndicator />
                     ) : (
                         <>
                             <View style={styles.contextRow}>
-                                <Avatar name={occasion?.contact?.name || 'Recipient'} uri={occasion?.contact?.avatar} size="lg" />
+                                <Avatar name={event?.contact?.name || 'Recipient'} uri={event?.contact?.avatar} size="lg" />
                                 <View style={{ flex: 1 }}>
                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                        <Typography variant="bodyBold" style={{ fontSize: moderateScale(16) }}>{occasion?.contact?.name || 'Not Selected'}</Typography>
+                                        <Typography variant="bodyBold" style={{ fontSize: moderateScale(16) }}>{event?.contact?.name || 'Not Selected'}</Typography>
                                         <View style={[styles.badge, { backgroundColor: colors.primarySoft }]}>
                                             <Typography variant="caption" color={colors.primary} style={{ fontSize: moderateScale(10) }}>RECIPIENT</Typography>
                                         </View>
                                     </View>
-                                    {occasion && <Typography variant="caption" color={colors.textSecondary}>{occasion.title}</Typography>}
+                                    {event && <Typography variant="caption" color={colors.textSecondary}>{event.title}</Typography>}
                                 </View>
                             </View>
 
@@ -79,9 +79,9 @@ export default function CheckoutEntry() {
                                     <Ionicons name="calendar" size={20} color={colors.primary} />
                                 </View>
                                 <View style={{ flex: 1 }}>
-                                    <Typography variant="bodyMedium" style={{ fontWeight: '600' }}>{occasion?.title || 'Occasion Date'}</Typography>
-                                    {occasion && <Typography variant="caption" color={colors.textSecondary}>
-                                        {new Date(occasion.date).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
+                                    <Typography variant="bodyMedium" style={{ fontWeight: '600' }}>{event?.title || 'event Date'}</Typography>
+                                    {event && <Typography variant="caption" color={colors.textSecondary}>
+                                        {new Date(event.date).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
                                     </Typography>}
                                 </View>
                             </View>
@@ -116,7 +116,7 @@ export default function CheckoutEntry() {
                                 </Typography>
                                 <View style={{ height: 4 }} />
                                 <Typography variant="caption" color={colors.textSecondary}>
-                                    {deliveryStatus.recipientName}'s event is in {deliveryStatus.daysToOccasion} days. Delivery takes {deliveryStatus.deliveryDays} days.
+                                    {deliveryStatus.recipientName}'s event is in {deliveryStatus.daysToEvent} days. Delivery takes {deliveryStatus.deliveryDays} days.
                                 </Typography>
                             </View>
                         </Card>
@@ -148,12 +148,12 @@ export default function CheckoutEntry() {
             </ScrollView>
 
             {/* Footer CTA */}
-            <View style={[styles.footer, { padding: spacing.xl, paddingBottom: insets.bottom + 20}]}>
+            <View style={[styles.footer, { padding: spacing.xl, paddingBottom: insets.bottom + 20 }]}>
                 <Button
                     title="Looks good, Continue →"
                     onPress={handleNext}
                     style={styles.submitBtn}
-                    disabled={!occasion || !product}
+                    disabled={!event || !product}
                 />
             </View>
         </View>

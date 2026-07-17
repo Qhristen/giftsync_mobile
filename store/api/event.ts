@@ -1,4 +1,4 @@
-import { Contact, CreateOccasionDto, Occasion, OccasionTemplate, PaginationMeta, SubscribeOccasionDto, UpdateOccasionDto } from '@/types';
+import { Contact, CreateEventDto, Event, EventTemplate, PaginationMeta, SubscribeEventDto, UpdateEventDto } from '@/types';
 import { baseApi } from './baseApi';
 
 /**
@@ -21,45 +21,45 @@ const getNearbyMonthKeys = (date?: string): { month: number; year: number }[] =>
     return keys;
 };
 
-type UpcommingOccasion = Occasion & {
+type UpcommingEvent = Event & {
     contacts: Contact[]
 }
 
-export const occasionApi = baseApi.injectEndpoints({
+export const eventApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
-        getOccasionTemplates: builder.query<OccasionTemplate[], void>({
-            query: () => ({ url: '/api/v1/occasions/templates', method: 'GET' }),
-            providesTags: ['Occasions'],
+        getEventTemplates: builder.query<EventTemplate[], void>({
+            query: () => ({ url: '/api/v1/Events/templates', method: 'GET' }),
+            providesTags: ['Events'],
         }),
-        getUpcomingOccasions: builder.query<UpcommingOccasion[], void>({
-            query: () => ({ url: '/api/v1/occasions/upcoming', method: 'GET' }),
-            providesTags: ['Occasions'],
+        getUpcomingEvents: builder.query<UpcommingEvent[], void>({
+            query: () => ({ url: '/api/v1/Events/upcoming', method: 'GET' }),
+            providesTags: ['Events'],
         }),
-        getMonthlyOccasions: builder.query<{ items: Occasion[], meta: PaginationMeta }, { month: number; year: number }>({
+        getMonthlyEvents: builder.query<{ items: Event[], meta: PaginationMeta }, { month: number; year: number }>({
             query: (params) => ({
-                url: '/api/v1/occasions',
+                url: '/api/v1/Events',
                 params,
             }),
-            providesTags: ['Occasions'],
+            providesTags: ['Events'],
         }),
-        getOccasionDetail: builder.query<Occasion, string>({
-            query: (id) => ({ url: `/api/v1/occasions/${id}`, method: 'GET' }),
-            providesTags: (result, error, id) => [{ type: 'Occasions', id }],
+        getEventDetail: builder.query<Event, string>({
+            query: (id) => ({ url: `/api/v1/Events/${id}`, method: 'GET' }),
+            providesTags: (result, error, id) => [{ type: 'Events', id }],
         }),
-        createOccasion: builder.mutation<Occasion, CreateOccasionDto>({
+        createEvent: builder.mutation<Event, CreateEventDto>({
             query: (data) => ({
-                url: '/api/v1/occasions',
+                url: '/api/v1/Events',
                 method: 'POST',
                 data,
             }),
-            invalidatesTags: ['Occasions'],
+            invalidatesTags: ['Events'],
             async onQueryStarted(arg, { dispatch, queryFulfilled }) {
                 const date = new Date(arg.date);
                 const month = date.getMonth() + 1;
                 const year = date.getFullYear();
 
                 const tempId = `temp-${Date.now()}`;
-                const newOccasion: Occasion = {
+                const newEvent: Event = {
                     id: tempId,
                     userId: 'optimistic',
                     title: arg.title,
@@ -70,15 +70,15 @@ export const occasionApi = baseApi.injectEndpoints({
                 };
 
                 const patchMonthly = dispatch(
-                    occasionApi.util.updateQueryData('getMonthlyOccasions', { month, year }, (draft) => {
-                        draft.items.push(newOccasion);
+                    eventApi.util.updateQueryData('getMonthlyEvents', { month, year }, (draft) => {
+                        draft.items.push(newEvent);
                         draft.items.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
                     })
                 );
 
                 const patchUpcoming = dispatch(
-                    occasionApi.util.updateQueryData('getUpcomingOccasions', undefined, (draft) => {
-                        draft.push({ ...newOccasion, contacts: [] });
+                    eventApi.util.updateQueryData('getUpcomingEvents', undefined, (draft) => {
+                        draft.push({ ...newEvent, contacts: [] });
                         draft.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
                     })
                 );
@@ -91,30 +91,30 @@ export const occasionApi = baseApi.injectEndpoints({
                 }
             },
         }),
-        subscribeToTemplate: builder.mutation<Occasion, SubscribeOccasionDto>({
+        subscribeToTemplate: builder.mutation<Event, SubscribeEventDto>({
             query: (data) => ({
-                url: '/api/v1/occasions/subscribe',
+                url: '/api/v1/Events/subscribe',
                 method: 'POST',
                 data,
             }),
-            invalidatesTags: ['Occasions', "Contacts"],
+            invalidatesTags: ['Events', "Contacts"],
         }),
-        updateOccasion: builder.mutation<Occasion, { id: string; data: UpdateOccasionDto }>({
+        updateEvent: builder.mutation<Event, { id: string; data: UpdateEventDto }>({
             query: ({ id, data }) => ({
-                url: `/api/v1/occasions/${id}`,
+                url: `/api/v1/Events/${id}`,
                 method: 'PATCH',
                 data,
             }),
-            invalidatesTags: (result, error, { id }) => ['Occasions', { type: 'Occasions', id }],
+            invalidatesTags: (result, error, { id }) => ['Events', { type: 'Events', id }],
             async onQueryStarted({ id, data }, { dispatch, queryFulfilled }) {
                 const patchDetail = dispatch(
-                    occasionApi.util.updateQueryData('getOccasionDetail', id, (draft) => {
+                    eventApi.util.updateQueryData('getEventDetail', id, (draft) => {
                         Object.assign(draft, data);
                     })
                 );
 
                 const patchUpcoming = dispatch(
-                    occasionApi.util.updateQueryData('getUpcomingOccasions', undefined, (draft) => {
+                    eventApi.util.updateQueryData('getUpcomingEvents', undefined, (draft) => {
                         const index = draft.findIndex(o => o.id === id);
                         if (index !== -1) {
                             Object.assign(draft[index], data);
@@ -127,7 +127,7 @@ export const occasionApi = baseApi.injectEndpoints({
                 const nearbyKeys = getNearbyMonthKeys(data.date);
                 const patchesMonthly = nearbyKeys.map(key =>
                     dispatch(
-                        occasionApi.util.updateQueryData('getMonthlyOccasions', key, (draft) => {
+                        eventApi.util.updateQueryData('getMonthlyEvents', key, (draft) => {
                             const index = draft.items.findIndex(o => o.id === id);
                             if (index !== -1) {
                                 Object.assign(draft.items[index], data);
@@ -146,15 +146,15 @@ export const occasionApi = baseApi.injectEndpoints({
                 }
             },
         }),
-        deleteOccasion: builder.mutation<void, string>({
+        deleteEvent: builder.mutation<void, string>({
             query: (id) => ({
-                url: `/api/v1/occasions/${id}`,
+                url: `/api/v1/Events/${id}`,
                 method: 'DELETE',
             }),
-            invalidatesTags: ['Occasions'],
+            invalidatesTags: ['Events'],
             async onQueryStarted(id, { dispatch, queryFulfilled }) {
                 const patchUpcoming = dispatch(
-                    occasionApi.util.updateQueryData('getUpcomingOccasions', undefined, (draft) => {
+                    eventApi.util.updateQueryData('getUpcomingEvents', undefined, (draft) => {
                         const index = draft.findIndex(o => o.id === id);
                         if (index !== -1) draft.splice(index, 1);
                     })
@@ -164,7 +164,7 @@ export const occasionApi = baseApi.injectEndpoints({
                 const nearbyKeys = getNearbyMonthKeys();
                 const patchesMonthly = nearbyKeys.map(key =>
                     dispatch(
-                        occasionApi.util.updateQueryData('getMonthlyOccasions', key, (draft) => {
+                        eventApi.util.updateQueryData('getMonthlyEvents', key, (draft) => {
                             const index = draft.items.findIndex(o => o.id === id);
                             if (index !== -1) draft.items.splice(index, 1);
                         })
@@ -184,12 +184,12 @@ export const occasionApi = baseApi.injectEndpoints({
 });
 
 export const {
-    useGetOccasionTemplatesQuery,
-    useGetUpcomingOccasionsQuery,
-    useGetMonthlyOccasionsQuery,
-    useGetOccasionDetailQuery,
-    useCreateOccasionMutation,
-    useUpdateOccasionMutation,
-    useDeleteOccasionMutation,
+    useGetEventTemplatesQuery,
+    useGetUpcomingEventsQuery,
+    useGetMonthlyEventsQuery,
+    useGetEventDetailQuery,
+    useCreateEventMutation,
+    useUpdateEventMutation,
+    useDeleteEventMutation,
     useSubscribeToTemplateMutation,
-} = occasionApi;
+} = eventApi;

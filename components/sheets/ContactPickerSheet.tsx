@@ -1,6 +1,6 @@
 import { useTheme } from '@/hooks/useTheme';
 import { Ionicons } from '@expo/vector-icons';
-import React, { forwardRef, useState } from 'react';
+import { forwardRef, useState } from 'react';
 import { Pressable, SectionList, StyleSheet, View } from 'react-native';
 import Avatar from '../ui/Avatar';
 import Badge from '../ui/Badge';
@@ -13,7 +13,7 @@ interface Contact {
     name: string;
     relationship: string;
     avatarUrl?: string;
-    nextOccasionPreview?: string;
+    nextEventPreview?: string;
 }
 
 interface Props {
@@ -77,8 +77,8 @@ const ContactPickerSheet = forwardRef<BottomSheetRef, Props>(
                                     {item.relationship}
                                 </Typography>
                             </View>
-                            {item.nextOccasionPreview && (
-                                <Badge label={item.nextOccasionPreview} size="xs" variant="amber" />
+                            {item.nextEventPreview && (
+                                <Badge label={item.nextEventPreview} size="xs" variant="amber" />
                             )}
                         </Pressable>
                     )}

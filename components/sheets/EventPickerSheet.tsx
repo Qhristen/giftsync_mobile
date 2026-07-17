@@ -1,7 +1,7 @@
 import { useTheme } from '@/hooks/useTheme';
-import { Occasion } from '@/types';
+import { Event } from '@/types';
 import { getCountdown } from '@/utils/dateUtils';
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Avatar from '../ui/Avatar';
 import Badge from '../ui/Badge';
@@ -10,45 +10,45 @@ import Typography from '../ui/Typography';
 
 
 interface Props {
-    occasions: Occasion[];
-    onSelect: (occasion: Occasion) => void;
+    events: Event[];
+    onSelect: (event: Event) => void;
     isLoading?: boolean;
 }
 
-const OccasionPickerSheet = forwardRef<BottomSheetRef, Props>(
-    ({ occasions, onSelect, isLoading }, ref) => {
+const EventPickerSheet = forwardRef<BottomSheetRef, Props>(
+    ({ events, onSelect, isLoading }, ref) => {
         const { spacing, colors } = useTheme();
 
         return (
             <BottomSheetWrapper ref={ref} snapPoints={['75%']} scrollable>
                 <Typography variant="h2" style={{ marginBottom: spacing.sm }}>
-                    Pick an Occasion
+                    Pick an Event
                 </Typography>
                 <Typography variant="body" color={colors.textSecondary} style={{ marginBottom: spacing.xl }}>
-                    Choose which occasion you are sending this gift for.
+                    Choose which event you are sending this gift for.
                 </Typography>
 
                 <View style={styles.list}>
-                    {occasions.map((occasion) => (
+                    {events.map((event) => (
                         <Pressable
-                            key={occasion.id}
-                            onPress={() => onSelect(occasion)}
+                            key={event.id}
+                            onPress={() => onSelect(event)}
                             style={({ pressed }) => [
                                 styles.item,
                                 { backgroundColor: pressed ? colors.surfaceRaised : colors.surfaceRaised + '80' },
                             ]}
                         >
                             <View style={[styles.iconContainer, { backgroundColor: colors.surface }]}>
-                                <Avatar uri={occasion.contact?.avatar} name={occasion.contact?.name} size="sm" />
+                                <Avatar uri={event.contact?.avatar} name={event.contact?.name} size="sm" />
                             </View>
                             <View style={styles.itemContent}>
-                                <Typography variant="bodyBold">{occasion.contact?.name}</Typography>
+                                <Typography variant="bodyBold">{event.contact?.name}</Typography>
                                 <Typography variant="caption" color={colors.textSecondary}>
-                                    {occasion.title} - {new Date(occasion.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                    {event.title} - {new Date(event.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                                 </Typography>
                             </View>
-                            {occasion.date && (
-                                <Badge label={getCountdown(occasion.date)} size="xs" variant="amber" />
+                            {event.date && (
+                                <Badge label={getCountdown(event.date)} size="xs" variant="amber" />
                             )}
                         </Pressable>
                     ))}
@@ -87,4 +87,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default OccasionPickerSheet;
+export default EventPickerSheet;

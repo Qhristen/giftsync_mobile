@@ -1,23 +1,23 @@
-import { useGetUnreadCountQuery as useGetChatUnreadCountQuery } from '@/store/api/chatApi';
 import { useTheme } from '@/hooks/useTheme';
+import { useGetUnreadCountQuery as useGetChatUnreadCountQuery } from '@/store/api/chatApi';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { selectUnreadCount, setUnreadCount } from '@/store/slices/chatSlice';
 import { moderateScale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { selectUnreadCount, setUnreadCount } from '@/store/slices/chatSlice';
 
 
 export default function TabLayout() {
   const { colors, spacing } = useTheme();
   const insets = useSafeAreaInsets();
   const dispatch = useAppDispatch();
-  
+
   const { data: chatUnread } = useGetChatUnreadCountQuery();
   const reduxUnreadCount = useAppSelector(selectUnreadCount);
-  
+
   // Sync query data to redux state for consistent global access
   useEffect(() => {
     if (chatUnread !== undefined) {
@@ -68,9 +68,9 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="occasions/index"
+        name="events/index"
         options={{
-          title: 'Occasions',
+          title: 'Events',
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? 'calendar' : 'calendar-outline'} size={24} color={color} />
           ),

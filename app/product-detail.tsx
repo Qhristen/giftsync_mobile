@@ -1,4 +1,4 @@
-import OccasionPickerSheet from '@/components/sheets/OccasionPickerSheet';
+import EventPickerSheet from '@/components/sheets/EventPickerSheet';
 import VendorDetailSheet from '@/components/sheets/VendorDetailSheet';
 import ShopItemDetailSkeleton from '@/components/skeletons/ShopItemDetailSkeleton';
 import Avatar from '@/components/ui/Avatar';
@@ -7,9 +7,9 @@ import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
-import { useGetUpcomingOccasionsQuery } from '@/store/api/occasionApi';
+import { useGetUpcomingEventsQuery } from '@/store/api/event';
 import { useGetProductByIdQuery } from '@/store/api/productApi';
-import { Occasion } from '@/types';
+import { Event } from '@/types';
 import { calculateDeliveryStatus } from '@/utils/dateUtils';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,7 +17,7 @@ import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import * as Location from 'expo-location';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Dimensions, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
@@ -60,21 +60,21 @@ export default function ShopItemDetailScreen() {
 
     const toggleDescription = useCallback(() => setDescriptionExpanded(v => !v), []);
 
-    const { data: upcomingOccasions = [] } = useGetUpcomingOccasionsQuery();
+    const { data: upcomingEvents = [] } = useGetUpcomingEventsQuery();
     const { data: product, isLoading, isFetching, error } = useGetProductByIdQuery(id as string);
 
 
     const totalPrice = Number(product?.price) + Number(product?.deliveryFee) + Number(product?.packagingFee)
 
-    const selectedOccasion = useMemo(() => {
-        if (occasionId) return upcomingOccasions.find(o => o.id === occasionId);
+    const selectedEvent = useMemo(() => {
+        if (occasionId) return upcomingEvents.find(o => o.id === occasionId);
         return null;
-    }, [occasionId, upcomingOccasions]);
+    }, [occasionId, upcomingEvents]);
 
     const deliveryStatus = useMemo(() => {
-        if (!product || !selectedOccasion) return null;
-        return calculateDeliveryStatus(selectedOccasion.date, product.deliveryDays, selectedOccasion.contact?.name);
-    }, [product, selectedOccasion]);
+        if (!product || !selectedEvent) return null;
+        return calculateDeliveryStatus(selectedEvent.date, product.deliveryDays, selectedEvent.contact?.name);
+    }, [product, selectedEvent]);
 
     const businessLocationCoords = useMemo(() => {
         if (!product?.business?.location) return null;
@@ -210,7 +210,7 @@ export default function ShopItemDetailScreen() {
                                     </Typography>
                                     <View style={{ height: 4 }} />
                                     <Typography variant="caption" color={colors.textSecondary}>
-                                        {deliveryStatus.recipientName}'s event is in {deliveryStatus.daysToOccasion} days. This gift takes {deliveryStatus.deliveryDays} days to deliver.
+                                        {deliveryStatus.recipientName}'s event is in {deliveryStatus.daysToEvent} days. This gift takes {deliveryStatus.deliveryDays} days to deliver.
                                     </Typography>
                                 </View>
                             </Card>
@@ -351,13 +351,12 @@ export default function ShopItemDetailScreen() {
             </View>
 
             {/* Sticky Footer — sits above the absolute-positioned floating tab bar                 (tab bar: ~55px tall + 15px margin + device bottom inset) */}
-
-            <OccasionPickerSheet
+            <EventPickerSheet
                 ref={occasionSheet.ref}
-                occasions={upcomingOccasions}
-                onSelect={(occasion: Occasion) => {
+                events={upcomingEvents}
+                onSelect={(event: Event) => {
                     occasionSheet.close();
-                    router.push({ pathname: '/checkout', params: { productId: id, occasionId: occasion.id } });
+                    router.push({ pathname: '/checkout', params: { productId: id, occasionId: event.id } });
                 }}
             />
 

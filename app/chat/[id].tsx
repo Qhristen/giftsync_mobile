@@ -6,7 +6,7 @@ import ReportSheet from '@/components/sheets/ReportSheet';
 import Avatar from '@/components/ui/Avatar';
 import { BottomSheetRef } from '@/components/ui/BottomSheetWrapper';
 import Typography from '@/components/ui/Typography';
-import { useChatSocket } from '@/hooks/useChatSocket';
+import { useSocket } from '@/hooks/useSocket';
 import { useTheme } from '@/hooks/useTheme';
 import { RootState } from '@/store';
 import { useGetConversationQuery, useGetMessagesQuery } from '@/store/api/chatApi';
@@ -21,7 +21,7 @@ import * as Clipboard from 'expo-clipboard';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
@@ -59,7 +59,7 @@ export default function ChatDetailScreen() {
     const [viewerConfig, setViewerConfig] = useState<{ images: string[], index: number } | null>(null);
     const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
     const { width: screenWidth, height: screenHeight } = useWindowDimensions();
-    const socketService = useChatSocket();
+    const socketService = useSocket();
 
     const { user } = useAppSelector(s => s.auth);
     const { data: conversation, isLoading: isConvLoading } = useGetConversationQuery(conversationId);
@@ -471,7 +471,7 @@ export default function ChatDetailScreen() {
                 onViewOrder={handleViewOrder}
                 onBlockUser={handleBlockUser}
                 onReportUser={handleReportUser}
-                          />
+            />
 
             <OrderDetailSheet
                 ref={orderDetailsRef}

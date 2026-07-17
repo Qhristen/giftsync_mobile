@@ -1,8 +1,8 @@
-import { Occasion } from '@/store/slices/occasionSlice';
+import { event } from '@/store/slices/occasionSlice';
 import { format } from 'date-fns';
 import * as Calendar from 'expo-calendar';
 
-export async function fetchGoogleBirthdays(): Promise<Occasion[]> {
+export async function fetchGoogleBirthdays(): Promise<event[]> {
     const { status } = await Calendar.requestCalendarPermissionsAsync();
     if (status !== 'granted') return [];
 
@@ -17,7 +17,7 @@ export async function fetchGoogleBirthdays(): Promise<Occasion[]> {
     const oneYearFromNow = new Date();
     oneYearFromNow.setFullYear(now.getFullYear() + 1);
 
-    const eventOccasions: Occasion[] = [];
+    const eventEvents: event[] = [];
     const calendarIds = googleCalendars.map(cal => cal.id);
 
     try {
@@ -33,7 +33,7 @@ export async function fetchGoogleBirthdays(): Promise<Occasion[]> {
                 const diffTime = Math.abs(dateObj.getTime() - now.getTime());
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-                eventOccasions.push({
+                eventEvents.push({
                     id: event.id,
                     name: name,
                     type: 'Birthday',
@@ -47,5 +47,5 @@ export async function fetchGoogleBirthdays(): Promise<Occasion[]> {
         console.error('Error fetching calendar events:', error);
     }
 
-    return eventOccasions;
+    return eventEvents;
 }

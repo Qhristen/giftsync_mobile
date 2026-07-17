@@ -44,13 +44,13 @@ export function calculateDeliveryStatus(
     const occasionDate = startOfDay(new Date(occasionDateStr));
     const deliveryDate = addDays(today, deliveryDays);
 
-    const daysToOccasion = differenceInDays(occasionDate, today);
-    const canArriveOnTime = daysToOccasion >= deliveryDays;
+    const daysToEvent = differenceInDays(occasionDate, today);
+    const canArriveOnTime = daysToEvent >= deliveryDays;
     const arrivalDate = format(deliveryDate, 'MMM do');
 
     return {
         canArriveOnTime,
-        daysToOccasion,
+        daysToEvent,
         arrivalDate,
         deliveryDays,
         recipientName
@@ -60,19 +60,18 @@ export function calculateDeliveryStatus(
 
 
 export const formatDateString = (dateStr: string) => {
-        const d = new Date(dateStr);
-        const today = new Date();
-        const yesterday = new Date(today);
-        yesterday.setDate(yesterday.getDate() - 1);
+    const d = new Date(dateStr);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
 
-        if (d.toDateString() === today.toDateString()) return 'Today';
-        if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
+    if (d.toDateString() === today.toDateString()) return 'Today';
+    if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
 
-        return d.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
-    };
+    return d.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
+};
 
-    export const formatTime = (dateStr: string) => {
-            const d = new Date(dateStr);
-            return d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
-        };
-    
+export const formatTime = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+};

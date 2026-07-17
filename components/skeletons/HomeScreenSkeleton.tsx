@@ -1,5 +1,4 @@
 import { useTheme } from '@/hooks/useTheme';
-import React from 'react';
 import { Dimensions, ScrollView, StyleSheet, View } from 'react-native';
 import Skeleton from './Skeleton';
 
@@ -47,7 +46,7 @@ export default function HomeScreenSkeleton() {
                     ))}
                 </View>
 
-                {/* This Month's Occasions */}
+                {/* This Month's Events */}
                 <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing.lg }}>
                     <Skeleton width={100} height={20} borderRadius={4} style={{ marginBottom: spacing.md }} />
                     <View style={{ flexDirection: 'row', gap: 12 }}>

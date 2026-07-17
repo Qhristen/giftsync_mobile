@@ -1,9 +1,8 @@
 import { useTheme } from '@/hooks/useTheme';
-import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import Skeleton from './Skeleton';
 
-export default function OccasionGridSkeleton() {
+export default function EventGridSkeleton() {
     const { colors, spacing } = useTheme();
 
     return (

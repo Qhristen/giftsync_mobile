@@ -7,11 +7,11 @@ import { useTheme } from '@/hooks/useTheme';
 import { nextStep } from '@/store/slices/onboardingSlice';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useDispatch } from 'react-redux';
 
-interface Occasion {
+interface event {
     id: string;
     name: string;
     type: string;
@@ -19,7 +19,7 @@ interface Occasion {
     avatarUrl?: string;
 }
 
-const mockOccasions: Occasion[] = [
+const mockEvents: event[] = [
     { id: '1', name: 'Alex Johnson', type: 'Birthday', date: 'March 24' },
     { id: '2', name: 'Sam Smith', type: 'Birthday', date: 'April 12' },
     { id: '3', name: 'Jordan Doe', type: 'Anniversary', date: 'June 05' },
@@ -29,10 +29,10 @@ export default function OnboardingStep3() {
     const router = useRouter();
     const dispatch = useDispatch();
     const { colors, spacing } = useTheme();
-    const [occasions, setOccasions] = useState<Occasion[]>(mockOccasions);
+    const [occasions, setEvents] = useState<event[]>(mockEvents);
 
-    const removeOccasion = (id: string) => {
-        setOccasions(prev => prev.filter(o => o.id !== id));
+    const removeEvent = (id: string) => {
+        setEvents(prev => prev.filter(o => o.id !== id));
     };
 
     const onContinue = () => {
@@ -45,7 +45,7 @@ export default function OnboardingStep3() {
             <View style={[styles.header, { padding: spacing.xl }]}>
                 <ProgressBar progress={0.75} />
                 <Typography variant="h2" style={{ marginTop: spacing.xl }}>
-                    Confirm Occasions
+                    Confirm Events
                 </Typography>
                 <Typography variant="body" color={colors.textSecondary}>
                     We found {occasions.length} upcoming birthdays!
@@ -64,14 +64,14 @@ export default function OnboardingStep3() {
                                 <Typography variant="bodyBold">{o.name}</Typography>
                                 <Typography variant="caption" color={colors.textSecondary}>{o.type} • {o.date}</Typography>
                             </View>
-                            <Pressable onPress={() => removeOccasion(o.id)} style={styles.removeBtn}>
+                            <Pressable onPress={() => removeEvent(o.id)} style={styles.removeBtn}>
                                 <Ionicons name="close-circle" size={24} color={colors.textMuted} />
                             </Pressable>
                         </Card>
                     ))}
 
                     <Button
-                        title="Add another occasion +"
+                        title="Add another event +"
                         variant="outline"
                         onPress={() => { }}
                         style={{ marginTop: spacing.md }}
@@ -81,7 +81,7 @@ export default function OnboardingStep3() {
 
             <View style={[styles.footer, { padding: spacing.xl }]}>
                 <Button
-                    title={`Confirm ${occasions.length} Occasions`}
+                    title={`Confirm ${occasions.length} Events`}
                     onPress={onContinue}
                 />
             </View>

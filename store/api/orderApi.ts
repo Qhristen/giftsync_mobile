@@ -3,7 +3,7 @@ import { baseApi } from './baseApi';
 
 export interface CreateOrderDto {
     productId: string;
-    occasionId?: string;
+    eventId?: string;
     deliveryAddressId: string;
     recipientName: string;
     deliveryDate: string;

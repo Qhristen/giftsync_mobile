@@ -5,7 +5,7 @@ import { formatCurrency } from '@/utils/formatCurrency';
 import { moderateScale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Badge from '../ui/Badge';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
@@ -60,7 +60,7 @@ const OrderDetailSheet = forwardRef<BottomSheetRef, OrderDetailSheetProps>(({ or
                         </View>
                         <View style={styles.detailRow}>
                             <Typography variant="body" color={colors.textSecondary}>Recipient</Typography>
-                            <Typography variant="bodyBold">{order?.occasion?.contact?.name}</Typography>
+                            <Typography variant="bodyBold">{order?.event?.contact?.name}</Typography>
                         </View>
                         <View style={[styles.divider, { backgroundColor: colors.border }]} />
                         <View style={styles.detailRow}>

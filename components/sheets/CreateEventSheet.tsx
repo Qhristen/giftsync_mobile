@@ -1,5 +1,5 @@
-import React, { forwardRef } from 'react';
-import OccasionForm from '../occasions/OccasionForm';
+import { forwardRef } from 'react';
+import EventForm from '../event/EventForm'
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 
 interface Props {
@@ -12,7 +12,7 @@ interface Props {
     fixedContactPhone?: string;
 }
 
-const CreateOccasionSheet = forwardRef<BottomSheetRef, Props>(
+const CreateEventSheet = forwardRef<BottomSheetRef, Props>(
     ({ onSuccess, isLoading, isEditing, occasionId, fixedContactId, fixedContactName, fixedContactPhone }, ref) => {
         return (
             <BottomSheetWrapper
@@ -22,7 +22,7 @@ const CreateOccasionSheet = forwardRef<BottomSheetRef, Props>(
                 keyboardBehavior="interactive"
                 android_keyboardInputMode="adjustPan"
             >
-                <OccasionForm
+                <EventForm
                     onSuccess={onSuccess}
                     onCompleted={() => (ref as any)?.current?.close()}
                     isLoading={isLoading}
@@ -37,4 +37,4 @@ const CreateOccasionSheet = forwardRef<BottomSheetRef, Props>(
     }
 );
 
-export default CreateOccasionSheet;
+export default CreateEventSheet;
