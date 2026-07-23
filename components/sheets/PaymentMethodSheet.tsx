@@ -1,5 +1,9 @@
 import { useTheme } from '@/hooks/useTheme';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    CheckmarkCircle02Icon,
+    CreditCardIcon,
+} from '@hugeicons/core-free-icons';
 import React, { forwardRef } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
@@ -9,9 +13,9 @@ import Typography from '../ui/Typography';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export const PAYMENT_METHODS = [
-    { id: 'paystack', name: 'Paystack', icon: 'card-outline', color: '#0BA4DB' },
-    // { id: 'stripe', name: 'Stripe', icon: 'logo-usd', color: '#635BFF' },
-    // { id: 'crypto', name: 'Cryptocurrency', icon: 'logo-bitcoin', color: '#F7931A' },
+    { id: 'paystack', name: 'Paystack', icon: CreditCardIcon, color: '#0BA4DB' },
+    // { id: 'stripe', name: 'Stripe', icon: CreditCardIcon, color: '#635BFF' },
+    // { id: 'crypto', name: 'Cryptocurrency', icon: CreditCardIcon, color: '#F7931A' },
 ];
 
 export interface PaymentMethodSheetProps {
@@ -56,13 +60,13 @@ const PaymentMethodSheet = forwardRef<BottomSheetRef, PaymentMethodSheetProps>((
                                 ]}
                             >
                                 <View style={[styles.iconBox, { backgroundColor: method.color + '1A', width: 40, height: 40, borderRadius: 20 }]}>
-                                    <Ionicons name={method.icon as any} size={20} color={method.color} />
+                                    <HugeiconsIcon icon={method.icon} size={20} color={method.color} />
                                 </View>
                                 <View style={{ flex: 1, marginLeft: 16 }}>
                                     <Typography variant="bodyBold">{method.name}</Typography>
                                 </View>
                                 {isSelected && (
-                                    <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
+                                    <HugeiconsIcon icon={CheckmarkCircle02Icon} size={24} color={colors.primary} />
                                 )}
                             </Card>
                         </Pressable>

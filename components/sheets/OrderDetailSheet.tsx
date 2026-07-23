@@ -3,7 +3,8 @@ import { Order } from '@/types';
 import { formatDate } from '@/utils/dateUtils';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { moderateScale } from '@/utils/scaling';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import { Comment01Icon } from '@hugeicons/core-free-icons';
 import { useRouter } from 'expo-router';
 import { forwardRef } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -110,7 +111,7 @@ const OrderDetailSheet = forwardRef<BottomSheetRef, OrderDetailSheetProps>(({ or
                                                 }
                                             ]}
                                         >
-                                            <Ionicons name="chatbubble-ellipses" size={16} color={colors.primary} />
+                                            <HugeiconsIcon icon={Comment01Icon} size={16} color={colors.primary} />
                                             <Typography variant="label" color={colors.primary} style={{ fontSize: moderateScale(11) }}>Chat</Typography>
                                         </Pressable>
                                     )}

@@ -2,7 +2,14 @@ import AddressListSkeleton from '../skeletons/AddressListSkeleton';
 import { useTheme } from '@/hooks/useTheme';
 import { useCreateAddressMutation, useDeleteAddressMutation, useGetAddressesQuery, useUpdateAddressMutation } from '@/store/api/addressApi';
 import { Address } from '@/types';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    ArrowLeft01Icon,
+    CheckmarkCircle02Icon,
+    Delete01Icon,
+    Edit01Icon,
+    UserAdd01Icon,
+} from '@hugeicons/core-free-icons';
 import * as Contacts from 'expo-contacts';
 import React, { forwardRef, useState } from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
@@ -135,14 +142,14 @@ const AddressPickerSheet = forwardRef<BottomSheetRef, Props>(
                                 {addresses.map((addr) => {
                                     const renderLeftActions = () => (
                                         <View style={[styles.swipeAction, { backgroundColor: colors.primary }]}>
-                                            <Ionicons name="create" size={24} color="#FFF" />
+                                            <HugeiconsIcon icon={Edit01Icon} size={24} color="#FFF" />
                                             <Typography variant="caption" color="#FFF">Edit</Typography>
                                         </View>
                                     );
 
                                     const renderRightActions = () => (
                                         <View style={[styles.swipeAction, { backgroundColor: colors.error }]}>
-                                            <Ionicons name="trash" size={24} color="#FFF" />
+                                            <HugeiconsIcon icon={Delete01Icon} size={24} color="#FFF" />
                                             <Typography variant="caption" color="#FFF">Delete</Typography>
                                         </View>
                                     );
@@ -180,7 +187,7 @@ const AddressPickerSheet = forwardRef<BottomSheetRef, Props>(
                                                     </Typography>
                                                 </View>
                                                 {selectedAddressId === addr.id && (
-                                                    <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
+                                                    <HugeiconsIcon icon={CheckmarkCircle02Icon} size={24} color={colors.primary} />
                                                 )}
                                             </Pressable>
                                         </Swipeable>
@@ -198,7 +205,7 @@ const AddressPickerSheet = forwardRef<BottomSheetRef, Props>(
                     <View style={{ flex: 1, paddingBottom: spacing.xl }}>
                         <View style={styles.header}>
                             <Pressable onPress={() => { resetForm(); setMode('list'); }}>
-                                <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+                                <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
                             </Pressable>
                             <Typography variant="h2">{mode === 'edit' ? 'Edit Address' : 'New Address'}</Typography>
                         </View>
@@ -208,7 +215,7 @@ const AddressPickerSheet = forwardRef<BottomSheetRef, Props>(
                                 title="Pick from Contacts"
                                 variant="outline"
                                 onPress={handlePickContact}
-                                leftIcon={<Ionicons name="person-add-outline" size={18} color={colors.primary} style={{ marginRight: 8 }} />}
+                                leftIcon={<HugeiconsIcon icon={UserAdd01Icon} size={18} color={colors.primary} style={{ marginRight: 8 }} />}
                             />
 
                             <Input label="Recipient Name" value={recipientName} onChangeText={setRecipientName} placeholder="Alex Johnson" isBottomSheet />

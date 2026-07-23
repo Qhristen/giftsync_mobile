@@ -10,7 +10,13 @@ import { useGetCategoriesQuery, useGetProductsQuery } from '@/store/api/productA
 import { Product } from '@/types';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { moderateScale } from '@/utils/scaling';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    CancelCircleIcon,
+    FilterIcon,
+    Search01Icon,
+    SentIcon
+} from '@hugeicons/core-free-icons';
 import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
@@ -122,7 +128,7 @@ export default function ShopScreen() {
             <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing.xl, marginBottom: spacing.lg, zIndex: 10 }}>
                 <View style={[styles.searchRow, { zIndex: 10 }]}>
                     <View style={[styles.searchBar, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                        <Ionicons name="search" size={20} color={colors.textMuted} />
+                        <HugeiconsIcon icon={Search01Icon} size={20} color={colors.textMuted} />
                         <TextInput
                             placeholder="Search gifts, experiences..."
                             placeholderTextColor={colors.textMuted}
@@ -132,7 +138,7 @@ export default function ShopScreen() {
                         />
                         {searchQuery.length > 0 && (
                             <Pressable onPress={() => setSearchQuery('')}>
-                                <Ionicons name="close-circle" size={20} color={colors.textMuted} />
+                                <HugeiconsIcon icon={CancelCircleIcon} size={20} color={colors.textMuted} />
                             </Pressable>
                         )}
                     </View>
@@ -140,7 +146,7 @@ export default function ShopScreen() {
                         style={[styles.filterBtn, { backgroundColor: colors.primary }]}
                         onPress={() => filterSheet.open()}
                     >
-                        <Ionicons name="options-outline" size={24} color="#FFFFFF" />
+                        <HugeiconsIcon icon={FilterIcon} size={24} color="#FFFFFF" />
                     </Pressable>
                 </View>
             </View>
@@ -276,7 +282,7 @@ export default function ShopScreen() {
                                     giftSheet.open();
                                 }}
                             >
-                                <Ionicons name="paper-plane" size={14} color={colors.primary} />
+                                <HugeiconsIcon icon={SentIcon} size={14} color={colors.primary} />
                             </Pressable>
                         </View>
                     </View>

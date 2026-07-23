@@ -1,7 +1,13 @@
 import { useTheme } from '@/hooks/useTheme';
 import { RootState } from '@/store';
 import { setThemePreference, ThemePreference } from '@/store/slices/themeSlice';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    CheckmarkCircle02Icon,
+    Moon01Icon,
+    SmartPhone01Icon,
+    Sun01Icon,
+} from '@hugeicons/core-free-icons';
 import React, { forwardRef } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -18,9 +24,9 @@ const ThemePickerSheet = forwardRef<BottomSheetRef, ThemePickerSheetProps>(({ on
     const currentPreference = useSelector((state: RootState) => state.theme.preference);
 
     const options: { label: string; value: ThemePreference; icon: any }[] = [
-        { label: 'Light', value: 'light', icon: 'sunny-outline' },
-        { label: 'Dark', value: 'dark', icon: 'moon-outline' },
-        { label: 'System', value: 'system', icon: 'phone-portrait-outline' },
+        { label: 'Light', value: 'light', icon: Sun01Icon },
+        { label: 'Dark', value: 'dark', icon: Moon01Icon },
+        { label: 'System', value: 'system', icon: SmartPhone01Icon },
     ];
 
     const handleSelect = (preference: ThemePreference) => {
@@ -51,8 +57,8 @@ const ThemePickerSheet = forwardRef<BottomSheetRef, ThemePickerSheetProps>(({ on
                                 },
                             ]}
                         >
-                            <Ionicons
-                                name={option.icon}
+                            <HugeiconsIcon
+                                icon={option.icon}
                                 size={24}
                                 color={isSelected ? colors.primary : colors.textPrimary}
                             />
@@ -63,7 +69,7 @@ const ThemePickerSheet = forwardRef<BottomSheetRef, ThemePickerSheetProps>(({ on
                                 {option.label}
                             </Typography>
                             {isSelected && (
-                                <Ionicons name="checkmark-circle" size={24} color={colors.primary} style={styles.check} />
+                                <HugeiconsIcon icon={CheckmarkCircle02Icon} size={24} color={colors.primary} style={styles.check} />
                             )}
                         </Pressable>
                     );

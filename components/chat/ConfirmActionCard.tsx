@@ -3,7 +3,13 @@ import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { moderateScale } from '@/utils/scaling';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    Mail01Icon,
+    ShoppingCart01Icon,
+    Tag01Icon,
+    UserIcon,
+} from '@hugeicons/core-free-icons';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -41,7 +47,7 @@ const ConfirmActionCard: React.FC<ConfirmActionCardProps> = ({
                 return (
                     <View style={styles.detailsContainer}>
                         <View style={styles.detailRow}>
-                            <Ionicons name="person-outline" size={16} color={colors.textSecondary} />
+                            <HugeiconsIcon icon={UserIcon} size={16} color={colors.textSecondary} />
                             <Typography variant="bodyBold" color={colors.textPrimary} style={styles.detailText}>
                                 {actionType === 'send_occasion_message' ? details.contactName : details.recipients?.join(', ')}
                             </Typography>
@@ -57,13 +63,13 @@ const ConfirmActionCard: React.FC<ConfirmActionCardProps> = ({
                 return (
                     <View style={styles.detailsContainer}>
                         <View style={styles.detailRow}>
-                            <Ionicons name="cart-outline" size={16} color={colors.textSecondary} />
+                            <HugeiconsIcon icon={ShoppingCart01Icon} size={16} color={colors.textSecondary} />
                             <Typography variant="bodyBold" color={colors.textPrimary} style={styles.detailText}>
                                 {details.productName}
                             </Typography>
                         </View>
                         <View style={styles.detailRow}>
-                            <Ionicons name="pricetag-outline" size={16} color={colors.textSecondary} />
+                            <HugeiconsIcon icon={Tag01Icon} size={16} color={colors.textSecondary} />
                             <Typography variant="bodyBold" color={colors.primary} style={styles.detailText}>
                                 {formatCurrency(Number(details.price || 0), currency)}
                             </Typography>
@@ -104,8 +110,8 @@ const ConfirmActionCard: React.FC<ConfirmActionCardProps> = ({
         >
             <View style={styles.header}>
                 <Typography variant="bodyBold" style={{ fontSize: moderateScale(14) }}>{getTitle()}</Typography>
-                <Ionicons
-                    name={actionType === 'purchase_product' ? "cart" : "mail"}
+                <HugeiconsIcon
+                    icon={actionType === 'purchase_product' ? ShoppingCart01Icon : Mail01Icon}
                     size={18}
                     color={colors.primary}
                 />

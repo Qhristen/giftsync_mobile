@@ -8,7 +8,13 @@ import { useTheme } from '@/hooks/useTheme';
 import { useGetAddressesQuery } from '@/store/api/addressApi';
 import { Address } from '@/types';
 import { moderateScale } from '@/utils/scaling';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    ArrowLeft01Icon,
+    Edit01Icon,
+    Location01Icon,
+    PlusSignIcon
+} from '@hugeicons/core-free-icons';
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import React from 'react';
@@ -36,7 +42,7 @@ export default function SavedAddressesScreen() {
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             <View style={[styles.header, { paddingHorizontal: spacing.xl, paddingBottom: spacing.md }]}>
                 <Pressable onPress={() => router.back()} style={styles.backBtn}>
-                    <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+                    <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
                 </Pressable>
                 <Typography variant="h3">Saved Addresses</Typography>
                 <View style={{ width: 40 }} />
@@ -62,7 +68,7 @@ export default function SavedAddressesScreen() {
                         <Animated.View entering={FadeInDown.delay(index * 100).duration(400)}>
                             <Card style={[styles.addressCard, { backgroundColor: colors.surface }]}>
                                 <View style={[styles.iconBox, { backgroundColor: colors.surfaceRaised }]}>
-                                    <Ionicons name="location-outline" size={24} color={colors.primary} />
+                                    <HugeiconsIcon icon={Location01Icon} size={24} color={colors.primary} />
                                 </View>
                                 <View style={{ flex: 1 }}>
                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -78,7 +84,7 @@ export default function SavedAddressesScreen() {
                                     </Typography>
                                 </View>
                                 <Pressable style={{ padding: 8 }} onPress={() => handleEdit(item)}>
-                                    <Ionicons name="create-outline" size={20} color={colors.textMuted} />
+                                    <HugeiconsIcon icon={Edit01Icon} size={20} color={colors.textMuted} />
                                 </Pressable>
                             </Card>
                         </Animated.View>
@@ -91,7 +97,7 @@ export default function SavedAddressesScreen() {
                     title="Add New Address"
                     variant="primary"
                     onPress={() => addressSheet.open()}
-                    leftIcon={<Ionicons name="add" size={20} color="#FFF" style={{ marginRight: 8 }} />}
+                    leftIcon={<HugeiconsIcon icon={PlusSignIcon} size={20} color="#FFF" style={{ marginRight: 8 }} />}
                 />
             </View>
 

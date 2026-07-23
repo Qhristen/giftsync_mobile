@@ -1,7 +1,8 @@
 import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/theme';
 import { moderateScale } from '@/utils/scaling';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import { ViewIcon, ViewOffIcon } from '@hugeicons/core-free-icons';
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import React, { useState } from 'react';
 import { Pressable, StyleProp, StyleSheet, Text, TextInput, View, ViewStyle } from 'react-native';
@@ -123,7 +124,7 @@ const Input: React.FC<Props> = ({
                 )}
                 {secureTextEntry ? (
                     <Pressable onPress={() => setShowPassword(!showPassword)} style={styles.rightIcon}>
-                        <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={20} color={colors.textMuted} />
+                        <HugeiconsIcon icon={showPassword ? ViewOffIcon : ViewIcon} size={20} color={colors.textMuted} />
                     </Pressable>
                 ) : rightIcon ? (
                     <View style={styles.rightIcon}>{rightIcon}</View>

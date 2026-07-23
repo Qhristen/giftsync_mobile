@@ -1,6 +1,7 @@
 import { useTheme } from '@/hooks/useTheme';
 import { getCurrencySymbol } from '@/utils/formatCurrency';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import { Tick01Icon } from '@hugeicons/core-free-icons';
 import React, { forwardRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
@@ -74,7 +75,7 @@ const FilterSheet = forwardRef<BottomSheetRef, FilterSheetProps>(({ initialFilte
                             style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8 }}
                         >
                             <Typography variant="body" color={colors.textPrimary}>{s}</Typography>
-                            {isSelected && <Ionicons name="checkmark" size={20} color={colors.primary} />}
+                            {isSelected && <HugeiconsIcon icon={Tick01Icon} size={20} color={colors.primary} />}
                         </Pressable>
                     );
                 })}

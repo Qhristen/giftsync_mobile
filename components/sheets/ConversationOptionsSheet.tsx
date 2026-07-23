@@ -1,6 +1,10 @@
 import { useTheme } from '@/hooks/useTheme';
 import { Conversation } from '@/types';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    Flag01Icon,
+    Invoice01Icon,
+} from '@hugeicons/core-free-icons';
 import React, { forwardRef } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
@@ -22,13 +26,13 @@ const ConversationOptionsSheet = forwardRef<BottomSheetRef, Props>(
         const options = [
             {
                 label: 'View Order Details',
-                icon: 'receipt-outline',
+                icon: Invoice01Icon,
                 onPress: onViewOrder,
                 visible: !!conversation?.orderId,
             },
             {
                 label: 'Report User',
-                icon: 'flag-outline',
+                icon: Flag01Icon,
                 onPress: () => {
                     // This will be handled by the screen to show a report modal/sheet
                     onReportUser?.();
@@ -78,7 +82,7 @@ const ConversationOptionsSheet = forwardRef<BottomSheetRef, Props>(
                             }}
                         >
                             <View style={[styles.iconContainer, { backgroundColor: colors.surfaceRaised }]}>
-                                <Ionicons name={option.icon as any} size={20} color={option.color || colors.textPrimary} />
+                                <HugeiconsIcon icon={option.icon} size={20} color={option.color || colors.textPrimary} />
                             </View>
                             <Typography variant="bodyBold" color={option.color}>
                                 {option.label}

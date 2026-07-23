@@ -1,5 +1,6 @@
 import { useTheme } from '@/hooks/useTheme';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import { Copy01Icon } from '@hugeicons/core-free-icons';
 import * as Clipboard from 'expo-clipboard';
 import React, { forwardRef } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -42,7 +43,7 @@ const MessageOptionsSheet = forwardRef<BottomSheetRef, Props>(
                         onPress={handleCopy}
                     >
                         <View style={[styles.iconContainer, { backgroundColor: colors.surfaceRaised }]}>
-                            <Ionicons name="copy-outline" size={20} color={colors.textPrimary} />
+                            <HugeiconsIcon icon={Copy01Icon} size={20} color={colors.textPrimary} />
                         </View>
                         <Typography variant="bodyBold">Copy Text</Typography>
                     </Pressable>

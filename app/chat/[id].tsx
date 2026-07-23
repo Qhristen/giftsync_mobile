@@ -16,7 +16,15 @@ import { useAppSelector } from '@/store/hooks';
 import { selectTypingUsers } from '@/store/slices/chatSlice';
 import { ChatMessage } from '@/types';
 import { moderateScale } from '@/utils/scaling';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    ArrowLeft01Icon,
+    Cancel01Icon,
+    Copy01Icon,
+    MoreHorizontalIcon,
+    PlusSignCircleIcon,
+    SentIcon
+} from '@hugeicons/core-free-icons';
 import * as Clipboard from 'expo-clipboard';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
@@ -273,7 +281,7 @@ export default function ChatDetailScreen() {
                 }
             ]}>
                 <Pressable onPress={() => router.back()} style={styles.backBtn}>
-                    <Ionicons name="chevron-back" size={28} color={colors.textPrimary} />
+                    <HugeiconsIcon icon={ArrowLeft01Icon} size={28} color={colors.textPrimary} />
                 </Pressable>
 
                 <View style={styles.headerTitle}>
@@ -303,7 +311,7 @@ export default function ChatDetailScreen() {
                 </View>
 
                 <Pressable onPress={handleHeaderOptions} style={styles.headerRightBtn}>
-                    <Ionicons name="ellipsis-horizontal" size={24} color={colors.textPrimary} />
+                    <HugeiconsIcon icon={MoreHorizontalIcon} size={24} color={colors.textPrimary} />
                 </Pressable>
             </View>
 
@@ -358,7 +366,7 @@ export default function ChatDetailScreen() {
                                         onPress={() => setSelectedImages(prev => prev.filter((_, i) => i !== index))}
                                         style={[styles.removeBtn, { backgroundColor: colors.surfaceRaised, borderColor: colors.border }]}
                                     >
-                                        <Ionicons name="close" size={12} color={colors.textPrimary} />
+                                        <HugeiconsIcon icon={Cancel01Icon} size={12} color={colors.textPrimary} />
                                     </Pressable>
                                 </View>
                             )}
@@ -378,7 +386,7 @@ export default function ChatDetailScreen() {
                         onPress={handlePickImage}
                         style={styles.attachBtn}
                     >
-                        <Ionicons name="add-circle-outline" size={28} color={colors.textSecondary} />
+                        <HugeiconsIcon icon={PlusSignCircleIcon} size={28} color={colors.textSecondary} />
                     </Pressable>
                     <View style={styles.inputWrapper}>
                         <TextInput
@@ -405,8 +413,8 @@ export default function ChatDetailScreen() {
                             }
                         ]}
                     >
-                        <Ionicons
-                            name="send"
+                        <HugeiconsIcon
+                            icon={SentIcon}
                             size={20}
                             color={(messageText.trim() || selectedImages.length > 0) ? '#FFFFFF' : colors.textMuted}
                         />
@@ -444,7 +452,7 @@ export default function ChatDetailScreen() {
                                 ]}
                                 onPress={handleCopy}
                             >
-                                <Ionicons name="copy-outline" size={18} color={colors.textPrimary} />
+                                <HugeiconsIcon icon={Copy01Icon} size={18} color={colors.textPrimary} />
                                 <Typography variant="body">Copy Text</Typography>
                             </Pressable>
 
@@ -457,7 +465,7 @@ export default function ChatDetailScreen() {
                                 ]}
                                 onPress={() => setIsOptionsVisible(false)}
                             >
-                                <Ionicons name="close-outline" size={18} color={colors.error} />
+                                <HugeiconsIcon icon={Cancel01Icon} size={18} color={colors.error} />
                                 <Typography variant="body" color={colors.error}>Cancel</Typography>
                             </Pressable>
                         </Animated.View>
@@ -509,7 +517,7 @@ export default function ChatDetailScreen() {
                         style={[styles.viewerCloseBtn, { top: insets.top + 10 }]}
                         onPress={() => setViewerConfig(null)}
                     >
-                        <Ionicons name="close" size={32} color="#FFFFFF" />
+                        <HugeiconsIcon icon={Cancel01Icon} size={32} color="#FFFFFF" />
                     </Pressable>
                     {viewerConfig && (
                         <FlatList

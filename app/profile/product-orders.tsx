@@ -10,7 +10,14 @@ import { useGetOrdersByProductQuery } from '@/store/api/orderApi';
 import { Order, OrderStatus } from '@/types';
 import { formatDate } from '@/utils/dateUtils';
 import { formatCurrency } from '@/utils/formatCurrency';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    ArrowLeft01Icon,
+    Calendar01Icon,
+    Location01Icon,
+    LegalDocument01Icon,
+    UserIcon
+} from '@hugeicons/core-free-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
@@ -60,15 +67,15 @@ export default function ProductOrdersScreen() {
 
             <View style={styles.orderDetail}>
                 <View style={styles.detailRow}>
-                    <Ionicons name="person-outline" size={16} color={colors.textSecondary} />
+                    <HugeiconsIcon icon={UserIcon} size={16} color={colors.textSecondary} />
                     <Typography variant="body" color={colors.textSecondary}>{item?.event?.contact?.name ?? ""}</Typography>
                 </View>
                 <View style={styles.detailRow}>
-                    <Ionicons name="calendar-outline" size={16} color={colors.textSecondary} />
+                    <HugeiconsIcon icon={Calendar01Icon} size={16} color={colors.textSecondary} />
                     <Typography variant="body" color={colors.textSecondary}>{formatDate(item.deliveryDate)}</Typography>
                 </View>
                 <View style={styles.detailRow}>
-                    <Ionicons name="location-outline" size={16} color={colors.textSecondary} />
+                    <HugeiconsIcon icon={Location01Icon} size={16} color={colors.textSecondary} />
                     <Typography variant="body" color={colors.textSecondary} numberOfLines={1}>{item?.deliveryAddress?.line1 ?? ""}</Typography>
                 </View>
             </View>
@@ -95,7 +102,7 @@ export default function ProductOrdersScreen() {
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             <View style={[styles.header, { borderBottomColor: colors.border + '33' }]}>
                 <Pressable onPress={() => router.back()} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+                    <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
                 </Pressable>
                 <View style={{ flex: 1, marginLeft: 12 }}>
                     <Typography variant="h3" numberOfLines={1}>Product Orders</Typography>
@@ -117,7 +124,7 @@ export default function ProductOrdersScreen() {
                     showsVerticalScrollIndicator={false}
                     ListEmptyComponent={
                         <View style={styles.emptyContainer}>
-                            <Ionicons name="receipt-outline" size={64} color={colors.border} />
+                            <HugeiconsIcon icon={LegalDocument01Icon} size={64} color={colors.border} />
                             <Typography variant="body" color={colors.textSecondary} style={{ marginTop: 16 }}>No orders for this product yet.</Typography>
                         </View>
                     }

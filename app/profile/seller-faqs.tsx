@@ -1,6 +1,12 @@
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    ArrowDown01Icon,
+    ArrowLeft01Icon,
+    ArrowUp01Icon,
+    InformationCircleIcon
+} from '@hugeicons/core-free-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { LayoutAnimation, Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -47,7 +53,7 @@ export default function SellerFaqsScreen() {
             {/* Header */}
             <View style={[styles.header, { borderBottomColor: colors.border + '33' }]}>
                 <Pressable onPress={() => router.back()} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+                    <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
                 </Pressable>
                 <Typography variant="h3">Seller FAQs</Typography>
                 <View style={{ width: 24 }} />
@@ -74,8 +80,8 @@ export default function SellerFaqsScreen() {
                         >
                             <View style={styles.questionRow}>
                                 <Typography variant="bodyBold" style={{ flex: 1 }}>{faq.question}</Typography>
-                                <Ionicons 
-                                    name={isExpanded ? "chevron-up" : "chevron-down"} 
+                                <HugeiconsIcon 
+                                    icon={isExpanded ? ArrowUp01Icon : ArrowDown01Icon} 
                                     size={20} 
                                     color={isExpanded ? colors.primary : colors.textMuted} 
                                 />
@@ -90,7 +96,7 @@ export default function SellerFaqsScreen() {
                 })}
 
                 <View style={[styles.infoBox, { backgroundColor: colors.primary + '10' }]}>
-                    <Ionicons name="information-circle" size={24} color={colors.primary} />
+                    <HugeiconsIcon icon={InformationCircleIcon} size={24} color={colors.primary} />
                     <View style={{ flex: 1, marginLeft: 12 }}>
                         <Typography variant="bodyBold" color={colors.primary}>Weekly Payouts</Typography>
                         <Typography variant="caption" color={colors.primary}>

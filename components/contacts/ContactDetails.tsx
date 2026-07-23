@@ -1,7 +1,8 @@
 import { useTheme } from '@/hooks/useTheme';
 import { useGetUpcomingEventsQuery } from '@/store/api/event';
 import { Contact } from '@/types';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import { Add01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons';
 import React from 'react';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 import Avatar from '../ui/Avatar';
@@ -55,7 +56,7 @@ const ContactDetails: React.FC<ContactDetailsProps> = ({ contact, onAddEvent, on
                     size="sm"
                     variant="primary"
                     onPress={() => onAddEvent?.(contact)}
-                    leftIcon={<Ionicons name="add" size={16} color="#FFF" />}
+                    leftIcon={<HugeiconsIcon icon={Add01Icon} size={16} color="#FFF" />}
                 />
             </View>
 
@@ -79,7 +80,7 @@ const ContactDetails: React.FC<ContactDetailsProps> = ({ contact, onAddEvent, on
                                     {new Date(item.date).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
                                 </Typography>
                             </View>
-                            <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+                            <HugeiconsIcon icon={ArrowRight01Icon} size={20} color={colors.textMuted} />
                         </Pressable>
                     )}
                 />

@@ -1,5 +1,9 @@
 import { useTheme } from '@/hooks/useTheme';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    CheckmarkCircle02Icon,
+    Coins01Icon,
+} from '@hugeicons/core-free-icons';
 import React, { forwardRef } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
@@ -14,10 +18,10 @@ const CurrencyPickerSheet = forwardRef<BottomSheetRef, CurrencyPickerSheetProps>
     const { colors, spacing } = useTheme();
 
     const options = [
-        { label: 'Nigerian Naira (NGN)', value: 'NGN', icon: 'cash-outline' },
-        // { label: 'US Dollar (USD)', value: 'USD', icon: 'logo-usd' },
-        // { label: 'British Pound (GBP)', value: 'GBP', icon: 'logo-pound' },
-        // { label: 'Euro (EUR)', value: 'EUR', icon: 'logo-euro' },
+        { label: 'Nigerian Naira (NGN)', value: 'NGN', icon: Coins01Icon },
+        // { label: 'US Dollar (USD)', value: 'USD', icon: Coins01Icon },
+        // { label: 'British Pound (GBP)', value: 'GBP', icon: Coins01Icon },
+        // { label: 'Euro (EUR)', value: 'EUR', icon: Coins01Icon },
     ];
 
     const handleSelect = (currency: string) => {
@@ -45,8 +49,8 @@ const CurrencyPickerSheet = forwardRef<BottomSheetRef, CurrencyPickerSheetProps>
                                 },
                             ]}
                         >
-                            <Ionicons
-                                name={option.icon as any}
+                            <HugeiconsIcon
+                                icon={option.icon}
                                 size={24}
                                 color={isSelected ? colors.primary : colors.textPrimary}
                             />
@@ -57,7 +61,7 @@ const CurrencyPickerSheet = forwardRef<BottomSheetRef, CurrencyPickerSheetProps>
                                 {option.label}
                             </Typography>
                             {isSelected && (
-                                <Ionicons name="checkmark-circle" size={24} color={colors.primary} style={styles.check} />
+                                <HugeiconsIcon icon={CheckmarkCircle02Icon} size={24} color={colors.primary} style={styles.check} />
                             )}
                         </Pressable>
                     );

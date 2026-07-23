@@ -2,7 +2,8 @@ import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { EventTemplate } from '@/types';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import { GiftIcon } from '@hugeicons/core-free-icons';
 import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
 import { ScrollView, View } from 'react-native';
@@ -67,7 +68,7 @@ export default function UpcomingHolidays({ templates }: UpcomingHolidaysProps) {
                         >
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                 <View style={{ backgroundColor: colors.primary + '15', padding: 8, borderRadius: 12 }}>
-                                    <Ionicons name="gift-outline" size={20} color={colors.primary} />
+                                    <HugeiconsIcon icon={GiftIcon} size={20} color={colors.primary} />
                                 </View>
                                 <Typography variant="caption" color={colors.primary} style={{ fontWeight: '600' }}>
                                     {new Date(2024, holiday.month - 1, holiday.day).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}

@@ -12,7 +12,18 @@ import { useGetProductByIdQuery } from '@/store/api/productApi';
 import { Event } from '@/types';
 import { calculateDeliveryStatus } from '@/utils/dateUtils';
 import { formatCurrency } from '@/utils/formatCurrency';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    Alert01Icon,
+    ArrowLeft01Icon,
+    ArrowRight01Icon,
+    BoxIcon,
+    DeliveryTruck02Icon,
+    GiftIcon,
+    Image01Icon,
+    Tag01Icon,
+    Time02Icon
+} from '@hugeicons/core-free-icons';
 import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import * as Location from 'expo-location';
@@ -104,7 +115,7 @@ export default function ShopItemDetailScreen() {
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             <View style={[styles.header, { top: spacing.xl, paddingHorizontal: spacing.xl, backgroundColor: 'transparent' }]}>
                 <Pressable onPress={() => router.back()} style={[styles.iconBtn, { backgroundColor: colors.surfaceRaised }]}>
-                    <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+                    <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
                 </Pressable>
                 {/* <Pressable style={[styles.iconBtn, { backgroundColor: colors.surfaceRaised }]}>
                     <Ionicons name="heart-outline" size={24} color={colors.textPrimary} />
@@ -132,7 +143,7 @@ export default function ShopItemDetailScreen() {
                         </View>
                     ) : (
                         <View style={{ width, height: width * 1.1, backgroundColor: colors.surfaceRaised, justifyContent: 'center', alignItems: 'center' }}>
-                            <Ionicons name="image-outline" size={48} color={colors.textMuted} />
+                            <HugeiconsIcon icon={Image01Icon} size={48} color={colors.textMuted} />
                         </View>
                     )}
                     <View style={styles.pagination}>
@@ -178,7 +189,7 @@ export default function ShopItemDetailScreen() {
                                 <Typography variant="bodyBold">Sold by {product.business?.name}</Typography>
                                 <Typography variant="caption" color={colors.textSecondary}>{product.ratingCount || 0} Reviews</Typography>
                             </View>
-                            <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+                            <HugeiconsIcon icon={ArrowRight01Icon} size={20} color={colors.textSecondary} />
                         </Card>
                     </Pressable>
 
@@ -195,8 +206,8 @@ export default function ShopItemDetailScreen() {
                                 ]}
                             >
                                 <View style={[styles.deliveryIcon, { backgroundColor: deliveryStatus.canArriveOnTime ? colors.success : colors.error }]}>
-                                    <Ionicons
-                                        name={deliveryStatus.canArriveOnTime ? "time-outline" : "alert-circle-outline"}
+                                    <HugeiconsIcon
+                                        icon={deliveryStatus.canArriveOnTime ? Time02Icon : Alert01Icon}
                                         size={20}
                                         color="#FFF"
                                     />
@@ -250,7 +261,7 @@ export default function ShopItemDetailScreen() {
                         <Card variant="outline" style={[styles.detailsCard, { borderColor: colors.border }]}>
                             <View style={styles.detailRow}>
                                 <View style={[styles.detailIcon, { backgroundColor: colors.primary + '15' }]}>
-                                    <Ionicons name="cube-outline" size={18} color={colors.primary} />
+                                    <HugeiconsIcon icon={BoxIcon} size={18} color={colors.primary} />
                                 </View>
                                 <View style={{ flex: 1 }}>
                                     <Typography variant="caption" color={colors.textSecondary}>Availability</Typography>
@@ -262,7 +273,7 @@ export default function ShopItemDetailScreen() {
                             <View style={[styles.divider, { backgroundColor: colors.border }]} />
                             <View style={styles.detailRow}>
                                 <View style={[styles.detailIcon, { backgroundColor: colors.primary + '15' }]}>
-                                    <Ionicons name="bicycle-outline" size={18} color={colors.primary} />
+                                    <HugeiconsIcon icon={DeliveryTruck02Icon} size={18} color={colors.primary} />
                                 </View>
                                 <View style={{ flex: 1 }}>
                                     <Typography variant="caption" color={colors.textSecondary}>Delivery Time</Typography>
@@ -272,7 +283,7 @@ export default function ShopItemDetailScreen() {
                             <View style={[styles.divider, { backgroundColor: colors.border }]} />
                             <View style={styles.detailRow}>
                                 <View style={[styles.detailIcon, { backgroundColor: colors.primary + '15' }]}>
-                                    <Ionicons name="pricetag-outline" size={18} color={colors.primary} />
+                                    <HugeiconsIcon icon={Tag01Icon} size={18} color={colors.primary} />
                                 </View>
                                 <View style={{ flex: 1 }}>
                                     <Typography variant="caption" color={colors.textSecondary}>Item Price</Typography>
@@ -339,7 +350,7 @@ export default function ShopItemDetailScreen() {
                 <Button
                     title="Send Gift"
                     variant="primary"
-                    leftIcon={<Ionicons name="gift-outline" size={20} color="#FFF" style={{ marginRight: 8 }} />}
+                    leftIcon={<HugeiconsIcon icon={GiftIcon} size={20} color="#FFF" style={{ marginRight: 8 }} />}
                     onPress={() => {
                         if (occasionId) {
                             router.push({ pathname: '/checkout', params: { productId: id, occasionId: occasionId as string } });

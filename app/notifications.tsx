@@ -2,7 +2,17 @@ import NotificationListSkeleton from '@/components/skeletons/NotificationListSke
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { useDeleteNotificationMutation, useGetNotificationsQuery, useMarkAllAsReadMutation, useMarkAsReadMutation } from '@/store/api/notificationApi';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    ArrowLeft01Icon,
+    Delete02Icon,
+    InformationCircleIcon,
+    Invoice01Icon,
+    NotificationOff01Icon,
+    Tick01Icon,
+    TickDouble02Icon,
+    Time02Icon
+} from '@hugeicons/core-free-icons';
 import { FlashList } from '@shopify/flash-list';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useRouter } from 'expo-router';
@@ -59,14 +69,14 @@ export default function NotificationsScreen() {
         switch (type.toLowerCase()) {
             case 'success':
             case 'delivered':
-                return { name: 'checkmark-circle', color: colors.success };
+                return { name: Tick01Icon, color: colors.success };
             case 'warning':
             case 'upcoming':
-                return { name: 'time', color: '#F59E0B' };
+                return { name: Time02Icon, color: '#F59E0B' };
             case 'order':
             case 'transaction':
-                return { name: 'receipt', color: colors.primary };
-            default: return { name: 'information-circle', color: colors.primary };
+                return { name: Invoice01Icon, color: colors.primary };
+            default: return { name: InformationCircleIcon, color: colors.primary };
         }
     };
 
@@ -74,7 +84,7 @@ export default function NotificationsScreen() {
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             <View style={[styles.header, { paddingHorizontal: spacing.xl }]}>
                 <Pressable onPress={() => router.back()} style={styles.backBtn}>
-                    <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+                    <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
                 </Pressable>
                 <Typography variant="h2">Notifications</Typography>
                 <Pressable onPress={handleMarkAllRead}>
@@ -103,14 +113,14 @@ export default function NotificationsScreen() {
 
                         const renderLeftActions = () => (
                             <View style={[styles.swipeAction, { backgroundColor: colors.primary }]}>
-                                <Ionicons name="checkmark-done" size={24} color="#FFF" />
+                                <HugeiconsIcon icon={TickDouble02Icon} size={24} color="#FFF" />
                                 <Typography variant="caption" color="#FFF">Read</Typography>
                             </View>
                         );
 
                         const renderRightActions = () => (
                             <View style={[styles.swipeAction, { backgroundColor: colors.error }]}>
-                                <Ionicons name="trash" size={24} color="#FFF" />
+                                <HugeiconsIcon icon={Delete02Icon} size={24} color="#FFF" />
                                 <Typography variant="caption" color="#FFF">Delete</Typography>
                             </View>
                         );
@@ -137,7 +147,7 @@ export default function NotificationsScreen() {
                                         ]}
                                     >
                                         <View style={[styles.iconContainer, { backgroundColor: item.isRead ? colors.surfaceRaised : colors.surface }]}>
-                                            <Ionicons name={iconConfig.name as any} size={24} color={iconConfig.color} />
+                                            <HugeiconsIcon icon={iconConfig.name} size={24} color={iconConfig.color} />
                                         </View>
                                         <View style={styles.textContainer}>
                                             <View style={styles.titleRow}>
@@ -156,7 +166,7 @@ export default function NotificationsScreen() {
                     }}
                     ListEmptyComponent={() => (
                         <View style={styles.emptyContainer}>
-                            <Ionicons name="notifications-off-outline" size={64} color={colors.textMuted} />
+                            <HugeiconsIcon icon={NotificationOff01Icon} size={64} color={colors.textMuted} />
                             <Typography variant="body" color={colors.textSecondary} style={{ marginTop: 16 }}>
                                 No notifications yet.
                             </Typography>

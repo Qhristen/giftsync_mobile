@@ -1,7 +1,16 @@
 import { useTheme } from '@/hooks/useTheme';
 import { useGetEventTemplatesQuery, useGetUpcomingEventsQuery, useSubscribeToTemplateMutation } from '@/store/api/event';
 import { Contact } from '@/types';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    Add01Icon,
+    ArrowLeft01Icon,
+    Calendar01Icon,
+    ArrowRight01Icon,
+    CheckmarkCircle02Icon,
+    PlusSignCircleIcon,
+    UserAdd01Icon,
+} from '@hugeicons/core-free-icons';
 import { forwardRef } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { toast } from 'sonner-native';
@@ -98,8 +107,8 @@ const ContactDetailSheet = forwardRef<BottomSheetRef, Props>(
                                                 { backgroundColor: isSubscribed ? colors.primary + '15' : colors.surfaceRaised }
                                             ]}
                                         >
-                                            <Ionicons
-                                                name={isSubscribed ? "checkmark-circle" : "add-circle-outline"}
+                                            <HugeiconsIcon
+                                                icon={isSubscribed ? CheckmarkCircle02Icon : PlusSignCircleIcon}
                                                 size={20}
                                                 color={isSubscribed ? colors.primary : colors.textMuted}
                                             />
@@ -120,7 +129,7 @@ const ContactDetailSheet = forwardRef<BottomSheetRef, Props>(
                                 size="sm"
                                 variant="outline"
                                 onPress={() => onAddEvent(contact)}
-                                leftIcon={<Ionicons name="add" size={16} color={colors.primary} />}
+                                leftIcon={<HugeiconsIcon icon={Add01Icon} size={16} color={colors.primary} />}
                             />
                         </View>
 
@@ -136,7 +145,7 @@ const ContactDetailSheet = forwardRef<BottomSheetRef, Props>(
                                         ]}
                                     >
                                         <View style={[styles.iconBox, { backgroundColor: colors.primary + '10' }]}>
-                                            <Ionicons name="calendar" size={18} color={colors.primary} />
+                                            <HugeiconsIcon icon={Calendar01Icon} size={18} color={colors.primary} />
                                         </View>
                                         <View style={{ flex: 1 }}>
                                             <Typography variant="bodyBold">{item.title}</Typography>
@@ -144,7 +153,7 @@ const ContactDetailSheet = forwardRef<BottomSheetRef, Props>(
                                                 {new Date(item.date).toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}
                                             </Typography>
                                         </View>
-                                        <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+                                        <HugeiconsIcon icon={ArrowRight01Icon} size={18} color={colors.textMuted} />
                                     </Pressable>
                                 ))}
                             </View>

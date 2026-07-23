@@ -1,5 +1,6 @@
 import { useTheme } from '@/hooks/useTheme';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import { StarIcon } from '@hugeicons/core-free-icons';
 import React from 'react';
 import { Pressable, StyleSheet, View, ViewStyle } from 'react-native';
 
@@ -31,8 +32,8 @@ const Rating: React.FC<RatingProps> = ({
                 disabled={readonly}
                 style={{ padding: 4 }}
             >
-                <Ionicons
-                    name={i <= rating ? 'star' : 'star-outline'}
+                <HugeiconsIcon
+                    icon={StarIcon}
                     size={size}
                     color={i <= rating ? '#FFD700' : colors.textMuted}
                 />

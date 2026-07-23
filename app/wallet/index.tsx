@@ -9,7 +9,16 @@ import { RootState } from '@/store';
 import { useGetCoinPackagesQuery, useGetWalletBalanceQuery, useInitializeFundingMutation, useRequestWithdrawalMutation, useVerifyFundingMutation } from '@/store/api/walletApi';
 import { CoinPackage } from '@/types';
 import { moderateScale } from '@/utils/scaling';
-import { FontAwesome5, Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    ArrowLeft01Icon,
+    Coins02Icon,
+    Diamond02Icon,
+    FlashIcon,
+    Rocket02Icon,
+    StarIcon,
+    Time02Icon
+} from '@hugeicons/core-free-icons';
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
@@ -20,11 +29,11 @@ import { WebView } from 'react-native-webview';
 import { useSelector } from 'react-redux';
 import { toast } from 'sonner-native';
 
-const packageStyles: Record<number, { icon: string; color: string }> = {
-    0: { icon: 'star-outline', color: '#10B981' },
-    1: { icon: 'flash-outline', color: '#3B82F6' },
-    2: { icon: 'diamond-outline', color: '#8B5CF6' },
-    3: { icon: 'rocket-outline', color: '#EF4444' },
+const packageStyles: Record<number, { icon: any; color: string }> = {
+    0: { icon: StarIcon, color: '#10B981' },
+    1: { icon: FlashIcon, color: '#3B82F6' },
+    2: { icon: Diamond02Icon, color: '#8B5CF6' },
+    3: { icon: Rocket02Icon, color: '#EF4444' },
 };
 
 const getPackageStyle = (index: number) => packageStyles[index % 4];
@@ -177,7 +186,7 @@ export default function WalletTopUpScreen() {
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             <View style={[styles.header, { paddingHorizontal: spacing.xl }]}>
                 <Pressable onPress={() => router.back()} style={styles.backBtn}>
-                    <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+                    <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
                 </Pressable>
                 <Typography variant="h3">Top Up Wallet</Typography>
                 <View style={{ width: 40 }} />
@@ -186,7 +195,7 @@ export default function WalletTopUpScreen() {
             {/* Current Balance */}
             <Animated.View entering={FadeInDown.duration(400)} style={[styles.balanceSection, { padding: spacing.xl }]}>
                 <Card style={[styles.balanceCard, { backgroundColor: colors.primary }]}>
-                    <FontAwesome5 name="coins" size={32} color="rgba(255,255,255,0.8)" style={{ marginBottom: 12 }} />
+                    <HugeiconsIcon icon={Coins02Icon} size={32} color="rgba(255,255,255,0.8)" style={{ marginBottom: 12 }} />
                     <Typography variant="caption" color="rgba(255,255,255,0.8)" style={{ textTransform: 'uppercase', letterSpacing: 1 }}>
                         Current Balance
                     </Typography>
@@ -202,7 +211,7 @@ export default function WalletTopUpScreen() {
                 onPress={() => router.push('/wallet/transactions' as any)}
                 style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingBottom: spacing.md }}
             >
-                <Ionicons name="time-outline" size={16} color={colors.primary} />
+                <HugeiconsIcon icon={Time02Icon} size={16} color={colors.primary} />
                 <Typography variant="label" color={colors.primary}>Transaction History →</Typography>
             </Pressable>
 
@@ -245,7 +254,7 @@ export default function WalletTopUpScreen() {
                                         ]}
                                     >
                                         <View style={[styles.iconBox, { backgroundColor: style.color + '1A' }]}>
-                                            <Ionicons name={style.icon as any} size={24} color={style.color} />
+                                            <HugeiconsIcon icon={style.icon} size={24} color={style.color} />
                                         </View>
                                         <View style={{ flex: 1, marginLeft: 16 }}>
                                             <Typography variant="bodyBold">{item.coinAmount} Coins</Typography>

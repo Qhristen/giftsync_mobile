@@ -4,7 +4,8 @@ import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { useGetOrderByIdQuery } from '@/store/api/orderApi';
 import { moderateScale } from '@/utils/scaling';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import { Tick01Icon } from '@hugeicons/core-free-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { ActivityIndicator, Dimensions, StyleSheet, View } from 'react-native';
@@ -36,7 +37,7 @@ export default function ConfirmationScreen() {
                 {/* Animated Success Icon */}
                 <Animated.View entering={BounceIn.delay(300).duration(800)} style={styles.successIconBox}>
                     <View style={[styles.successCircle, { backgroundColor: colors.success + '20' }]}>
-                        <Ionicons name="checkmark-circle" size={100} color={colors.success} />
+                        <HugeiconsIcon icon={Tick01Icon} size={100} color={colors.success} />
                     </View>
                 </Animated.View>
 

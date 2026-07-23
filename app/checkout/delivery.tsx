@@ -12,7 +12,15 @@ import { useCreateOrderMutation } from '@/store/api/orderApi';
 import { useGetProductByIdQuery } from '@/store/api/productApi';
 import { Address } from '@/types';
 import { formatCurrency } from '@/utils/formatCurrency';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    ArrowLeft01Icon,
+    Calendar01Icon,
+    GiftIcon,
+    Location01Icon,
+    Time02Icon,
+    UserIcon
+} from '@hugeicons/core-free-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { addDays, format, startOfDay, subDays } from 'date-fns';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -128,7 +136,7 @@ export default function DeliveryScreen() {
                 {/* Header */}
                 <View style={[styles.header, { padding: spacing.xl, paddingBottom: spacing.md, paddingTop: insets.top }]}>
                     <Pressable onPress={() => router.back()} style={styles.backBtn}>
-                        <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+                        <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
                     </Pressable>
                     <Typography variant="h2">Delivery Details</Typography>
                 </View>
@@ -137,7 +145,7 @@ export default function DeliveryScreen() {
                     {/* Recipient Overview */}
                     <View style={styles.recipientHeader}>
                         <View style={[styles.avatarPlaceholder, { backgroundColor: colors.primary + '10' }]}>
-                            <Ionicons name="person" size={24} color={colors.primary} />
+                            <HugeiconsIcon icon={UserIcon} size={24} color={colors.primary} />
                         </View>
                         <View style={{ flex: 1 }}>
                             <Typography variant="bodyBold">{event?.contact?.name || 'Someone Special'}</Typography>
@@ -154,7 +162,7 @@ export default function DeliveryScreen() {
 
                         <Card variant="outline" style={styles.detailCard}>
                             <View style={styles.cardHeader}>
-                                <Ionicons name="location-outline" size={18} color={colors.textMuted} />
+                                <HugeiconsIcon icon={Location01Icon} size={18} color={colors.textMuted} />
                                 <Typography variant="caption" style={{ fontWeight: 'bold', marginLeft: 8 }}>DELIVERY ADDRESS</Typography>
                             </View>
                             <View style={styles.cardMain}>
@@ -175,7 +183,7 @@ export default function DeliveryScreen() {
                         <View style={styles.row}>
                             <Card variant="outline" style={[styles.detailCard, { flex: 1, marginBottom: 0 }]} onPress={() => setShowDatePicker(true)}>
                                 <View style={styles.cardHeader}>
-                                    <Ionicons name="calendar-outline" size={18} color={colors.textMuted} />
+                                    <HugeiconsIcon icon={Calendar01Icon} size={18} color={colors.textMuted} />
                                     <Typography variant="caption" style={{ fontWeight: 'bold', marginLeft: 8 }}>DATE</Typography>
                                 </View>
                                 <Typography variant="bodyBold" color={colors.primary} style={{ marginTop: 8 }}>
@@ -185,7 +193,7 @@ export default function DeliveryScreen() {
 
                             <Card variant="outline" style={[styles.detailCard, { flex: 1, marginBottom: 0 }]} onPress={() => optionsSheet.open()}>
                                 <View style={styles.cardHeader}>
-                                    <Ionicons name="time-outline" size={18} color={colors.textMuted} />
+                                    <HugeiconsIcon icon={Time02Icon} size={18} color={colors.textMuted} />
                                     <Typography variant="caption" style={{ fontWeight: 'bold', marginLeft: 8 }}>TIME</Typography>
                                 </View>
                                 <Typography variant="bodyBold" color={colors.primary} style={{ marginTop: 8, textTransform: 'capitalize' }}>
@@ -212,7 +220,7 @@ export default function DeliveryScreen() {
 
                         <Card variant="outline" style={styles.packagingCard}>
                             <View style={styles.packagingIcon}>
-                                <Ionicons name="gift-outline" size={24} color={colors.primary} />
+                                <HugeiconsIcon icon={GiftIcon} size={24} color={colors.primary} />
                             </View>
                             <View style={{ flex: 1, marginLeft: 12 }}>
                                 <Typography variant="bodyBold">Premium Packaging</Typography>

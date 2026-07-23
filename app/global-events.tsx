@@ -6,7 +6,8 @@ import { useTheme } from '@/hooks/useTheme';
 import { useGetEventTemplatesQuery } from '@/store/api/event';
 import { spacing } from '@/theme';
 import { EventTemplate } from '@/types';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import { ArrowLeft01Icon, GiftIcon } from '@hugeicons/core-free-icons';
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
@@ -33,7 +34,7 @@ export default function GlobalEventsScreen() {
             <View style={[styles.container, { backgroundColor: colors.background }]}>
                 <View style={styles.header}>
                     <Pressable onPress={() => router.back()} style={styles.backBtn}>
-                        <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+                        <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
                     </Pressable>
                     <Typography variant="h2">Browse Holidays</Typography>
                 </View>
@@ -46,7 +47,7 @@ export default function GlobalEventsScreen() {
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             <View style={styles.header}>
                 <Pressable onPress={() => router.back()} style={styles.backBtn}>
-                    <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+                    <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
                 </Pressable>
                 <Typography variant="h2">Browse Holidays</Typography>
             </View>
@@ -71,7 +72,7 @@ export default function GlobalEventsScreen() {
                             ]}
                         >
                             <View style={[styles.iconContainer, { backgroundColor: colors.primary + '15' }]}>
-                                <Ionicons name="gift-outline" size={28} color={colors.primary} />
+                                <HugeiconsIcon icon={GiftIcon} size={28} color={colors.primary} />
                             </View>
                             <Typography variant="bodyBold" style={{ textAlign: 'center' }} numberOfLines={2}>{item.title}</Typography>
                             <Typography variant="caption" color={colors.textSecondary}>

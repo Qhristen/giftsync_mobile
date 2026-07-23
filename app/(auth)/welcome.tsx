@@ -3,7 +3,18 @@ import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { useGoogleAuthMutation } from '@/store/api/authApi';
 import { moderateScale } from '@/utils/scaling';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    GiftIcon,
+    Calendar01Icon,
+    FavouriteIcon,
+    Comment01Icon,
+    Notification01Icon,
+    UserGroupIcon,
+    CreditCardIcon,
+    Time02Icon,
+    StarIcon
+} from '@hugeicons/core-free-icons';
 import { GoogleSignin, statusCodes, } from '@react-native-google-signin/google-signin';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect } from 'react';
@@ -32,7 +43,7 @@ import { toast } from 'sonner-native';
 interface BubbleProps {
     size: number;
     color: string;
-    icon: any; // Ionicons names
+    icon: any; // Hugeicons component
     delay: number;
     top?: number;
     left?: number;
@@ -86,7 +97,7 @@ const Bubble = ({ size, color, icon, delay, top, left, right, bottom, iconColor 
                 animatedStyle
             ]}
         >
-            <Ionicons name={icon} size={size * 0.5} color={resolvedIconColor} />
+            <HugeiconsIcon icon={icon} size={size * 0.5} color={resolvedIconColor} />
         </Animated.View>
     );
 };
@@ -98,32 +109,32 @@ const BackgroundPattern = () => {
 
     return (
         <View style={StyleSheet.absoluteFill} pointerEvents="none">
-            <Ionicons
-                name="gift-outline"
+            <HugeiconsIcon
+                icon={GiftIcon}
                 size={300}
                 color={patternColor}
                 style={[styles.patternIcon, { top: -50, left: -100, opacity, transform: [{ rotate: '-15deg' }] }]}
             />
-            <Ionicons
-                name="heart-outline"
+            <HugeiconsIcon
+                icon={FavouriteIcon}
                 size={250}
                 color={patternColor}
                 style={[styles.patternIcon, { bottom: 100, right: -80, opacity, transform: [{ rotate: '20deg' }] }]}
             />
-            <Ionicons
-                name="star-outline"
+            <HugeiconsIcon
+                icon={StarIcon}
                 size={180}
                 color={patternColor}
                 style={[styles.patternIcon, { top: '30%', right: -40, opacity, transform: [{ rotate: '45deg' }] }]}
             />
-            <Ionicons
-                name="calendar-outline"
+            <HugeiconsIcon
+                icon={Calendar01Icon}
                 size={220}
                 color={patternColor}
                 style={[styles.patternIcon, { bottom: -60, left: -40, opacity, transform: [{ rotate: '-10deg' }] }]}
             />
-            <Ionicons
-                name="notifications-outline"
+            <HugeiconsIcon
+                icon={Notification01Icon}
                 size={150}
                 color={patternColor}
                 style={[styles.patternIcon, { top: '15%', right: '15%', opacity, transform: [{ rotate: '-20deg' }] }]}
@@ -191,7 +202,7 @@ export default function WelcomeScreen() {
                         <Bubble
                             size={120}
                             color={colors.surface}
-                            icon="gift"
+                            icon={GiftIcon}
                             delay={0}
                             top={0}
                             left={0}
@@ -199,13 +210,13 @@ export default function WelcomeScreen() {
                         />
 
                         {/* Orbiting Bubbles - Using Theme Colors */}
-                        <Bubble size={75} color={colors.accent} icon="calendar" delay={200} top={-90} left={25} />
-                        <Bubble size={55} color={colors.success} icon="heart" delay={400} top={-35} right={-55} />
-                        <Bubble size={65} color={colors.surfaceRaised} icon="chatbubbles" delay={600} right={-90} top={45} />
-                        <Bubble size={50} color={colors.primarySoft} icon="notifications" delay={800} bottom={-35} right={-35} />
-                        <Bubble size={60} color={colors.accent} icon="people" delay={1000} bottom={-85} left={35} />
-                        <Bubble size={70} color={colors.success} icon="card" delay={1200} left={-95} top={35} />
-                        <Bubble size={55} color={colors.primarySoft} icon="time" delay={1400} top={-55} left={-65} />
+                        <Bubble size={75} color={colors.accent} icon={Calendar01Icon} delay={200} top={-90} left={25} />
+                        <Bubble size={55} color={colors.success} icon={FavouriteIcon} delay={400} top={-35} right={-55} />
+                        <Bubble size={65} color={colors.surfaceRaised} icon={Comment01Icon} delay={600} right={-90} top={45} />
+                        <Bubble size={50} color={colors.primarySoft} icon={Notification01Icon} delay={800} bottom={-35} right={-35} />
+                        <Bubble size={60} color={colors.accent} icon={UserGroupIcon} delay={1000} bottom={-85} left={35} />
+                        <Bubble size={70} color={colors.success} icon={CreditCardIcon} delay={1200} left={-95} top={35} />
+                        <Bubble size={55} color={colors.primarySoft} icon={Time02Icon} delay={1400} top={-55} left={-65} />
                     </View>
                 </View>
 

@@ -5,7 +5,15 @@ import { useTheme } from '@/hooks/useTheme';
 import { useGetOrderByIdQuery, useHandlePaymentMutation } from '@/store/api/orderApi';
 import { useGetCoinQuoteQuery, useGetWalletBalanceQuery } from '@/store/api/walletApi';
 import { formatCurrency } from '@/utils/formatCurrency';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    ArrowLeft01Icon,
+    CreditCardIcon,
+    Delete02Icon,
+    Money01Icon,
+    Tag01Icon,
+    Tick01Icon
+} from '@hugeicons/core-free-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -120,7 +128,7 @@ export default function PaymentScreen() {
             {/* Header */}
             <View style={[styles.header, { padding: spacing.xl, paddingBottom: spacing.md }]}>
                 <Pressable onPress={() => router.back()} style={styles.backBtn}>
-                    <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+                    <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
                 </Pressable>
                 <Typography variant="h2">Payment</Typography>
             </View>
@@ -148,14 +156,14 @@ export default function PaymentScreen() {
                     style={[styles.paymentMethodCard, paymentMethod === 'paystack' && { borderColor: colors.primary, borderWidth: 2 }]}
                 >
                     <View style={[styles.methodIcon, { backgroundColor: colors.surfaceRaised }]}>
-                        <Ionicons name="card-outline" size={24} color={colors.primary} />
+                        <HugeiconsIcon icon={CreditCardIcon} size={24} color={colors.primary} />
                     </View>
                     <View style={{ flex: 1 }}>
                         <Typography variant="bodyBold">Debit/Credit Card</Typography>
                         <Typography variant="caption" color={colors.textSecondary}>Secure payment via Paystack</Typography>
                     </View>
                     {paymentMethod === 'paystack' && (
-                        <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
+                        <HugeiconsIcon icon={Tick01Icon} size={24} color={colors.primary} />
                     )}
                 </Card>
 
@@ -166,14 +174,14 @@ export default function PaymentScreen() {
                     style={[styles.paymentMethodCard, { marginTop: spacing.md }, paymentMethod === 'coins' && { borderColor: colors.primary, borderWidth: 2 }]}
                 >
                     <View style={[styles.methodIcon, { backgroundColor: colors.surfaceRaised }]}>
-                        <Ionicons name="cash-outline" size={24} color={colors.success} />
+                        <HugeiconsIcon icon={Money01Icon} size={24} color={colors.success} />
                     </View>
                     <View style={{ flex: 1 }}>
                         <Typography variant="bodyBold">GiftSync Coins</Typography>
                         <Typography variant="caption" color={colors.textSecondary}>Balance: {wallet?.balance.toLocaleString()} Coins</Typography>
                     </View>
                     {paymentMethod === 'coins' && (
-                        <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
+                        <HugeiconsIcon icon={Tick01Icon} size={24} color={colors.primary} />
                     )}
                 </Card>
 
@@ -186,7 +194,7 @@ export default function PaymentScreen() {
                             value={couponCode}
                             onChangeText={setCouponCode}
                             autoCapitalize="characters"
-                            leftIcon={<Ionicons name="pricetag-outline" size={20} color={colors.textSecondary} />}
+                            leftIcon={<HugeiconsIcon icon={Tag01Icon} size={20} color={colors.textSecondary} />}
                             style={{ flex: 1 }}
                         />
                         <Button
@@ -203,7 +211,7 @@ export default function PaymentScreen() {
                     <Card style={[styles.appliedCouponCard, { backgroundColor: colors.success + '0A', borderColor: colors.success, borderWidth: 1, borderStyle: 'dashed' }]}>
                         <View style={styles.couponInfo}>
                             <View style={[styles.couponIconContainer, { backgroundColor: colors.success }]}>
-                                <Ionicons name="checkmark" size={16} color="white" />
+                                <HugeiconsIcon icon={Tick01Icon} size={16} color="white" />
                             </View>
                             <View>
                                 <Typography variant="bodyBold">{appliedCoupon.coupon.code}</Typography>
@@ -216,7 +224,7 @@ export default function PaymentScreen() {
                             onPress={() => { setAppliedCoupon(null); setCouponCode(''); }}
                             style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1, padding: 4 })}
                         >
-                            <Ionicons name="trash-outline" size={20} color={colors.error} />
+                            <HugeiconsIcon icon={Delete02Icon} size={20} color={colors.error} />
                         </Pressable>
                     </Card>
                 )}

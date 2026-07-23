@@ -8,7 +8,16 @@ import { AiChatHistoryItem, useChatMutation } from '@/store/api/aiApi';
 import { useAppSelector } from '@/store/hooks';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { moderateScale } from '@/utils/scaling';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    ArrowLeft01Icon,
+    Calendar01Icon,
+    Cancel01Icon,
+    Copy01Icon,
+    Delete02Icon,
+    SentIcon,
+    SparklesIcon
+} from '@hugeicons/core-free-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Clipboard from 'expo-clipboard';
 import { Image } from 'expo-image';
@@ -254,12 +263,12 @@ export default function AIChatScreen() {
             ]}>
                 <View style={styles.headerLeft}>
                     <Pressable onPress={() => router.back()} style={styles.backBtn}>
-                        <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
+                        <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
                     </Pressable>
 
                     <View style={styles.aiBranding}>
                         <View style={[styles.aiAvatar, { backgroundColor: colors.primary, shadowColor: colors.primary, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 }]}>
-                            <Ionicons name="sparkles" size={18} color="#FFFFFF" />
+                            <HugeiconsIcon icon={SparklesIcon} size={18} color="#FFFFFF" />
                         </View>
                         <View>
                             <Typography variant="bodyBold" style={{ fontSize: moderateScale(16) }}>GiftSync AI</Typography>
@@ -293,7 +302,7 @@ export default function AIChatScreen() {
                         pressed && { opacity: 0.7 }
                     ]}
                 >
-                    <Ionicons name="trash-outline" size={15} color={colors.textSecondary} />
+                    <HugeiconsIcon icon={Delete02Icon} size={15} color={colors.textSecondary} />
                     <Typography variant="caption" color={colors.textSecondary} style={{ fontSize: moderateScale(11) }}>Clear Chat</Typography>
                 </Pressable>
             </View>
@@ -404,7 +413,7 @@ export default function AIChatScreen() {
                                                             <Avatar uri={rec.contact?.avatar} name={rec.contact?.name} size="md" />
                                                         ) : (
                                                             <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary + '20', justifyContent: 'center', alignItems: 'center' }}>
-                                                                <Ionicons name="calendar-outline" size={20} color={colors.primary} />
+                                                                <HugeiconsIcon icon={Calendar01Icon} size={20} color={colors.primary} />
                                                             </View>
                                                         )}
                                                         <View style={styles.gridCardContent}>
@@ -566,8 +575,8 @@ export default function AIChatScreen() {
                             }
                         ]}
                     >
-                        <Ionicons
-                            name="send"
+                        <HugeiconsIcon
+                            icon={SentIcon}
                             size={20}
                             color={messageText.trim() ? '#FFFFFF' : colors.textMuted}
                         />
@@ -605,7 +614,7 @@ export default function AIChatScreen() {
                                 ]}
                                 onPress={handleCopy}
                             >
-                                <Ionicons name="copy-outline" size={18} color={colors.textPrimary} />
+                                <HugeiconsIcon icon={Copy01Icon} size={18} color={colors.textPrimary} />
                                 <Typography variant="body">Copy Text</Typography>
                             </Pressable>
 
@@ -618,7 +627,7 @@ export default function AIChatScreen() {
                                 ]}
                                 onPress={() => setIsOptionsVisible(false)}
                             >
-                                <Ionicons name="close-outline" size={18} color={colors.error} />
+                                <HugeiconsIcon icon={Cancel01Icon} size={18} color={colors.error} />
                                 <Typography variant="body" color={colors.error}>Cancel</Typography>
                             </Pressable>
                         </Animated.View>

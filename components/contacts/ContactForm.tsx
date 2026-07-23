@@ -1,5 +1,6 @@
 import { useTheme } from '@/hooks/useTheme';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import { UserAdd01Icon } from '@hugeicons/core-free-icons';
 import * as Contacts from 'expo-contacts';
 import React, { useState } from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
@@ -150,7 +151,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ onSuccess, initialData, isEdi
                     title="Pick from Phone"
                     variant="outline"
                     onPress={handlePickContact}
-                    leftIcon={<Ionicons name="person-add-outline" size={20} color={colors.primary} />}
+                    leftIcon={<HugeiconsIcon icon={UserAdd01Icon} size={20} color={colors.primary} />}
                 />
 
                 <Input

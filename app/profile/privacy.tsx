@@ -1,6 +1,7 @@
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import { ArrowLeft01Icon, Shield01Icon } from '@hugeicons/core-free-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -49,7 +50,7 @@ export default function PrivacyPolicyScreen() {
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             <View style={[styles.header, { paddingHorizontal: spacing.xl, paddingBottom: spacing.md }]}>
                 <Pressable onPress={() => router.back()} style={styles.backBtn}>
-                    <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+                    <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
                 </Pressable>
             </View>
 
@@ -65,7 +66,7 @@ export default function PrivacyPolicyScreen() {
                         <View key={index} style={styles.section}>
                             <View style={styles.sectionHeader}>
                                 <View style={[styles.iconBox, { backgroundColor: colors.primary + '15' }]}>
-                                    <Ionicons name="shield-checkmark" size={16} color={colors.primary} />
+                                    <HugeiconsIcon icon={Shield01Icon} size={16} color={colors.primary} />
                                 </View>
                                 <Typography variant="h3" style={{ flex: 1 }}>{section.title}</Typography>
                             </View>

@@ -13,7 +13,20 @@ import { useLogoutMutation } from '@/store/api/authApi';
 import { useDeleteAccountMutation } from '@/store/api/userApi';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { logout } from '@/store/slices/authSlice';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    ArrowRight01Icon,
+    Building01Icon,
+    FileValidationIcon,
+    GiftIcon,
+    HelpCircleIcon,
+    InformationCircleIcon,
+    Location01Icon,
+    Moon01Icon,
+    PackageIcon,
+    ShieldKeyIcon,
+    UserEdit01Icon
+} from '@hugeicons/core-free-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -21,7 +34,7 @@ import { toast } from 'sonner-native';
 
 interface SettingItem {
     label: string;
-    icon: string;
+    icon: any;
     onPress: () => void;
     extra?: string;
 }
@@ -35,51 +48,47 @@ export default function ProfileScreen() {
     const router = useRouter();
     const { colors, spacing, scheme } = useTheme();
     const dispatch = useAppDispatch();
+    const user = useAppSelector((state: RootState) => state.auth.user);
+    const [logoutTrigger, { isLoading: isLoggingOut }] = useLogoutMutation();
+    const [deleteAccount, { isLoading: isDeleting }] = useDeleteAccountMutation();
+    const [currency, setCurrency] = useState('USD ($)');
+
+    const addressSheet = useBottomSheet();
     const themeSheet = useBottomSheet();
     const currencySheet = useBottomSheet();
     const logoutSheet = useBottomSheet();
     const deleteUserSheet = useBottomSheet();
-    const addressSheet = useBottomSheet();
-
-    const [deleteAccount, { isLoading: isDeleting }] = useDeleteAccountMutation();
-    const [logoutTrigger, { isLoading: isLoggingOut }] = useLogoutMutation();
-
-    const { user } = useAppSelector((state: RootState) => state.auth);
-    const [currency, setCurrency] = useState('NGN');
 
     const sections: SettingSection[] = [
         {
             title: 'Account',
             items: [
-                { label: 'Edit Profile', icon: 'person-outline', onPress: () => router.push('/profile/edit') },
-                { label: 'Refer & Earn', icon: 'gift-outline', onPress: () => router.push('/profile/referrals') },
-                { label: 'Saved Addresses', icon: 'location-outline', onPress: () => addressSheet.open() },
-                // { label: 'Blocked Users', icon: 'shield-outline', onPress: () => router.push('/profile/blocked') },
+                { label: 'Edit Profile', icon: UserEdit01Icon, onPress: () => router.push('/profile/edit') },
+                { label: 'Refer & Earn', icon: GiftIcon, onPress: () => router.push('/profile/referrals') },
+                { label: 'Saved Addresses', icon: Location01Icon, onPress: () => addressSheet.open() },
             ],
         },
         {
             title: 'Preferences',
             items: [
-                { label: 'Appearance', icon: 'moon-outline', onPress: () => themeSheet.open(), extra: scheme },
-                // { label: 'Notifications', icon: 'notifications-outline', onPress: () => router.push('/notifications') },
-                // { label: 'Currency', icon: 'cash-outline', onPress: () => currencySheet.open(), extra: currency },
+                { label: 'Appearance', icon: Moon01Icon, onPress: () => themeSheet.open(), extra: scheme },
             ],
         },
         {
             title: 'Vendors point',
             items: [
-                { label: 'Business Info', icon: 'business-outline', onPress: () => router.push('/profile/business-info') },
-                ...(user?.business ? [{ label: 'My Products', icon: 'cube-outline', onPress: () => router.push('/profile/my-products') }] : []),
-                ...(user?.business ? [{ label: 'Seller Guide', icon: 'information-circle-outline', onPress: () => router.push('/profile/seller-guide') }] : []),
-                ...(user?.business ? [{ label: 'Seller FAQs', icon: 'help-buoy-outline', onPress: () => router.push('/profile/seller-faqs') }] : []),
+                { label: 'Business Info', icon: Building01Icon, onPress: () => router.push('/profile/business-info') },
+                ...(user?.business ? [{ label: 'My Products', icon: PackageIcon, onPress: () => router.push('/profile/my-products') }] : []),
+                ...(user?.business ? [{ label: 'Seller Guide', icon: InformationCircleIcon, onPress: () => router.push('/profile/seller-guide') }] : []),
+                ...(user?.business ? [{ label: 'Seller FAQs', icon: HelpCircleIcon, onPress: () => router.push('/profile/seller-faqs') }] : []),
             ],
         },
         {
             title: 'Support',
             items: [
-                { label: 'GiftSync Help', icon: 'help-circle-outline', onPress: () => router.push('/profile/help') },
-                { label: 'Terms & Conditions', icon: 'document-text-outline', onPress: () => router.push('/profile/terms') },
-                { label: 'Privacy Policy', icon: 'shield-checkmark-outline', onPress: () => router.push('/profile/privacy') },
+                { label: 'GiftSync Help', icon: HelpCircleIcon, onPress: () => router.push('/profile/help') },
+                { label: 'Terms & Conditions', icon: FileValidationIcon, onPress: () => router.push('/profile/terms') },
+                { label: 'Privacy Policy', icon: ShieldKeyIcon, onPress: () => router.push('/profile/privacy') },
             ],
         },
     ];
@@ -123,7 +132,7 @@ export default function ProfileScreen() {
                                     ]}
                                 >
                                     <View style={[styles.iconBox, { backgroundColor: colors.surfaceRaised }]}>
-                                        <Ionicons name={item.icon as any} size={20} color={colors.primary} />
+                                        <HugeiconsIcon icon={item.icon} size={20} color={colors.primary} />
                                     </View>
                                     <Typography variant="body" style={{ flex: 1 }}>{item.label}</Typography>
                                     {item?.extra && (
@@ -131,7 +140,7 @@ export default function ProfileScreen() {
                                             {item?.extra}
                                         </Typography>
                                     )}
-                                    <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+                                    <HugeiconsIcon icon={ArrowRight01Icon} size={18} color={colors.textMuted} />
                                 </Pressable>
                             ))}
                         </Card>

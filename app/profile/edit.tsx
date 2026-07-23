@@ -8,7 +8,16 @@ import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
 import { useUploadMutation } from '@/store/api/uploadApi';
 import { useGetProfileQuery, useUpdateProfileMutation } from '@/store/api/userApi';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    ArrowLeft01Icon,
+    Camera01Icon,
+    UserIcon,
+    GlobeIcon,
+    Money01Icon,
+    ArrowDown01Icon,
+    PaintBoardIcon
+} from '@hugeicons/core-free-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -80,7 +89,7 @@ export default function EditProfileScreen() {
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={[styles.container, { backgroundColor: colors.surface }]}>
             <View style={[styles.header, { paddingHorizontal: spacing.xl }]}>
                 <Pressable onPress={() => router.back()} style={styles.backBtn}>
-                    <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+                    <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
                 </Pressable>
                 <Typography variant="h3">Edit Profile</Typography>
                 <View style={{ width: 40 }} />
@@ -97,7 +106,7 @@ export default function EditProfileScreen() {
                             onPress={handlePickImage}
                             disabled={isUploadingImage}
                         >
-                            <Ionicons name="camera" size={20} color="#FFF" />
+                            <HugeiconsIcon icon={Camera01Icon} size={20} color="#FFF" />
                         </Pressable>
                     </View>
                 </Animated.View>
@@ -108,7 +117,7 @@ export default function EditProfileScreen() {
                         placeholder="Enter your name"
                         value={name}
                         onChangeText={setName}
-                        leftIcon={<Ionicons name="person-outline" size={20} color={colors.textMuted} />}
+                        leftIcon={<HugeiconsIcon icon={UserIcon} size={20} color={colors.textMuted} />}
                     />
 
                     <Input
@@ -116,7 +125,7 @@ export default function EditProfileScreen() {
                         placeholder="Enter your country"
                         value={country}
                         onChangeText={setCountry}
-                        leftIcon={<Ionicons name="globe-outline" size={20} color={colors.textMuted} />}
+                        leftIcon={<HugeiconsIcon icon={GlobeIcon} size={20} color={colors.textMuted} />}
                     />
 
                     <Pressable onPress={() => currencySheet.open()}>
@@ -125,8 +134,8 @@ export default function EditProfileScreen() {
                                 label="Currency"
                                 placeholder="Select currency"
                                 value={currency}
-                                leftIcon={<Ionicons name="cash-outline" size={20} color={colors.textMuted} />}
-                                rightIcon={<Ionicons name="chevron-down" size={20} color={colors.textMuted} />}
+                                leftIcon={<HugeiconsIcon icon={Money01Icon} size={20} color={colors.textMuted} />}
+                                rightIcon={<HugeiconsIcon icon={ArrowDown01Icon} size={20} color={colors.textMuted} />}
                                 editable={false}
                             />
                         </View>
@@ -138,8 +147,8 @@ export default function EditProfileScreen() {
                                 label="App Theme"
                                 placeholder="Select theme"
                                 value={theme.charAt(0).toUpperCase() + theme.slice(1)}
-                                leftIcon={<Ionicons name="color-palette-outline" size={20} color={colors.textMuted} />}
-                                rightIcon={<Ionicons name="chevron-down" size={20} color={colors.textMuted} />}
+                                leftIcon={<HugeiconsIcon icon={PaintBoardIcon} size={20} color={colors.textMuted} />}
+                                rightIcon={<HugeiconsIcon icon={ArrowDown01Icon} size={20} color={colors.textMuted} />}
                                 editable={false}
                             />
                         </View>

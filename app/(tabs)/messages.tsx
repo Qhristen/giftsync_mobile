@@ -3,7 +3,8 @@ import ConversationListSkeleton from '@/components/skeletons/ConversationListSke
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { useGetConversationsQuery } from '@/store/api/chatApi';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import { RefreshIcon } from '@hugeicons/core-free-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
@@ -33,10 +34,9 @@ export default function MessagesScreen() {
             if (aHasUnread && !bHasUnread) return -1;
             if (!aHasUnread && bHasUnread) return 1;
 
-            // If both have same unread status, sort by date descending
-            const aDate = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
-            const bDate = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
-            return bDate - aDate;
+            const dateA = new Date(a.updatedAt || a.createdAt).getTime();
+            const dateB = new Date(b.updatedAt || b.createdAt).getTime();
+            return dateB - dateA;
         });
     }, [data?.items]);
 
@@ -44,7 +44,7 @@ export default function MessagesScreen() {
         refetch();
     }, [refetch]);
 
-    if (isLoading) {
+    if (isLoading && (!data)) {
         return (
             <View style={[styles.container, { backgroundColor: colors.background }]}>
                 <View style={[styles.header, { paddingHorizontal: spacing.xl, paddingVertical: spacing.md }]}>
@@ -76,8 +76,8 @@ export default function MessagesScreen() {
                         pressed && { opacity: 0.7 }
                     ]}
                 >
-                    <Ionicons
-                        name="refresh"
+                    <HugeiconsIcon
+                        icon={RefreshIcon}
                         size={20}
                         color={isFetching ? colors.primary : colors.textPrimary}
                     />

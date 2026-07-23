@@ -12,7 +12,13 @@ import { Order } from '@/types';
 import { formatDate } from '@/utils/dateUtils';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { moderateScale } from '@/utils/scaling';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    ArrowLeft01Icon,
+    BubbleChatIcon,
+    CreditCardIcon,
+    RefreshIcon
+} from '@hugeicons/core-free-icons';
 import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
@@ -83,7 +89,7 @@ export default function OrderListScreen() {
             <View style={[styles.header, { padding: spacing.xl }]}>
                 <View style={styles.headerTop}>
                     <Pressable onPress={() => router.back()} style={styles.backBtn}>
-                        <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+                        <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
                     </Pressable>
                     <Typography variant="h1">Orders</Typography>
                     <View style={{ flex: 1 }} />
@@ -95,8 +101,8 @@ export default function OrderListScreen() {
                             pressed && { opacity: 0.7 }
                         ]}
                     >
-                        <Ionicons
-                            name="refresh"
+                        <HugeiconsIcon
+                            icon={RefreshIcon}
                             size={20}
                             color={isFetching ? colors.primary : colors.textPrimary}
                         />
@@ -182,7 +188,7 @@ export default function OrderListScreen() {
                                                 onPress={() => router.push({ pathname: '/checkout/payment', params: { orderId: item.id } })}
                                                 style={[styles.cardChatBtn, { backgroundColor: colors.success + '10' }]}
                                             >
-                                                <Ionicons name="card-outline" size={16} color={colors.success} />
+                                                <HugeiconsIcon icon={CreditCardIcon} size={16} color={colors.success} />
                                                 <Typography variant="label" color={colors.success} style={{ fontSize: moderateScale(12) }}>Pay Now</Typography>
                                             </Pressable>
                                         ) : item.conversationId &&
@@ -190,7 +196,7 @@ export default function OrderListScreen() {
                                             onPress={() => handleChat(item.conversationId)}
                                             style={[styles.cardChatBtn, { backgroundColor: colors.primary + '10' }]}
                                         >
-                                            <Ionicons name="chatbubble-ellipses" size={16} color={colors.primary} />
+                                            <HugeiconsIcon icon={BubbleChatIcon} size={16} color={colors.primary} />
                                             <Typography variant="label" color={colors.primary} style={{ fontSize: moderateScale(12) }}>Chat Vendor</Typography>
                                         </Pressable>
                                         }

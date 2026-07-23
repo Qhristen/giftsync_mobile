@@ -1,5 +1,14 @@
 import { useTheme } from '@/hooks/useTheme';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    ArrowDown01Icon,
+    ArrowUp01Icon,
+    Calendar01Icon,
+    FavouriteIcon,
+    GiftIcon,
+    PlusSignCircleIcon,
+    StarIcon,
+} from '@hugeicons/core-free-icons';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, LayoutAnimation, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -31,9 +40,9 @@ interface EventFormProps {
 }
 
 const OCCASION_TYPES = [
-    { value: 'Birthday', label: 'Birthday', icon: 'gift-outline' },
-    { value: 'Anniversary', label: 'Anniversary', icon: 'heart-outline' },
-    { value: 'Custom', label: 'Custom', icon: 'star-outline' },
+    { value: 'Birthday', label: 'Birthday', icon: GiftIcon },
+    { value: 'Anniversary', label: 'Anniversary', icon: FavouriteIcon },
+    { value: 'Custom', label: 'Custom', icon: StarIcon },
 ];
 
 const RECURRENCE_TYPES: { value: 'NONE' | 'WEEKLY' | 'MONTHLY' | 'YEARLY', label: string }[] = [
@@ -281,7 +290,7 @@ const EventForm: React.FC<EventFormProps> = ({
                                         <Typography variant="bodyBold">{contact.name}</Typography>
                                         <Typography variant="caption" color={colors.textSecondary}>{contact.phoneNumber}</Typography>
                                     </View>
-                                    <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
+                                    <HugeiconsIcon icon={PlusSignCircleIcon} size={20} color={colors.primary} />
                                 </Pressable>
                             ))}
                         </Animated.View>
@@ -338,7 +347,7 @@ const EventForm: React.FC<EventFormProps> = ({
                                         selectedType === type.value && { borderColor: colors.primary }
                                     ]}
                                 >
-                                    <Ionicons name={type.icon as any} size={16} color={selectedType === type.value ? "#FFF" : colors.textPrimary} />
+                                    <HugeiconsIcon icon={type.icon} size={16} color={selectedType === type.value ? "#FFF" : colors.textPrimary} />
                                     <Typography variant="caption" color={selectedType === type.value ? "#FFF" : colors.textPrimary}>{type.label}</Typography>
                                 </Pressable>
                             ))}
@@ -360,7 +369,7 @@ const EventForm: React.FC<EventFormProps> = ({
                             <Input
                                 label="Date"
                                 value={date.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
-                                leftIcon={<Ionicons name="calendar-outline" size={20} color={colors.textMuted} />}
+                                leftIcon={<HugeiconsIcon icon={Calendar01Icon} size={20} color={colors.textMuted} />}
                                 isBottomSheet
                             />
                         </View>
@@ -406,7 +415,7 @@ const EventForm: React.FC<EventFormProps> = ({
                     <Typography variant="bodyBold" color={colors.primary}>
                         {isExpanded ? "Hide extra details" : "Add more details (Interests, Notes)"}
                     </Typography>
-                    <Ionicons name={isExpanded ? "chevron-up" : "chevron-down"} size={20} color={colors.primary} />
+                    <HugeiconsIcon icon={isExpanded ? ArrowUp01Icon : ArrowDown01Icon} size={20} color={colors.primary} />
                 </Pressable>
 
                 {isExpanded && (

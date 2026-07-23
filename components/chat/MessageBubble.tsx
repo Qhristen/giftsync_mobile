@@ -1,7 +1,8 @@
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { ChatMessage } from '@/types';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import { Time02Icon, TickDouble02Icon } from '@hugeicons/core-free-icons';
 import { format } from 'date-fns';
 import { Image } from 'expo-image';
 import React from 'react';
@@ -116,8 +117,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isOwnMessage, on
                                 {timeString}
                             </Typography>
                             {isOwnMessage && (
-                                <Ionicons
-                                    name={message.id.startsWith('temp-') ? "time-outline" : "checkmark-done"}
+                                <HugeiconsIcon
+                                    icon={message.id.startsWith('temp-') ? Time02Icon : TickDouble02Icon}
                                     size={14}
                                     color={message.id.startsWith('temp-')
                                         ? 'rgba(255, 255, 255, 0.7)'

@@ -1,6 +1,7 @@
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import { ArrowLeft01Icon, Mail01Icon, TelephoneIcon } from '@hugeicons/core-free-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -52,7 +53,7 @@ export default function HelpCenterScreen() {
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             <View style={[styles.header, { paddingHorizontal: spacing.xl, paddingBottom: spacing.md }]}>
                 <Pressable onPress={() => router.back()} style={styles.backBtn}>
-                    <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+                    <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
                 </Pressable>
             </View>
 
@@ -81,12 +82,12 @@ export default function HelpCenterScreen() {
                         <Typography variant="body" color="#FFFFFF" style={{ opacity: 0.9, marginBottom: 20 }}>Our support team is available 24/7 to assist you.</Typography>
                         
                         <View style={styles.contactRow}>
-                            <Ionicons name="mail" size={20} color="#FFFFFF" />
+                            <HugeiconsIcon icon={Mail01Icon} size={20} color="#FFFFFF" />
                             <Typography variant="bodyMedium" color="#FFFFFF">support@giftsync.app</Typography>
                         </View>
                         
                         <View style={styles.contactRow}>
-                            <Ionicons name="call" size={20} color="#FFFFFF" />
+                            <HugeiconsIcon icon={TelephoneIcon} size={20} color="#FFFFFF" />
                             <Typography variant="bodyMedium" color="#FFFFFF">+234 (0) 800-GIFTSYNC</Typography>
                         </View>
                     </View>

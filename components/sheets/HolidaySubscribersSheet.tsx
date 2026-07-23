@@ -6,7 +6,13 @@ import Typography from '@/components/ui/Typography';
 import { usePlatformConfig } from '@/hooks/usePlatformConfig';
 import { useTheme } from '@/hooks/useTheme';
 import { EventTemplate } from '@/types';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    GiftIcon,
+    Search01Icon,
+    SparklesIcon,
+    Tick01Icon,
+} from '@hugeicons/core-free-icons';
 import { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import * as Contacts from "expo-contacts/legacy";
 import { useRouter } from 'expo-router';
@@ -162,7 +168,7 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
                         backgroundColor: isSelected ? colors.primary : 'transparent'
                     }
                 ]}>
-                    {isSelected && <Ionicons name="checkmark" size={14} color="#FFF" />}
+                    {isSelected && <HugeiconsIcon icon={Tick01Icon} size={14} color="#FFF" />}
                 </View>
             </TouchableOpacity>
         );
@@ -181,7 +187,7 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
                         title={isGenerating ? "Sending..." : `Send Messages (${selectedContactsMap.size}) (${Number(directSmsCost * selectedContactsMap.size).toFixed(1) ?? 0} coins)`}
                         variant="primary"
                         size="md"
-                        leftIcon={isGenerating ? <ActivityIndicator size="small" color="#FFF" /> : <Ionicons name="sparkles" size={18} color="#FFF" />}
+                        leftIcon={isGenerating ? <ActivityIndicator size="small" color="#FFF" /> : <HugeiconsIcon icon={SparklesIcon} size={18} color="#FFF" />}
                         style={{ flex: 1 }}
                         onPress={handleGenerateMessages}
                         disabled={selectedContactsMap.size === 0 || isGenerating}
@@ -204,7 +210,7 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
                             <View>
                                 <View style={[styles.header, { paddingHorizontal: spacing.none, marginTop: spacing.md }]}>
                                     <View style={[styles.iconContainer, { backgroundColor: colors.primary + '15' }]}>
-                                        <Ionicons name="gift-outline" size={32} color={colors.primary} />
+                                        <HugeiconsIcon icon={GiftIcon} size={32} color={colors.primary} />
                                     </View>
                                     <View style={{ flex: 1 }}>
                                         <Typography variant="h2">{holiday.title}</Typography>
@@ -220,7 +226,7 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
                                         value={searchQuery}
                                         onChangeText={handleSearch}
                                         isBottomSheet
-                                        leftIcon={<Ionicons name="search" size={20} color={colors.textSecondary} />}
+                                        leftIcon={<HugeiconsIcon icon={Search01Icon} size={20} color={colors.textSecondary} />}
                                     />
                                 </View>
 
@@ -232,7 +238,7 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
                         ListEmptyComponent={
                             !isLoadingContacts ? (
                                 <View style={styles.emptyState}>
-                                    <Ionicons name="search" size={48} color={colors.textSecondary} style={{ opacity: 0.3 }} />
+                                    <HugeiconsIcon icon={Search01Icon} size={48} color={colors.textSecondary} style={{ opacity: 0.3 }} />
                                     <Typography variant="body" color={colors.textSecondary} align="center">
                                         {searchQuery ? `No contacts found matching "${searchQuery}".` : 'No contacts found.'}
                                     </Typography>

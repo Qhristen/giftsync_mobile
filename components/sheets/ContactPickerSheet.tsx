@@ -1,5 +1,6 @@
 import { useTheme } from '@/hooks/useTheme';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import { Search01Icon } from '@hugeicons/core-free-icons';
 import { forwardRef, useState } from 'react';
 import { Pressable, SectionList, StyleSheet, View } from 'react-native';
 import Avatar from '../ui/Avatar';
@@ -54,7 +55,7 @@ const ContactPickerSheet = forwardRef<BottomSheetRef, Props>(
                     placeholder="Search contacts..."
                     value={searchQuery}
                     onChangeText={setSearchQuery}
-                    leftIcon={<Ionicons name="search" size={20} color={colors.textMuted} />}
+                    leftIcon={<HugeiconsIcon icon={Search01Icon} size={20} color={colors.textMuted} />}
                     style={{ marginBottom: spacing.lg }}
                 />
 
@@ -90,7 +91,7 @@ const ContactPickerSheet = forwardRef<BottomSheetRef, Props>(
                         </View>
                     )}
                     contentContainerStyle={{ paddingBottom: spacing.xl }}
-                    scrollEnabled={false} // SectionList handles its own scroll when used inside BottomSheetScrollView correctly usually, but we are inside BottomSheetWrapper which has Container as BottomSheetScrollView when if scrollable=true. Wait, standard BottomSheet actually provides BottomSheetSectionList.
+                    scrollEnabled={false}
                 />
             </BottomSheetWrapper>
         );

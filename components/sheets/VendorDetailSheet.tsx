@@ -1,6 +1,11 @@
 import { useTheme } from '@/hooks/useTheme';
 import { Business, PaginatedReviewResponse } from '@/types';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    GlobalIcon,
+    InstagramIcon,
+    StarIcon,
+} from '@hugeicons/core-free-icons';
 import { Image } from 'expo-image';
 import React, { forwardRef } from 'react';
 import { ActivityIndicator, Linking, StyleSheet, View } from 'react-native';
@@ -56,14 +61,14 @@ const VendorDetailSheet = forwardRef<BottomSheetRef, Props>(
                             <Typography variant="h2" numberOfLines={2}>{business.name}</Typography>
                             {/* {business.location && (
                                 <View style={styles.infoRow}>
-                                    <Ionicons name="location-outline" size={14} color={colors.textSecondary} />
+                                    <HugeiconsIcon icon={Location01Icon} size={14} color={colors.textSecondary} />
                                     <Typography variant="caption" color={colors.textSecondary} style={{ marginLeft: 4 }}>
                                         {business.location}
                                     </Typography>
                                 </View>
                             )} */}
                             <View style={[styles.infoRow, { marginTop: 6 }]}>
-                                <Ionicons name="star" size={14} color="#FFD700" />
+                                <HugeiconsIcon icon={StarIcon} size={14} color="#FFD700" />
                                 <Typography variant="caption" color={colors.textSecondary} style={{ marginLeft: 4 }}>
                                     {Number(ratingAvg ?? 0).toFixed(1)} · {ratingCount ?? 0} {(ratingCount ?? 0) === 1 ? 'review' : 'reviews'}
                                 </Typography>
@@ -88,7 +93,7 @@ const VendorDetailSheet = forwardRef<BottomSheetRef, Props>(
                                 title="Visit Website"
                                 variant="outline"
                                 style={{ flex: 1 }}
-                                leftIcon={<Ionicons name="globe-outline" size={18} color={colors.primary} style={{ marginRight: 6 }} />}
+                                leftIcon={<HugeiconsIcon icon={GlobalIcon} size={18} color={colors.primary} style={{ marginRight: 6 }} />}
                                 onPress={handleWebsite}
                             />
                         )}
@@ -97,7 +102,7 @@ const VendorDetailSheet = forwardRef<BottomSheetRef, Props>(
                                 title="Instagram"
                                 variant="outline"
                                 style={{ flex: 1 }}
-                                leftIcon={<Ionicons name="logo-instagram" size={18} color={colors.primary} style={{ marginRight: 6 }} />}
+                                leftIcon={<HugeiconsIcon icon={InstagramIcon} size={18} color={colors.primary} style={{ marginRight: 6 }} />}
                                 onPress={handleInstagram}
                             />
                         )}

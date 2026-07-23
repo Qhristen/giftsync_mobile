@@ -1,6 +1,13 @@
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    ArrowLeft01Icon,
+    Camera01Icon,
+    GiftIcon,
+    ListViewIcon,
+    TextSquareIcon
+} from '@hugeicons/core-free-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -13,7 +20,7 @@ export default function SellerGuideScreen() {
     const sections = [
         {
             title: "Steps to Add Your Products",
-            icon: "list-outline",
+            icon: ListViewIcon,
             steps: [
                 "Open your profile and go to 'My Products'.",
                 "Tap the '+' or 'Add Product' button.",
@@ -24,17 +31,17 @@ export default function SellerGuideScreen() {
         },
         {
             title: "Professional Presentation",
-            icon: "camera-outline",
+            icon: Camera01Icon,
             content: "Quality professional product images are essential. They help you market your products properly and build trust with customers. Use bright lighting and clean backgrounds to make your products stand out."
         },
         {
             title: "Safe & Premium Packaging",
-            icon: "gift-outline",
+            icon: GiftIcon,
             content: "Each product must be well-packaged. Proper packaging ensures the product arrives safely and improves the customer's unboxing experience. Consider using bubble wrap or sturdy boxes for fragile items."
         },
         {
             title: "Detailed Information",
-            icon: "text-outline",
+            icon: TextSquareIcon,
             content: "Provide comprehensive product details. Accurate info helps your business market effectively and reduces the likelihood of returns or customer inquiries."
         }
     ];
@@ -43,7 +50,7 @@ export default function SellerGuideScreen() {
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             <View style={[styles.header, { paddingHorizontal: spacing.xl, paddingBottom: spacing.md }]}>
                 <Pressable onPress={() => router.back()} style={styles.backBtn}>
-                    <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+                    <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
                 </Pressable>
             </View>
 
@@ -68,7 +75,7 @@ export default function SellerGuideScreen() {
                         >
                             <View style={styles.sectionHeader}>
                                 <View style={[styles.iconBox, { backgroundColor: colors.primary + '15' }]}>
-                                    <Ionicons name={section.icon as any} size={22} color={colors.primary} />
+                                    <HugeiconsIcon icon={section.icon} size={22} color={colors.primary} />
                                 </View>
                                 <Typography variant="h3">{section.title}</Typography>
                             </View>

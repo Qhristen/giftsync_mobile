@@ -9,7 +9,13 @@ import { useGetProductByIdQuery } from '@/store/api/productApi';
 import { calculateDeliveryStatus } from '@/utils/dateUtils';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { moderateScale } from '@/utils/scaling';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    AlertCircleIcon,
+    ArrowLeft01Icon,
+    Calendar01Icon,
+    Time02Icon
+} from '@hugeicons/core-free-icons';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo } from 'react';
@@ -43,7 +49,7 @@ export default function CheckoutEntry() {
             {/* Header */}
             <View style={[styles.header, { padding: spacing.xl, paddingBottom: spacing.md }]}>
                 <Pressable onPress={() => router.back()} style={styles.backBtn}>
-                    <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+                    <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
                 </Pressable>
                 <Typography variant="h2">Confirm Your Gift</Typography>
             </View>
@@ -76,7 +82,7 @@ export default function CheckoutEntry() {
 
                             <View style={styles.contextRow}>
                                 <View style={[styles.iconBox, { backgroundColor: colors.surfaceRaised }]}>
-                                    <Ionicons name="calendar" size={20} color={colors.primary} />
+                                    <HugeiconsIcon icon={Calendar01Icon} size={20} color={colors.primary} />
                                 </View>
                                 <View style={{ flex: 1 }}>
                                     <Typography variant="bodyMedium" style={{ fontWeight: '600' }}>{event?.title || 'event Date'}</Typography>
@@ -101,8 +107,8 @@ export default function CheckoutEntry() {
                             ]}
                         >
                             <View style={[styles.deliveryIcon, { backgroundColor: deliveryStatus.canArriveOnTime ? colors.success : colors.error }]}>
-                                <Ionicons
-                                    name={deliveryStatus.canArriveOnTime ? "time-outline" : "alert-circle-outline"}
+                                <HugeiconsIcon
+                                    icon={deliveryStatus.canArriveOnTime ? Time02Icon : AlertCircleIcon}
                                     size={20}
                                     color="#FFF"
                                 />

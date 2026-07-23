@@ -7,19 +7,27 @@ import { WalletTransaction } from '@/types';
 import { formatDateString, formatTime } from '@/utils/dateUtils';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { moderateScale } from '@/utils/scaling';
-import { FontAwesome5, Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    ArrowDown01Icon,
+    ArrowLeft01Icon,
+    ArrowUp01Icon,
+    Coins02Icon,
+    Invoice01Icon,
+    RefreshIcon
+} from '@hugeicons/core-free-icons';
 import { useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, SectionList, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
-const TX_ICONS: Record<string, { name: string; color: string; bg: string }> = {
-    purchase: { name: 'arrow-down-circle', color: '#10B981', bg: '#10B98115' },
-    deposit: { name: 'arrow-down-circle', color: '#10B981', bg: '#10B98115' },
-    referral_bonus: { name: 'arrow-down-circle', color: '#10B981', bg: '#10B98115' },
-    spend: { name: 'arrow-up-circle', color: '#EF4444', bg: '#EF444415' },
-    withdrawal: { name: 'arrow-up-circle', color: '#EF4444', bg: '#EF444415' },
-    refund: { name: 'refresh-circle', color: '#3B82F6', bg: '#3B82F615' },
+const TX_ICONS: Record<string, { icon: any; color: string; bg: string }> = {
+    purchase: { icon: ArrowDown01Icon, color: '#10B981', bg: '#10B98115' },
+    deposit: { icon: ArrowDown01Icon, color: '#10B981', bg: '#10B98115' },
+    referral_bonus: { icon: ArrowDown01Icon, color: '#10B981', bg: '#10B98115' },
+    spend: { icon: ArrowUp01Icon, color: '#EF4444', bg: '#EF444415' },
+    withdrawal: { icon: ArrowUp01Icon, color: '#EF4444', bg: '#EF444415' },
+    refund: { icon: RefreshIcon, color: '#3B82F6', bg: '#3B82F615' },
 };
 
 const getTxStyle = (type: string) => TX_ICONS[type] || TX_ICONS.spend;
@@ -73,7 +81,7 @@ export default function WalletTransactionsScreen() {
             <Animated.View entering={FadeInDown.delay(index * 50).duration(300)}>
                 <Card style={[styles.txCard, { backgroundColor: colors.surface, marginHorizontal: spacing.xl }]}>
                     <View style={[styles.txIcon, { backgroundColor: style.bg }]}>
-                        <Ionicons name={style.name as React.ComponentProps<typeof Ionicons>['name']} size={22} color={style.color} />
+                        <HugeiconsIcon icon={style.icon} size={22} color={style.color} />
                     </View>
                     <View style={{ flex: 1 }}>
                         <Typography variant="bodyBold" numberOfLines={1}>{item.description || item.type}</Typography>
@@ -102,7 +110,7 @@ export default function WalletTransactionsScreen() {
             {/* Header */}
             <View style={[styles.header, { paddingHorizontal: spacing.xl, paddingBottom: spacing.md }]}>
                 <Pressable onPress={() => router.back()} style={styles.backBtn}>
-                    <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+                    <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
                 </Pressable>
                 <Typography variant="h3">Transaction History</Typography>
                 <View style={{ width: 40 }} />
@@ -112,7 +120,7 @@ export default function WalletTransactionsScreen() {
             <Animated.View entering={FadeInDown.duration(400)} style={{ paddingHorizontal: spacing.xl, marginBottom: spacing.lg }}>
                 <Card style={[styles.balanceCard, { backgroundColor: colors.primary }]}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                        <FontAwesome5 name="coins" size={28} color="rgba(255,255,255,0.8)" />
+                        <HugeiconsIcon icon={Coins02Icon} size={28} color="rgba(255,255,255,0.8)" />
                         <View>
                             <Typography variant="caption" color="rgba(255,255,255,0.7)" style={{ textTransform: 'uppercase', letterSpacing: 1, fontSize: moderateScale(10) }}>
                                 Current Balance
@@ -157,7 +165,7 @@ export default function WalletTransactionsScreen() {
                     onEndReachedThreshold={0.5}
                     ListEmptyComponent={
                         <View style={{ alignItems: 'center', paddingTop: 60, gap: 12 }}>
-                            <Ionicons name="receipt-outline" size={48} color={colors.textMuted} style={{ opacity: 0.5 }} />
+                            <HugeiconsIcon icon={Invoice01Icon} size={48} color={colors.textMuted} style={{ opacity: 0.5 }} />
                             <Typography variant="body" color={colors.textSecondary} align="center">
                                 No transactions yet.{'\n'}Your coin activity will appear here.
                             </Typography>

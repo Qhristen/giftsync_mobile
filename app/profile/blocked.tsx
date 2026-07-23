@@ -3,7 +3,8 @@ import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { useGetBlockedUsersQuery, useUnblockUserMutation } from '@/store/api/trustSafetyApi';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import { ArrowLeft01Icon, Shield01Icon } from '@hugeicons/core-free-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, View } from 'react-native';
@@ -41,7 +42,7 @@ export default function BlockedUsersScreen() {
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             <View style={[styles.header, { paddingHorizontal: spacing.xl }]}>
                 <Pressable onPress={() => router.back()} style={styles.backBtn}>
-                    <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+                    <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
                 </Pressable>
                 <Typography variant="h3">Blocked Users</Typography>
                 <View style={{ width: 40 }} />
@@ -58,7 +59,7 @@ export default function BlockedUsersScreen() {
                     contentContainerStyle={{ padding: spacing.xl }}
                     ListEmptyComponent={
                         <View style={styles.emptyState}>
-                            <Ionicons name="shield-outline" size={64} color={colors.textMuted} />
+                            <HugeiconsIcon icon={Shield01Icon} size={64} color={colors.textMuted} />
                             <Typography variant="body" color={colors.textSecondary} style={{ marginTop: spacing.md, textAlign: 'center' }}>
                                 You haven't blocked anyone yet.
                             </Typography>

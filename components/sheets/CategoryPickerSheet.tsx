@@ -1,7 +1,19 @@
 import { useTheme } from '@/hooks/useTheme';
 import { useGetCategoriesQuery } from '@/store/api/productApi';
 import { Category } from '@/types';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    AppleIcon,
+    CheckmarkCircle02Icon,
+    DashboardSquare01Icon,
+    Dress01Icon,
+    FlashIcon,
+    GiftIcon,
+    Home01Icon,
+    Search01Icon,
+    SmileIcon,
+    WatchIcon,
+} from '@hugeicons/core-free-icons';
 import React, { forwardRef, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
@@ -26,18 +38,18 @@ const CategoryPickerSheet = forwardRef<BottomSheetRef, CategoryPickerSheetProps>
     }, [categories, searchQuery]);
 
     const getIcon = (name: string) => {
-        const mapping: Record<string, string> = {
-            'Fashion': 'shirt-outline',
-            'Food': 'fast-food-outline',
-            'Drinks': 'beer-outline',
-            'Home': 'home-outline',
-            'Electronics': 'bulb-outline',
-            'Beauty': 'sparkles-outline',
-            'Gadgets': 'watch-outline',
-            'Gift Cards': 'gift-outline',
-            'Others': 'apps-outline',
+        const mapping: Record<string, any> = {
+            'Fashion': Dress01Icon,
+            'Food': AppleIcon,
+            'Drinks': AppleIcon,
+            'Home': Home01Icon,
+            'Electronics': FlashIcon,
+            'Beauty': SmileIcon,
+            'Gadgets': WatchIcon,
+            'Gift Cards': GiftIcon,
+            'Others': DashboardSquare01Icon,
         };
-        return mapping[name] || 'apps-outline';
+        return mapping[name] || DashboardSquare01Icon;
     };
 
     const handleSelect = (category: Category) => {
@@ -58,7 +70,7 @@ const CategoryPickerSheet = forwardRef<BottomSheetRef, CategoryPickerSheetProps>
                 value={searchQuery}
                 onChangeText={setSearchQuery}
                 isBottomSheet
-                leftIcon={<Ionicons name="search-outline" size={20} color={colors.textSecondary} />}
+                leftIcon={<HugeiconsIcon icon={Search01Icon} size={20} color={colors.textSecondary} />}
                 style={{ marginBottom: spacing.lg }}
             />
 
@@ -90,8 +102,8 @@ const CategoryPickerSheet = forwardRef<BottomSheetRef, CategoryPickerSheetProps>
                                 ]}
                             >
                                 <View style={[styles.iconContainer, { backgroundColor: isSelected ? colors.primary : colors.surface }]}>
-                                    <Ionicons
-                                        name={getIcon(category.name) as any}
+                                    <HugeiconsIcon
+                                        icon={getIcon(category.name)}
                                         size={24}
                                         color={isSelected ? '#FFFFFF' : colors.textPrimary}
                                     />
@@ -103,14 +115,14 @@ const CategoryPickerSheet = forwardRef<BottomSheetRef, CategoryPickerSheetProps>
                                     {category.name}
                                 </Typography>
                                 {isSelected && (
-                                    <Ionicons name="checkmark-circle" size={24} color={colors.primary} style={styles.check} />
+                                    <HugeiconsIcon icon={CheckmarkCircle02Icon} size={24} color={colors.primary} style={styles.check} />
                                 )}
                             </Pressable>
                         );
                     })
                 ) : (
                     <View style={styles.empty}>
-                        <Ionicons name="search-outline" size={48} color={colors.textSecondary} style={{ opacity: 0.3, marginBottom: 16 }} />
+                        <HugeiconsIcon icon={Search01Icon} size={48} color={colors.textSecondary} style={{ opacity: 0.3, marginBottom: 16 }} />
                         <Typography variant="bodyMedium" color={colors.textSecondary} style={{ textAlign: 'center' }}>
                             No categories found for "{searchQuery}"
                         </Typography>

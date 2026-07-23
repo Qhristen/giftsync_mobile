@@ -7,7 +7,15 @@ import { useTheme } from '@/hooks/useTheme';
 import { useApplyReferralCodeMutation, useGetReferralInfoQuery, useGetReferralsListQuery } from '@/store/api/referralApi';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { setPendingReferralCode } from '@/store/slices/authSlice';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    ArrowLeft01Icon,
+    CopyIcon,
+    Share01Icon,
+    UserAdd01Icon,
+    UserGroup02Icon,
+    Wallet01Icon
+} from '@hugeicons/core-free-icons';
 import { format } from 'date-fns';
 import * as Clipboard from 'expo-clipboard';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -87,7 +95,7 @@ export default function ReferralsScreen() {
                     variant="ghost"
                     size="sm"
                     onPress={() => router.back()}
-                    leftIcon={<Ionicons name="chevron-back" size={24} color={colors.textPrimary} />}
+                    leftIcon={<HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />}
                 />
                 <Typography variant="h3" style={{ flex: 1, textAlign: 'center', marginRight: 40 }}>Rewards</Typography>
             </View>
@@ -127,19 +135,19 @@ export default function ReferralsScreen() {
                         <Typography variant="h3" style={{ marginBottom: spacing.lg }}>How it works</Typography>
                         <View style={styles.stepsContainer}>
                             <StepItem
-                                icon="share-outline"
+                                icon={Share01Icon}
                                 title="Share Link"
                                 description="Send your code to friends"
                                 step={1}
                             />
                             <StepItem
-                                icon="person-add-outline"
+                                icon={UserAdd01Icon}
                                 title="Friend Joins"
                                 description="They sign up with your code"
                                 step={2}
                             />
                             <StepItem
-                                icon="wallet-outline"
+                                icon={Wallet01Icon}
                                 title="Both Earn"
                                 description="You get 10, they get 5 coins"
                                 step={3}
@@ -155,14 +163,14 @@ export default function ReferralsScreen() {
                             <View style={[styles.codeBox, { backgroundColor: colors.background, borderColor: colors.border }]}>
                                 <Typography variant="h2" style={styles.codeText}>{info?.referralCode || '------'}</Typography>
                                 <Pressable onPress={handleCopy} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
-                                    <Ionicons name="copy-outline" size={24} color={colors.primary} />
+                                    <HugeiconsIcon icon={CopyIcon} size={24} color={colors.primary} />
                                 </Pressable>
                             </View>
                             <Button
                                 title="Invite Friends"
                                 onPress={handleShare}
                                 style={{ marginTop: spacing.lg }}
-                                leftIcon={<Ionicons name="share-social-outline" size={20} color="#FFFFFF" />}
+                                leftIcon={<HugeiconsIcon icon={Share01Icon} size={20} color="#FFFFFF" />}
                             />
                         </Card>
 
@@ -211,7 +219,7 @@ export default function ReferralsScreen() {
                                 ))
                             ) : (
                                 <View style={styles.emptyState}>
-                                    <Ionicons name="people-outline" size={48} color={colors.textMuted} style={{ marginBottom: spacing.sm }} />
+                                    <HugeiconsIcon icon={UserGroup02Icon} size={48} color={colors.textMuted} style={{ marginBottom: spacing.sm }} />
                                     <Typography variant="body" color={colors.textMuted}>No friends joined yet</Typography>
                                 </View>
                             )}
@@ -223,13 +231,13 @@ export default function ReferralsScreen() {
     );
 }
 
-function StepItem({ icon, title, description, step, isLast }: { icon: string, title: string, description: string, step: number, isLast?: boolean }) {
+function StepItem({ icon, title, description, step, isLast }: { icon: any, title: string, description: string, step: number, isLast?: boolean }) {
     const { colors, spacing } = useTheme();
     return (
         <View style={styles.stepItem}>
             <View style={styles.stepLeft}>
                 <View style={[styles.stepIcon, { backgroundColor: colors.primary + '10' }]}>
-                    <Ionicons name={icon as any} size={22} color={colors.primary} />
+                    <HugeiconsIcon icon={icon} size={22} color={colors.primary} />
                 </View>
                 {!isLast && <View style={[styles.stepLine, { backgroundColor: colors.border }]} />}
             </View>

@@ -4,7 +4,8 @@ import ProgressBar from '@/components/ui/ProgressBar';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { nextStep } from '@/store/slices/onboardingSlice';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import { UserGroupIcon, Tick01Icon } from '@hugeicons/core-free-icons';
 import * as Contacts from 'expo-contacts';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -83,7 +84,7 @@ export default function OnboardingStep2() {
             {permissionGranted === null || !permissionGranted ? (
                 <View style={[styles.permissionContent, { padding: spacing.xl }]}>
                     <View style={styles.illustration}>
-                        <Ionicons name="people-circle" size={120} color={colors.primary} />
+                        <HugeiconsIcon icon={UserGroupIcon} size={120} color={colors.primary} />
                     </View>
                     <Typography variant="h3" align="center" style={{ marginBottom: spacing.sm }}>
                         GiftSync works better with friends.
@@ -113,7 +114,7 @@ export default function OnboardingStep2() {
                                 </Typography>
                             </View>
                             <View style={[styles.checkbox, { borderColor: item.selected ? colors.primary : colors.border, backgroundColor: item.selected ? colors.primary : 'transparent' }]}>
-                                {item.selected && <Ionicons name="checkmark" size={16} color="#FFFFFF" />}
+                                {item.selected && <HugeiconsIcon icon={Tick01Icon} size={16} color="#FFFFFF" />}
                             </View>
                         </Pressable>
                     )}

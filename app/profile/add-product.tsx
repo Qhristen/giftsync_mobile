@@ -11,7 +11,16 @@ import { useCreateProductMutation, useUpdateProductMutation } from '@/store/api/
 import { useUploadMutation } from '@/store/api/uploadApi';
 import { CreateProductDto } from '@/types';
 import { formatInputNumber, getCurrencySymbol, parseCurrencyInput } from '@/utils/formatCurrency';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    ArrowLeft01Icon,
+    ArrowDown01Icon,
+    Camera01Icon,
+    Cancel01Icon,
+    Add01Icon,
+    ToggleOffIcon,
+    ToggleOnIcon
+} from '@hugeicons/core-free-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -183,7 +192,7 @@ export default function AddProductScreen() {
             <KeyboardAvoidingView behavior='padding' style={{ flex: 1 }}>
                 <View style={[styles.header, { borderBottomColor: colors.border + '33' }]}>
                     <Pressable onPress={() => router.back()} style={styles.backButton}>
-                        <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+                        <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
                     </Pressable>
                     <Typography variant="h3">{isEditing ? 'Edit Product' : 'Add Product'}</Typography>
                     <Pressable onPress={handleSave} disabled={isSubmitting || isUploading}>
@@ -213,12 +222,12 @@ export default function AddProductScreen() {
                                     }))}
                                     style={styles.removeImageBtn}
                                 >
-                                    <Ionicons name="close-circle" size={24} color={colors.error} />
+                                    <HugeiconsIcon icon={Cancel01Icon} size={24} color={colors.error} />
                                 </Pressable>
                             </View>
                         ))}
                         <Pressable onPress={addImage} style={[styles.addImageBtn, { borderColor: colors.border, backgroundColor: colors.surfaceRaised }]}>
-                            <Ionicons name="camera-outline" size={32} color={colors.textSecondary} />
+                            <HugeiconsIcon icon={Camera01Icon} size={32} color={colors.textSecondary} />
                             <Typography variant="caption" color={colors.textSecondary}>Add Image</Typography>
                         </Pressable>
                     </ScrollView>
@@ -245,7 +254,7 @@ export default function AddProductScreen() {
                                     placeholder="Select a category"
                                     value={params.categoryName as string || ""}
                                     editable={false}
-                                    rightIcon={<Ionicons name="chevron-down" size={20} color={colors.textSecondary} />}
+                                    rightIcon={<HugeiconsIcon icon={ArrowDown01Icon} size={20} color={colors.textSecondary} />}
                                 />
                             </View>
                         </Pressable>
@@ -255,7 +264,7 @@ export default function AddProductScreen() {
                                     label="Currency"
                                     value={formData.currency ?? ""}
                                     editable={false}
-                                    rightIcon={<Ionicons name="chevron-down" size={20} color={colors.textSecondary} />}
+                                    rightIcon={<HugeiconsIcon icon={ArrowDown01Icon} size={20} color={colors.textSecondary} />}
                                 />
                             </View>
                         </Pressable>
@@ -321,7 +330,7 @@ export default function AddProductScreen() {
                                 // blurOnSubmit={false}
                                 rightIcon={
                                     <Pressable onPress={() => addTag()} hitSlop={10}>
-                                        <Ionicons name="add-circle" size={24} color={colors.primary} />
+                                        <HugeiconsIcon icon={Add01Icon} size={24} color={colors.primary} />
                                     </Pressable>
                                 }
                             />
@@ -330,7 +339,7 @@ export default function AddProductScreen() {
                                     <View key={idx} style={[styles.tagChip, { backgroundColor: colors.primary + '10' }]}>
                                         <Typography variant="caption" color={colors.primary} style={{ textTransform: 'lowercase' }}>{tag}</Typography>
                                         <Pressable onPress={() => removeTag(tag)} hitSlop={5}>
-                                            <Ionicons name="close-circle" size={16} color={colors.primary} />
+                                            <HugeiconsIcon icon={Cancel01Icon} size={16} color={colors.primary} />
                                         </Pressable>
                                     </View>
                                 ))}
@@ -343,8 +352,8 @@ export default function AddProductScreen() {
                             <Pressable
                                 onPress={() => setFormData({ ...formData, isAvailable: !formData.isAvailable })}
                             >
-                                <Ionicons
-                                    name={formData.isAvailable ? "toggle" : "toggle-outline"}
+                                <HugeiconsIcon
+                                    icon={formData.isAvailable ? ToggleOnIcon : ToggleOffIcon}
                                     size={40}
                                     color={formData.isAvailable ? colors.primary : colors.textMuted}
                                 />

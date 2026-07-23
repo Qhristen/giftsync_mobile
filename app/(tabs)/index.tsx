@@ -11,7 +11,18 @@ import { useGetRecommendationsV2Query } from '@/store/api/productApi';
 import { useGetProfileQuery } from '@/store/api/userApi';
 import { getCountdown } from '@/utils/dateUtils';
 import { formatCurrency } from '@/utils/formatCurrency';
-import { FontAwesome5, Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    Calendar01Icon,
+    Clock01Icon,
+    Coins01Icon,
+    FavouriteIcon,
+    GiftIcon,
+    Notification01Icon,
+    SparklesIcon,
+    StarIcon,
+    Task01Icon
+} from '@hugeicons/core-free-icons';
 import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
@@ -64,7 +75,7 @@ export default function HomeScreen() {
                         style={[styles.iconBtn, { backgroundColor: colors.surface }]}
                         onPress={() => router.push('/notifications')}
                     >
-                        <Ionicons name="notifications-outline" size={24} color={colors.textPrimary} />
+                        <HugeiconsIcon icon={Notification01Icon} size={24} color={colors.textPrimary} />
                         {unreadCount && unreadCount.count > 0 && (
                             <View style={[styles.badge, { backgroundColor: colors.primary }]} />
                         )}
@@ -104,9 +115,9 @@ export default function HomeScreen() {
                                         <View pointerEvents="none" style={[StyleSheet.absoluteFill, { overflow: 'hidden', borderRadius: 24 }]}>
                                             <View style={{ flexDirection: 'row', flexWrap: 'wrap', opacity: 0.02, width: '150%', height: '150%', top: '-25%', left: '-25%', transform: [{ rotate: '-15deg' }], justifyContent: 'center', alignItems: 'center' }}>
                                                 {Array.from({ length: 80 }).map((_, i) => (
-                                                    <Ionicons
+                                                    <HugeiconsIcon
                                                         key={i}
-                                                        name={i % 4 === 0 ? "gift" : i % 4 === 1 ? "star" : i % 4 === 2 ? "heart" : "sparkles"}
+                                                        icon={i % 4 === 0 ? GiftIcon : i % 4 === 1 ? StarIcon : i % 4 === 2 ? FavouriteIcon : SparklesIcon}
                                                         size={20}
                                                         color={colors.textPrimary}
                                                         style={{ margin: 16 }}
@@ -118,7 +129,6 @@ export default function HomeScreen() {
                                         <View style={[styles.heroHeader, { zIndex: 1 }]}>
                                             {item.contacts && item.contacts.length > 1 ? (
                                                 <>
-                                                    {/* Stacked avatars for multiple contacts */}
                                                     <View style={styles.stackedAvatars}>
                                                         {item.contacts.slice(0, 3).map((c, idx) => (
                                                             <View
@@ -148,35 +158,44 @@ export default function HomeScreen() {
                                                             })()}
                                                         </Typography>
                                                         <Typography variant="label" color={colors.textSecondaryForeground} style={{ opacity: 0.9 }}>
-                                                            {item.contacts.length} {item.contacts.length === 1 ? 'person' : `events ${getCountdown(item.date)}`}
+                                                            {item.title}
                                                         </Typography>
                                                     </View>
                                                 </>
                                             ) : (
                                                 <>
-                                                    <Avatar uri={item.contact?.avatar ?? item.contacts?.[0]?.avatar} name={item.contact?.name ?? item.contacts?.[0]?.name} size="lg" />
-                                                    <View>
-                                                        <Typography variant="h3" color={colors.textPrimary}>{item.contact?.name ?? item.contacts?.[0]?.name}</Typography>
-                                                        <Typography variant="body" color={colors.textSecondaryForeground} style={{ opacity: 0.9 }}>{item.title}</Typography>
+                                                    <Avatar uri={item.contact?.avatar} name={item.contact?.name} size={48} />
+                                                    <View style={{ flex: 1 }}>
+                                                        <Typography variant="h3" color={colors.textPrimary} numberOfLines={1}>
+                                                            {item.contact?.name || item.title}
+                                                        </Typography>
+                                                        <Typography variant="label" color={colors.textSecondaryForeground} style={{ opacity: 0.9 }}>
+                                                            {item.title}
+                                                        </Typography>
                                                     </View>
                                                 </>
                                             )}
                                         </View>
-                                        <View style={[styles.heroFooter, { zIndex: 1 }]}>
-                                            <Typography variant="h2" color={colors.textPrimary}>{getCountdown(item.date)}</Typography>
+
+                                        <View style={styles.heroFooter}>
+                                            <View style={[styles.badgeContainer, { backgroundColor: colors.primary + '15' }]}>
+                                                <Typography variant="caption" color={colors.primary} style={{ fontWeight: '700' }}>
+                                                    {getCountdown(item.date)}
+                                                </Typography>
+                                            </View>
+
                                             <Button
-                                                title="Get a Gift →"
-                                                variant="secondary"
+                                                title="Find Gift"
                                                 size="sm"
-                                                onPress={() => router.push({
-                                                    pathname: '/(tabs)/shop',
-                                                })}
+                                                onPress={() => router.push({ pathname: '/(tabs)/shop', params: { occasion: item.title, recipient: item.contact?.name } })}
                                             />
                                         </View>
                                     </Card>
                                 </View>
                             )}
                         />
+
+                        {/* Carousel Indicators */}
                         {upcoming.length > 1 && (
                             <View style={styles.pagination}>
                                 {upcoming.map((_, i) => (
@@ -184,10 +203,8 @@ export default function HomeScreen() {
                                         key={i}
                                         style={[
                                             styles.dot,
-                                            {
-                                                backgroundColor: i === activeIndex ? colors.primary : colors.border,
-                                                width: i === activeIndex ? 16 : 6,
-                                            },
+                                            { backgroundColor: i === activeIndex ? colors.primary : colors.border },
+                                            i === activeIndex && styles.activeDot,
                                         ]}
                                     />
                                 ))}
@@ -199,7 +216,7 @@ export default function HomeScreen() {
                         <Card variant="elevated" style={[styles.onboardingCard, { backgroundColor: colors.surfaceRaised }]}>
                             <View style={styles.onboardingContent}>
                                 <View style={[styles.onboardingIcon, { backgroundColor: colors.primary + '15' }]}>
-                                    <Ionicons name="gift-outline" size={32} color={colors.primary} />
+                                    <HugeiconsIcon icon={GiftIcon} size={32} color={colors.primary} />
                                 </View>
                                 <View style={{ flex: 1, gap: 4 }}>
                                     <Typography variant="h3">Never miss a moment</Typography>
@@ -220,10 +237,10 @@ export default function HomeScreen() {
                 {/* Quick Actions */}
                 <Animated.View entering={FadeInDown.duration(300)} style={[styles.quickActions, { padding: spacing.xl }]}>
                     {[
-                        { label: 'AI Chat', icon: 'sparkles-outline', route: '/ai-chat' },
-                        { label: 'Browse Holidays', icon: 'gift-outline', route: '/global-events' },
-                        { label: 'View Orders', icon: 'list-outline', route: '/orders' },
-                        { label: 'Coins', icon: 'coins', route: '/wallet' }
+                        { label: 'AI Chat', icon: SparklesIcon, route: '/ai-chat' },
+                        { label: 'Browse Holidays', icon: GiftIcon, route: '/global-events' },
+                        { label: 'View Orders', icon: Task01Icon, route: '/orders' },
+                        { label: 'Coins', icon: Coins01Icon, route: '/wallet' }
                     ].map((act, idx) => (
                         <Pressable
                             key={idx}
@@ -233,11 +250,7 @@ export default function HomeScreen() {
                             }}
                         >
                             <View style={[styles.actionIcon, { backgroundColor: colors.surface }]}>
-                                {act.icon === 'coins' ? (
-                                    <FontAwesome5 name="coins" size={22} color={colors.primary} />
-                                ) : (
-                                    <Ionicons name={act.icon as any} size={24} color={colors.primary} />
-                                )}
+                                <HugeiconsIcon icon={act.icon} size={24} color={colors.primary} />
                             </View>
                             <Typography variant="caption" color={colors.textSecondary} align="center">{act.label}</Typography>
                         </Pressable>
@@ -280,7 +293,7 @@ export default function HomeScreen() {
                                         <View style={styles.recFooter}>
                                             <Typography variant="label" color={colors.primary}>{formatCurrency(item.price, item.currency)}</Typography>
                                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                                                <Ionicons name="time-outline" size={14} color={colors.success} />
+                                                <HugeiconsIcon icon={Clock01Icon} size={14} color={colors.success} />
                                                 <Typography variant="caption" color={colors.success}>{item.deliveryDays}d</Typography>
                                             </View>
                                         </View>
@@ -296,7 +309,7 @@ export default function HomeScreen() {
                         />
                     ) : (
                         <View style={{ paddingHorizontal: spacing.xl, paddingVertical: spacing.xl, alignItems: 'center', gap: 12 }}>
-                            <Ionicons name="sparkles-outline" size={32} color={colors.textSecondary} style={{ opacity: 0.5 }} />
+                            <HugeiconsIcon icon={SparklesIcon} size={32} color={colors.textSecondary} style={{ opacity: 0.5 }} />
                             <Typography variant="body" color={colors.textSecondary} align="center">
                                 Once you add an event, we'll suggest the perfect gifts right here.
                             </Typography>
@@ -433,5 +446,13 @@ const styles = StyleSheet.create({
     dot: {
         height: 4,
         borderRadius: 2,
+    },
+    activeDot: {
+        width: 12,
+    },
+    badgeContainer: {
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 12,
     },
 });

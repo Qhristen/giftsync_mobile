@@ -10,7 +10,8 @@ import { RootState } from '@/store';
 import { useDeleteProductMutation, useGetProductsByBusinessQuery, useUpdateProductMutation } from '@/store/api/productApi';
 import { Product } from '@/types';
 import { formatCurrency } from '@/utils/formatCurrency';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import { ArrowLeft01Icon, PlusSignIcon } from '@hugeicons/core-free-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, Switch, View } from 'react-native';
@@ -149,7 +150,7 @@ export default function MyProductsScreen() {
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             <View style={[styles.header, { borderBottomColor: colors.border + '33' }]}>
                 <Pressable onPress={() => router.back()} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+                    <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
                 </Pressable>
                 <Typography variant="h3">My Products</Typography>
                 <Pressable onPress={() => router.push('/profile/add-product')}>
@@ -214,7 +215,7 @@ export default function MyProductsScreen() {
                     }
                 ]}
             >
-                <Ionicons name="add" size={24} color="#FFF" />
+                <HugeiconsIcon icon={PlusSignIcon} size={24} color="#FFF" />
                 <Typography variant="bodyBold" color="#FFF">Add Product</Typography>
             </Pressable>
         </View>

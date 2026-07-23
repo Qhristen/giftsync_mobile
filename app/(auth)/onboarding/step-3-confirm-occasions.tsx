@@ -5,7 +5,8 @@ import ProgressBar from '@/components/ui/ProgressBar';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { nextStep } from '@/store/slices/onboardingSlice';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import { CancelCircleIcon } from '@hugeicons/core-free-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -65,7 +66,7 @@ export default function OnboardingStep3() {
                                 <Typography variant="caption" color={colors.textSecondary}>{o.type} • {o.date}</Typography>
                             </View>
                             <Pressable onPress={() => removeEvent(o.id)} style={styles.removeBtn}>
-                                <Ionicons name="close-circle" size={24} color={colors.textMuted} />
+                                <HugeiconsIcon icon={CancelCircleIcon} size={24} color={colors.textMuted} />
                             </Pressable>
                         </Card>
                     ))}

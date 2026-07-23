@@ -3,7 +3,14 @@ import { useGetUnreadCountQuery as useGetChatUnreadCountQuery } from '@/store/ap
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectUnreadCount, setUnreadCount } from '@/store/slices/chatSlice';
 import { moderateScale } from '@/utils/scaling';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+  Calendar01Icon,
+  Comment01Icon,
+  GiftIcon,
+  Home01Icon,
+  UserIcon
+} from '@hugeicons/core-free-icons';
 import { Tabs } from 'expo-router';
 import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -52,8 +59,8 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'home' : 'home-outline'} size={24} color={color} />
+          tabBarIcon: ({ color }) => (
+            <HugeiconsIcon icon={Home01Icon} size={24} color={color} />
           ),
         }}
       />
@@ -62,8 +69,8 @@ export default function TabLayout() {
         name="shop/index"
         options={{
           title: 'Shop',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'gift' : 'gift-outline'} size={24} color={color} />
+          tabBarIcon: ({ color }) => (
+            <HugeiconsIcon icon={GiftIcon} size={24} color={color} />
           ),
         }}
       />
@@ -71,8 +78,8 @@ export default function TabLayout() {
         name="events/index"
         options={{
           title: 'Events',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'calendar' : 'calendar-outline'} size={24} color={color} />
+          tabBarIcon: ({ color }) => (
+            <HugeiconsIcon icon={Calendar01Icon} size={24} color={color} />
           ),
         }}
       />
@@ -80,9 +87,9 @@ export default function TabLayout() {
         name="messages"
         options={{
           title: 'Messages',
-          tabBarIcon: ({ color, focused }) => (
+          tabBarIcon: ({ color }) => (
             <View>
-              <Ionicons name={focused ? 'chatbubble' : 'chatbubble-outline'} size={24} color={color} />
+              <HugeiconsIcon icon={Comment01Icon} size={24} color={color} />
               {hasUnreadMessages && (
                 <View
                   style={[
@@ -99,8 +106,8 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: 'Me',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'person' : 'person-outline'} size={24} color={color} />
+          tabBarIcon: ({ color }) => (
+            <HugeiconsIcon icon={UserIcon} size={24} color={color} />
           ),
         }}
       />

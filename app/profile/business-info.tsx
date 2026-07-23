@@ -5,7 +5,18 @@ import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { useCreateBusinessMutation, useGetBusinessQuery, useUpdateBusinessMutation } from '@/store/api/businessApi';
 import { useUploadMutation } from '@/store/api/uploadApi';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    ArrowLeft01Icon,
+    CheckmarkCircle01Icon,
+    Alert01Icon,
+    Building04Icon,
+    LegalDocument01Icon,
+    Wallet01Icon,
+    Search01Icon,
+    Tick01Icon,
+    ArrowDown01Icon
+} from '@hugeicons/core-free-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
@@ -185,20 +196,20 @@ export default function BusinessInfoScreen() {
         bank.name.toLowerCase().includes(bankSearch.toLowerCase())
     );
 
-    const InfoSection = ({ title, children, icon }: { title: string, children: React.ReactNode, icon?: string }) => (
+    const InfoSection = ({ title, children, icon }: { title: string, children: React.ReactNode, icon?: any }) => (
         <View style={styles.section}>
             <View style={styles.sectionHeader}>
-                {icon && <Ionicons name={icon as any} size={20} color={colors.primary} />}
+                {icon && <HugeiconsIcon icon={icon} size={20} color={colors.primary} />}
                 <Typography variant="h4" style={{ fontWeight: '700' }}>{title}</Typography>
             </View>
             <View style={styles.sectionContent}>{children}</View>
         </View>
     );
 
-    const DetailItem = ({ label, value, icon }: { label: string, value: string | boolean | undefined, icon?: string }) => (
+    const DetailItem = ({ label, value, icon }: { label: string, value: string | boolean | undefined, icon?: any }) => (
         <View style={styles.detailItem}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                {icon && <Ionicons name={icon as any} size={14} color={colors.textSecondary} />}
+                {icon && <HugeiconsIcon icon={icon} size={14} color={colors.textSecondary} />}
                 <Typography variant="label" color={colors.textSecondary}>{label}</Typography>
             </View>
             <Typography variant="body" style={{ fontWeight: '500' }}>
@@ -214,7 +225,7 @@ export default function BusinessInfoScreen() {
             <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1 }}>
                 <View style={[styles.header, { borderBottomColor: colors.border + '33' }]}>
                     <Pressable onPress={() => router.back()} style={styles.backButton}>
-                        <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+                        <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
                     </Pressable>
                     <Typography variant="h3">{business ? (isEditing ? 'Edit Business' : 'Business Info') : 'Setup Business'}</Typography>
                     <Pressable onPress={() => setIsEditing(!isEditing)} style={styles.editButton}>
@@ -235,14 +246,14 @@ export default function BusinessInfoScreen() {
                 <ScrollView contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
                     {business && (formData.isVerified ? (
                         <View style={[styles.banner, { backgroundColor: colors.success + '10', borderColor: colors.success + '20' }]}>
-                            <Ionicons name="checkmark-circle" size={20} color={colors.success} />
+                            <HugeiconsIcon icon={CheckmarkCircle01Icon} size={20} color={colors.success} />
                             <Typography variant="body" color={colors.success} style={{ flex: 1, fontWeight: '600' }}>
                                 Verified Business
                             </Typography>
                         </View>
                     ) : (
                         <View style={[styles.banner, { backgroundColor: colors.accent + '10', borderColor: colors.accent + '20' }]}>
-                            <Ionicons name="alert-circle" size={20} color={colors.accent} />
+                            <HugeiconsIcon icon={Alert01Icon} size={20} color={colors.accent} />
                             <Typography variant="body" color={colors.accent} style={{ flex: 1 }}>
                                 Your business is not verified yet. Get verified to reach more customers.
                             </Typography>
@@ -268,7 +279,7 @@ export default function BusinessInfoScreen() {
                     </View>
 
                     <View style={{ paddingHorizontal: spacing.xl }}>
-                        <InfoSection title="Basic Information" icon="business-outline">
+                        <InfoSection title="Basic Information" icon={Building04Icon}>
                             {showForm ? (
                                 <>
                                     <Input
@@ -322,7 +333,7 @@ export default function BusinessInfoScreen() {
                             )}
                         </InfoSection>
 
-                        <InfoSection title="Legal & Registration" icon="document-text-outline">
+                        <InfoSection title="Legal & Registration" icon={LegalDocument01Icon}>
                             {showForm ? (
                                 <>
                                     <View style={[styles.toggleRow, { backgroundColor: colors.surfaceRaised }]}>
@@ -365,7 +376,7 @@ export default function BusinessInfoScreen() {
                             )}
                         </InfoSection>
 
-                        <InfoSection title="Financial Details" icon="wallet-outline">
+                        <InfoSection title="Financial Details" icon={Wallet01Icon}>
                             {showForm ? (
                                 <>
                                     <Pressable onPress={() => bankSheetRef.current?.present()}>
@@ -375,7 +386,7 @@ export default function BusinessInfoScreen() {
                                                 value={formData.bankName}
                                                 placeholder="Select your bank"
                                                 editable={false}
-                                                rightIcon={<Ionicons name="chevron-down" size={20} color={colors.textSecondary} />}
+                                                rightIcon={<HugeiconsIcon icon={ArrowDown01Icon} size={20} color={colors.textSecondary} />}
                                             />
                                         </View>
                                     </Pressable>
@@ -405,7 +416,7 @@ export default function BusinessInfoScreen() {
                                     />
                                     {isAccountVerified && (
                                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: -8 }}>
-                                            <Ionicons name="checkmark-circle" size={16} color={colors.success} />
+                                            <HugeiconsIcon icon={CheckmarkCircle01Icon} size={16} color={colors.success} />
                                             <Typography variant="label" color={colors.success}>Account verified</Typography>
                                         </View>
                                     )}
@@ -445,7 +456,7 @@ export default function BusinessInfoScreen() {
                         value={bankSearch}
                         onChangeText={setBankSearch}
                         isBottomSheet={true}
-                        leftIcon={<Ionicons name="search" size={20} color={colors.textSecondary} />}
+                        leftIcon={<HugeiconsIcon icon={Search01Icon} size={20} color={colors.textSecondary} />}
                     />
 
                     {isLoadingBanks ? (
@@ -470,7 +481,7 @@ export default function BusinessInfoScreen() {
                                 >
                                     <Typography variant="body">{bank.name}</Typography>
                                     {formData.bankName === bank.name && (
-                                        <Ionicons name="checkmark" size={20} color={colors.primary} />
+                                        <HugeiconsIcon icon={Tick01Icon} size={20} color={colors.primary} />
                                     )}
                                 </Pressable>
                             ))}

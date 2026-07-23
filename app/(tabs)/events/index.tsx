@@ -16,8 +16,30 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useGetMonthlyEventsQuery, useGetUpcomingEventsQuery } from '@/store/api/event';
 import { spacing } from '@/theme';
 import { Contact, Event } from '@/types';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    Add01Icon,
+    Calendar01Icon,
+    CourseIcon,
+    FavouriteIcon,
+    GiftIcon,
+    SmileIcon,
+    SparklesIcon
+} from '@hugeicons/core-free-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+
+const getEventIcon = (title?: string) => {
+    if (!title) return GiftIcon;
+    const lower = title.toLowerCase();
+    if (lower.includes('birthday')) return GiftIcon;
+    if (lower.includes('anniversary') || lower.includes('wedding') || lower.includes('valentine')) return FavouriteIcon;
+    if (lower.includes('graduat')) return CourseIcon;
+    if (lower.includes('baby')) return SmileIcon;
+    if (lower.includes('holiday') || lower.includes('christmas') || lower.includes('party')) return SparklesIcon;
+    return Calendar01Icon;
+};
+
+
 
 export default function EventsScreen() {
     const router = useRouter();
@@ -199,10 +221,12 @@ export default function EventsScreen() {
                                             pressed && { opacity: 0.7, transform: [{ scale: 0.98 }] },
                                         ]}
                                     >
-                                        <Avatar uri={item.contact?.avatar} name={item.contact?.name} size="md" />
+                                        <View style={[styles.iconContainer]}>
+                                            <HugeiconsIcon icon={getEventIcon(item.title)} size={30} color={colors.primary} />
+                                        </View>
                                         <View style={styles.gridCardContent}>
-                                            <Typography variant="bodyBold" numberOfLines={1} style={{ textAlign: 'center', fontSize: moderateScale(13) }}>
-                                                {item.contact?.name?.split(' ')[0]}
+                                            <Typography variant="bodyBold" numberOfLines={2} style={{ textAlign: 'center', fontSize: moderateScale(13) }}>
+                                                {item.contact?.name}
                                             </Typography>
                                             <Typography variant="caption" color={colors.textSecondary} numberOfLines={1} style={{ textAlign: 'center', fontSize: moderateScale(10) }}>
                                                 {item.title}
@@ -245,7 +269,7 @@ export default function EventsScreen() {
                     pressed && { opacity: 0.9, transform: [{ scale: 0.95 }] }
                 ]}
             >
-                <Ionicons name="add" size={32} color="#FFFFFF" />
+                <HugeiconsIcon icon={Add01Icon} size={32} color="#FFFFFF" />
             </Pressable>
 
             <CreateEventSheet
@@ -358,5 +382,11 @@ const styles = StyleSheet.create({
         paddingHorizontal: 4,
         gap: 12,
         borderRadius: 12,
+    },
+    iconContainer: {
+        width: 40,
+        height: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
 });

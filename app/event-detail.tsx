@@ -10,7 +10,14 @@ import { useTheme } from '@/hooks/useTheme';
 import { useGetEventDetailQuery } from '@/store/api/event';
 import { useGetRecommendationsV2Query } from '@/store/api/productApi';
 import { getCountdown } from '@/utils/dateUtils';
-import { Ionicons } from '@expo/vector-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import {
+    ArrowLeft01Icon,
+    ArrowRight01Icon,
+    Calendar01Icon,
+    Edit01Icon,
+    Time02Icon
+} from '@hugeicons/core-free-icons';
 import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -30,14 +37,12 @@ export default function EventDetailScreen() {
     const createSheet = useBottomSheet();
 
     const { data: recs = [], isLoading: isRecsLoading } = useGetRecommendationsV2Query(
-        { occasionId: event?.id as string, limit: 10 },
+        { eventId: event?.id as string, limit: 10 },
         { skip: !event?.id }
     );
 
 
-    const otherEvents = event?.contact?.occasions?.filter(
-        (o) => o.id !== event.id
-    ) || [];
+
 
     if (isLoading || isFetching) {
         return <EventDetailSkeleton />;
@@ -60,11 +65,11 @@ export default function EventDetailScreen() {
                 <View style={[styles.headerBg, { backgroundColor: colors.surface }]}>
                     <View style={[styles.header, { top: spacing.xl, paddingHorizontal: spacing.xl }]}>
                         <Pressable onPress={() => router.back()} style={styles.iconBtn}>
-                            <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+                            <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
                         </Pressable>
                         {/* <Typography variant="h4" color="#FFF">event Details</Typography> */}
                         <Pressable style={styles.iconBtn} onPress={() => editSheet.open()}>
-                            <Ionicons name="create-outline" size={24} color="#FFF" />
+                            <HugeiconsIcon icon={Edit01Icon} size={24} color="#FFF" />
                         </Pressable>
                     </View>
 
@@ -80,7 +85,7 @@ export default function EventDetailScreen() {
                     <Card style={[styles.premiumCard, { backgroundColor: colors.surfaceRaised }]}>
                         <View style={styles.detailRow}>
                             <View style={[styles.detailIconBg, { backgroundColor: colors.primary + '15' }]}>
-                                <Ionicons name="calendar-clear-outline" size={24} color={colors.primary} />
+                                <HugeiconsIcon icon={Calendar01Icon} size={24} color={colors.primary} />
                             </View>
                             <View style={{ flex: 1, marginLeft: 16 }}>
                                 <Typography variant="caption" color={colors.textSecondary}>Date of event</Typography>
@@ -114,7 +119,7 @@ export default function EventDetailScreen() {
                                 </View>
                                 <View style={[styles.exploreBtn, { backgroundColor: colors.primary }]}>
                                     <Typography variant="bodyBold" color="#FFFFFF">Explore Collection</Typography>
-                                    <Ionicons name="arrow-forward" size={20} color="#FFFFFF" style={{ marginLeft: 8 }} />
+                                    <HugeiconsIcon icon={ArrowRight01Icon} size={20} color="#FFFFFF" style={{ marginLeft: 8 }} />
                                 </View>
                             </View>
                         </Card>
@@ -151,7 +156,7 @@ export default function EventDetailScreen() {
                                         <View style={styles.recFooter}>
                                             <Typography variant="label" color={colors.primary}>{item.currency} {item.price}</Typography>
                                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                                                <Ionicons name="time-outline" size={14} color={colors.success} />
+                                                <HugeiconsIcon icon={Time02Icon} size={14} color={colors.success} />
                                                 <Typography variant="caption" color={colors.success}>{item.deliveryDays}d</Typography>
                                             </View>
                                         </View>
