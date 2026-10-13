@@ -103,8 +103,8 @@ export default function EventDetailScreen() {
                 </Animated.View>
 
                 <Animated.View entering={FadeInUp.delay(90).duration(400)} style={{ paddingHorizontal: spacing.xl, marginTop: 30 }}>
-                    <View style={styles.sectionLabel}>
-                        <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>THE PLAN TRAIL</Typography>
+                    <View style={[styles.sectionLabel, {paddingTop: 10}]}>
+                        <Typography variant="caption" color={colors.textSecondary} style={[styles.overline]}>THE PLAN TRAIL</Typography>
                         <View style={[styles.sectionRule, { backgroundColor: colors.ink }]} />
                     </View>
                     <View style={styles.trail}>

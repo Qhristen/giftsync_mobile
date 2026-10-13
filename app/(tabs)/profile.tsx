@@ -71,21 +71,21 @@ export default function ProfileScreen() {
                 { label: 'Saved Addresses', icon: Location01Icon, onPress: () => addressSheet.open() },
             ],
         },
-        {
-            title: 'Preferences',
-            items: [
-                { label: 'Appearance', icon: Moon01Icon, onPress: () => themeSheet.open(), extra: scheme },
-            ],
-        },
-        {
-            title: 'Vendors point',
-            items: [
-                { label: 'Business Info', icon: Building01Icon, onPress: () => router.push('/profile/business-info') },
-                ...(user?.business ? [{ label: 'My Products', icon: PackageIcon, onPress: () => router.push('/profile/my-products') }] : []),
-                ...(user?.business ? [{ label: 'Seller Guide', icon: InformationCircleIcon, onPress: () => router.push('/profile/seller-guide') }] : []),
-                ...(user?.business ? [{ label: 'Seller FAQs', icon: HelpCircleIcon, onPress: () => router.push('/profile/seller-faqs') }] : []),
-            ],
-        },
+        // {
+        //     title: 'Preferences',
+        //     items: [
+        //         { label: 'Appearance', icon: Moon01Icon, onPress: () => themeSheet.open(), extra: scheme },
+        //     ],
+        // },
+        // {
+        //     title: 'Vendors point',
+        //     items: [
+        //         { label: 'Business Info', icon: Building01Icon, onPress: () => router.push('/profile/business-info') },
+        //         ...(user?.business ? [{ label: 'My Products', icon: PackageIcon, onPress: () => router.push('/profile/my-products') }] : []),
+        //         ...(user?.business ? [{ label: 'Seller Guide', icon: InformationCircleIcon, onPress: () => router.push('/profile/seller-guide') }] : []),
+        //         ...(user?.business ? [{ label: 'Seller FAQs', icon: HelpCircleIcon, onPress: () => router.push('/profile/seller-faqs') }] : []),
+        //     ],
+        // },
         {
             title: 'Support',
             items: [

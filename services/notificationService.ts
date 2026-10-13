@@ -8,8 +8,7 @@ import { toast } from "sonner-native";
 // Configure how notifications are handled when app is in foreground
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
+   shouldPlaySound: true,
     shouldSetBadge: true,
     shouldShowBanner: true,
     shouldShowList: true,
@@ -121,7 +120,6 @@ class NotificationService {
           importance: Notifications.AndroidImportance.MAX,
           vibrationPattern: [0, 250, 250, 250],
           lightColor: "#0C101A",
-          sound: "default",
           enableVibrate: true,
           enableLights: true,
           showBadge: true,

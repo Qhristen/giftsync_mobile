@@ -37,7 +37,7 @@ const OrderDetailSheet = forwardRef<BottomSheetRef, OrderDetailSheetProps>(({ or
     const router = useRouter();
 
     return (
-        <BottomSheetWrapper ref={ref} snapPoints={['82%']} onClose={onClose} scrollable>
+        <BottomSheetWrapper ref={ref} snapPoints={['82%']} scrollable>
             {!order ? (
                 <View style={styles.loading}><Typography>Loading the receipt…</Typography></View>
             ) : (

@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
     container: { flex: 1 },
     scroll: { flex: 1 },
     content: { paddingHorizontal: 20, paddingTop: 22, paddingBottom: 120, gap: 22 },
-    headerShell: { paddingHorizontal: 20, paddingBottom: 5 },
+    headerShell: { paddingHorizontal: 20, paddingBottom: 12 },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     copy: { flex: 1, gap: 7 },
     headerButton: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center', borderRadius: 15 },

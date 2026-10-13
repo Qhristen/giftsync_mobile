@@ -69,7 +69,7 @@ export default function HomeScreen() {
             <View pointerEvents="none" style={[styles.decorativeOrb, styles.orbOne, { backgroundColor: colors.lilac }]} />
             <View pointerEvents="none" style={[styles.decorativeOrb, styles.orbTwo, { backgroundColor: colors.accent }]} />
 
-            <View style={[styles.headerShell, { paddingTop: insets.top + 12, paddingHorizontal: spacing.xl }]}>
+            <View style={[styles.headerShell, { paddingTop: insets.top, paddingHorizontal: spacing.xl, paddingBottom: 26 }]}>
                 <Animated.View entering={FadeInDown.duration(300)} style={styles.header}>
                     <View>
                         <View style={styles.eyebrowRow}>
@@ -91,12 +91,13 @@ export default function HomeScreen() {
                 </Animated.View>
             </View>
 
-            <ScrollView
-                style={styles.scroll}
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 120 }}
-                refreshControl={<RefreshControl refreshing={profileLoading || eventsLoading} onRefresh={onRefresh} tintColor={colors.primary} />}
-            >
+            <View style={styles.scrollFrame}>
+                <ScrollView
+                    style={styles.scroll}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ paddingBottom: 120 }}
+                    refreshControl={<RefreshControl refreshing={profileLoading || eventsLoading} onRefresh={onRefresh} tintColor={colors.primary} />}
+                >
 
                 {firstUpcoming && nextDate ? (
                     <Animated.View entering={FadeInDown.delay(70).duration(340)} style={{ paddingHorizontal: spacing.xl, marginTop: 22 }}>
@@ -302,18 +303,20 @@ export default function HomeScreen() {
                         </Pressable>
                     )}
                 </View>
-            </ScrollView>
+                </ScrollView>
+            </View>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
     container: { flex: 1, overflow: 'hidden' },
+    scrollFrame: { flex: 1, overflow: 'hidden' },
     scroll: { flex: 1 },
     decorativeOrb: { position: 'absolute', borderRadius: 999, opacity: 0.42 },
     orbOne: { width: 170, height: 170, top: -72, right: -72 },
     orbTwo: { width: 110, height: 110, top: 420, left: -74 },
-    headerShell: { zIndex: 2, paddingBottom: 5 },
+    headerShell: { paddingBottom: 12 },
     header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     eyebrowRow: { flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 2 },
     miniMark: { width: 25, height: 25, borderRadius: 8, borderWidth: 1.25, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-5deg' }] },
