@@ -1,5 +1,5 @@
 import { useTheme } from '@/hooks/useTheme';
-import { Business, PaginatedReviewResponse } from '@/types';
+import { Business } from '@/types';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import {
     GlobalIcon,
@@ -8,7 +8,7 @@ import {
 } from '@hugeicons/core-free-icons';
 import { Image } from 'expo-image';
 import React, { forwardRef } from 'react';
-import { ActivityIndicator, Linking, StyleSheet, View } from 'react-native';
+import { Linking, StyleSheet, View } from 'react-native';
 import Avatar from '../ui/Avatar';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Button from '../ui/Button';
@@ -107,7 +107,7 @@ const VendorDetailSheet = forwardRef<BottomSheetRef, Props>(
                             />
                         )}
                     </View>
-                                          
+
                 </View>
             </BottomSheetWrapper>
         );
@@ -167,5 +167,7 @@ const styles = StyleSheet.create({
         gap: 12,
     },
 });
+
+VendorDetailSheet.displayName = 'VendorDetailSheet';
 
 export default VendorDetailSheet;

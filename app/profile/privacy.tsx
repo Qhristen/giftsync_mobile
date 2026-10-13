@@ -1,10 +1,11 @@
 import Typography from '@/components/ui/Typography';
+import PaperScreenHeader from '@/components/ui/PaperScreenHeader';
 import { useTheme } from '@/hooks/useTheme';
 import { HugeiconsIcon } from '@hugeicons/react-native';
-import { ArrowLeft01Icon, Shield01Icon } from '@hugeicons/core-free-icons';
+import { Shield01Icon } from '@hugeicons/core-free-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 
 export default function PrivacyPolicyScreen() {
@@ -48,29 +49,33 @@ export default function PrivacyPolicyScreen() {
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <View style={[styles.header, { paddingHorizontal: spacing.xl, paddingBottom: spacing.md }]}>
-                <Pressable onPress={() => router.back()} style={styles.backBtn}>
-                    <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
-                </Pressable>
-            </View>
+            <PaperScreenHeader eyebrow="Your private file" title="What stays between us" onBack={() => router.back()} accent={colors.lavender} />
 
-            <ScrollView 
-                contentContainerStyle={{ padding: spacing.xl, paddingBottom: 100 }} 
+            <ScrollView
+                contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: 100 }}
                 showsVerticalScrollIndicator={false}
             >
                 <Animated.View entering={FadeInUp.duration(400)}>
-                    <Typography variant="h1" style={{ marginBottom: 8 }}>Privacy Policy</Typography>
-                    <Typography variant="label" color={colors.primary} style={{ marginBottom: spacing.xl }}>Effective Date: May 2026</Typography>
+                    <View style={[styles.vaultCover, { backgroundColor: colors.lavender, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                        <View style={[styles.shieldSeal, { backgroundColor: colors.lime, borderColor: colors.ink }]}>
+                            <HugeiconsIcon icon={Shield01Icon} size={34} color={colors.ink} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                            <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>PRIVACY PROMISE · MAY 2026</Typography>
+                            <Typography variant="h2">Your data has a locked drawer.</Typography>
+                            <Typography variant="caption" color={colors.textSecondary}>Here is what enters it, why, and how you stay in control.</Typography>
+                        </View>
+                    </View>
 
                     {sections.map((section, index) => (
                         <View key={index} style={styles.section}>
                             <View style={styles.sectionHeader}>
-                                <View style={[styles.iconBox, { backgroundColor: colors.primary + '15' }]}>
-                                    <HugeiconsIcon icon={Shield01Icon} size={16} color={colors.primary} />
+                                <View style={[styles.iconBox, { backgroundColor: [colors.mint, colors.peach, colors.lemon][index % 3], borderColor: colors.ink }]}>
+                                    <Typography variant="caption" style={styles.overline}>{String(index + 1).padStart(2, '0')}</Typography>
                                 </View>
-                                <Typography variant="h3" style={{ flex: 1 }}>{section.title}</Typography>
+                                <Typography variant="h3" style={{ flex: 1 }}>{section.title.replace(/^\d+\.\s*/, '')}</Typography>
                             </View>
-                            <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                            <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: [colors.mint, colors.peach, colors.lemon][index % 3] }]}>
                                 <Typography variant="body" color={colors.textSecondary} style={{ lineHeight: 24 }}>
                                     {section.content}
                                 </Typography>
@@ -92,20 +97,12 @@ export default function PrivacyPolicyScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingTop: 50,
     },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    backBtn: {
-        width: 40,
-        height: 40,
-        justifyContent: 'center',
-        alignItems: 'flex-start',
-    },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.9 },
+    vaultCover: { minHeight: 156, padding: 19, borderWidth: 1.5, borderRadius: 25, flexDirection: 'row', alignItems: 'center', gap: 14, marginTop: 8, marginBottom: 30, shadowOffset: { width: 5, height: 6 }, shadowOpacity: 0.15, shadowRadius: 0, transform: [{ rotate: '0.6deg' }] },
+    shieldSeal: { width: 68, height: 68, borderRadius: 22, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-4deg' }] },
     section: {
-        marginBottom: 32,
+        marginBottom: 24,
     },
     sectionHeader: {
         flexDirection: 'row',
@@ -117,13 +114,17 @@ const styles = StyleSheet.create({
         width: 32,
         height: 32,
         borderRadius: 10,
+        borderWidth: 1.25,
         justifyContent: 'center',
         alignItems: 'center',
     },
     card: {
         padding: 20,
         borderRadius: 20,
-        borderWidth: 1,
+        borderWidth: 1.5,
+        shadowOffset: { width: 4, height: 4 },
+        shadowOpacity: 1,
+        shadowRadius: 0,
     },
     footer: {
         paddingVertical: 20,

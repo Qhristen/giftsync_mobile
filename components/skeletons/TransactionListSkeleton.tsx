@@ -1,38 +1,29 @@
 import { useTheme } from '@/hooks/useTheme';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import Skeleton from './Skeleton';
+import Skeleton, { SkeletonPaper } from './Skeleton';
 
 export default function TransactionListSkeleton() {
-    const { colors, spacing } = useTheme();
+    const { colors } = useTheme();
+    const palette = [colors.mint, colors.lemon, colors.peach, colors.lavender, colors.sky];
 
     return (
-        <View style={{ paddingHorizontal: spacing.xl }}>
-            {[1, 2, 3, 4, 5, 6].map((_, index) => (
-                <View key={index} style={[styles.txCard, { backgroundColor: colors.surface }]}>
-                    <Skeleton width={44} height={44} borderRadius={14} />
-                    <View style={{ flex: 1, gap: 8 }}>
-                        <Skeleton width="60%" height={16} borderRadius={4} />
-                        <Skeleton width="40%" height={12} borderRadius={4} />
-                    </View>
-                    <View style={{ alignItems: 'flex-end', gap: 8 }}>
-                        <Skeleton width={80} height={16} borderRadius={4} />
-                        <Skeleton width={60} height={12} borderRadius={4} />
-                    </View>
-                </View>
+        <View style={styles.list}>
+            {palette.map((color) => (
+                <SkeletonPaper key={color} color={colors.surface} style={styles.card}>
+                    <View style={[styles.icon, { backgroundColor: color, borderColor: colors.ink }]}><Skeleton width={23} height={23} borderRadius={7} /></View>
+                    <View style={styles.copy}><Skeleton width="61%" height={16} /><Skeleton width="39%" height={11} /></View>
+                    <View style={styles.amount}><Skeleton width={76} height={16} /><Skeleton width={52} height={10} /></View>
+                </SkeletonPaper>
             ))}
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    txCard: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 14,
-        gap: 12,
-        marginBottom: 10,
-        borderRadius: 16,
-        // borderWidth: 1,
-    },
+    list: { paddingHorizontal: 20, gap: 12 },
+    card: { flexDirection: 'row', alignItems: 'center', padding: 13, gap: 12 },
+    icon: { width: 46, height: 46, borderRadius: 14, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+    copy: { flex: 1, gap: 7 },
+    amount: { alignItems: 'flex-end', gap: 7 },
 });

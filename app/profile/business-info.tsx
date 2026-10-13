@@ -1,13 +1,13 @@
 import Avatar from '@/components/ui/Avatar';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import PaperScreenHeader from '@/components/ui/PaperScreenHeader';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { useCreateBusinessMutation, useGetBusinessQuery, useUpdateBusinessMutation } from '@/store/api/businessApi';
 import { useUploadMutation } from '@/store/api/uploadApi';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import {
-    ArrowLeft01Icon,
     CheckmarkCircle01Icon,
     Alert01Icon,
     Building04Icon,
@@ -20,12 +20,11 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, View, FlatList, TextInput } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { toast } from 'sonner-native';
 import { useListBanksQuery, useVerifyAccountMutation } from '@/store/api/paymentApi';
 import BottomSheetWrapper, { BottomSheetRef } from '@/components/ui/BottomSheetWrapper';
-import { useRef } from 'react';
 
 export default function BusinessInfoScreen() {
     const router = useRouter();
@@ -196,18 +195,21 @@ export default function BusinessInfoScreen() {
         bank.name.toLowerCase().includes(bankSearch.toLowerCase())
     );
 
-    const InfoSection = ({ title, children, icon }: { title: string, children: React.ReactNode, icon?: any }) => (
-        <View style={styles.section}>
+    const InfoSection = ({ title, children, icon }: { title: string, children: React.ReactNode, icon?: any }) => {
+        const paperColor = title.includes('Basic') ? colors.mint : title.includes('Legal') ? colors.lemon : colors.lavender;
+        return (
+        <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: paperColor }]}>
             <View style={styles.sectionHeader}>
-                {icon && <HugeiconsIcon icon={icon} size={20} color={colors.primary} />}
+                {icon && <View style={[styles.sectionIcon, { backgroundColor: paperColor, borderColor: colors.ink }]}><HugeiconsIcon icon={icon} size={20} color={colors.ink} /></View>}
                 <Typography variant="h4" style={{ fontWeight: '700' }}>{title}</Typography>
             </View>
             <View style={styles.sectionContent}>{children}</View>
         </View>
-    );
+        );
+    };
 
     const DetailItem = ({ label, value, icon }: { label: string, value: string | boolean | undefined, icon?: any }) => (
-        <View style={styles.detailItem}>
+        <View style={[styles.detailItem, { borderColor: colors.textMuted }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                 {icon && <HugeiconsIcon icon={icon} size={14} color={colors.textSecondary} />}
                 <Typography variant="label" color={colors.textSecondary}>{label}</Typography>
@@ -221,21 +223,22 @@ export default function BusinessInfoScreen() {
     const showForm = isEditing || !business;
 
     return (
-        <View style={[styles.container, { backgroundColor: colors.surface }]}>
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
             <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1 }}>
-                <View style={[styles.header, { borderBottomColor: colors.border + '33' }]}>
-                    <Pressable onPress={() => router.back()} style={styles.backButton}>
-                        <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
-                    </Pressable>
-                    <Typography variant="h3">{business ? (isEditing ? 'Edit Business' : 'Business Info') : 'Setup Business'}</Typography>
-                    <Pressable onPress={() => setIsEditing(!isEditing)} style={styles.editButton}>
+                <PaperScreenHeader
+                    eyebrow="Maker storefront"
+                    title={business ? (isEditing ? 'Tune the shop card' : 'Your business dossier') : 'Build your maker card'}
+                    onBack={() => router.back()}
+                    accent={colors.mint}
+                    right={business ? (
+                    <Pressable onPress={() => setIsEditing(!isEditing)} style={[styles.editButton, { backgroundColor: isEditing ? colors.peach : colors.lime, borderColor: colors.ink }]}>
                         {business && (
-                            <Typography variant="body" color={colors.primary} style={{ fontWeight: '600' }}>
+                            <Typography variant="caption" style={{ fontWeight: '800' }}>
                                 {isEditing ? 'Cancel' : 'Edit'}
                             </Typography>
                         )}
-                    </Pressable>
-                </View>
+                    </Pressable>) : undefined}
+                />
 
                 {isFetching && (
                     <View style={[styles.loadingOverlay, { backgroundColor: colors.background + '80' }]}>
@@ -245,26 +248,28 @@ export default function BusinessInfoScreen() {
 
                 <ScrollView contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
                     {business && (formData.isVerified ? (
-                        <View style={[styles.banner, { backgroundColor: colors.success + '10', borderColor: colors.success + '20' }]}>
-                            <HugeiconsIcon icon={CheckmarkCircle01Icon} size={20} color={colors.success} />
-                            <Typography variant="body" color={colors.success} style={{ flex: 1, fontWeight: '600' }}>
-                                Verified Business
+                        <View style={[styles.banner, { backgroundColor: colors.mint, borderColor: colors.ink }]}>
+                            <HugeiconsIcon icon={CheckmarkCircle01Icon} size={20} color={colors.ink} />
+                            <Typography variant="body" style={{ flex: 1, fontWeight: '600' }}>
+                                Verified maker · ready for the shop
                             </Typography>
                         </View>
                     ) : (
-                        <View style={[styles.banner, { backgroundColor: colors.accent + '10', borderColor: colors.accent + '20' }]}>
-                            <HugeiconsIcon icon={Alert01Icon} size={20} color={colors.accent} />
-                            <Typography variant="body" color={colors.accent} style={{ flex: 1 }}>
+                        <View style={[styles.banner, { backgroundColor: colors.lemon, borderColor: colors.ink }]}>
+                            <HugeiconsIcon icon={Alert01Icon} size={20} color={colors.ink} />
+                            <Typography variant="body" style={{ flex: 1 }}>
                                 Your business is not verified yet. Get verified to reach more customers.
                             </Typography>
                         </View>
                     ))}
 
-                    <View style={styles.logoSection}>
+                    <View style={[styles.logoSection, { backgroundColor: colors.lilac, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                        <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>STOREFRONT PORTRAIT</Typography>
                         <Avatar
                             name={formData.name}
                             uri={formData.logoUrl}
-                            size={100}
+                            size={96}
+                            style={{ borderWidth: 1.5, borderColor: colors.ink }}
                         />
                         {showForm && (
                             <Button
@@ -336,7 +341,7 @@ export default function BusinessInfoScreen() {
                         <InfoSection title="Legal & Registration" icon={LegalDocument01Icon}>
                             {showForm ? (
                                 <>
-                                    <View style={[styles.toggleRow, { backgroundColor: colors.surfaceRaised }]}>
+                                    <View style={[styles.toggleRow, { backgroundColor: colors.lemon, borderColor: colors.ink }]}>
                                         <Typography variant="body">Is your business registered?</Typography>
                                         <Pressable
                                             onPress={() => setFormData({ ...formData, isRegistered: !formData.isRegistered })}
@@ -432,7 +437,7 @@ export default function BusinessInfoScreen() {
 
                         {showForm && (
                             <Button
-                                title={business ? "Save Changes" : "Create Business"}
+                                title={business ? "Stamp the updates  →" : "Open my storefront  →"}
                                 onPress={handleSave}
                                 isLoading={isCreating || isUpdating}
                                 disabled={!isAccountVerified && !business}
@@ -450,7 +455,8 @@ export default function BusinessInfoScreen() {
                 keyboardBehavior="extend"
             >
                 <View style={styles.bankSheetContent}>
-                    <Typography variant="h3" style={{ marginBottom: 20 }}>Select Bank</Typography>
+                    <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>PAYOUT DIRECTORY</Typography>
+                    <Typography variant="h2" style={{ marginBottom: 20 }}>Choose your bank</Typography>
                     <Input
                         placeholder="Search banks..."
                         value={bankSearch}
@@ -469,8 +475,8 @@ export default function BusinessInfoScreen() {
                                     style={({ pressed }) => [
                                         styles.bankItem,
                                         {
-                                            backgroundColor: pressed ? colors.surfaceRaised : 'transparent',
-                                            borderBottomColor: colors.border + '22'
+                                            backgroundColor: pressed ? colors.lavender : colors.surface,
+                                            borderColor: colors.ink,
                                         }
                                     ]}
                                     onPress={() => {
@@ -497,21 +503,17 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingTop: 60,
-        paddingBottom: 16,
-        paddingHorizontal: 20,
-        borderBottomWidth: 1,
-    },
-    backButton: {
-        padding: 4,
-    },
     editButton: {
-        padding: 4,
+        minWidth: 48,
+        height: 38,
+        paddingHorizontal: 10,
+        borderWidth: 1.5,
+        borderRadius: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+        transform: [{ rotate: '3deg' }],
     },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.9 },
     banner: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -519,32 +521,49 @@ const styles = StyleSheet.create({
         marginBottom: 16,
         marginHorizontal: 20,
         marginTop: 16,
-        borderRadius: 12,
-        borderWidth: 1,
+        borderRadius: 18,
+        borderWidth: 1.5,
         gap: 12,
+        transform: [{ rotate: '-0.4deg' }],
     },
     logoSection: {
         alignItems: 'center',
         marginBottom: 24,
-        marginTop: 16,
+        marginTop: 6,
+        marginHorizontal: 20,
+        padding: 18,
+        borderWidth: 1.5,
+        borderRadius: 24,
+        gap: 7,
+        shadowOffset: { width: 4, height: 5 },
+        shadowOpacity: 0.15,
+        shadowRadius: 0,
+        transform: [{ rotate: '0.5deg' }],
     },
     section: {
-        marginBottom: 32,
+        marginBottom: 22,
+        padding: 17,
+        borderWidth: 1.5,
+        borderRadius: 23,
+        shadowOffset: { width: 4, height: 4 },
+        shadowOpacity: 1,
+        shadowRadius: 0,
     },
     sectionHeader: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 10,
         marginBottom: 16,
-        // borderBottomWidth: 1,
-        borderBottomColor: '#f0f0f0',
         paddingBottom: 8,
     },
+    sectionIcon: { width: 40, height: 40, borderWidth: 1.25, borderRadius: 13, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-3deg' }] },
     sectionContent: {
         gap: 12,
     },
     detailItem: {
-        marginBottom: 16,
+        paddingVertical: 10,
+        borderBottomWidth: 1,
+        borderStyle: 'dashed',
     },
     toggleRow: {
         flexDirection: 'row',
@@ -552,7 +571,8 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         paddingVertical: 12,
         paddingHorizontal: 16,
-        borderRadius: 12,
+        borderRadius: 16,
+        borderWidth: 1.5,
         marginBottom: 8,
     },
     toggle: {
@@ -590,8 +610,10 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingVertical: 16,
-        paddingHorizontal: 4,
-        borderBottomWidth: 1,
+        paddingVertical: 14,
+        paddingHorizontal: 13,
+        borderWidth: 1.25,
+        borderRadius: 15,
+        marginBottom: 8,
     },
 });

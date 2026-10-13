@@ -3,7 +3,6 @@ import VendorDetailSheet from '@/components/sheets/VendorDetailSheet';
 import ShopItemDetailSkeleton from '@/components/skeletons/ShopItemDetailSkeleton';
 import Avatar from '@/components/ui/Avatar';
 import Button from '@/components/ui/Button';
-import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
@@ -12,7 +11,6 @@ import { useGetProductByIdQuery } from '@/store/api/productApi';
 import { Event } from '@/types';
 import { calculateDeliveryStatus } from '@/utils/dateUtils';
 import { formatCurrency } from '@/utils/formatCurrency';
-import { HugeiconsIcon } from '@hugeicons/react-native';
 import {
     Alert01Icon,
     ArrowLeft01Icon,
@@ -22,8 +20,9 @@ import {
     GiftIcon,
     Image01Icon,
     Tag01Icon,
-    Time02Icon
+    Time02Icon,
 } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
 import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import * as Location from 'expo-location';
@@ -37,50 +36,39 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const { width } = Dimensions.get('window');
 
 function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
-    const R = 6371; // Radius of the earth in km
+    const earthRadius = 6371;
     const dLat = (lat2 - lat1) * (Math.PI / 180);
     const dLon = (lon2 - lon1) * (Math.PI / 180);
-    const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
-        Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c; // Distance in km
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) ** 2;
+    return earthRadius * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
 }
 
-export default function ShopItemDetailScreen() {
-    const { id, occasionId } = useLocalSearchParams();
+export default function ProductDetailScreen() {
+    const { id, occasionId, eventId } = useLocalSearchParams<{ id: string; occasionId?: string; eventId?: string }>();
+    const selectedEventId = occasionId || eventId;
     const router = useRouter();
-    const { colors, spacing } = useTheme();
     const insets = useSafeAreaInsets();
+    const { colors, spacing } = useTheme();
     const [activeIndex, setActiveIndex] = useState(0);
     const [descriptionExpanded, setDescriptionExpanded] = useState(false);
+    const [userLocation, setUserLocation] = useState<Location.LocationObject | null>(null);
     const occasionSheet = useBottomSheet();
     const vendorSheet = useBottomSheet();
-
-    const [userLocation, setUserLocation] = useState<Location.LocationObject | null>(null);
+    const { data: upcomingEvents = [] } = useGetUpcomingEventsQuery();
+    const { data: product, isLoading, isFetching, error } = useGetProductByIdQuery(id);
 
     useEffect(() => {
         (async () => {
-            let { status } = await Location.requestForegroundPermissionsAsync();
+            const { status } = await Location.requestForegroundPermissionsAsync();
             if (status !== 'granted') return;
-            let location = await Location.getCurrentPositionAsync({});
-            setUserLocation(location);
+            setUserLocation(await Location.getCurrentPositionAsync({}));
         })();
     }, []);
 
-    const toggleDescription = useCallback(() => setDescriptionExpanded(v => !v), []);
-
-    const { data: upcomingEvents = [] } = useGetUpcomingEventsQuery();
-    const { data: product, isLoading, isFetching, error } = useGetProductByIdQuery(id as string);
-
-
-    const totalPrice = Number(product?.price) + Number(product?.deliveryFee) + Number(product?.packagingFee)
-
-    const selectedEvent = useMemo(() => {
-        if (occasionId) return upcomingEvents.find(o => o.id === occasionId);
-        return null;
-    }, [occasionId, upcomingEvents]);
+    const selectedEvent = useMemo(
+        () => selectedEventId ? upcomingEvents.find((event) => event.id === selectedEventId) : null,
+        [selectedEventId, upcomingEvents],
+    );
 
     const deliveryStatus = useMemo(() => {
         if (!product || !selectedEvent) return null;
@@ -89,279 +77,188 @@ export default function ShopItemDetailScreen() {
 
     const businessLocationCoords = useMemo(() => {
         if (!product?.business?.location) return null;
-        const [lat, lng] = product?.business?.location.split(',').map(Number);
-        if (!isNaN(lat) && !isNaN(lng)) {
-            return { latitude: lat, longitude: lng };
-        }
-        return null;
+        const [latitude, longitude] = product.business.location.split(',').map(Number);
+        return Number.isFinite(latitude) && Number.isFinite(longitude) ? { latitude, longitude } : null;
     }, [product?.business?.location]);
 
-    if (isLoading || isFetching) {
-        return <ShopItemDetailSkeleton />;
-    }
+    const toggleDescription = useCallback(() => setDescriptionExpanded((value) => !value), []);
+
+    if (isLoading || isFetching) return <ShopItemDetailSkeleton />;
 
     if (error || !product) {
         return (
-            <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center', padding: spacing.xl }]}>
-                <Typography variant="h3" color={colors.error} style={{ textAlign: 'center', marginBottom: spacing.md }}>
-                    Product not found.
-                </Typography>
-                <Button title="Go Back" onPress={() => router.back()} />
+            <View style={[styles.container, styles.center, { backgroundColor: colors.background, padding: spacing.xl }]}>
+                <Typography variant="h2">This gift slipped away.</Typography>
+                <Typography variant="body" color={colors.textSecondary} align="center">It may no longer be available in the shop.</Typography>
+                <Button title="Back to the shop" onPress={() => router.back()} />
             </View>
         );
     }
 
+    const totalPrice = Number(product.price) + Number(product.deliveryFee) + Number(product.packagingFee);
+    const paperColors = [colors.lemon, colors.mint, colors.lilac];
+
+    const startCheckout = () => {
+        if (selectedEventId) {
+            router.push({ pathname: '/checkout', params: { productId: id, occasionId: selectedEventId } });
+        } else {
+            occasionSheet.open();
+        }
+    };
+
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <View style={[styles.header, { top: spacing.xl, paddingHorizontal: spacing.xl, backgroundColor: 'transparent' }]}>
-                <Pressable onPress={() => router.back()} style={[styles.iconBtn, { backgroundColor: colors.surfaceRaised }]}>
-                    <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
+            <View style={[styles.fixedHeader, { paddingTop: insets.top + 10, paddingHorizontal: spacing.xl, backgroundColor: colors.background }]}>
+                <Pressable onPress={() => router.back()} style={[styles.headerButton, { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                    <HugeiconsIcon icon={ArrowLeft01Icon} size={22} color={colors.ink} />
                 </Pressable>
-                {/* <Pressable style={[styles.iconBtn, { backgroundColor: colors.surfaceRaised }]}>
-                    <Ionicons name="heart-outline" size={24} color={colors.textPrimary} />
-                </Pressable> */}
+                <View style={[styles.catalogLabel, { backgroundColor: colors.accent, borderColor: colors.ink }]}>
+                    <Typography variant="caption" color="#17151D" style={styles.overline}>GIFT CATALOGUE</Typography>
+                </View>
             </View>
 
-            <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 0 }}>
-                {/* Image Gallery */}
-                <Animated.View entering={FadeInDown.duration(500)}>
-                    {product.imageUrls && product.imageUrls.length > 0 ? (
-                        <View style={{ width, height: width * 1.1 }}>
+            <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 18, paddingBottom: 126 }}>
+                <Animated.View entering={FadeInDown.duration(400)}>
+                    <View style={styles.galleryFrame}>
+                        {product.imageUrls?.length ? (
                             <FlashList
                                 data={product.imageUrls}
                                 horizontal
                                 pagingEnabled
                                 showsHorizontalScrollIndicator={false}
-                                onMomentumScrollEnd={(e) => {
-                                    setActiveIndex(Math.round(e.nativeEvent.contentOffset.x / width));
-                                }}
-                                keyExtractor={(_, i) => i.toString()}
-                                renderItem={({ item }) => (
-                                    <Image source={{ uri: item as string }} style={{ width, height: width * 1.1 }} contentFit="cover" />
+                                keyExtractor={(_, index) => index.toString()}
+                                onMomentumScrollEnd={(event) => setActiveIndex(Math.round(event.nativeEvent.contentOffset.x / width))}
+                                renderItem={({ item, index }) => (
+                                    <View style={{ width, paddingHorizontal: spacing.xl }}>
+                                        <View style={[styles.imagePaper, { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: paperColors[index % paperColors.length] }]}>
+                                            <Image source={{ uri: item }} style={styles.heroImage} contentFit="cover" />
+                                            <View style={[styles.imageTape, { backgroundColor: paperColors[index % paperColors.length], borderColor: colors.ink }]} />
+                                        </View>
+                                    </View>
                                 )}
                             />
-                        </View>
-                    ) : (
-                        <View style={{ width, height: width * 1.1, backgroundColor: colors.surfaceRaised, justifyContent: 'center', alignItems: 'center' }}>
-                            <HugeiconsIcon icon={Image01Icon} size={48} color={colors.textMuted} />
-                        </View>
-                    )}
-                    <View style={styles.pagination}>
-                        {product.imageUrls?.map((_, i) => (
-                            <View
-                                key={i}
-                                style={[
-                                    styles.dot,
-                                    {
-                                        backgroundColor: i === activeIndex ? colors.primary : 'rgba(255,255,255,0.9)',
-                                        shadowColor: '#000',
-                                        shadowOffset: { width: 0, height: 1 },
-                                        shadowOpacity: 0.3,
-                                        shadowRadius: 2,
-                                        elevation: 3,
-                                    },
-                                    i === activeIndex && { width: 20 }
-                                ]}
-                            />
-                        ))}
+                        ) : (
+                            <View style={{ paddingHorizontal: spacing.xl }}>
+                                <View style={[styles.imagePaper, styles.center, { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: colors.lilac }]}>
+                                    <HugeiconsIcon icon={Image01Icon} size={48} color={colors.textMuted} />
+                                </View>
+                            </View>
+                        )}
+                        {(product.imageUrls?.length || 0) > 1 && (
+                            <View style={[styles.pagination, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
+                                {product.imageUrls.map((_, index) => (
+                                    <View key={index} style={[styles.dot, { backgroundColor: index === activeIndex ? colors.ink : colors.textMuted }, index === activeIndex && styles.activeDot]} />
+                                ))}
+                            </View>
+                        )}
                     </View>
                 </Animated.View>
 
-                {/* Details */}
-                <Animated.View entering={FadeInUp.duration(500)} style={[styles.details, { padding: spacing.xl, backgroundColor: colors.surface }]}>
-                    <View style={styles.titleRow}>
+                <Animated.View entering={FadeInUp.delay(80).duration(400)} style={{ paddingHorizontal: spacing.xl, marginTop: 26 }}>
+                    <View style={styles.titleBlock}>
                         <View style={{ flex: 1 }}>
-                            <Typography variant="h2">{product.name}</Typography>
-                            <Typography variant="h3" color={colors.primary} style={{ marginTop: 4 }}>
-                                {formatCurrency(totalPrice, product.currency)}
-                            </Typography>
+                            <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>{product.category?.name?.toUpperCase() || 'A SPECIAL FIND'}</Typography>
+                            <Typography variant="h1" style={styles.productTitle}>{product.name}</Typography>
                         </View>
-                        {/* <View style={[styles.ratingBadge, { backgroundColor: colors.surfaceRaised }]}>
-                            <Ionicons name="star" size={16} color="#FFD700" />
-                            <Typography variant="bodyBold" style={{ marginLeft: 4 }}>{product.ratingAvg || 0}</Typography>
-                        </View> */}
+                        <View style={[styles.priceTicket, { backgroundColor: colors.lemon, borderColor: colors.ink }]}>
+                            <View style={[styles.ticketHole, { backgroundColor: colors.background, borderColor: colors.ink }]} />
+                            <Typography variant="caption" style={styles.overline}>TOTAL</Typography>
+                            <Typography variant="h3">{formatCurrency(totalPrice, product.currency)}</Typography>
+                        </View>
                     </View>
 
-                    <Pressable onPress={() => vendorSheet.open()}>
-                        <Card variant="outline" style={[styles.vendorCard, { borderColor: colors.border, marginTop: spacing.lg }]}>
-                            <Avatar name={product.business?.name || 'Vendor'} size="md" />
-                            <View style={{ flex: 1, marginLeft: 12 }}>
-                                <Typography variant="bodyBold">Sold by {product.business?.name}</Typography>
-                                <Typography variant="caption" color={colors.textSecondary}>{product.ratingCount || 0} Reviews</Typography>
-                            </View>
-                            <HugeiconsIcon icon={ArrowRight01Icon} size={20} color={colors.textSecondary} />
-                        </Card>
+                    <Pressable
+                        onPress={vendorSheet.open}
+                        style={({ pressed }) => [styles.makerStrip, { backgroundColor: colors.mint, borderColor: colors.ink }, pressed && styles.pressed]}
+                    >
+                        <Avatar name={product.business?.name || 'Maker'} uri={product.business?.logoUrl} size={48} style={{ borderWidth: 1.5, borderColor: colors.ink }} />
+                        <View style={{ flex: 1 }}>
+                            <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>MEET THE MAKER</Typography>
+                            <Typography variant="bodyBold">{product.business?.name || 'GiftSync maker'}</Typography>
+                            <Typography variant="caption" color={colors.textSecondary}>{product.ratingCount || 0} customer reviews</Typography>
+                        </View>
+                        <HugeiconsIcon icon={ArrowRight01Icon} size={21} color={colors.ink} />
                     </Pressable>
 
-
-
-                    {deliveryStatus ? (
-                        <View style={{ marginTop: spacing.xl }}>
-                            <Typography variant="h4" style={{ marginBottom: spacing.md }}>Delivery Status</Typography>
-                            <Card
-                                variant="elevated"
-                                style={[
-                                    styles.deliveryCard,
-                                    { backgroundColor: deliveryStatus.canArriveOnTime ? colors.success + '15' : colors.error + '15' }
-                                ]}
-                            >
-                                <View style={[styles.deliveryIcon, { backgroundColor: deliveryStatus.canArriveOnTime ? colors.success : colors.error }]}>
-                                    <HugeiconsIcon
-                                        icon={deliveryStatus.canArriveOnTime ? Time02Icon : Alert01Icon}
-                                        size={20}
-                                        color="#FFF"
-                                    />
-                                </View>
-                                <View style={{ flex: 1 }}>
-                                    <Typography variant="bodyBold" color={deliveryStatus.canArriveOnTime ? colors.success : colors.error}>
-                                        {deliveryStatus.canArriveOnTime ? 'Arrives on time' : 'Might be late'}
-                                    </Typography>
-                                    <Typography variant="caption" color={colors.textSecondary}>
-                                        Estimated arrival: {deliveryStatus.arrivalDate}
-                                    </Typography>
-                                    <View style={{ height: 4 }} />
-                                    <Typography variant="caption" color={colors.textSecondary}>
-                                        {deliveryStatus.recipientName}'s event is in {deliveryStatus.daysToEvent} days. This gift takes {deliveryStatus.deliveryDays} days to deliver.
-                                    </Typography>
-                                </View>
-                            </Card>
+                    {deliveryStatus && (
+                        <View style={[styles.deliveryNote, { backgroundColor: deliveryStatus.canArriveOnTime ? colors.mint : colors.peach, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                            <View style={[styles.noteIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
+                                <HugeiconsIcon icon={deliveryStatus.canArriveOnTime ? Time02Icon : Alert01Icon} size={22} color={deliveryStatus.canArriveOnTime ? colors.success : colors.error} />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                                <Typography variant="bodyBold">{deliveryStatus.canArriveOnTime ? 'Perfect timing' : 'A close call'}</Typography>
+                                <Typography variant="caption" color={colors.textSecondary}>Arrival {deliveryStatus.arrivalDate} · the occasion is in {deliveryStatus.daysToEvent} days.</Typography>
+                            </View>
                         </View>
-                    ) : null}
+                    )}
 
-                    <View style={{ marginTop: spacing.xl }}>
-                        <Typography variant="h4" style={{ marginBottom: spacing.sm }}>Category</Typography>
-                        <Typography variant="body" color={colors.textSecondary} style={{ lineHeight: 24 }}>
-                            {product?.category?.name}
-                        </Typography>
+                    <View style={styles.factBento}>
+                        <FactTile icon={BoxIcon} label="Availability" value={product.isAvailable ? 'In stock' : 'Sold out'} color={colors.lilac} />
+                        <FactTile icon={DeliveryTruck02Icon} label="Delivery" value={`${product.deliveryDays} ${product.deliveryDays === 1 ? 'day' : 'days'}`} color={colors.peach} />
+                        <FactTile icon={Tag01Icon} label="Item" value={formatCurrency(product.price, product.currency)} color={colors.lemon} wide />
                     </View>
 
-                    {/* Description */}
-                    {product.description ? (
-                        <View style={{ marginTop: spacing.xl }}>
-                            <Typography variant="h4" style={{ marginBottom: spacing.sm }}>Description</Typography>
-                            <Typography
-                                variant="body"
-                                color={colors.textSecondary}
-                                style={{ lineHeight: 24 }}
-                                numberOfLines={descriptionExpanded ? undefined : 4}
-                            >
-                                {product.description}
-                            </Typography>
-                            <Pressable onPress={toggleDescription} style={{ marginTop: 6 }}>
-                                <Typography variant="bodyBold" color={colors.primary}>
-                                    {descriptionExpanded ? 'Show less' : 'Read more'}
-                                </Typography>
+                    {product.description && (
+                        <View style={[styles.storyCard, { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: colors.lilac }]}>
+                            <View style={styles.storyHeading}>
+                                <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>THE STORY</Typography>
+                                <View style={[styles.storyLine, { backgroundColor: colors.ink }]} />
+                            </View>
+                            <Typography variant="body" color={colors.textSecondary} numberOfLines={descriptionExpanded ? undefined : 5}>{product.description}</Typography>
+                            <Pressable onPress={toggleDescription} style={[styles.readButton, { borderColor: colors.ink }]}>
+                                <Typography variant="caption" style={styles.overline}>{descriptionExpanded ? 'FOLD STORY' : 'READ FULL STORY'}</Typography>
                             </Pressable>
                         </View>
-                    ) : null}
+                    )}
 
-                    {/* Product Details */}
-                    <View style={{ marginTop: spacing.xl }}>
-                        <Typography variant="h4" style={{ marginBottom: spacing.md }}>Product Details</Typography>
-                        <Card variant="outline" style={[styles.detailsCard, { borderColor: colors.border }]}>
-                            <View style={styles.detailRow}>
-                                <View style={[styles.detailIcon, { backgroundColor: colors.primary + '15' }]}>
-                                    <HugeiconsIcon icon={BoxIcon} size={18} color={colors.primary} />
-                                </View>
-                                <View style={{ flex: 1 }}>
-                                    <Typography variant="caption" color={colors.textSecondary}>Availability</Typography>
-                                    <Typography variant="bodyBold" color={product.isAvailable ? colors.success : colors.error}>
-                                        {product.isAvailable ? 'In Stock' : 'Out of Stock'}
-                                    </Typography>
-                                </View>
-                            </View>
-                            <View style={[styles.divider, { backgroundColor: colors.border }]} />
-                            <View style={styles.detailRow}>
-                                <View style={[styles.detailIcon, { backgroundColor: colors.primary + '15' }]}>
-                                    <HugeiconsIcon icon={DeliveryTruck02Icon} size={18} color={colors.primary} />
-                                </View>
-                                <View style={{ flex: 1 }}>
-                                    <Typography variant="caption" color={colors.textSecondary}>Delivery Time</Typography>
-                                    <Typography variant="bodyBold">{product.deliveryDays} {product.deliveryDays === 1 ? 'day' : 'days'}</Typography>
-                                </View>
-                            </View>
-                            <View style={[styles.divider, { backgroundColor: colors.border }]} />
-                            <View style={styles.detailRow}>
-                                <View style={[styles.detailIcon, { backgroundColor: colors.primary + '15' }]}>
-                                    <HugeiconsIcon icon={Tag01Icon} size={18} color={colors.primary} />
-                                </View>
-                                <View style={{ flex: 1 }}>
-                                    <Typography variant="caption" color={colors.textSecondary}>Item Price</Typography>
-                                    <Typography variant="bodyBold">{formatCurrency(totalPrice, product.currency)}</Typography>
-                                </View>
-                            </View>
-
-                        </Card>
-                    </View>
-
-                    {/* Tags */}
-                    {product.tags && product.tags.length > 0 ? (
-                        <View style={{ marginTop: spacing.xl }}>
-                            <Typography variant="h4" style={{ marginBottom: spacing.md }}>Tags</Typography>
-                            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                                {product.tags.map((tag, idx) => (
-                                    <View key={idx} style={[styles.ratingBadge, { backgroundColor: colors.surfaceRaised }]}>
-                                        <Typography variant="caption" color={colors.textPrimary}>{tag}</Typography>
+                    {!!product.tags?.length && (
+                        <View style={{ marginTop: 26 }}>
+                            <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>DETAIL TAGS</Typography>
+                            <View style={styles.tags}>
+                                {product.tags.map((tag, index) => (
+                                    <View key={`${tag}-${index}`} style={[styles.tag, { backgroundColor: paperColors[index % paperColors.length], borderColor: colors.ink }]}>
+                                        <Typography variant="caption" style={{ fontFamily: 'DMSans_700Bold' }}>#{tag}</Typography>
                                     </View>
                                 ))}
                             </View>
                         </View>
-                    ) : null}
+                    )}
 
-                    {businessLocationCoords ? (
-                        <View style={{ marginTop: spacing.xl }}>
-                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: spacing.sm }}>
-                                <Typography variant="h4">{`${product.business?.name || 'Vendor'}'s Location`}</Typography>
-                                {userLocation ? (
-                                    <Typography variant="bodyBold" color={colors.primary}>
-                                        {getDistance(
-                                            userLocation.coords.latitude,
-                                            userLocation.coords.longitude,
-                                            businessLocationCoords.latitude,
-                                            businessLocationCoords.longitude
-                                        ).toFixed(1)} km away
+                    {businessLocationCoords && (
+                        <View style={[styles.mapCard, { backgroundColor: colors.sky, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                            <View style={styles.mapHeading}>
+                                <View style={{ flex: 1 }}>
+                                    <Typography variant="caption" style={styles.overline}>MADE NEARBY</Typography>
+                                    <Typography variant="h4">{product.business?.name}&apos;s studio</Typography>
+                                </View>
+                                {userLocation && (
+                                    <Typography variant="caption" style={styles.distancePill}>
+                                        {getDistance(userLocation.coords.latitude, userLocation.coords.longitude, businessLocationCoords.latitude, businessLocationCoords.longitude).toFixed(1)} km
                                     </Typography>
-                                ) : null}
+                                )}
                             </View>
-                            {/* {product.business?.businessAddress ? (
-                                <Typography variant="body" color={colors.textSecondary} style={{ marginBottom: spacing.md }}>
-                                    {product.business.businessAddress}
-                                </Typography>
-                            ) : null} */}
-                            <View style={{ height: 100, borderRadius: 16, overflow: 'hidden' }}>
+                            <View style={[styles.mapFrame, { borderColor: colors.ink }]}>
                                 <MapView
                                     style={{ flex: 1 }}
                                     provider={PROVIDER_GOOGLE}
-                                    region={{
-                                        latitude: businessLocationCoords.latitude,
-                                        longitude: businessLocationCoords.longitude,
-                                        latitudeDelta: 0.01,
-                                        longitudeDelta: 0.01,
-                                    }}
+                                    region={{ ...businessLocationCoords, latitudeDelta: 0.01, longitudeDelta: 0.01 }}
                                 >
-                                    <Marker coordinate={businessLocationCoords} title={product.business?.name || 'Local Vendor'} />
+                                    <Marker coordinate={businessLocationCoords} title={product.business?.name || 'Local maker'} />
                                 </MapView>
                             </View>
                         </View>
-                    ) : null}
+                    )}
                 </Animated.View>
             </ScrollView>
-            <View style={[styles.footer, { backgroundColor: colors.surface, paddingBottom: insets.bottom + 20 }]}>
-                <Button
-                    title="Send Gift"
-                    variant="primary"
-                    leftIcon={<HugeiconsIcon icon={GiftIcon} size={20} color="#FFF" style={{ marginRight: 8 }} />}
-                    onPress={() => {
-                        if (occasionId) {
-                            router.push({ pathname: '/checkout', params: { productId: id, occasionId: occasionId as string } });
-                        } else {
-                            occasionSheet.open();
-                        }
-                    }}
-                />
+
+            <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12), backgroundColor: colors.background, borderTopColor: colors.ink }]}>
+                <View>
+                    <Typography variant="caption" color={colors.textSecondary}>READY TO WRAP</Typography>
+                    <Typography variant="bodyBold">{formatCurrency(totalPrice, product.currency)}</Typography>
+                </View>
+                <Button title="Send this gift" onPress={startCheckout} leftIcon={<HugeiconsIcon icon={GiftIcon} size={19} color="#17151D" />} style={styles.sendButton} />
             </View>
 
-            {/* Sticky Footer — sits above the absolute-positioned floating tab bar                 (tab bar: ~55px tall + 15px margin + device bottom inset) */}
             <EventPickerSheet
                 ref={occasionSheet.ref}
                 events={upcomingEvents}
@@ -370,121 +267,63 @@ export default function ShopItemDetailScreen() {
                     router.push({ pathname: '/checkout', params: { productId: id, occasionId: event.id } });
                 }}
             />
+            <VendorDetailSheet ref={vendorSheet.ref} business={product.business} ratingAvg={product.ratingAvg} ratingCount={product.ratingCount} />
+        </View>
+    );
+}
 
-            <VendorDetailSheet
-                ref={vendorSheet.ref}
-                business={product.business}
-                ratingAvg={product?.ratingAvg}
-                ratingCount={product?.ratingCount}
-            />
+function FactTile({ icon, label, value, color, wide = false }: { icon: any; label: string; value: string; color: string; wide?: boolean }) {
+    const { colors } = useTheme();
+    return (
+        <View style={[styles.factTile, wide && styles.factTileWide, { backgroundColor: color, borderColor: colors.ink }]}>
+            <View style={[styles.factIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
+                <HugeiconsIcon icon={icon} size={19} color={colors.ink} />
+            </View>
+            <View style={{ flex: 1 }}>
+                <Typography variant="caption" color={colors.textSecondary}>{label.toUpperCase()}</Typography>
+                <Typography variant="bodyBold" numberOfLines={1}>{value}</Typography>
+            </View>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    header: {
-        position: 'absolute',
-        zIndex: 10,
-        width: '100%',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginTop: 30,
-    },
-    iconBtn: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    pagination: {
-        flexDirection: 'row',
-        position: 'absolute',
-        bottom: 54,
-        alignSelf: 'center',
-        gap: 6,
-
-    },
-    dot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-    },
-    details: {
-        marginTop: -32,
-        borderTopLeftRadius: 32,
-        borderTopRightRadius: 32,
-    },
-    titleRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-    },
-    ratingBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 16,
-    },
-    vendorCard: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 12,
-    },
-    deliveryCard: {
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-        padding: 16,
-        gap: 12,
-        borderRadius: 16,
-    },
-    deliveryIcon: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    featureItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 12,
-    },
-    detailsCard: {
-        padding: 0,
-        overflow: 'hidden',
-        borderRadius: 16,
-    },
-    detailRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 14,
-        gap: 12,
-    },
-    detailIcon: {
-        width: 36,
-        height: 36,
-        borderRadius: 10,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    divider: {
-        height: 1,
-        marginHorizontal: 14,
-    },
-    footer: {
-        width: '100%',
-        paddingHorizontal: 24,
-        paddingTop: 16,
-        elevation: 8,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: -2 },
-        shadowOpacity: 0.06,
-        shadowRadius: 8,
-    },
+    container: { flex: 1 },
+    center: { alignItems: 'center', justifyContent: 'center', gap: 12 },
+    scroll: { flex: 1 },
+    fixedHeader: { zIndex: 10, paddingBottom: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    headerButton: { width: 44, height: 44, borderRadius: 14, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', shadowOffset: { width: 3, height: 3 }, shadowOpacity: 1, shadowRadius: 0, elevation: 4 },
+    catalogLabel: { height: 36, borderRadius: 12, borderWidth: 1.5, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '2deg' }] },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.8 },
+    galleryFrame: { minHeight: 398 },
+    imagePaper: { height: 380, borderRadius: 14, borderWidth: 1.5, padding: 9, shadowOffset: { width: 6, height: 7 }, shadowOpacity: 1, shadowRadius: 0, elevation: 5 },
+    heroImage: { width: '100%', height: '100%', borderRadius: 8, borderWidth: 1, borderColor: '#17151D' },
+    imageTape: { position: 'absolute', width: 58, height: 15, top: -8, left: '42%', borderWidth: 1, transform: [{ rotate: '-3deg' }] },
+    pagination: { position: 'absolute', bottom: 0, alignSelf: 'center', flexDirection: 'row', gap: 5, paddingHorizontal: 9, paddingVertical: 6, borderWidth: 1.25, borderRadius: 12 },
+    dot: { width: 6, height: 6, borderRadius: 3 },
+    activeDot: { width: 16 },
+    titleBlock: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+    productTitle: { fontSize: 36, lineHeight: 41, marginTop: 2 },
+    priceTicket: { minWidth: 122, minHeight: 82, borderWidth: 1.5, borderRadius: 16, padding: 12, justifyContent: 'center', transform: [{ rotate: '3deg' }] },
+    ticketHole: { position: 'absolute', width: 12, height: 12, borderRadius: 6, borderWidth: 1, left: -7, top: 34 },
+    makerStrip: { marginTop: 22, borderWidth: 1.5, borderRadius: 20, padding: 13, flexDirection: 'row', alignItems: 'center', gap: 12 },
+    deliveryNote: { marginTop: 18, borderWidth: 1.5, borderRadius: 19, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0, elevation: 3 },
+    noteIcon: { width: 44, height: 44, borderWidth: 1.25, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+    factBento: { marginTop: 24, flexDirection: 'row', flexWrap: 'wrap', gap: 11 },
+    factTile: { width: '48.3%', minHeight: 118, borderWidth: 1.5, borderRadius: 20, padding: 13, justifyContent: 'space-between' },
+    factTileWide: { width: '100%', minHeight: 78, flexDirection: 'row', alignItems: 'center', gap: 11 },
+    factIcon: { width: 38, height: 38, borderRadius: 12, borderWidth: 1.25, alignItems: 'center', justifyContent: 'center' },
+    storyCard: { marginTop: 26, borderWidth: 1.5, borderRadius: 22, padding: 18, gap: 12, shadowOffset: { width: 5, height: 5 }, shadowOpacity: 1, shadowRadius: 0, elevation: 4 },
+    storyHeading: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+    storyLine: { flex: 1, height: 1 },
+    readButton: { alignSelf: 'flex-start', borderWidth: 1.25, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 7 },
+    tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 },
+    tag: { borderWidth: 1.25, borderRadius: 11, paddingHorizontal: 10, paddingVertical: 7 },
+    mapCard: { marginTop: 28, borderWidth: 1.5, borderRadius: 22, padding: 14, shadowOffset: { width: 5, height: 5 }, shadowOpacity: 1, shadowRadius: 0, elevation: 4 },
+    mapHeading: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+    distancePill: { backgroundColor: '#FFFEFB', overflow: 'hidden', borderRadius: 9, paddingHorizontal: 8, paddingVertical: 4 },
+    mapFrame: { height: 130, borderWidth: 1.5, borderRadius: 14, overflow: 'hidden' },
+    footer: { position: 'absolute', bottom: 0, width: '100%', minHeight: 86, paddingHorizontal: 20, paddingTop: 12, borderTopWidth: 1.5, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 14 },
+    sendButton: { minWidth: 190 },
+    pressed: { opacity: 0.85, transform: [{ translateY: 2 }] },
 });

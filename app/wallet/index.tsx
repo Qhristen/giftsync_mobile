@@ -5,8 +5,7 @@ import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
-import { RootState } from '@/store';
-import { useGetCoinPackagesQuery, useGetWalletBalanceQuery, useInitializeFundingMutation, useRequestWithdrawalMutation, useVerifyFundingMutation } from '@/store/api/walletApi';
+import { useGetCoinPackagesQuery, useGetWalletBalanceQuery, useInitializeFundingMutation } from '@/store/api/walletApi';
 import { CoinPackage } from '@/types';
 import { moderateScale } from '@/utils/scaling';
 import { HugeiconsIcon } from '@hugeicons/react-native';
@@ -22,11 +21,10 @@ import {
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
-import { Alert, Modal, Pressable, StyleSheet, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
-import { useSelector } from 'react-redux';
 import { toast } from 'sonner-native';
 
 const packageStyles: Record<number, { icon: any; color: string }> = {
@@ -42,8 +40,6 @@ export default function WalletTopUpScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
 
-    const coins = useSelector((state: RootState) => state.wallet.coins);
-
     const { data: coinPackages = [], isLoading, isFetching: isFetchingPackages, refetch: refetchPackages } = useGetCoinPackagesQuery();
     const { data: wallet, refetch: refetchWallet, isFetching: isFetchingWallet } = useGetWalletBalanceQuery();
 
@@ -51,9 +47,6 @@ export default function WalletTopUpScreen() {
     const handleRefresh = () => { refetchPackages(); refetchWallet(); };
 
     const [initializeFunding] = useInitializeFundingMutation();
-    const [verifyFunding] = useVerifyFundingMutation();
-    const [requestWithdrawal, { isLoading: isWithdrawing }] = useRequestWithdrawalMutation();
-
     const [selectedPackage, setSelectedPackage] = useState<CoinPackage | null>(null);
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('paystack');
     const [isPurchasing, setIsPurchasing] = useState(false);
@@ -156,63 +149,40 @@ export default function WalletTopUpScreen() {
         toast('Payment cancelled');
     };
 
-    const handleWithdraw = async () => {
-        Alert.alert(
-            'Withdraw Funds',
-            'Are you sure you want to request a withdrawal to your linked bank account? Our team will review and approve it shortly.',
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Confirm Withdrawal',
-                    onPress: async () => {
-                        try {
-                            await requestWithdrawal().unwrap();
-                            toast.success('Withdrawal Requested', {
-                                description: 'Your request has been submitted for approval.'
-                            });
-                            refetchWallet();
-                        } catch (error: any) {
-                            toast.error('Withdrawal Failed', {
-                                description: error?.data?.message || 'Could not process withdrawal request.'
-                            });
-                        }
-                    }
-                }
-            ]
-        );
-    };
-
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <View style={[styles.header, { paddingHorizontal: spacing.xl }]}>
-                <Pressable onPress={() => router.back()} style={styles.backBtn}>
-                    <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
+            <View style={[styles.header, { paddingHorizontal: spacing.xl, paddingTop: insets.top + 10 }]}>
+                <Pressable onPress={() => router.back()} style={[styles.backBtn, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
+                    <HugeiconsIcon icon={ArrowLeft01Icon} size={22} color={colors.ink} />
                 </Pressable>
-                <Typography variant="h3">Top Up Wallet</Typography>
-                <View style={{ width: 40 }} />
+                <View style={styles.headerCopy}>
+                    <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>THE COIN VAULT</Typography>
+                    <Typography variant="h2">Stock up on kindness</Typography>
+                </View>
             </View>
 
             {/* Current Balance */}
-            <Animated.View entering={FadeInDown.duration(400)} style={[styles.balanceSection, { padding: spacing.xl }]}>
-                <Card style={[styles.balanceCard, { backgroundColor: colors.primary }]}>
-                    <HugeiconsIcon icon={Coins02Icon} size={32} color="rgba(255,255,255,0.8)" style={{ marginBottom: 12 }} />
-                    <Typography variant="caption" color="rgba(255,255,255,0.8)" style={{ textTransform: 'uppercase', letterSpacing: 1 }}>
-                        Current Balance
+            <Animated.View entering={FadeInDown.duration(400)} style={[styles.balanceSection, { paddingHorizontal: spacing.xl }]}>
+                <Card style={[styles.balanceCard, { backgroundColor: colors.lavender, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                    <View style={[styles.coinSeal, { backgroundColor: colors.lime, borderColor: colors.ink }]}>
+                        <HugeiconsIcon icon={Coins02Icon} size={27} color={colors.ink} />
+                    </View>
+                    <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>
+                        COINS READY TO GIFT
                     </Typography>
-                    <Typography variant="h1" color="#FFF" style={{ marginTop: 4 }}>
-                        {wallet?.balance.toLocaleString()} <Typography variant="h3" color="rgba(255,255,255,0.8)">Coins</Typography>
+                    <Typography variant="h1" style={{ marginTop: 4 }}>
+                        {wallet?.balance.toLocaleString() ?? '0'} <Typography variant="h3">coins</Typography>
                     </Typography>
-
                 </Card>
             </Animated.View>
 
             {/* Transaction History Link */}
             <Pressable
                 onPress={() => router.push('/wallet/transactions' as any)}
-                style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingBottom: spacing.md }}
+                style={[styles.historyLink, { backgroundColor: colors.surface, borderColor: colors.ink }]}
             >
-                <HugeiconsIcon icon={Time02Icon} size={16} color={colors.primary} />
-                <Typography variant="label" color={colors.primary}>Transaction History →</Typography>
+                <HugeiconsIcon icon={Time02Icon} size={16} color={colors.ink} />
+                <Typography variant="label">Open the coin ledger →</Typography>
             </Pressable>
 
             {/* Packages */}
@@ -230,9 +200,10 @@ export default function WalletTopUpScreen() {
                         refreshing={isRefreshing}
                         contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: 150 }}
                         ListHeaderComponent={
-                            <Typography variant="h4" style={{ marginBottom: spacing.md, marginTop: spacing.xs }}>
-                                Select Package
-                            </Typography>
+                            <View style={styles.listHeading}>
+                                <Typography variant="h3">Choose a coin pouch</Typography>
+                                <Typography variant="caption" color={colors.textSecondary}>TAP TO SELECT</Typography>
+                            </View>
                         }
                         renderItem={({ item, index }) => {
                             const isSelected = selectedPackage?.id === item.id;
@@ -246,27 +217,29 @@ export default function WalletTopUpScreen() {
                                         style={[
                                             styles.packageCard,
                                             {
-                                                borderColor: isSelected ? colors.primary : 'transparent',
-                                                borderWidth: 2,
-                                                backgroundColor: colors.surface,
+                                                borderColor: colors.ink,
+                                                borderWidth: 1.5,
+                                                backgroundColor: [colors.lemon, colors.mint, colors.lavender, colors.peach][index % 4],
+                                                shadowColor: isSelected ? colors.ink : 'transparent',
+                                                transform: [{ rotate: index % 2 ? '0.5deg' : '-0.5deg' }],
                                                 marginBottom: spacing.md,
                                             }
                                         ]}
                                     >
-                                        <View style={[styles.iconBox, { backgroundColor: style.color + '1A' }]}>
-                                            <HugeiconsIcon icon={style.icon} size={24} color={style.color} />
+                                        <View style={[styles.iconBox, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
+                                            <HugeiconsIcon icon={style.icon} size={24} color={colors.ink} />
                                         </View>
                                         <View style={{ flex: 1, marginLeft: 16 }}>
                                             <Typography variant="bodyBold">{item.coinAmount} Coins</Typography>
                                             <Typography variant="caption" color={colors.textSecondary}>{item.label}</Typography>
                                         </View>
                                         <View style={{ alignItems: 'flex-end' }}>
-                                            <Typography variant="label" color={colors.primary}>
+                                            <Typography variant="label">
                                                 {formatPrice(item.price, item.currency)}
                                             </Typography>
                                             {isPopular && (
-                                                <View style={[styles.popularBadge, { backgroundColor: '#F59E0B20' }]}>
-                                                    <Typography variant="caption" color="#D97706" style={{ fontSize: moderateScale(10), fontFamily: 'DMSans_700Bold' }}>
+                                                <View style={[styles.popularBadge, { backgroundColor: colors.lime, borderColor: colors.ink }]}>
+                                                    <Typography variant="caption" style={{ fontSize: moderateScale(10), fontFamily: 'DMSans_700Bold' }}>
                                                         POPULAR
                                                     </Typography>
                                                 </View>
@@ -281,7 +254,7 @@ export default function WalletTopUpScreen() {
             </View>
 
             {/* Footer */}
-            <View pointerEvents="box-none" style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border, paddingBottom: insets.bottom + spacing.md }]}>
+            <View pointerEvents="box-none" style={[styles.footer, { backgroundColor: colors.background, paddingBottom: insets.bottom + spacing.md }]}>
                 <Button
                     title={selectedPackage ? `Pay ${formatPrice(selectedPackage.price, selectedPackage.currency)}` : 'Select a package'}
                     variant="primary"
@@ -328,37 +301,54 @@ export default function WalletTopUpScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingTop: 50,
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        gap: 13,
     },
+    headerCopy: { flex: 1 },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 1 },
     backBtn: {
-        width: 40,
-        height: 40,
+        width: 44,
+        height: 44,
+        borderRadius: 14,
+        borderWidth: 1.5,
         justifyContent: 'center',
-        alignItems: 'flex-start',
+        alignItems: 'center',
+        transform: [{ rotate: '-3deg' }],
     },
     balanceSection: {
         alignItems: 'center',
+        marginTop: 18,
     },
     balanceCard: {
         width: '100%',
-        alignItems: 'center',
-        paddingVertical: 32,
+        padding: 22,
         borderRadius: 24,
+        borderWidth: 1.5,
+        shadowOffset: { width: 5, height: 5 },
+        shadowOpacity: 0.15,
+        shadowRadius: 0,
+        transform: [{ rotate: '-0.7deg' }],
     },
+    coinSeal: { width: 54, height: 54, borderRadius: 18, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', alignSelf: 'flex-end', marginBottom: -32, transform: [{ rotate: '5deg' }] },
+    historyLink: { alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginVertical: 16, paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1.25, borderRadius: 11 },
+    listHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
     packageCard: {
         flexDirection: 'row',
         alignItems: 'center',
         padding: 16,
+        borderRadius: 21,
+        shadowOffset: { width: 4, height: 4 },
+        shadowOpacity: 1,
+        shadowRadius: 0,
     },
     iconBox: {
         width: 48,
         height: 48,
-        borderRadius: 24,
+        borderRadius: 15,
+        borderWidth: 1.5,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -366,6 +356,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 8,
         paddingVertical: 4,
         borderRadius: 8,
+        borderWidth: 1.25,
         marginTop: 4,
     },
     footer: {

@@ -21,24 +21,23 @@ const EventPickerSheet = forwardRef<BottomSheetRef, Props>(
 
         return (
             <BottomSheetWrapper ref={ref} snapPoints={['75%']} scrollable>
-                <Typography variant="h2" style={{ marginBottom: spacing.sm }}>
-                    Pick an Event
-                </Typography>
+                <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>CHOOSE THE MOMENT</Typography>
+                <Typography variant="h2" style={{ marginBottom: spacing.sm }}>Who are we gifting?</Typography>
                 <Typography variant="body" color={colors.textSecondary} style={{ marginBottom: spacing.xl }}>
                     Choose which event you are sending this gift for.
                 </Typography>
 
                 <View style={styles.list}>
-                    {events.map((event) => (
+                    {events.map((event, index) => (
                         <Pressable
                             key={event.id}
                             onPress={() => onSelect(event)}
                             style={({ pressed }) => [
                                 styles.item,
-                                { backgroundColor: pressed ? colors.surfaceRaised : colors.surfaceRaised + '80' },
+                                { backgroundColor: [colors.lemon, colors.lavender, colors.mint, colors.peach][index % 4], borderColor: colors.ink, shadowColor: colors.ink, opacity: pressed ? 0.72 : 1, transform: [{ rotate: index % 2 ? '0.4deg' : '-0.4deg' }] },
                             ]}
                         >
-                            <View style={[styles.iconContainer, { backgroundColor: colors.surface }]}>
+                            <View style={[styles.iconContainer, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                                 <Avatar uri={event.contact?.avatar} name={event.contact?.name} size="sm" />
                             </View>
                             <View style={styles.itemContent}>
@@ -61,6 +60,7 @@ const EventPickerSheet = forwardRef<BottomSheetRef, Props>(
 );
 
 const styles = StyleSheet.create({
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 1 },
     list: {
         gap: 12,
     },
@@ -68,8 +68,12 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         padding: 16,
-        borderRadius: 12,
+        borderRadius: 19,
+        borderWidth: 1.5,
         gap: 12,
+        shadowOffset: { width: 3, height: 3 },
+        shadowOpacity: 0.12,
+        shadowRadius: 0,
     },
     justBecause: {
         borderWidth: 1,
@@ -81,10 +85,13 @@ const styles = StyleSheet.create({
         borderRadius: 24,
         justifyContent: 'center',
         alignItems: 'center',
+        borderWidth: 1.25,
     },
     itemContent: {
         flex: 1,
     },
 });
+
+EventPickerSheet.displayName = 'EventPickerSheet';
 
 export default EventPickerSheet;

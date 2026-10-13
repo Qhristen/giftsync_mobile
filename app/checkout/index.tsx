@@ -1,6 +1,7 @@
+import CheckoutProgress from '@/components/checkout/CheckoutProgress';
+import CheckoutSkeleton from '@/components/skeletons/CheckoutSkeleton';
 import Avatar from '@/components/ui/Avatar';
 import Button from '@/components/ui/Button';
-import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import { usePlatformConfig } from '@/hooks/usePlatformConfig';
 import { useTheme } from '@/hooks/useTheme';
@@ -8,236 +9,237 @@ import { useGetEventDetailQuery } from '@/store/api/event';
 import { useGetProductByIdQuery } from '@/store/api/productApi';
 import { calculateDeliveryStatus } from '@/utils/dateUtils';
 import { formatCurrency } from '@/utils/formatCurrency';
-import { moderateScale } from '@/utils/scaling';
+import { AlertCircleIcon, Calendar01Icon, Time02Icon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react-native';
-import {
-    AlertCircleIcon,
-    ArrowLeft01Icon,
-    Calendar01Icon,
-    Time02Icon
-} from '@hugeicons/core-free-icons';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function CheckoutEntry() {
     const router = useRouter();
-    const { colors, spacing } = useTheme();
+    const { colors } = useTheme();
     const { deliveryFeeNgn, packagingFeeNgn } = usePlatformConfig();
     const { occasionId, productId } = useLocalSearchParams<{ occasionId: string; productId: string }>();
     const insets = useSafeAreaInsets();
 
     const { data: event, isLoading: initialEventLoading, isFetching: isEventFetching } = useGetEventDetailQuery(occasionId as string, { skip: !occasionId });
-    const isEventLoading = initialEventLoading || isEventFetching;
-
     const { data: product, isLoading: initialProductLoading, isFetching: isProductFetching } = useGetProductByIdQuery(productId as string, { skip: !productId });
-    const isProductLoading = initialProductLoading || isProductFetching;
+    const isLoading = initialEventLoading || isEventFetching || initialProductLoading || isProductFetching;
 
     const deliveryStatus = useMemo(() => {
         if (!product || !event) return null;
         return calculateDeliveryStatus(event.date, product.deliveryDays, event.contact?.name);
     }, [product, event]);
 
-    const handleNext = () => {
-        router.push({ pathname: '/checkout/delivery', params: { occasionId, productId } });
-    };
+    const fees = useMemo(() => {
+        const item = Number(product?.price) || 0;
+        const delivery = Number(product?.deliveryFee || deliveryFeeNgn) || 0;
+        const packaging = Number(product?.packagingFee || packagingFeeNgn) || 0;
+        return { item, delivery, packaging, total: item + delivery + packaging };
+    }, [deliveryFeeNgn, packagingFeeNgn, product]);
+
+    if (isLoading) {
+        return <CheckoutSkeleton step={1} onBack={() => router.back()} />;
+    }
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            {/* Header */}
-            <View style={[styles.header, { padding: spacing.xl, paddingBottom: spacing.md }]}>
-                <Pressable onPress={() => router.back()} style={styles.backBtn}>
-                    <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
-                </Pressable>
-                <Typography variant="h2">Confirm Your Gift</Typography>
-            </View>
+            <CheckoutProgress
+                step={1}
+                eyebrow="Gift check"
+                title="Check the gift brief"
+                onBack={() => router.back()}
+            />
 
-            <ScrollView
-                contentContainerStyle={[styles.content, { padding: spacing.xl }]}
-                showsVerticalScrollIndicator={false}
-            >
-                {/* Recipient Card */}
-                <Typography variant="label" style={{ marginBottom: spacing.sm }}>Recipient & event</Typography>
-                <Card variant="outline" style={styles.contextCard}>
-                    {isEventLoading ? (
-                        <ActivityIndicator />
-                    ) : (
-                        <>
-                            <View style={styles.contextRow}>
-                                <Avatar name={event?.contact?.name || 'Recipient'} uri={event?.contact?.avatar} size="lg" />
-                                <View style={{ flex: 1 }}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                        <Typography variant="bodyBold" style={{ fontSize: moderateScale(16) }}>{event?.contact?.name || 'Not Selected'}</Typography>
-                                        <View style={[styles.badge, { backgroundColor: colors.primarySoft }]}>
-                                            <Typography variant="caption" color={colors.primary} style={{ fontSize: moderateScale(10) }}>RECIPIENT</Typography>
-                                        </View>
-                                    </View>
-                                    {event && <Typography variant="caption" color={colors.textSecondary}>{event.title}</Typography>}
-                                </View>
-                            </View>
-
-                            <View style={[styles.divider, { backgroundColor: colors.border }]} />
-
-                            <View style={styles.contextRow}>
-                                <View style={[styles.iconBox, { backgroundColor: colors.surfaceRaised }]}>
-                                    <HugeiconsIcon icon={Calendar01Icon} size={20} color={colors.primary} />
-                                </View>
-                                <View style={{ flex: 1 }}>
-                                    <Typography variant="bodyMedium" style={{ fontWeight: '600' }}>{event?.title || 'event Date'}</Typography>
-                                    {event && <Typography variant="caption" color={colors.textSecondary}>
-                                        {new Date(event.date).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
-                                    </Typography>}
-                                </View>
-                            </View>
-                        </>
-                    )}
-                </Card>
-
-                {/* Delivery Status Card */}
-                {deliveryStatus && (
-                    <View style={{ marginTop: spacing.xl }}>
-                        <Typography variant="label" style={{ marginBottom: spacing.sm }}>Estimated Delivery</Typography>
-                        <Card
-                            variant="elevated"
-                            style={[
-                                styles.deliveryCard,
-                                { backgroundColor: deliveryStatus.canArriveOnTime ? colors.success + '15' : colors.error + '15' }
-                            ]}
-                        >
-                            <View style={[styles.deliveryIcon, { backgroundColor: deliveryStatus.canArriveOnTime ? colors.success : colors.error }]}>
-                                <HugeiconsIcon
-                                    icon={deliveryStatus.canArriveOnTime ? Time02Icon : AlertCircleIcon}
-                                    size={20}
-                                    color="#FFF"
-                                />
-                            </View>
-                            <View style={{ flex: 1 }}>
-                                <Typography variant="bodyBold" color={deliveryStatus.canArriveOnTime ? colors.success : colors.error}>
-                                    {deliveryStatus.canArriveOnTime ? 'On-time delivery' : 'Potential Delay'}
-                                </Typography>
-                                <Typography variant="caption" color={colors.textSecondary}>
-                                    Estimated arrival: {deliveryStatus.arrivalDate}
-                                </Typography>
-                                <View style={{ height: 4 }} />
-                                <Typography variant="caption" color={colors.textSecondary}>
-                                    {deliveryStatus.recipientName}'s event is in {deliveryStatus.daysToEvent} days. Delivery takes {deliveryStatus.deliveryDays} days.
-                                </Typography>
-                            </View>
-                        </Card>
+            <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+                <View style={[styles.briefCard, { backgroundColor: colors.lemon, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                    <View style={[styles.tape, { backgroundColor: colors.lilac, borderColor: colors.ink }]} />
+                    <View style={styles.recipientRow}>
+                        <Avatar name={event?.contact?.name || 'Recipient'} uri={event?.contact?.avatar} size="lg" />
+                        <View style={styles.recipientCopy}>
+                            <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>TO: SOMEONE SPECIAL</Typography>
+                            <Typography variant="h3">{event?.contact?.name || 'Recipient'}</Typography>
+                            <Typography variant="caption" color={colors.textSecondary}>{event?.title || 'A lovely occasion'}</Typography>
+                        </View>
+                        <View style={[styles.dateStamp, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
+                            <HugeiconsIcon icon={Calendar01Icon} size={17} color={colors.ink} />
+                            <Typography variant="caption" style={styles.dateStampText}>
+                                {event?.date
+                                    ? new Date(event.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }).toUpperCase()
+                                    : 'DATE'}
+                            </Typography>
+                        </View>
                     </View>
-                )}
 
-                {/* Gift Card */}
-                <Typography variant="label" style={{ marginTop: spacing.xl, marginBottom: spacing.sm }}>Selected Gift</Typography>
-                <Card variant="outline" style={styles.giftCard}>
-                    {isProductLoading ? (
-                        <ActivityIndicator color={colors.primary} />
-                    ) : (
-                        <>
-                            {product?.imageUrls?.[0] ? (
-                                <Image source={{ uri: product.imageUrls[0] }} style={styles.giftImagePlaceholder} contentFit="cover" />
-                            ) : (
-                                <View style={styles.giftImagePlaceholder} />
-                            )}
-                            <View style={{ flex: 1 }}>
-                                <Typography variant="bodyBold">{product?.name || 'Select a Gift'}</Typography>
-                                {product && <Typography variant="caption" color={colors.textSecondary}>Provider: {product.business?.name}</Typography>}
-                                <Typography variant="label" color={colors.primary} style={{ marginTop: 4 }}>
-                                    {product ? formatCurrency((Number(product.price) || 0) + (Number(product.deliveryFee || deliveryFeeNgn) || 0) + (Number(product.packagingFee || packagingFeeNgn) || 0), product.currency) : '---'}
-                                </Typography>
-                            </View>
-                        </>
-                    )}
-                </Card>
+                    <View style={[styles.giftPolaroid, { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: colors.lilac }]}>
+                        {product?.imageUrls?.[0] ? (
+                            <Image source={{ uri: product.imageUrls[0] }} style={styles.giftImage} contentFit="cover" />
+                        ) : (
+                            <View style={[styles.giftImage, { backgroundColor: colors.lavender }]} />
+                        )}
+                        <View style={styles.giftCopy}>
+                            <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>THE PICK</Typography>
+                            <Typography variant="h4" numberOfLines={2}>{product?.name || 'Selected gift'}</Typography>
+                            <Typography variant="caption" color={colors.textSecondary} numberOfLines={1}>
+                                Curated by {product?.business?.name || 'GiftSync'}
+                            </Typography>
+                        </View>
+                    </View>
+                </View>
+
+                {deliveryStatus ? (
+                    <View
+                        style={[
+                            styles.deliveryNote,
+                            {
+                                backgroundColor: deliveryStatus.canArriveOnTime ? colors.mint : colors.peach,
+                                borderColor: colors.ink,
+                                shadowColor: colors.ink,
+                            },
+                        ]}
+                    >
+                        <View style={[styles.noteIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
+                            <HugeiconsIcon
+                                icon={deliveryStatus.canArriveOnTime ? Time02Icon : AlertCircleIcon}
+                                size={20}
+                                color={colors.ink}
+                            />
+                        </View>
+                        <View style={styles.noteCopy}>
+                            <Typography variant="bodyBold">
+                                {deliveryStatus.canArriveOnTime ? 'The timing looks great' : 'This one may arrive late'}
+                            </Typography>
+                            <Typography variant="caption" color={colors.textSecondary}>
+                                ETA {deliveryStatus.arrivalDate} · {deliveryStatus.deliveryDays} delivery days before {deliveryStatus.recipientName}&apos;s moment.
+                            </Typography>
+                        </View>
+                        <Typography variant="h3">{deliveryStatus.canArriveOnTime ? '✓' : '!'}</Typography>
+                    </View>
+                ) : null}
+
+                <View style={styles.sectionHeading}>
+                    <Typography variant="label">Packing receipt</Typography>
+                    <Typography variant="caption" color={colors.textSecondary}>ESTIMATE</Typography>
+                </View>
+                <View style={[styles.receipt, { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                    <ReceiptRow label="Gift" value={formatCurrency(fees.item, product?.currency)} />
+                    <ReceiptRow label="Delivery" value={formatCurrency(fees.delivery, product?.currency)} />
+                    <ReceiptRow label="Gift wrapping" value={formatCurrency(fees.packaging, product?.currency)} />
+                    <View style={[styles.dashedLine, { borderColor: colors.textMuted }]} />
+                    <View style={styles.totalRow}>
+                        <View style={styles.totalCopy}>
+                            <Typography variant="caption" color={colors.textSecondary}>ESTIMATED TOTAL</Typography>
+                            <Typography variant="caption" color={colors.textSecondary}>Confirmed before payment</Typography>
+                        </View>
+                        <Typography variant="h3">{formatCurrency(fees.total, product?.currency)}</Typography>
+                    </View>
+                </View>
             </ScrollView>
 
-            {/* Footer CTA */}
-            <View style={[styles.footer, { padding: spacing.xl, paddingBottom: insets.bottom + 20 }]}>
+            <View style={[styles.footer, { backgroundColor: colors.background, paddingBottom: insets.bottom + 16 }]}>
                 <Button
-                    title="Looks good, Continue →"
-                    onPress={handleNext}
-                    style={styles.submitBtn}
+                    title="Wrap it & plan delivery  →"
+                    onPress={() => router.push({ pathname: '/checkout/delivery', params: { occasionId, productId } })}
                     disabled={!event || !product}
+                    style={styles.submitButton}
                 />
             </View>
         </View>
     );
 }
 
+function ReceiptRow({ label, value }: { label: string; value: string }) {
+    const { colors } = useTheme();
+    return (
+        <View style={styles.receiptRow}>
+            <Typography variant="body" color={colors.textSecondary}>{label}</Typography>
+            <Typography variant="bodyBold">{value}</Typography>
+        </View>
+    );
+}
+
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        paddingTop: 30,
+    container: { flex: 1 },
+    content: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 130, gap: 20 },
+    briefCard: {
+        borderWidth: 1.5,
+        borderRadius: 26,
+        padding: 18,
+        gap: 18,
+        shadowOffset: { width: 4, height: 5 },
+        shadowOpacity: 0.16,
+        shadowRadius: 0,
+        elevation: 3,
+        transform: [{ rotate: '-0.7deg' }],
     },
-    header: {
-        flexDirection: 'row',
+    tape: {
+        position: 'absolute',
+        top: -10,
+        left: '42%',
+        width: 66,
+        height: 22,
+        borderWidth: 1,
+        opacity: 0.88,
+        transform: [{ rotate: '3deg' }],
+        zIndex: 2,
+    },
+    recipientRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    recipientCopy: { flex: 1 },
+    overline: { letterSpacing: 1.1, fontWeight: '700' },
+    dateStamp: {
         alignItems: 'center',
-        gap: 16,
-    },
-    backBtn: {
-        padding: 8,
-    },
-    content: {
-        flexGrow: 1,
-    },
-    contextCard: {
-        padding: 16,
-        gap: 16,
-    },
-    contextRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 16,
-    },
-    divider: {
-        height: 1,
-        width: '100%',
-        opacity: 0.1,
-    },
-    iconBox: {
-        width: 48,
-        height: 48,
+        gap: 2,
+        borderWidth: 1.5,
         borderRadius: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
+        paddingHorizontal: 9,
+        paddingVertical: 8,
+        transform: [{ rotate: '4deg' }],
     },
-    badge: {
-        paddingHorizontal: 8,
-        paddingVertical: 2,
-        borderRadius: 6,
+    dateStampText: { fontWeight: '800' },
+    giftPolaroid: {
+        flexDirection: 'row',
+        padding: 9,
+        gap: 13,
+        borderWidth: 1.5,
+        borderRadius: 19,
+        shadowOffset: { width: 4, height: 4 },
+        shadowOpacity: 1,
+        shadowRadius: 0,
+        elevation: 2,
+        transform: [{ rotate: '1.2deg' }],
     },
-    giftCard: {
+    giftImage: { width: 106, height: 106, borderRadius: 13 },
+    giftCopy: { flex: 1, justifyContent: 'center', gap: 3 },
+    deliveryNote: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 16,
-        gap: 16,
-    },
-    giftImagePlaceholder: {
-        width: 60,
-        height: 60,
-        backgroundColor: '#F5F5F5',
-        borderRadius: 8,
-    },
-    deliveryCard: {
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-        padding: 16,
         gap: 12,
-        borderRadius: 16,
+        borderWidth: 1.5,
+        borderRadius: 19,
+        padding: 14,
+        shadowOffset: { width: 3, height: 3 },
+        shadowOpacity: 0.12,
+        shadowRadius: 0,
     },
-    deliveryIcon: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        justifyContent: 'center',
-        alignItems: 'center',
+    noteIcon: { width: 40, height: 40, borderRadius: 13, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+    noteCopy: { flex: 1 },
+    sectionHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    receipt: {
+        borderWidth: 1.5,
+        borderRadius: 22,
+        padding: 18,
+        gap: 11,
+        shadowOffset: { width: 3, height: 4 },
+        shadowOpacity: 0.12,
+        shadowRadius: 0,
+        transform: [{ rotate: '0.6deg' }],
     },
-    footer: {
-        width: '100%',
-    },
-    submitBtn: {
-        width: '100%',
-    },
+    receiptRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 16 },
+    dashedLine: { borderTopWidth: 1, borderStyle: 'dashed', marginVertical: 4 },
+    totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', gap: 12 },
+    totalCopy: { flex: 1 },
+    footer: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 14 },
+    submitButton: { width: '100%' },
 });

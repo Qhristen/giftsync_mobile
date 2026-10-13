@@ -115,4 +115,6 @@ const styles = StyleSheet.create({
     },
 });
 
+ConversationOptionsSheet.displayName = 'ConversationOptionsSheet';
+
 export default ConversationOptionsSheet;

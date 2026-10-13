@@ -4,12 +4,10 @@ import { Contact } from '@/types';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import {
     Add01Icon,
-    ArrowLeft01Icon,
     Calendar01Icon,
     ArrowRight01Icon,
     CheckmarkCircle02Icon,
     PlusSignCircleIcon,
-    UserAdd01Icon,
 } from '@hugeicons/core-free-icons';
 import { forwardRef } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -54,7 +52,7 @@ const ContactDetailSheet = forwardRef<BottomSheetRef, Props>(
                     contactIds: [contact.id]
                 }).unwrap();
                 toast.success("Subscribed! 🎉");
-            } catch (err) {
+            } catch {
                 toast.error("Error", { description: "Failed to subscribe." });
             }
         };
@@ -227,5 +225,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0,0,0,0.02)',
     }
 });
+
+ContactDetailSheet.displayName = 'ContactDetailSheet';
 
 export default ContactDetailSheet;

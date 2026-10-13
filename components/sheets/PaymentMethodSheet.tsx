@@ -39,7 +39,7 @@ const PaymentMethodSheet = forwardRef<BottomSheetRef, PaymentMethodSheetProps>((
     return (
         <BottomSheetWrapper ref={ref} snapPoints={['40%']}>
             <View style={[styles.modalHeader, { paddingTop: spacing.md, paddingBottom: spacing.lg }]}>
-                <Typography variant="h4">Select Payment Method</Typography>
+                <View><Typography variant="caption" color={colors.textSecondary} style={styles.overline}>SECURE CHECKOUT</Typography><Typography variant="h2">Pick a payment rail</Typography></View>
             </View>
 
             <View style={{}}>
@@ -51,22 +51,23 @@ const PaymentMethodSheet = forwardRef<BottomSheetRef, PaymentMethodSheetProps>((
                                 style={[
                                     styles.packageCard,
                                     {
-                                        borderColor: isSelected ? colors.primary : 'transparent',
-                                        borderWidth: 2,
-                                        backgroundColor: colors.surfaceRaised,
+                                        borderColor: colors.ink,
+                                        borderWidth: 1.5,
+                                        backgroundColor: isSelected ? colors.mint : colors.sky,
+                                        shadowColor: isSelected ? colors.ink : 'transparent',
                                         marginBottom: spacing.lg,
                                         padding: 12
                                     }
                                 ]}
                             >
-                                <View style={[styles.iconBox, { backgroundColor: method.color + '1A', width: 40, height: 40, borderRadius: 20 }]}>
-                                    <HugeiconsIcon icon={method.icon} size={20} color={method.color} />
+                                <View style={[styles.iconBox, { backgroundColor: colors.surface, borderColor: colors.ink, width: 44, height: 44, borderRadius: 14 }]}>
+                                    <HugeiconsIcon icon={method.icon} size={21} color={colors.ink} />
                                 </View>
                                 <View style={{ flex: 1, marginLeft: 16 }}>
                                     <Typography variant="bodyBold">{method.name}</Typography>
                                 </View>
                                 {isSelected && (
-                                    <HugeiconsIcon icon={CheckmarkCircle02Icon} size={24} color={colors.primary} />
+                                    <HugeiconsIcon icon={CheckmarkCircle02Icon} size={24} color={colors.ink} />
                                 )}
                             </Card>
                         </Pressable>
@@ -88,6 +89,7 @@ const PaymentMethodSheet = forwardRef<BottomSheetRef, PaymentMethodSheetProps>((
 });
 
 const styles = StyleSheet.create({
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 1 },
     modalHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -96,11 +98,18 @@ const styles = StyleSheet.create({
     packageCard: {
         flexDirection: 'row',
         alignItems: 'center',
+        borderRadius: 19,
+        shadowOffset: { width: 3, height: 3 },
+        shadowOpacity: 1,
+        shadowRadius: 0,
     },
     iconBox: {
         justifyContent: 'center',
         alignItems: 'center',
+        borderWidth: 1.25,
     },
 });
+
+PaymentMethodSheet.displayName = 'PaymentMethodSheet';
 
 export default PaymentMethodSheet;

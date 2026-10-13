@@ -48,9 +48,8 @@ const ContactPickerSheet = forwardRef<BottomSheetRef, Props>(
 
         return (
             <BottomSheetWrapper ref={ref} snapPoints={['75%']} scrollable>
-                <Typography variant="h2" style={{ marginBottom: spacing.sm }}>
-                    Who is this for?
-                </Typography>
+                <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>YOUR PEOPLE FILE</Typography>
+                <Typography variant="h2" style={{ marginBottom: spacing.sm }}>Who is this for?</Typography>
                 <Input
                     placeholder="Search contacts..."
                     value={searchQuery}
@@ -63,12 +62,12 @@ const ContactPickerSheet = forwardRef<BottomSheetRef, Props>(
                     sections={sections}
                     keyExtractor={(item) => item.id}
                     showsVerticalScrollIndicator={false}
-                    renderItem={({ item }) => (
+                    renderItem={({ item, index }) => (
                         <Pressable
                             onPress={() => onSelect(item)}
                             style={({ pressed }) => [
                                 styles.item,
-                                { backgroundColor: pressed ? colors.surfaceRaised : 'transparent' },
+                                { backgroundColor: [colors.lemon, colors.mint, colors.lavender][index % 3], borderColor: colors.ink, opacity: pressed ? 0.72 : 1 },
                             ]}
                         >
                             <Avatar uri={item.avatarUrl} name={item.name} size="md" />
@@ -99,11 +98,15 @@ const ContactPickerSheet = forwardRef<BottomSheetRef, Props>(
 );
 
 const styles = StyleSheet.create({
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 1 },
     item: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 12,
+        padding: 12,
         gap: 12,
+        borderWidth: 1.25,
+        borderRadius: 17,
+        marginBottom: 9,
     },
     itemContent: {
         flex: 1,
@@ -112,5 +115,7 @@ const styles = StyleSheet.create({
         paddingVertical: 4,
     },
 });
+
+ContactPickerSheet.displayName = 'ContactPickerSheet';
 
 export default ContactPickerSheet;

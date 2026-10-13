@@ -1,13 +1,11 @@
 import { useTheme } from '@/hooks/useTheme';
-import { getCurrencySymbol } from '@/utils/formatCurrency';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { Tick01Icon } from '@hugeicons/core-free-icons';
 import React, { forwardRef, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Button from '../ui/Button';
 import Typography from '../ui/Typography';
-import { useAppSelector } from '@/store/hooks';
 
 export interface FilterOptions {
     priceRange: string;
@@ -24,21 +22,17 @@ const FilterSheet = forwardRef<BottomSheetRef, FilterSheetProps>(({ initialFilte
     const [priceRange, setPriceRange] = useState(initialFilters?.priceRange || 'All');
     const [sortBy, setSortBy] = useState(initialFilters?.sortBy || 'Trending');
 
-    const { user } = useAppSelector(s => s.auth);
-    const sym = getCurrencySymbol(user?.currency || 'NGN');
-
-    const prices = ['All', `Under ${sym}5000`, `${sym}5000 - ${sym}10000`, `Over ${sym}10000`];
     const sorts = ['Trending', 'Price: Low to High', 'Price: High to Low', 'Newest'];
 
     return (
         <BottomSheetWrapper ref={ref} snapPoints={['60%']}>
             <View style={{ marginBottom: spacing.xl, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography variant="h3">Filters</Typography>
+                <View><Typography variant="caption" color={colors.textSecondary} style={{ fontFamily: 'DMSans_700Bold', letterSpacing: 1 }}>SHOP LENS</Typography><Typography variant="h2">Sort the shelves</Typography></View>
                 <Pressable onPress={() => {
                     setPriceRange('All');
                     setSortBy('Trending');
-                }}>
-                    <Typography variant="body" color={colors.primary}>Reset</Typography>
+                }} style={{ backgroundColor: colors.lemon, borderColor: colors.ink, borderWidth: 1.25, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 7 }}>
+                    <Typography variant="caption" style={{ fontWeight: '800' }}>RESET</Typography>
                 </Pressable>
             </View>
 
@@ -66,22 +60,22 @@ const FilterSheet = forwardRef<BottomSheetRef, FilterSheetProps>(({ initialFilte
 
             <Typography variant="h4" style={{ marginBottom: spacing.md }}>Sort By</Typography>
             <View style={{ gap: 12, marginBottom: spacing.xl }}>
-                {sorts.map((s) => {
+                {sorts.map((s, index) => {
                     const isSelected = sortBy === s;
                     return (
                         <Pressable
                             key={s}
                             onPress={() => setSortBy(s)}
-                            style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8 }}
+                            style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 14, backgroundColor: [colors.lemon, colors.lavender, colors.mint, colors.peach][index], borderColor: colors.ink, borderWidth: 1.25, borderRadius: 16, shadowColor: isSelected ? colors.ink : 'transparent', shadowOffset: { width: 3, height: 3 }, shadowOpacity: 1, shadowRadius: 0 }}
                         >
                             <Typography variant="body" color={colors.textPrimary}>{s}</Typography>
-                            {isSelected && <HugeiconsIcon icon={Tick01Icon} size={20} color={colors.primary} />}
+                            {isSelected && <HugeiconsIcon icon={Tick01Icon} size={20} color={colors.ink} />}
                         </Pressable>
                     );
                 })}
             </View>
 
-            <Button title="Apply Filters" onPress={() => {
+            <Button title="Use this shop lens  →" onPress={() => {
                 onApply({ priceRange, sortBy });
                 (ref as any)?.current?.close();
             }} style={{ marginTop: 'auto' }} />
@@ -89,13 +83,6 @@ const FilterSheet = forwardRef<BottomSheetRef, FilterSheetProps>(({ initialFilte
     );
 });
 
-const styles = StyleSheet.create({
-    pill: {
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 20,
-        borderWidth: 1,
-    }
-});
+FilterSheet.displayName = 'FilterSheet';
 
 export default FilterSheet;

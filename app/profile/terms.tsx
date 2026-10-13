@@ -1,10 +1,9 @@
 import Typography from '@/components/ui/Typography';
+import PaperScreenHeader from '@/components/ui/PaperScreenHeader';
 import { useTheme } from '@/hooks/useTheme';
-import { HugeiconsIcon } from '@hugeicons/react-native';
-import { ArrowLeft01Icon } from '@hugeicons/core-free-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 
 export default function TermsAndConditionsScreen() {
@@ -52,24 +51,32 @@ export default function TermsAndConditionsScreen() {
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <View style={[styles.header, { paddingHorizontal: spacing.xl, paddingBottom: spacing.md }]}>
-                <Pressable onPress={() => router.back()} style={styles.backBtn}>
-                    <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
-                </Pressable>
-            </View>
+            <PaperScreenHeader eyebrow="The agreement folio" title="Terms, in plain sight" onBack={() => router.back()} accent={colors.lemon} />
 
-            <ScrollView 
-                contentContainerStyle={{ padding: spacing.xl, paddingBottom: 100 }} 
+            <ScrollView
+                contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: 100 }}
                 showsVerticalScrollIndicator={false}
             >
                 <Animated.View entering={FadeInUp.duration(400)}>
-                    <Typography variant="h1" style={{ marginBottom: 8 }}>Terms & Conditions</Typography>
-                    <Typography variant="label" color={colors.primary} style={{ marginBottom: spacing.xl }}>Last updated: May 2026</Typography>
+                    <View style={[styles.cover, { backgroundColor: colors.lemon, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                        <View style={[styles.binding, { backgroundColor: colors.lilac, borderColor: colors.ink }]} />
+                        <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>GIFTSYNC · AGREEMENT FILE</Typography>
+                        <Typography variant="h1">The good-faith rules</Typography>
+                        <Typography variant="body" color={colors.textSecondary}>How we keep gifting, buying, selling, and recommendations fair.</Typography>
+                        <View style={[styles.updatedStamp, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
+                            <Typography variant="caption" style={styles.overline}>UPDATED · MAY 2026</Typography>
+                        </View>
+                    </View>
 
                     {sections.map((section, index) => (
                         <View key={index} style={styles.section}>
-                            <Typography variant="h3" style={{ marginBottom: 12 }}>{section.title}</Typography>
-                            <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                            <View style={styles.sectionHeading}>
+                                <View style={[styles.numberTab, { backgroundColor: [colors.mint, colors.peach, colors.lavender][index % 3], borderColor: colors.ink }]}>
+                                    <Typography variant="caption" style={styles.overline}>{String(index + 1).padStart(2, '0')}</Typography>
+                                </View>
+                                <Typography variant="h3" style={{ flex: 1 }}>{section.title.replace(/^\d+\.\s*/, '')}</Typography>
+                            </View>
+                            <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: [colors.mint, colors.peach, colors.lavender][index % 3] }]}>
                                 <Typography variant="body" color={colors.textSecondary} style={{ lineHeight: 24 }}>
                                     {section.content}
                                 </Typography>
@@ -91,25 +98,23 @@ export default function TermsAndConditionsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingTop: 50,
     },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    backBtn: {
-        width: 40,
-        height: 40,
-        justifyContent: 'center',
-        alignItems: 'flex-start',
-    },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.9 },
+    cover: { padding: 22, borderWidth: 1.5, borderRadius: 25, gap: 7, marginTop: 8, marginBottom: 30, shadowOffset: { width: 5, height: 6 }, shadowOpacity: 0.15, shadowRadius: 0, transform: [{ rotate: '-0.6deg' }] },
+    binding: { position: 'absolute', left: 13, top: -8, width: 72, height: 17, borderWidth: 1, transform: [{ rotate: '-3deg' }] },
+    updatedStamp: { alignSelf: 'flex-start', borderWidth: 1.25, borderRadius: 9, paddingHorizontal: 9, paddingVertical: 6, marginTop: 8, transform: [{ rotate: '2deg' }] },
     section: {
-        marginBottom: 32,
+        marginBottom: 24,
     },
+    sectionHeading: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
+    numberTab: { width: 42, height: 34, borderWidth: 1.25, borderRadius: 11, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-3deg' }] },
     card: {
         padding: 20,
         borderRadius: 20,
-        borderWidth: 1,
+        borderWidth: 1.5,
+        shadowOffset: { width: 4, height: 4 },
+        shadowOpacity: 1,
+        shadowRadius: 0,
     },
     footer: {
         paddingVertical: 20,

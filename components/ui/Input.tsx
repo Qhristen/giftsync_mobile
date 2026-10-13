@@ -58,7 +58,7 @@ const Input: React.FC<Props> = ({
         styles.inputContainer,
         {
             backgroundColor: colors.surface,
-            borderColor: error ? colors.error : isFocused ? colors.primary : colors.border + "40",
+            borderColor: error ? colors.error : isFocused ? colors.primary : colors.border,
             minHeight: multiline ? 100 : 56,
             paddingTop: multiline ? spacing.md : 0,
         },
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        borderRadius: 12,
+        borderRadius: 16,
         borderWidth: 1.5,
         paddingHorizontal: 16,
     },

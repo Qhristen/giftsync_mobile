@@ -3,6 +3,7 @@ import ThemePickerSheet from '@/components/sheets/ThemePickerSheet';
 import Avatar from '@/components/ui/Avatar';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import PaperScreenHeader from '@/components/ui/PaperScreenHeader';
 import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
@@ -10,7 +11,6 @@ import { useUploadMutation } from '@/store/api/uploadApi';
 import { useGetProfileQuery, useUpdateProfileMutation } from '@/store/api/userApi';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import {
-    ArrowLeft01Icon,
     Camera01Icon,
     UserIcon,
     GlobeIcon,
@@ -70,7 +70,7 @@ export default function EditProfileScreen() {
                 setAvatarUrl(uploadedUrl);
                 toast.success('Avatar updated successfully', { id: 'avatar-upload' });
             }
-        } catch (error: any) {
+        } catch {
             toast.error('Failed to upload image', { id: 'avatar-upload' });
         }
     };
@@ -86,32 +86,33 @@ export default function EditProfileScreen() {
     };
 
     return (
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={[styles.container, { backgroundColor: colors.surface }]}>
-            <View style={[styles.header, { paddingHorizontal: spacing.xl }]}>
-                <Pressable onPress={() => router.back()} style={styles.backBtn}>
-                    <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
-                </Pressable>
-                <Typography variant="h3">Edit Profile</Typography>
-                <View style={{ width: 40 }} />
-            </View>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={[styles.container, { backgroundColor: colors.background }]}>
+            <PaperScreenHeader eyebrow="Identity card" title="Make it feel like you" onBack={() => router.back()} accent={colors.peach} />
 
-            <ScrollView contentContainerStyle={{ padding: spacing.xl, paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
-                <Animated.View entering={FadeInDown.duration(400)} style={styles.avatarSection}>
+            <ScrollView contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+                <Animated.View entering={FadeInDown.duration(400)} style={[styles.avatarSection, { backgroundColor: colors.lavender, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                    <View style={[styles.photoTape, { backgroundColor: colors.lemon, borderColor: colors.ink }]} />
                     <View>
                         <View style={{ opacity: isUploadingImage ? 0.5 : 1 }}>
-                            <Avatar name={name} uri={avatarUrl} size={120} />
+                            <Avatar name={name} uri={avatarUrl} size={112} style={{ borderWidth: 1.5, borderColor: colors.ink }} />
                         </View>
                         <Pressable
-                            style={[styles.cameraBtn, { backgroundColor: colors.primary }]}
+                            style={[styles.cameraBtn, { backgroundColor: colors.lime, borderColor: colors.ink }]}
                             onPress={handlePickImage}
                             disabled={isUploadingImage}
                         >
-                            <HugeiconsIcon icon={Camera01Icon} size={20} color="#FFF" />
+                            <HugeiconsIcon icon={Camera01Icon} size={20} color={colors.ink} />
                         </Pressable>
                     </View>
+                    <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>PROFILE PORTRAIT</Typography>
+                    <Typography variant="h3">{name || 'Your name goes here'}</Typography>
                 </Animated.View>
 
-                <Animated.View entering={FadeInDown.delay(100).duration(400)} style={{ gap: spacing.lg }}>
+                <Animated.View entering={FadeInDown.delay(100).duration(400)} style={[styles.formPaper, { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: colors.lilac }]}>
+                    <View style={styles.formHeading}>
+                        <Typography variant="label">Personal details</Typography>
+                        <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>EDITABLE</Typography>
+                    </View>
                     <Input
                         label="Full Name"
                         placeholder="Enter your name"
@@ -170,9 +171,9 @@ export default function EditProfileScreen() {
                 onSelect={(val) => setTheme(val)}
             />
 
-            <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border, paddingBottom: insets.bottom + 16 }]}>
+            <View style={[styles.footer, { backgroundColor: colors.background, paddingBottom: insets.bottom + 16 }]}>
                 <Button
-                    title="Save Changes"
+                    title="Stamp my changes  →"
                     variant="primary"
                     onPress={handleSave}
                     isLoading={isUpdating}
@@ -186,41 +187,38 @@ export default function EditProfileScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingTop: 50,
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingBottom: 20,
-    },
-    backBtn: {
-        width: 40,
-        height: 40,
-        justifyContent: 'center',
-        alignItems: 'flex-start',
     },
     avatarSection: {
         alignItems: 'center',
-        marginVertical: 32,
+        padding: 20,
+        marginVertical: 12,
+        borderWidth: 1.5,
+        borderRadius: 25,
+        shadowOffset: { width: 4, height: 5 },
+        shadowOpacity: 0.15,
+        shadowRadius: 0,
+        transform: [{ rotate: '-0.6deg' }],
     },
+    photoTape: { position: 'absolute', top: -9, width: 64, height: 19, borderWidth: 1, transform: [{ rotate: '4deg' }] },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 1 },
     cameraBtn: {
         position: 'absolute',
         bottom: 0,
         right: 0,
         width: 40,
         height: 40,
-        borderRadius: 20,
+        borderRadius: 13,
         justifyContent: 'center',
         alignItems: 'center',
-        borderWidth: 3,
-        borderColor: '#FFF',
+        borderWidth: 1.5,
     },
+    formPaper: { marginTop: 12, padding: 17, borderWidth: 1.5, borderRadius: 23, gap: 18, shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0 },
+    formHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     footer: {
         position: 'absolute',
         bottom: 0,
         width: '100%',
-        padding: 24,
-        // borderTopWidth: 1,
+        paddingHorizontal: 20,
+        paddingTop: 14,
     },
 });

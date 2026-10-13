@@ -1,70 +1,40 @@
 import { useTheme } from '@/hooks/useTheme';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import Skeleton from './Skeleton';
+import Skeleton, { SkeletonPaper } from './Skeleton';
 
 export default function ConversationListSkeleton() {
-    const { colors, spacing } = useTheme();
+    const { colors } = useTheme();
+    const notes = [colors.lemon, colors.lavender, colors.mint, colors.peach];
 
     return (
-        <View style={{ paddingHorizontal: spacing.xl }}>
-            {[1, 2, 3, 4, 5, 6].map((_, index) => (
-                <View key={index} style={[styles.container, { borderBottomColor: colors.border + '11' }]}>
+        <View style={styles.list}>
+            {notes.map((color, index) => (
+                <SkeletonPaper key={color} color={color} style={[styles.thread, { marginLeft: index % 2 ? 12 : 0, marginRight: index % 2 ? 0 : 12 }]}>
                     <View style={styles.avatarGroup}>
-                        <Skeleton width={55} height={55} borderRadius={27.5} />
-                        <View style={[styles.avatarOverlap, { borderColor: colors.background }]}>
-                             <Skeleton width={55} height={55} borderRadius={27.5} />
-                        </View>
+                        <Skeleton width={52} height={52} borderRadius={18} />
+                        <Skeleton width={28} height={28} borderRadius={10} style={[styles.miniAvatar, { borderColor: colors.ink }]} />
                     </View>
-                    
-                    <View style={styles.content}>
-                        <View style={styles.header}>
-                            <Skeleton width="60%" height={16} borderRadius={4} />
-                            <Skeleton width={60} height={12} borderRadius={4} />
+                    <View style={styles.copy}>
+                        <View style={styles.heading}>
+                            <Skeleton width="48%" height={17} />
+                            <Skeleton width={48} height={10} />
                         </View>
-                        <View style={styles.footer}>
-                            <Skeleton width="85%" height={14} borderRadius={4} />
-                            <Skeleton width={20} height={20} borderRadius={10} />
-                        </View>
+                        <Skeleton width="92%" height={12} />
+                        <Skeleton width="70%" height={12} />
                     </View>
-                </View>
+                    <Skeleton width={24} height={24} borderRadius={12} />
+                </SkeletonPaper>
             ))}
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 16,
-        gap: 12,
-        // borderBottomWidth: 1,
-    },
-    avatarGroup: {
-        width: 70, // Rough estimate of group width
-        height: 55,
-        position: 'relative',
-    },
-    avatarOverlap: {
-        position: 'absolute',
-        left: 15,
-        top: 0,
-        borderWidth: 2,
-        borderRadius: 30,
-    },
-    content: {
-        flex: 1,
-        gap: 8,
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    footer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
+    list: { paddingHorizontal: 20, gap: 14 },
+    thread: { minHeight: 94, flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 },
+    avatarGroup: { width: 61, height: 57 },
+    miniAvatar: { position: 'absolute', right: 0, bottom: 0, borderWidth: 1.5 },
+    copy: { flex: 1, gap: 7 },
+    heading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
 });

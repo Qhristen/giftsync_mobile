@@ -72,4 +72,6 @@ const styles = StyleSheet.create({
     },
 });
 
+MessageOptionsSheet.displayName = 'MessageOptionsSheet';
+
 export default MessageOptionsSheet;

@@ -135,7 +135,7 @@ function RootLayoutContent() {
         <Stack
           screenOptions={{
             headerShown: false,
-            contentStyle: { backgroundColor: isDark ? '#000000' : '#FFFFFF' },
+            contentStyle: { backgroundColor: colors.background },
           }}
         >
           <Stack.Protected guard={!isLoading && isAuthenticated}>

@@ -1,7 +1,9 @@
+import CheckoutProgress from '@/components/checkout/CheckoutProgress';
 import AddressPickerSheet from '@/components/sheets/AddressPickerSheet';
 import DeliveryOptionsSheet from '@/components/sheets/DeliveryOptionsSheet';
+import CheckoutSkeleton from '@/components/skeletons/CheckoutSkeleton';
+import Avatar from '@/components/ui/Avatar';
 import Button from '@/components/ui/Button';
-import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
@@ -12,76 +14,56 @@ import { useCreateOrderMutation } from '@/store/api/orderApi';
 import { useGetProductByIdQuery } from '@/store/api/productApi';
 import { Address } from '@/types';
 import { formatCurrency } from '@/utils/formatCurrency';
+import { Calendar01Icon, GiftIcon, Location01Icon, Time02Icon, UserIcon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react-native';
-import {
-    ArrowLeft01Icon,
-    Calendar01Icon,
-    GiftIcon,
-    Location01Icon,
-    Time02Icon,
-    UserIcon
-} from '@hugeicons/core-free-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { addDays, format, startOfDay, subDays } from 'date-fns';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useMemo } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
 export default function DeliveryScreen() {
     const router = useRouter();
-    const { colors, spacing } = useTheme();
+    const { colors } = useTheme();
     const { deliveryFeeNgn, packagingFeeNgn } = usePlatformConfig();
     const { occasionId, productId } = useLocalSearchParams<{ occasionId: string; productId: string }>();
     const insets = useSafeAreaInsets();
     const { data: product, isLoading: initialProductLoading, isFetching: isProductFetching } = useGetProductByIdQuery(productId as string, { skip: !productId });
-    const isProductLoading = initialProductLoading || isProductFetching;
-
     const { data: event, isLoading: initialEventLoading, isFetching: isEventFetching } = useGetEventDetailQuery(occasionId as string, { skip: !occasionId });
-    const isEventLoading = initialEventLoading || isEventFetching;
+    const isLoading = initialProductLoading || isProductFetching || initialEventLoading || isEventFetching;
 
     const [deliveryAddress, setDeliveryAddress] = React.useState<Address | null>(null);
     const [deliveryDate, setDeliveryDate] = React.useState<string | null>(null);
     const [deliveryTimeWindow, setDeliveryTimeWindow] = React.useState<'morning' | 'afternoon' | 'evening' | null>(null);
     const [giftMessage, setGiftMessage] = React.useState('');
     const [isAnonymous, setIsAnonymous] = React.useState(false);
+    const [showDatePicker, setShowDatePicker] = React.useState(false);
 
     const addressSheet = useBottomSheet();
     const optionsSheet = useBottomSheet();
     const [createOrder, { isLoading: isCreating }] = useCreateOrderMutation();
 
-    const [showDatePicker, setShowDatePicker] = React.useState(false);
-
     const maxDate = useMemo(() => {
         if (!event?.date) return addDays(new Date(), 14);
         return subDays(startOfDay(new Date(event.date)), 1);
     }, [event?.date]);
-
     const minDate = useMemo(() => startOfDay(new Date()), []);
+    const total = (Number(product?.price) || 0)
+        + (Number(product?.deliveryFee || deliveryFeeNgn) || 0)
+        + (Number(product?.packagingFee || packagingFeeNgn) || 0);
 
-    // Set initial date if not set
     React.useEffect(() => {
         if (!deliveryDate && event) {
             const today = startOfDay(new Date());
-            if (today <= maxDate) {
-                setDeliveryDate(format(today, 'yyyy-MM-dd'));
-            } else {
-                setDeliveryDate(format(maxDate, 'yyyy-MM-dd'));
-            }
+            setDeliveryDate(format(today <= maxDate ? today : maxDate, 'yyyy-MM-dd'));
         }
     }, [deliveryDate, maxDate, event]);
 
-    const onDateChange = (event: any, selectedDate?: Date) => {
-        setShowDatePicker(Platform.OS === 'ios');
-        if (selectedDate) {
-            setDeliveryDate(format(selectedDate, 'yyyy-MM-dd'));
-        }
-    };
-
     const handleNext = async () => {
         if (!deliveryAddress || !deliveryDate || !deliveryTimeWindow) {
-            alert('Please select an address, date, and time window.');
+            toast.error('Complete the route', { description: 'Select an address, date, and delivery window.' });
             return;
         }
 
@@ -92,214 +74,212 @@ export default function DeliveryScreen() {
                 eventId: event?.id as string,
                 deliveryAddressId: deliveryAddress.id as string,
                 recipientName: event?.contact?.name as string,
-                deliveryDate: deliveryDate,
+                deliveryDate,
                 deliveryTimeWindow: timeWindowFormatted,
-                giftMessage: giftMessage,
+                giftMessage,
                 anonymity: isAnonymous,
-                quantity: 1
+                quantity: 1,
             }).unwrap();
 
-            router.push({
-                pathname: '/checkout/payment',
-                params: { orderId: result.id }
-            });
+            router.push({ pathname: '/checkout/payment', params: { orderId: result.id } });
         } catch (error: any) {
             console.error('Failed to create order', error);
             toast.error(error?.data?.message || 'Failed to create order. Please try again.');
         }
     };
 
-    const handleAddressSelect = (address: Address) => {
-        setDeliveryAddress(address);
-        addressSheet.close();
-    };
-
-    const handleOptionsSave = (timeWindow: 'morning' | 'afternoon' | 'evening') => {
-        setDeliveryTimeWindow(timeWindow);
-        optionsSheet.close();
-    };
-
-    if (isProductLoading || isEventLoading) {
-        return (
-            <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
-                <ActivityIndicator size="large" color={colors.primary} />
-            </View>
-        );
+    if (isLoading) {
+        return <CheckoutSkeleton step={2} onBack={() => router.back()} />;
     }
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <KeyboardAvoidingView
-                behavior={"padding"}
-                style={{ flex: 1 }}
-            >
-                {/* Header */}
-                <View style={[styles.header, { padding: spacing.xl, paddingBottom: spacing.md, paddingTop: insets.top }]}>
-                    <Pressable onPress={() => router.back()} style={styles.backBtn}>
-                        <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
+            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.container}>
+                <CheckoutProgress
+                    step={2}
+                    eyebrow="Delivery map"
+                    title="Plot the delivery route"
+                    onBack={() => router.back()}
+                />
+
+                <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+                    <View style={[styles.routeCard, { backgroundColor: colors.mint, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                        <View style={styles.routeTop}>
+                            <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>GIFT ROUTE · ONE HAPPY STOP</Typography>
+                            <View style={[styles.routeBadge, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
+                                <Typography variant="caption" style={styles.badgeCopy}>LIVE PLAN</Typography>
+                            </View>
+                        </View>
+                        <View style={styles.routeLine}>
+                            <View style={[styles.routePoint, { backgroundColor: colors.lime, borderColor: colors.ink }]}>
+                                <HugeiconsIcon icon={GiftIcon} size={20} color={colors.ink} />
+                            </View>
+                            <View style={[styles.dottedRoute, { borderColor: colors.ink }]} />
+                            <Avatar name={event?.contact?.name || 'Recipient'} uri={event?.contact?.avatar} size="lg" />
+                        </View>
+                        <View style={styles.routeLabels}>
+                            <View>
+                                <Typography variant="bodyBold">GiftSync desk</Typography>
+                                <Typography variant="caption" color={colors.textSecondary}>{product?.name || 'Your gift'}</Typography>
+                            </View>
+                            <View style={styles.routeRecipient}>
+                                <Typography variant="bodyBold" align="right">{event?.contact?.name || 'Someone special'}</Typography>
+                                <Typography variant="caption" color={colors.textSecondary} align="right">{event?.title || 'Their big moment'}</Typography>
+                            </View>
+                        </View>
+                    </View>
+
+                    <View style={styles.sectionHeading}>
+                        <Typography variant="label">01 · Destination</Typography>
+                        <Typography variant="caption" color={colors.textSecondary}>REQUIRED</Typography>
+                    </View>
+                    <Pressable
+                        onPress={() => addressSheet.open()}
+                        style={({ pressed }) => [
+                            styles.destinationTicket,
+                            {
+                                backgroundColor: colors.surface,
+                                borderColor: colors.ink,
+                                shadowColor: colors.lilac,
+                                opacity: pressed ? 0.72 : 1,
+                            },
+                        ]}
+                    >
+                        <View style={[styles.ticketIcon, { backgroundColor: colors.peach, borderColor: colors.ink }]}>
+                            <HugeiconsIcon icon={Location01Icon} size={23} color={colors.ink} />
+                        </View>
+                        <View style={styles.destinationCopy}>
+                            <Typography variant="caption" color={colors.textSecondary}>DELIVER TO</Typography>
+                            {deliveryAddress ? (
+                                <>
+                                    <Typography variant="bodyBold">{deliveryAddress.recipientName}</Typography>
+                                    <Typography variant="caption" color={colors.textSecondary} numberOfLines={2}>
+                                        {deliveryAddress.line1}, {deliveryAddress.city}, {deliveryAddress.state}
+                                    </Typography>
+                                </>
+                            ) : (
+                                <Typography variant="bodyBold">Pin a delivery address</Typography>
+                            )}
+                        </View>
+                        <Typography variant="bodyBold">{deliveryAddress ? 'EDIT' : 'ADD'} →</Typography>
                     </Pressable>
-                    <Typography variant="h2">Delivery Details</Typography>
-                </View>
 
-                <ScrollView contentContainerStyle={[styles.content, { padding: spacing.xl }]} showsVerticalScrollIndicator={false}>
-                    {/* Recipient Overview */}
-                    <View style={styles.recipientHeader}>
-                        <View style={[styles.avatarPlaceholder, { backgroundColor: colors.primary + '10' }]}>
-                            <HugeiconsIcon icon={UserIcon} size={24} color={colors.primary} />
-                        </View>
-                        <View style={{ flex: 1 }}>
-                            <Typography variant="bodyBold">{event?.contact?.name || 'Someone Special'}</Typography>
-                            <Typography variant="caption" color={colors.textSecondary}>Recipient for {event?.title || 'this event'}</Typography>
-                        </View>
-                        <View style={[styles.badge, { backgroundColor: colors.primary + '15' }]}>
-                            <Typography variant="caption" color={colors.primary} style={{ fontWeight: 'bold' }}>GIFTING</Typography>
-                        </View>
+                    <View style={styles.sectionHeading}>
+                        <Typography variant="label">02 · Arrival window</Typography>
+                        <Typography variant="caption" color={colors.textSecondary}>BEFORE THE MOMENT</Typography>
+                    </View>
+                    <View style={styles.scheduleRow}>
+                        <Pressable
+                            onPress={() => setShowDatePicker(true)}
+                            style={({ pressed }) => [
+                                styles.scheduleCard,
+                                { backgroundColor: colors.lemon, borderColor: colors.ink, opacity: pressed ? 0.72 : 1 },
+                            ]}
+                        >
+                            <HugeiconsIcon icon={Calendar01Icon} size={22} color={colors.ink} />
+                            <Typography variant="caption" color={colors.textSecondary}>DROP DATE</Typography>
+                            <Typography variant="bodyBold">
+                                {deliveryDate ? format(new Date(deliveryDate), 'MMM d, yyyy') : 'Choose date'}
+                            </Typography>
+                        </Pressable>
+                        <Pressable
+                            onPress={() => optionsSheet.open()}
+                            style={({ pressed }) => [
+                                styles.scheduleCard,
+                                { backgroundColor: colors.sky, borderColor: colors.ink, opacity: pressed ? 0.72 : 1 },
+                            ]}
+                        >
+                            <HugeiconsIcon icon={Time02Icon} size={22} color={colors.ink} />
+                            <Typography variant="caption" color={colors.textSecondary}>TIME SLOT</Typography>
+                            <Typography variant="bodyBold" style={styles.capitalize}>{deliveryTimeWindow || 'Choose time'}</Typography>
+                        </Pressable>
                     </View>
 
-                    {/* Logistics Section */}
-                    <View style={styles.section}>
-                        <Typography variant="label" style={styles.sectionLabel}>Where & When</Typography>
-
-                        <Card variant="outline" style={styles.detailCard}>
-                            <View style={styles.cardHeader}>
-                                <HugeiconsIcon icon={Location01Icon} size={18} color={colors.textMuted} />
-                                <Typography variant="caption" style={{ fontWeight: 'bold', marginLeft: 8 }}>DELIVERY ADDRESS</Typography>
-                            </View>
-                            <View style={styles.cardMain}>
-                                {deliveryAddress ? (
-                                    <View style={styles.addressInfo}>
-                                        <Typography variant="bodyBold">{deliveryAddress.recipientName}</Typography>
-                                        <Typography variant="caption" color={colors.textSecondary} numberOfLines={2}>
-                                            {deliveryAddress.line1}, {deliveryAddress.city}, {deliveryAddress.state}
-                                        </Typography>
-                                    </View>
-                                ) : (
-                                    <Typography variant="body" color={colors.textMuted}>Choose where to send your gift</Typography>
-                                )}
-                                <Button title={deliveryAddress ? "Edit" : "Select"} size="sm" variant="ghost" onPress={() => addressSheet.open()} />
-                            </View>
-                        </Card>
-
-                        <View style={styles.row}>
-                            <Card variant="outline" style={[styles.detailCard, { flex: 1, marginBottom: 0 }]} onPress={() => setShowDatePicker(true)}>
-                                <View style={styles.cardHeader}>
-                                    <HugeiconsIcon icon={Calendar01Icon} size={18} color={colors.textMuted} />
-                                    <Typography variant="caption" style={{ fontWeight: 'bold', marginLeft: 8 }}>DATE</Typography>
-                                </View>
-                                <Typography variant="bodyBold" color={colors.primary} style={{ marginTop: 8 }}>
-                                    {deliveryDate ? format(new Date(deliveryDate), 'MMM d, yyyy') : 'Select Date'}
-                                </Typography>
-                            </Card>
-
-                            <Card variant="outline" style={[styles.detailCard, { flex: 1, marginBottom: 0 }]} onPress={() => optionsSheet.open()}>
-                                <View style={styles.cardHeader}>
-                                    <HugeiconsIcon icon={Time02Icon} size={18} color={colors.textMuted} />
-                                    <Typography variant="caption" style={{ fontWeight: 'bold', marginLeft: 8 }}>TIME</Typography>
-                                </View>
-                                <Typography variant="bodyBold" color={colors.primary} style={{ marginTop: 8, textTransform: 'capitalize' }}>
-                                    {deliveryTimeWindow ? deliveryTimeWindow : 'Set Time'}
-                                </Typography>
-                            </Card>
-                        </View>
-                    </View>
-
-                    {showDatePicker && (
+                    {showDatePicker ? (
                         <DateTimePicker
                             value={deliveryDate ? new Date(deliveryDate) : new Date()}
                             mode="date"
                             display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                            onChange={onDateChange}
+                            onChange={(_, selectedDate) => {
+                                setShowDatePicker(Platform.OS === 'ios');
+                                if (selectedDate) setDeliveryDate(format(selectedDate, 'yyyy-MM-dd'));
+                            }}
                             minimumDate={minDate}
                             maximumDate={maxDate}
                         />
-                    )}
+                    ) : null}
 
-                    {/* Personalization Section */}
-                    <View style={styles.section}>
-                        <Typography variant="label" style={styles.sectionLabel}>Make it Special</Typography>
-
-                        <Card variant="outline" style={styles.packagingCard}>
-                            <View style={styles.packagingIcon}>
-                                <HugeiconsIcon icon={GiftIcon} size={24} color={colors.primary} />
+                    <View style={styles.sectionHeading}>
+                        <Typography variant="label">03 · The personal touch</Typography>
+                        <Typography variant="caption" color={colors.textSecondary}>OPTIONAL</Typography>
+                    </View>
+                    <View style={[styles.postcard, { backgroundColor: colors.lavender, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                        <View style={styles.postcardHeader}>
+                            <View style={[styles.ticketIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
+                                <HugeiconsIcon icon={GiftIcon} size={22} color={colors.ink} />
                             </View>
-                            <View style={{ flex: 1, marginLeft: 12 }}>
-                                <Typography variant="bodyBold">Premium Packaging</Typography>
-                                <Typography variant="caption" color={colors.textSecondary}>Ribbon-wrapped box + Silk paper</Typography>
+                            <View style={styles.destinationCopy}>
+                                <Typography variant="bodyBold">Ribbon, tissue & a note</Typography>
+                                <Typography variant="caption" color={colors.textSecondary}>Premium gift presentation is included.</Typography>
                             </View>
-                            <View style={[styles.miniBadge, { backgroundColor: colors.success + '15' }]}>
-                                <Typography variant="caption" color={colors.success} style={{ fontWeight: 'bold', fontSize: 10 }}>INCLUDED</Typography>
+                            <View style={[styles.includedBadge, { backgroundColor: colors.lime, borderColor: colors.ink }]}>
+                                <Typography variant="caption" style={styles.badgeCopy}>INCLUDED</Typography>
                             </View>
-                        </Card>
-
-                        <Typography variant="caption" color={colors.textSecondary} style={{ marginTop: spacing.md, marginBottom: spacing.xs }}>Gift Message</Typography>
+                        </View>
                         <Input
                             value={giftMessage}
                             onChangeText={setGiftMessage}
-                            placeholder="Add a heartfelt message for the recipient..."
+                            placeholder="Write something they will keep..."
                             multiline
                             numberOfLines={4}
-                            style={{ minHeight: 120, borderRadius: 20 }}
+                            style={styles.messageInput}
                         />
-
-                        <Card variant="outline" style={[styles.toggleCard, { marginTop: spacing.md }]}>
-                            <View style={{ flex: 1, paddingRight: spacing.md }}>
-                                <Typography variant="bodyBold">Send Anonymously</Typography>
-                                <Typography variant="caption" color={colors.textSecondary}>Hide your identity from the recipient</Typography>
-                            </View>
-                            <Switch
-                                value={isAnonymous}
-                                onValueChange={setIsAnonymous}
-                                trackColor={{ false: colors.border, true: colors.primary }}
-                                thumbColor={colors.background}
-                            />
-                        </Card>
                     </View>
 
-                    {/* Summary Mini */}
-                    <View style={[styles.summaryCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                        <Typography variant="bodyBold" style={{ marginBottom: spacing.md }}>Order Summary</Typography>
-                        {/* <View style={styles.summaryRow}>
-                            <Typography variant="caption" color={colors.textSecondary}>Item Price</Typography>
-                            <Typography variant="caption">{formatCurrency(product?.price || 0, product?.currency || 'NGN')}</Typography>
-                        </View> */}
-                        {/* <View style={styles.summaryRow}>
-                            <Typography variant="caption" color={colors.textSecondary}>Delivery Fee</Typography>
-                            <Typography variant="caption">{formatCurrency(product?.deliveryFee || deliveryFeeNgn, product?.currency || 'NGN')}</Typography>
+                    <View style={[styles.anonymousCard, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
+                        <View style={[styles.ticketIcon, { backgroundColor: colors.peach, borderColor: colors.ink }]}>
+                            <HugeiconsIcon icon={UserIcon} size={21} color={colors.ink} />
                         </View>
-                        <View style={styles.summaryRow}>
-                            <Typography variant="caption" color={colors.textSecondary}>Packaging</Typography>
-                            <Typography variant="caption">{formatCurrency(product?.packagingFee || packagingFeeNgn, product?.currency || 'NGN')}</Typography>
-                        </View> */}
-                        <View style={[styles.divider, { backgroundColor: colors.border, marginVertical: 0 }]} />
-                        <View style={styles.summaryRow}>
-                            <Typography variant="bodyBold">Total Payable</Typography>
-                            <Typography variant="h3" color={colors.primary}>
-                                {formatCurrency((Number(product?.price || 0) + Number(product?.deliveryFee || deliveryFeeNgn) + Number(product?.packagingFee || packagingFeeNgn)) || 0, product?.currency || 'NGN')}
-                            </Typography>
+                        <View style={styles.destinationCopy}>
+                            <Typography variant="bodyBold">Make it a mystery</Typography>
+                            <Typography variant="caption" color={colors.textSecondary}>Your name stays off the gift card.</Typography>
                         </View>
+                        <Switch
+                            value={isAnonymous}
+                            onValueChange={setIsAnonymous}
+                            trackColor={{ false: colors.textMuted, true: colors.primary }}
+                            thumbColor={colors.surface}
+                        />
+                    </View>
+
+                    <View style={[styles.totalTicket, { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                        <View>
+                            <Typography variant="caption" color={colors.textSecondary}>ROUTE TOTAL</Typography>
+                            <Typography variant="caption" color={colors.textSecondary}>Gift + wrap + delivery</Typography>
+                        </View>
+                        <Typography variant="h3">{formatCurrency(total, product?.currency || 'NGN')}</Typography>
                     </View>
                 </ScrollView>
 
-                {/* Footer CTA */}
-                <View style={[styles.footer, { padding: spacing.xl, paddingBottom: insets.bottom + 20 }]}>
-                    <Button
-                        title="Continue to Payment →"
-                        onPress={handleNext}
-                        isLoading={isCreating}
-                        style={styles.submitBtn}
-                    />
+                <View style={[styles.footer, { backgroundColor: colors.background, paddingBottom: insets.bottom + 16 }]}>
+                    <Button title="Save route & continue  →" onPress={handleNext} isLoading={isCreating} style={styles.submitButton} />
                 </View>
 
-                {/* Sheets */}
                 <AddressPickerSheet
                     ref={addressSheet.ref}
                     selectedAddressId={deliveryAddress?.id}
-                    onSelect={handleAddressSelect}
+                    onSelect={(address) => {
+                        setDeliveryAddress(address);
+                        addressSheet.close();
+                    }}
                 />
                 <DeliveryOptionsSheet
                     ref={optionsSheet.ref}
                     initialTimeWindow={deliveryTimeWindow}
-                    onSave={handleOptionsSave}
+                    onSave={(timeWindow) => {
+                        setDeliveryTimeWindow(timeWindow);
+                        optionsSheet.close();
+                    }}
                 />
             </KeyboardAvoidingView>
         </View>
@@ -307,116 +287,72 @@ export default function DeliveryScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
+    container: { flex: 1 },
+    content: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 130, gap: 18 },
+    routeCard: {
+        borderWidth: 1.5,
+        borderRadius: 25,
+        padding: 18,
+        gap: 13,
+        shadowOffset: { width: 4, height: 5 },
+        shadowOpacity: 0.15,
+        shadowRadius: 0,
+        elevation: 3,
+        transform: [{ rotate: '0.7deg' }],
     },
-    header: {
+    routeTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
+    overline: { fontWeight: '700', letterSpacing: 1 },
+    routeBadge: { borderWidth: 1.5, borderRadius: 9, paddingHorizontal: 8, paddingVertical: 4 },
+    badgeCopy: { fontWeight: '800' },
+    routeLine: { flexDirection: 'row', alignItems: 'center' },
+    routePoint: { width: 52, height: 52, borderRadius: 18, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+    dottedRoute: { flex: 1, borderTopWidth: 2, borderStyle: 'dashed', marginHorizontal: 10 },
+    routeLabels: { flexDirection: 'row', justifyContent: 'space-between', gap: 16 },
+    routeRecipient: { flex: 1, alignItems: 'flex-end' },
+    sectionHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 2 },
+    destinationTicket: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 16,
-    },
-    backBtn: {
-        padding: 8,
-    },
-    content: {
-        flexGrow: 1,
-    },
-    recipientHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 32,
         gap: 12,
+        borderWidth: 1.5,
+        borderRadius: 20,
+        padding: 15,
+        shadowOffset: { width: 4, height: 4 },
+        shadowOpacity: 1,
+        shadowRadius: 0,
+        elevation: 2,
     },
-    avatarPlaceholder: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        justifyContent: 'center',
-        alignItems: 'center',
+    ticketIcon: { width: 44, height: 44, borderRadius: 14, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+    destinationCopy: { flex: 1 },
+    scheduleRow: { flexDirection: 'row', gap: 12 },
+    scheduleCard: { flex: 1, minHeight: 122, borderWidth: 1.5, borderRadius: 20, padding: 15, gap: 7, justifyContent: 'center' },
+    capitalize: { textTransform: 'capitalize' },
+    postcard: {
+        borderWidth: 1.5,
+        borderRadius: 23,
+        padding: 15,
+        gap: 14,
+        shadowOffset: { width: 3, height: 4 },
+        shadowOpacity: 0.13,
+        shadowRadius: 0,
+        transform: [{ rotate: '-0.5deg' }],
     },
-    badge: {
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 8,
-    },
-    section: {
-        marginBottom: 32,
-    },
-    sectionLabel: {
-        marginBottom: 16,
-        fontSize: 16,
-    },
-    detailCard: {
-        padding: 16,
-        marginBottom: 12,
-        borderRadius: 10,
-    },
-    cardHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    cardMain: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginTop: 12,
-        gap: 12,
-    },
-    addressInfo: {
-        flex: 1,
-    },
-    row: {
-        flexDirection: 'row',
-        gap: 12,
-    },
-    packagingCard: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 16,
-        borderRadius: 10,
-    },
-    packagingIcon: {
-        width: 44,
-        height: 44,
-        borderRadius: 12,
-        backgroundColor: 'rgba(0,0,0,0.02)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    miniBadge: {
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-        borderRadius: 4,
-    },
-    toggleCard: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 16,
-        borderRadius: 10,
-    },
-    summaryCard: {
-        marginTop: 16,
-        padding: 20,
-        borderRadius: 10,
-        // borderWidth: 1,
-    },
-    summaryRow: {
+    postcardHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+    includedBadge: { borderWidth: 1.5, borderRadius: 8, paddingHorizontal: 7, paddingVertical: 4, transform: [{ rotate: '3deg' }] },
+    messageInput: { minHeight: 116 },
+    anonymousCard: { flexDirection: 'row', alignItems: 'center', gap: 11, borderWidth: 1.5, borderRadius: 20, padding: 14 },
+    totalTicket: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 8,
+        alignItems: 'center',
+        borderWidth: 1.5,
+        borderRadius: 20,
+        padding: 17,
+        shadowOffset: { width: 3, height: 4 },
+        shadowOpacity: 0.12,
+        shadowRadius: 0,
+        transform: [{ rotate: '0.5deg' }],
     },
-    divider: {
-        height: 1,
-        width: '100%',
-        opacity: 0.1,
-    },
-    footer: {
-        width: '100%',
-        borderTopWidth: 1,
-        borderTopColor: 'rgba(0,0,0,0.05)',
-    },
-    submitBtn: {
-        width: '100%',
-        // height: 56,
-        // borderRadius: 28,
-    },
+    footer: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 14 },
+    submitButton: { width: '100%' },
 });

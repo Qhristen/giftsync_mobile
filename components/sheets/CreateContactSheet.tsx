@@ -25,4 +25,6 @@ const CreateContactSheet = forwardRef<BottomSheetRef, Props>(
     }
 );
 
+CreateContactSheet.displayName = 'CreateContactSheet';
+
 export default CreateContactSheet;

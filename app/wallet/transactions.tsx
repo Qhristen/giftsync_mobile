@@ -20,6 +20,7 @@ import { useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, SectionList, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const TX_ICONS: Record<string, { icon: any; color: string; bg: string }> = {
     purchase: { icon: ArrowDown01Icon, color: '#10B981', bg: '#10B98115' },
@@ -35,18 +36,19 @@ const getTxStyle = (type: string) => TX_ICONS[type] || TX_ICONS.spend;
 export default function WalletTransactionsScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
+    const insets = useSafeAreaInsets();
     const [page, setPage] = useState(1);
     const limit = 20;
 
     const { data: wallet, refetch: refetchWallet, isLoading: isLoadingWallet } = useGetWalletBalanceQuery();
     const { data: txData, isLoading, isFetching, refetch } = useGetTransactionsQuery({ page, limit });
 
-    const transactions = txData?.items ?? [];
+    const transactions = useMemo(() => txData?.items ?? [], [txData?.items]);
     const meta = txData?.meta;
     const hasMore = meta ? page < meta.totalPages : false;
 
 
- 
+
     const groupedTransactions = useMemo(() => {
         const groups: { title: string; data: WalletTransaction[] }[] = [];
         const map = new Map<string, WalletTransaction[]>();
@@ -79,9 +81,9 @@ export default function WalletTransactionsScreen() {
 
         return (
             <Animated.View entering={FadeInDown.delay(index * 50).duration(300)}>
-                <Card style={[styles.txCard, { backgroundColor: colors.surface, marginHorizontal: spacing.xl }]}>
-                    <View style={[styles.txIcon, { backgroundColor: style.bg }]}>
-                        <HugeiconsIcon icon={style.icon} size={22} color={style.color} />
+                <Card style={[styles.txCard, { backgroundColor: isCredit ? colors.mint : colors.peach, borderColor: colors.ink, shadowColor: colors.ink, marginHorizontal: spacing.xl, transform: [{ rotate: index % 2 ? '0.4deg' : '-0.4deg' }] }]}>
+                    <View style={[styles.txIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
+                        <HugeiconsIcon icon={style.icon} size={22} color={colors.ink} />
                     </View>
                     <View style={{ flex: 1 }}>
                         <Typography variant="bodyBold" numberOfLines={1}>{item.description || item.type}</Typography>
@@ -108,30 +110,34 @@ export default function WalletTransactionsScreen() {
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             {/* Header */}
-            <View style={[styles.header, { paddingHorizontal: spacing.xl, paddingBottom: spacing.md }]}>
-                <Pressable onPress={() => router.back()} style={styles.backBtn}>
-                    <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
+            <View style={[styles.header, { paddingHorizontal: spacing.xl, paddingTop: insets.top + 10, paddingBottom: spacing.md }]}>
+                <Pressable onPress={() => router.back()} style={[styles.backBtn, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
+                    <HugeiconsIcon icon={ArrowLeft01Icon} size={22} color={colors.ink} />
                 </Pressable>
-                <Typography variant="h3">Transaction History</Typography>
-                <View style={{ width: 40 }} />
+                <View style={styles.headerCopy}>
+                    <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>THE COIN LEDGER</Typography>
+                    <Typography variant="h2">Every coin has a story</Typography>
+                </View>
             </View>
 
             {/* Balance Summary */}
             <Animated.View entering={FadeInDown.duration(400)} style={{ paddingHorizontal: spacing.xl, marginBottom: spacing.lg }}>
-                <Card style={[styles.balanceCard, { backgroundColor: colors.primary }]}>
+                <Card style={[styles.balanceCard, { backgroundColor: colors.lavender, borderColor: colors.ink, shadowColor: colors.ink }]}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                        <HugeiconsIcon icon={Coins02Icon} size={28} color="rgba(255,255,255,0.8)" />
+                        <View style={[styles.balanceIcon, { backgroundColor: colors.lime, borderColor: colors.ink }]}>
+                            <HugeiconsIcon icon={Coins02Icon} size={25} color={colors.ink} />
+                        </View>
                         <View>
-                            <Typography variant="caption" color="rgba(255,255,255,0.7)" style={{ textTransform: 'uppercase', letterSpacing: 1, fontSize: moderateScale(10) }}>
-                                Current Balance
+                            <Typography variant="caption" color={colors.textSecondary} style={{ textTransform: 'uppercase', letterSpacing: 1, fontSize: moderateScale(10) }}>
+                                COINS ON HAND
                             </Typography>
-                            <Typography variant="h2" color="#FFF">
-                                {wallet?.balance?.toLocaleString() ?? '—'} <Typography variant="body" color="rgba(255,255,255,0.8)">Coins</Typography>
+                            <Typography variant="h2">
+                                {wallet?.balance?.toLocaleString() ?? '—'} <Typography variant="body">coins</Typography>
                             </Typography>
                         </View>
                     </View>
                     {meta && (
-                        <Typography variant="caption" color="rgba(255,255,255,0.6)" style={{ marginTop: 8 }}>
+                        <Typography variant="caption" color={colors.textSecondary} style={{ marginTop: 8 }}>
                             {meta.total} transaction{meta.total !== 1 ? 's' : ''} total
                         </Typography>
                     )}
@@ -150,7 +156,7 @@ export default function WalletTransactionsScreen() {
                     renderItem={renderTransaction}
                     renderSectionHeader={({ section: { title } }) => (
                         <View style={[styles.sectionHeader, { backgroundColor: colors.background, paddingTop: spacing.md, paddingBottom: spacing.sm, paddingHorizontal: spacing.xl }]}>
-                            <Typography variant="label" color={colors.textSecondary}>{title}</Typography>
+                            <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>{title.toUpperCase()}</Typography>
                         </View>
                     )}
                     showsVerticalScrollIndicator={false}
@@ -193,34 +199,50 @@ export default function WalletTransactionsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingTop: 50,
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        gap: 13,
     },
+    headerCopy: { flex: 1 },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.9 },
     backBtn: {
-        width: 40,
-        height: 40,
+        width: 44,
+        height: 44,
+        borderRadius: 14,
+        borderWidth: 1.5,
         justifyContent: 'center',
-        alignItems: 'flex-start',
+        alignItems: 'center',
+        transform: [{ rotate: '-3deg' }],
     },
     balanceCard: {
         padding: 20,
         borderRadius: 24,
+        borderWidth: 1.5,
+        shadowOffset: { width: 4, height: 5 },
+        shadowOpacity: 0.15,
+        shadowRadius: 0,
+        transform: [{ rotate: '-0.6deg' }],
     },
+    balanceIcon: { width: 48, height: 48, borderWidth: 1.5, borderRadius: 15, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '4deg' }] },
     txCard: {
         flexDirection: 'row',
         alignItems: 'center',
         padding: 14,
         gap: 12,
         marginBottom: 10,
+        borderWidth: 1.5,
+        borderRadius: 19,
+        shadowOffset: { width: 3, height: 3 },
+        shadowOpacity: 0.1,
+        shadowRadius: 0,
     },
     txIcon: {
         width: 44,
         height: 44,
         borderRadius: 14,
+        borderWidth: 1.5,
         justifyContent: 'center',
         alignItems: 'center',
     },

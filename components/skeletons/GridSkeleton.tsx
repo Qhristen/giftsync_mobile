@@ -1,32 +1,26 @@
 import { useTheme } from '@/hooks/useTheme';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import Skeleton from './Skeleton';
+import Skeleton, { SkeletonPaper } from './Skeleton';
 
 export default function GridSkeleton() {
-    const { colors, spacing } = useTheme();
+    const { colors } = useTheme();
+    const palette = [colors.lemon, colors.lilac, colors.mint, colors.peach, colors.sky, colors.lemon];
 
     return (
-        <View style={{ flex: 1, padding: spacing.xl }}>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
-                {[1, 2, 3, 4, 5, 6, 7, 8].map((_, index) => (
-                    <View key={index} style={[styles.card, { backgroundColor: colors.surfaceRaised }]}>
-                        <Skeleton width={60} height={60} borderRadius={20} />
-                        <Skeleton width="80%" height={16} borderRadius={4} />
-                        <Skeleton width="40%" height={12} borderRadius={4} />
-                    </View>
-                ))}
-            </View>
+        <View style={styles.grid}>
+            {palette.map((color, index) => (
+                <SkeletonPaper key={`${color}-${index}`} color={color} style={[styles.card, { transform: [{ rotate: index % 2 ? '1deg' : '-1deg' }] }]}>
+                    <Skeleton width={56} height={56} borderRadius={18} />
+                    <Skeleton width="78%" height={16} />
+                    <Skeleton width="48%" height={11} />
+                </SkeletonPaper>
+            ))}
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    card: {
-        width: '48%', // Roughly 2 columns
-        padding: 20,
-        borderRadius: 24,
-        alignItems: 'center',
-        gap: 12,
-    },
+    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 14, padding: 20 },
+    card: { width: '47%', minHeight: 150, alignItems: 'center', justifyContent: 'center', padding: 16, gap: 11 },
 });

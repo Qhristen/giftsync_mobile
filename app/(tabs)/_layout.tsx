@@ -38,16 +38,27 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.primary,
+        tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.textSecondaryForeground,
+        tabBarShowLabel: false,
         tabBarStyle: {
           backgroundColor: colors.surface,
-          borderTopWidth: 0,
-          paddingTop: spacing.xs,
-          paddingBottom: insets.bottom > 0 ? insets.bottom : spacing.sm,
+          borderWidth: 1.5,
+          borderTopWidth: 1.5,
+          borderColor: colors.border,
+          // borderRadius: 24,
+          paddingTop: spacing.sm,
+          paddingBottom: spacing.sm,
           height: 64 + insets.bottom,
-          elevation: 0,
-          borderTopColor: 'transparent',
+          // position: 'absolute',
+          // left: 14,
+          // right: 14,
+          // bottom: Math.max(insets.bottom, 10),
+          // elevation: 6,
+          // shadowColor: '#17151D',
+          // shadowOffset: { width: 4, height: 5 },
+          // shadowOpacity: 1,
+          // shadowRadius: 0,
         },
         tabBarLabelStyle: {
           fontSize: moderateScale(12),
@@ -59,8 +70,10 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => (
-            <HugeiconsIcon icon={Home01Icon} size={24} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <View style={[styles.tabIcon, focused && { backgroundColor: colors.ink }]}>
+              <HugeiconsIcon icon={Home01Icon} size={23} color={focused ? colors.surface : color} />
+            </View>
           ),
         }}
       />
@@ -69,8 +82,10 @@ export default function TabLayout() {
         name="shop/index"
         options={{
           title: 'Shop',
-          tabBarIcon: ({ color }) => (
-            <HugeiconsIcon icon={GiftIcon} size={24} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <View style={[styles.tabIcon, focused && { backgroundColor: colors.ink }]}>
+              <HugeiconsIcon icon={GiftIcon} size={23} color={focused ? colors.surface : color} />
+            </View>
           ),
         }}
       />
@@ -78,8 +93,10 @@ export default function TabLayout() {
         name="events/index"
         options={{
           title: 'Events',
-          tabBarIcon: ({ color }) => (
-            <HugeiconsIcon icon={Calendar01Icon} size={24} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <View style={[styles.tabIcon, focused && { backgroundColor: colors.ink }]}>
+              <HugeiconsIcon icon={Calendar01Icon} size={23} color={focused ? colors.surface : color} />
+            </View>
           ),
         }}
       />
@@ -87,14 +104,14 @@ export default function TabLayout() {
         name="messages"
         options={{
           title: 'Messages',
-          tabBarIcon: ({ color }) => (
-            <View>
-              <HugeiconsIcon icon={Comment01Icon} size={24} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <View style={[styles.tabIcon, focused && { backgroundColor: colors.ink }]}>
+              <HugeiconsIcon icon={Comment01Icon} size={23} color={focused ? colors.surface : color} />
               {hasUnreadMessages && (
                 <View
                   style={[
                     styles.notificationDot,
-                    { backgroundColor: colors.primary, borderColor: colors.surface }
+                    { backgroundColor: colors.accent, borderColor: colors.ink }
                   ]}
                 />
               )}
@@ -106,8 +123,10 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: 'Me',
-          tabBarIcon: ({ color }) => (
-            <HugeiconsIcon icon={UserIcon} size={24} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <View style={[styles.tabIcon, focused && { backgroundColor: colors.ink }]}>
+              <HugeiconsIcon icon={UserIcon} size={23} color={focused ? colors.surface : color} />
+            </View>
           ),
         }}
       />
@@ -116,6 +135,13 @@ export default function TabLayout() {
 }
 
 const styles = StyleSheet.create({
+  tabIcon: {
+    width: 48,
+    height: 38,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   notificationDot: {
     position: 'absolute',
     right: -2,

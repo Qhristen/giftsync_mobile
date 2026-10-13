@@ -276,4 +276,6 @@ const styles = StyleSheet.create({
     },
 });
 
+AddressPickerSheet.displayName = 'AddressPickerSheet';
+
 export default AddressPickerSheet;

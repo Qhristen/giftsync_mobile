@@ -71,8 +71,11 @@ export default function MyProductsScreen() {
         }
     };
 
-    const renderProductItem = ({ item }: { item: Product }) => (
-        <Card style={styles.productCard}>
+    const paper = [colors.lemon, colors.lilac, colors.mint, colors.peach];
+
+    const renderProductItem = ({ item, index }: { item: Product; index: number }) => (
+        <Card style={[styles.productCard, { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: paper[index % paper.length], transform: [{ rotate: index % 2 ? '0.5deg' : '-0.5deg' }] }]}>
+            <View style={[styles.colorTab, { backgroundColor: paper[index % paper.length], borderColor: colors.ink }]} />
             <Pressable
                 onPress={() => router.push({
                     pathname: '/profile/product-orders',
@@ -90,7 +93,7 @@ export default function MyProductsScreen() {
                         {item.description}
                     </Typography>
                     <Typography variant="body" color={colors.primary} style={{ marginTop: 6 }}>
-                        {formatCurrency(item.price, item.currency)}
+                        {formatCurrency(item.price, item.currency)} · view orders →
                     </Typography>
                 </View>
             </Pressable>
@@ -148,15 +151,16 @@ export default function MyProductsScreen() {
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <View style={[styles.header, { borderBottomColor: colors.border + '33' }]}>
-                <Pressable onPress={() => router.back()} style={styles.backButton}>
-                    <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
+            <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+                <Pressable onPress={() => router.back()} style={[styles.backButton, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
+                    <HugeiconsIcon icon={ArrowLeft01Icon} size={22} color={colors.ink} />
                 </Pressable>
-                <Typography variant="h3">My Products</Typography>
-                <Pressable onPress={() => router.push('/profile/add-product')}>
-                    <Typography variant="body" color={colors.primary}>
-                        Add New
-                    </Typography>
+                <View style={styles.headerCopy}>
+                    <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>MAKER&apos;S SHELF</Typography>
+                    <Typography variant="h2">Your gift catalogue</Typography>
+                </View>
+                <Pressable onPress={() => router.push('/profile/add-product')} style={[styles.headerAdd, { backgroundColor: colors.lime, borderColor: colors.ink }]}>
+                    <HugeiconsIcon icon={PlusSignIcon} size={19} color={colors.ink} />
                 </Pressable>
             </View>
 
@@ -179,8 +183,9 @@ export default function MyProductsScreen() {
                     }}
                     onEndReachedThreshold={0.5}
                     ListEmptyComponent={
-                        <View style={styles.emptyContainer}>
-                            <Typography variant="body" color={colors.textSecondary}>No products found.</Typography>
+                        <View style={[styles.emptyContainer, { backgroundColor: colors.lemon, borderColor: colors.ink }]}>
+                            <Typography variant="h3">The shelf is empty.</Typography>
+                            <Typography variant="body" color={colors.textSecondary}>Add your first gift to start taking orders.</Typography>
                         </View>
                     }
                     ListFooterComponent={
@@ -206,7 +211,9 @@ export default function MyProductsScreen() {
                 style={[
                     styles.floatingButton,
                     {
-                        backgroundColor: colors.primary,
+                        backgroundColor: colors.lime,
+                        borderColor: colors.ink,
+                        shadowColor: colors.ink,
                         bottom: insets.bottom + 24,
                         flexDirection: 'row',
                         alignItems: 'center',
@@ -215,8 +222,8 @@ export default function MyProductsScreen() {
                     }
                 ]}
             >
-                <HugeiconsIcon icon={PlusSignIcon} size={24} color="#FFF" />
-                <Typography variant="bodyBold" color="#FFF">Add Product</Typography>
+                <HugeiconsIcon icon={PlusSignIcon} size={22} color={colors.ink} />
+                <Typography variant="bodyBold">Add a gift</Typography>
             </Pressable>
         </View>
     );
@@ -229,19 +236,32 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingTop: 60,
+        gap: 12,
         paddingBottom: 16,
         paddingHorizontal: 20,
-        borderBottomWidth: 1,
     },
+    headerCopy: { flex: 1 },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 1 },
     backButton: {
-        padding: 4,
+        width: 44,
+        height: 44,
+        borderWidth: 1.5,
+        borderRadius: 14,
+        alignItems: 'center',
+        justifyContent: 'center',
+        transform: [{ rotate: '-3deg' }],
     },
+    headerAdd: { width: 42, height: 42, borderWidth: 1.5, borderRadius: 13, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '3deg' }] },
     productCard: {
         marginBottom: 16,
         padding: 12,
+        borderWidth: 1.5,
+        borderRadius: 22,
+        shadowOffset: { width: 4, height: 4 },
+        shadowOpacity: 1,
+        shadowRadius: 0,
     },
+    colorTab: { position: 'absolute', width: 42, height: 13, borderWidth: 1, top: -8, left: 26, transform: [{ rotate: '-4deg' }], zIndex: 2 },
     productCardContent: {
         flexDirection: 'row',
         gap: 12,
@@ -250,7 +270,9 @@ const styles = StyleSheet.create({
     productImage: {
         width: 80,
         height: 80,
-        borderRadius: 8,
+        borderRadius: 15,
+        borderWidth: 1,
+        borderColor: '#17151D',
     },
     productInfo: {
         flex: 1,
@@ -276,18 +298,22 @@ const styles = StyleSheet.create({
     },
     emptyContainer: {
         alignItems: 'center',
-        marginTop: 100,
+        marginTop: 60,
+        padding: 24,
+        borderWidth: 1.5,
+        borderRadius: 22,
+        gap: 6,
     },
     floatingButton: {
         position: 'absolute',
         bottom: 24,
         right: 24,
-        borderRadius: 100,
+        borderRadius: 17,
+        borderWidth: 1.5,
         paddingHorizontal: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 4,
+        shadowOffset: { width: 4, height: 4 },
+        shadowOpacity: 1,
+        shadowRadius: 0,
         elevation: 8,
     }
 });

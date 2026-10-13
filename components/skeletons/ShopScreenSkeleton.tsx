@@ -1,96 +1,41 @@
 import { useTheme } from '@/hooks/useTheme';
 import React from 'react';
-import { Dimensions, StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Skeleton from './Skeleton';
-
-const { width } = Dimensions.get('window');
+import { StyleSheet, View } from 'react-native';
+import Skeleton, { SkeletonPaper } from './Skeleton';
 
 export default function ShopScreenSkeleton() {
-    const { colors, spacing } = useTheme();
-    const insets = useSafeAreaInsets();
-
-    const isLeft = (index: number) => index % 2 === 0;
+    const { colors } = useTheme();
+    const palette = [colors.lemon, colors.lilac, colors.mint, colors.peach, colors.sky, colors.lemon];
 
     return (
-        <View style={[styles.container, { backgroundColor: colors.background }]}>
-            {/* Header Title */}
-            {/* <View style={[styles.header, { paddingHorizontal: spacing.xl, paddingTop: insets.top + spacing.md }]}>
-                <Skeleton width={120} height={32} borderRadius={8} />
-                <Skeleton width={200} height={16} borderRadius={4} style={{ marginTop: 8 }} />
-            </View> */}
-
-            {/* Sticky-like Search Bar */}
-            {/* <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing.xl, marginBottom: spacing.lg }}>
-                <View style={styles.searchRow}>
-                    <Skeleton width={width - spacing.xl * 2 - 64} height={52} borderRadius={16} />
-                    <Skeleton width={52} height={52} borderRadius={16} />
-                </View>
-            </View> */}
-
-            {/* Hero Banner Carousel */}
-            {/* <View style={{ marginBottom: spacing.xl, paddingHorizontal: spacing.xl }}>
-                <Skeleton width={width - spacing.xl * 2} height={180} borderRadius={24} />
-            </View> */}
-
-            {/* Dynamic Category Pills */}
-            {/* <View style={{ flexDirection: 'row', paddingHorizontal: spacing.xl, marginBottom: spacing.md, gap: 10 }}>
-                {[1, 2, 3, 4].map((_, idx) => (
-                    <Skeleton key={idx} width={80} height={36} borderRadius={18} />
-                ))}
-            </View> */}
-
-            {/* Grid */}
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: spacing.xl - 8, marginTop: 10 }}>
-                {[1, 2, 3, 4].map((_, index) => (
-                    <View key={index} style={[
-                        styles.productWrapper,
-                        isLeft(index) ? { paddingLeft: 8, paddingRight: 8 } : { paddingRight: 8, paddingLeft: 8 }
-                    ]}>
-                        <View style={[styles.newProductCard, { borderColor: colors.border }]}>
-                            <Skeleton width="100%" height={150} borderRadius={0} />
-                            <View style={styles.cardContent}>
-                                <Skeleton width="80%" height={16} borderRadius={4} style={{ marginBottom: 4 }} />
-                                <Skeleton width="50%" height={12} borderRadius={4} style={{ marginBottom: 10 }} />
-                                <View style={styles.priceRow}>
-                                    <Skeleton width={60} height={16} borderRadius={4} />
-                                    <Skeleton width={32} height={32} borderRadius={16} />
-                                </View>
-                            </View>
+        <View style={styles.grid}>
+            {palette.map((color, index) => (
+                <View key={`${color}-${index}`} style={[styles.wrapper, index % 2 ? styles.right : styles.left]}>
+                    <SkeletonPaper color={colors.surface} style={[styles.card, { shadowColor: color }]}>
+                        <View style={styles.imageWrap}>
+                            <Skeleton width="100%" height={145} borderRadius={13} />
+                            <View style={[styles.tab, { backgroundColor: color, borderColor: colors.ink }]} />
                         </View>
-                    </View>
-                ))}
-            </View>
+                        <View style={styles.content}>
+                            <Skeleton width="86%" height={16} />
+                            <Skeleton width="58%" height={11} />
+                            <View style={styles.price}><Skeleton width={66} height={16} /><Skeleton width={32} height={32} borderRadius={11} /></View>
+                        </View>
+                    </SkeletonPaper>
+                </View>
+            ))}
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    header: {
-        paddingBottom: 0
-    },
-    searchRow: {
-        flexDirection: 'row',
-        gap: 12,
-    },
-    productWrapper: {
-        width: '50%',
-        marginBottom: 16,
-    },
-    newProductCard: {
-        borderRadius: 20,
-        overflow: 'hidden',
-        // borderWidth: 1,
-    },
-    cardContent: {
-        padding: 12,
-    },
-    priceRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
+    grid: { flexDirection: 'row', flexWrap: 'wrap', paddingTop: 12, paddingBottom: 110 },
+    wrapper: { width: '50%', marginBottom: 18 },
+    left: { paddingLeft: 20, paddingRight: 7 },
+    right: { paddingRight: 20, paddingLeft: 7 },
+    card: { overflow: 'visible' },
+    imageWrap: { height: 145, margin: 8, marginBottom: 0 },
+    tab: { position: 'absolute', width: 38, height: 12, borderWidth: 1, top: -13, left: 14, transform: [{ rotate: '-5deg' }] },
+    content: { padding: 12, gap: 7 },
+    price: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 },
 });

@@ -128,4 +128,6 @@ const styles = StyleSheet.create({
     },
 });
 
+ReviewBusinessSheet.displayName = 'ReviewBusinessSheet';
+
 export default ReviewBusinessSheet;

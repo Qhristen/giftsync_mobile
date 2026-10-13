@@ -1,38 +1,35 @@
 import { useTheme } from '@/hooks/useTheme';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import Skeleton from './Skeleton';
+import Skeleton, { SkeletonPaper } from './Skeleton';
 
 export default function AddressListSkeleton() {
-    const { colors, spacing } = useTheme();
+    const { colors } = useTheme();
+    const paper = [colors.lemon, colors.mint, colors.sky];
 
     return (
-        <View style={{ paddingHorizontal: spacing.sm }}>
-            {[1, 2].map((_, index) => (
-                <View key={index} style={[styles.addressCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                    <Skeleton width={48} height={48} borderRadius={24} />
-                    <View style={{ flex: 1, gap: 8 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                            <Skeleton width="40%" height={16} borderRadius={4} />
-                            <Skeleton width={50} height={16} borderRadius={4} />
+        <View style={styles.list}>
+            {paper.map((color, index) => (
+                <SkeletonPaper key={color} color={color} style={[styles.card, { transform: [{ rotate: index % 2 ? '0.7deg' : '-0.7deg' }] }]}>
+                    <Skeleton width={48} height={48} borderRadius={15} />
+                    <View style={styles.copy}>
+                        <View style={styles.row}>
+                            <Skeleton width="42%" height={16} />
+                            {index === 0 ? <Skeleton width={56} height={18} borderRadius={9} /> : null}
                         </View>
-                        <Skeleton width="80%" height={12} borderRadius={4} />
+                        <Skeleton width="88%" height={12} />
+                        <Skeleton width="62%" height={12} />
                     </View>
-                    <Skeleton width={24} height={24} borderRadius={4} />
-                </View>
+                    <Skeleton width={25} height={25} borderRadius={9} />
+                </SkeletonPaper>
             ))}
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    addressCard: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 16,
-        marginBottom: 16,
-        gap: 16,
-        borderRadius: 20,
-        // borderWidth: 1,
-    },
+    list: { paddingHorizontal: 16, gap: 14 },
+    card: { flexDirection: 'row', alignItems: 'center', padding: 15, gap: 13 },
+    copy: { flex: 1, gap: 7 },
+    row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
 });

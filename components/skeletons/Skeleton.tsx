@@ -1,6 +1,6 @@
 import { useTheme } from '@/hooks/useTheme';
-import React, { useEffect } from 'react';
-import { StyleProp, StyleSheet, ViewStyle } from 'react-native';
+import React, { ReactNode, useEffect } from 'react';
+import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import Animated, {
     useAnimatedStyle,
     useSharedValue,
@@ -13,6 +13,12 @@ interface SkeletonProps {
     width?: number | string;
     height?: number | string;
     borderRadius?: number;
+    style?: StyleProp<ViewStyle>;
+}
+
+interface SkeletonPaperProps {
+    children: ReactNode;
+    color?: string;
     style?: StyleProp<ViewStyle>;
 }
 
@@ -34,7 +40,7 @@ export default function Skeleton({
             -1,
             true
         );
-    }, []);
+    }, [opacity]);
 
     const animatedStyle = useAnimatedStyle(() => ({
         opacity: opacity.value,
@@ -48,7 +54,7 @@ export default function Skeleton({
                     width: width as any,
                     height: height as any,
                     borderRadius,
-                    backgroundColor: colors.surfaceRaised, // fallback or active color
+                    backgroundColor: colors.textMuted + '45',
                 },
                 animatedStyle,
                 style,
@@ -57,8 +63,36 @@ export default function Skeleton({
     );
 }
 
+export function SkeletonPaper({ children, color, style }: SkeletonPaperProps) {
+    const { colors } = useTheme();
+
+    return (
+        <View
+            style={[
+                styles.paper,
+                {
+                    backgroundColor: color || colors.surface,
+                    borderColor: colors.ink,
+                    shadowColor: colors.ink,
+                },
+                style,
+            ]}
+        >
+            {children}
+        </View>
+    );
+}
+
 const styles = StyleSheet.create({
     skeleton: {
         overflow: 'hidden',
+    },
+    paper: {
+        borderWidth: 1.5,
+        borderRadius: 22,
+        shadowOffset: { width: 3, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 0,
+        elevation: 2,
     },
 });

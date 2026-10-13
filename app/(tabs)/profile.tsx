@@ -17,6 +17,7 @@ import { HugeiconsIcon } from '@hugeicons/react-native';
 import {
     ArrowRight01Icon,
     Building01Icon,
+    Delete02Icon,
     FileValidationIcon,
     GiftIcon,
     HelpCircleIcon,
@@ -31,6 +32,7 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { toast } from 'sonner-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface SettingItem {
     label: string;
@@ -47,6 +49,7 @@ interface SettingSection {
 export default function ProfileScreen() {
     const router = useRouter();
     const { colors, spacing, scheme } = useTheme();
+    const insets = useSafeAreaInsets();
     const dispatch = useAppDispatch();
     const user = useAppSelector((state: RootState) => state.auth.user);
     const [logoutTrigger, { isLoading: isLoggingOut }] = useLogoutMutation();
@@ -95,32 +98,45 @@ export default function ProfileScreen() {
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
+            <ScrollView contentContainerStyle={{ paddingTop: insets.top + spacing.sm, paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+                <View style={{ paddingHorizontal: spacing.xl, marginBottom: spacing.lg }}>
+                    <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>MY GIFTSYNC</Typography>
+                    <Typography variant="h1">Your corner</Typography>
+                </View>
                 {/* Profile Hero */}
-                <View style={[styles.hero, { padding: spacing.xl }]}>
-                    <Avatar name={user?.name || 'User'} uri={user?.avatarUrl} size={100} />
-                    <Typography variant="h2" style={{ marginTop: spacing.md }}>{user?.name || 'Guest'}</Typography>
-                    <Typography variant="body" color={colors.textSecondary}>{user?.email || ''}</Typography>
+                <View style={[styles.hero, { padding: spacing.lg, marginHorizontal: spacing.xl, backgroundColor: colors.lilac, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                    <View style={[styles.heroTape, { backgroundColor: colors.lemon, borderColor: colors.ink }]} />
+                    <Avatar name={user?.name || 'User'} uri={user?.avatarUrl} size={78} style={{ borderWidth: 1.5, borderColor: colors.ink }} />
+                    <View style={{ flex: 1 }}>
+                        <Typography variant="h2">{user?.name || 'Guest'}</Typography>
+                        <Typography variant="body" color={colors.textSecondary} numberOfLines={1}>{user?.email || ''}</Typography>
+                        <Pressable onPress={() => router.push('/profile/edit')} style={[styles.editPill, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
+                            <Typography variant="caption" style={{ fontFamily: 'DMSans_700Bold' }}>Edit profile</Typography>
+                        </Pressable>
+                    </View>
                 </View>
 
                 {/* Coin Wallet Card */}
                 <View style={{ paddingHorizontal: spacing.xl, marginBottom: spacing.xl }}>
-                    <Card variant="elevated" style={[styles.upgradeCard, { backgroundColor: colors.primary }]}>
+                    <Card variant="elevated" style={[styles.upgradeCard, { backgroundColor: colors.lemon, borderColor: colors.ink, shadowColor: colors.ink }]}>
                         <View style={{ flex: 1 }}>
-                            <Typography variant="h3" color="#FFFFFF">Coin Wallet</Typography>
-                            <Typography variant="caption" color="#FFFFFF" style={{ opacity: 0.9 }}>Use coins to pay for services.</Typography>
+                            <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>YOUR BALANCE</Typography>
+                            <Typography variant="h3">Coin Wallet</Typography>
+                            <Typography variant="caption" color={colors.textSecondary}>Use coins to pay for services.</Typography>
                         </View>
-                        <Button title="Buy Coins" variant="secondary" size="sm" onPress={() => router.push('/wallet')} />
+                        <View style={[styles.walletAction, { backgroundColor: colors.lime, borderColor: colors.ink }]}>
+                            <Button title="Open vault" variant="ghost" size="sm" onPress={() => router.push('/wallet')} />
+                        </View>
                     </Card>
                 </View>
 
                 {/* Settings Sections */}
                 {sections.map((sec, sIdx) => (
                     <View key={sIdx} style={{ marginBottom: spacing.xl }}>
-                        <Typography variant="label" color={colors.textSecondary} style={{ paddingHorizontal: spacing.xl, marginBottom: spacing.sm }}>
-                            {sec.title}
+                        <Typography variant="caption" color={colors.textSecondary} style={[styles.overline, { paddingHorizontal: spacing.xl, marginBottom: spacing.sm }]}>
+                            {sec.title.toUpperCase()}
                         </Typography>
-                        <Card style={{ marginHorizontal: spacing.xl, padding: 0 }}>
+                        <Card style={[styles.sectionCard, { marginHorizontal: spacing.xl, padding: 0, backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: [colors.mint, colors.peach, colors.lilac, colors.lemon][sIdx % 4], transform: [{ rotate: sIdx % 2 ? '0.4deg' : '-0.4deg' }] }]}>
                             {sec.items.map((item, iIdx) => (
                                 <Pressable
                                     key={iIdx}
@@ -128,11 +144,11 @@ export default function ProfileScreen() {
                                     style={({ pressed }) => [
                                         styles.settingItem,
                                         { backgroundColor: pressed ? colors.surfaceRaised : 'transparent' },
-                                        iIdx < sec.items.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.border + '33' },
+                                        iIdx < sec.items.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.textMuted, borderStyle: 'dashed' },
                                     ]}
                                 >
-                                    <View style={[styles.iconBox, { backgroundColor: colors.surfaceRaised }]}>
-                                        <HugeiconsIcon icon={item.icon} size={20} color={colors.primary} />
+                                    <View style={[styles.iconBox, { backgroundColor: [colors.mint, colors.peach, colors.lilac][iIdx % 3], borderColor: colors.ink }]}>
+                                        <HugeiconsIcon icon={item.icon} size={20} color={colors.ink} />
                                     </View>
                                     <Typography variant="body" style={{ flex: 1 }}>{item.label}</Typography>
                                     {item?.extra && (
@@ -147,8 +163,9 @@ export default function ProfileScreen() {
                     </View>
                 ))}
 
-                {/* Sign Out and Delete */}
-                <View style={{ paddingHorizontal: spacing.xl, paddingBottom: spacing.xl, gap: 12 }}>
+                {/* Session and Danger Zone */}
+                <View style={[styles.accountActions, { paddingHorizontal: spacing.xl, paddingBottom: spacing.xl }]}>
+                    <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>SESSION</Typography>
                     <Button
                         title="Sign Out"
                         variant="outline"
@@ -156,12 +173,28 @@ export default function ProfileScreen() {
                         style={{ borderColor: colors.border }}
                         color={colors.textPrimary}
                     />
-                    <Button
-                        title="Delete Account"
-                        variant="ghost"
-                        onPress={() => requestAnimationFrame(() => deleteUserSheet.open())}
-                        color={colors.error}
-                    />
+
+                    <View style={[styles.dangerCard, { backgroundColor: colors.peach, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                        <View style={styles.dangerHeading}>
+                            <View style={[styles.dangerIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
+                                <HugeiconsIcon icon={Delete02Icon} size={24} color={colors.error} />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                                <Typography variant="caption" color={colors.error} style={styles.overline}>DANGER ZONE</Typography>
+                                <Typography variant="h3">Close your account</Typography>
+                            </View>
+                        </View>
+                        <Typography variant="body" color={colors.textSecondary}>
+                            Permanently remove your profile and associated gifting data. This cannot be undone.
+                        </Typography>
+                        <Button
+                            title="Delete my account"
+                            variant="destructive"
+                            onPress={() => requestAnimationFrame(() => deleteUserSheet.open())}
+                            leftIcon={<HugeiconsIcon icon={Delete02Icon} size={19} color="#FFFFFF" />}
+                            style={styles.deleteButton}
+                        />
+                    </View>
                 </View>
             </ScrollView>
 
@@ -204,9 +237,9 @@ export default function ProfileScreen() {
 
             <ConfirmDeleteSheet
                 ref={deleteUserSheet.ref}
-                title="Delete Account"
-                description="Are you sure you want to permanently delete your account and all associated data? This action cannot be undone."
-                confirmLabel="Delete Account"
+                title="Delete your account?"
+                description="Your profile and associated gifting data will be permanently removed. You will not be able to recover this account."
+                confirmLabel="Delete forever"
                 isLoading={isDeleting}
                 onConfirm={async () => {
                     try {
@@ -226,19 +259,34 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingTop: 60,
     },
     hero: {
+        flexDirection: 'row',
         alignItems: 'center',
-        paddingBottom: 24,
+        gap: 16,
+        borderWidth: 1.5,
+        borderRadius: 24,
+        shadowOffset: { width: 5, height: 6 },
+        shadowOpacity: 1,
+        shadowRadius: 0,
+        elevation: 5,
+        marginBottom: 20,
     },
+    heroTape: { position: 'absolute', top: -9, right: 38, width: 60, height: 18, borderWidth: 1, transform: [{ rotate: '4deg' }] },
     upgradeCard: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         padding: 24,
         borderRadius: 24,
+        borderWidth: 1.5,
+        shadowOffset: { width: 4, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 0,
+        transform: [{ rotate: '0.5deg' }],
     },
+    walletAction: { borderWidth: 1.25, borderRadius: 14, overflow: 'hidden' },
+    sectionCard: { borderWidth: 1.5, borderRadius: 22, overflow: 'hidden', shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0 },
     settingItem: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -251,5 +299,34 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         justifyContent: 'center',
         alignItems: 'center',
+        borderWidth: 1,
+    },
+    editPill: {
+        alignSelf: 'flex-start',
+        borderWidth: 1,
+        borderRadius: 10,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        marginTop: 8,
+    },
+    accountActions: { gap: 12 },
+    dangerCard: {
+        marginTop: 10,
+        borderWidth: 1.5,
+        borderRadius: 22,
+        padding: 16,
+        gap: 13,
+        shadowOffset: { width: 4, height: 5 },
+        shadowOpacity: 1,
+        shadowRadius: 0,
+        elevation: 4,
+        transform: [{ rotate: '-0.35deg' }],
+    },
+    dangerHeading: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    dangerIcon: { width: 48, height: 48, borderWidth: 1.5, borderRadius: 15, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '4deg' }] },
+    deleteButton: { width: '100%', borderColor: '#17151D' },
+    overline: {
+        fontFamily: 'DMSans_700Bold',
+        letterSpacing: 0.9,
     },
 });

@@ -2,7 +2,7 @@ import { moderateScale } from '@/utils/scaling';
 
 export const typography = {
     fonts: {
-        heading: 'Fraunces_700Bold',
+        heading: 'DMSans_700Bold',
         body: 'DMSans_400Regular',
         bodyMedium: 'DMSans_500Medium',
         bodyBold: 'DMSans_700Bold',

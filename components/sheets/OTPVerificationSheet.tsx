@@ -75,7 +75,7 @@ const OTPVerificationSheet = forwardRef<BottomSheetRef, Props>(
                         Verify Account
                     </Typography>
                     <Typography variant="body" align="center" color={colors.textSecondary} style={{ marginBottom: spacing.xl }}>
-                        We've sent a 6-digit code to your phone.
+                        We&apos;ve sent a 6-digit code to your phone.
                     </Typography>
 
                     <View style={styles.otpGrid}>
@@ -155,5 +155,7 @@ const styles = StyleSheet.create({
         marginVertical: 12,
     },
 });
+
+OTPVerificationSheet.displayName = 'OTPVerificationSheet';
 
 export default OTPVerificationSheet;

@@ -10,70 +10,55 @@ import { useGetCategoriesQuery, useGetProductsQuery } from '@/store/api/productA
 import { Product } from '@/types';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { moderateScale } from '@/utils/scaling';
-import { HugeiconsIcon } from '@hugeicons/react-native';
 import {
+    ArrowRight01Icon,
     CancelCircleIcon,
     FilterIcon,
     Search01Icon,
-    SentIcon
+    SentIcon,
+    SparklesIcon,
 } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
 import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Dimensions, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const { width } = Dimensions.get('window');
-
 export default function ShopScreen() {
     const router = useRouter();
-    const { colors, spacing } = useTheme();
     const insets = useSafeAreaInsets();
+    const { colors, spacing } = useTheme();
     const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
     const [activeCategory, setActiveCategory] = useState('All');
     const [searchQuery, setSearchQuery] = useState('');
-    const debouncedSearch = useDebounce(searchQuery);
-    const categoryScrollRef = useRef<ScrollView>(null);
-    const [categoryLayouts, setCategoryLayouts] = useState<Record<string, { x: number; width: number }>>({});
-    const giftSheet = useBottomSheet();
-    const filterSheet = useBottomSheet();
-    const { data: categoriesData = [], refetch: refetchCategories, isFetching: isCategoriesFetching } = useGetCategoriesQuery({ hasProductsOnly: true });
-    const categories = [{ id: 'All', name: 'All' }, ...categoriesData];
-
     const [priceRange, setPriceRange] = useState('All');
     const [sortBy, setSortBy] = useState('Trending');
+    const [page, setPage] = useState(1);
+    const debouncedSearch = useDebounce(searchQuery);
+    const giftSheet = useBottomSheet();
+    const filterSheet = useBottomSheet();
 
-    const queryParams: any = {};
+    const { data: categoriesData = [], refetch: refetchCategories, isFetching: categoriesFetching } = useGetCategoriesQuery({ hasProductsOnly: true });
+    const { data: upcomingEvents = [], refetch: refetchEvents, isFetching: eventsFetching } = useGetUpcomingEventsQuery();
+    const categories = [{ id: 'All', name: 'All gifts' }, ...categoriesData];
+
+    const queryParams: Record<string, string | number> = { page, limit: 20 };
     if (activeCategory !== 'All') queryParams.categoryId = activeCategory;
     if (debouncedSearch) queryParams.search = debouncedSearch;
     if (sortBy !== 'Trending') queryParams.sortBy = sortBy.toLowerCase();
-
-    if (priceRange === 'Under $50') {
-        queryParams.maxPrice = 50;
-    } else if (priceRange === '$50 - $100') {
+    if (priceRange === 'Under $50') queryParams.maxPrice = 50;
+    if (priceRange === '$50 - $100') {
         queryParams.minPrice = 50;
         queryParams.maxPrice = 100;
-    } else if (priceRange === 'Over $100') {
-        queryParams.minPrice = 100;
     }
+    if (priceRange === 'Over $100') queryParams.minPrice = 100;
 
-    const [page, setPage] = useState(1);
+    const { data: productsData, isLoading, isFetching: productsFetching, error, refetch: refetchProducts } = useGetProductsQuery(queryParams);
 
-    // Reset page to 1 when any filter changes
-    useEffect(() => {
-        setPage(1);
-    }, [activeCategory, debouncedSearch, priceRange, sortBy]);
-
-    queryParams.page = page;
-    queryParams.limit = 20;
-
-    const { data: productsData, isLoading, isFetching: isProductsFetching, error, refetch: refetchProducts } = useGetProductsQuery(
-        queryParams
-    );
-
-    const { data: upcomingEvents = [], refetch: refetchEvents, isFetching: isEventsFetching } = useGetUpcomingEventsQuery();
+    useEffect(() => setPage(1), [activeCategory, debouncedSearch, priceRange, sortBy]);
 
     const onRefresh = React.useCallback(() => {
         setPage(1);
@@ -83,206 +68,46 @@ export default function ShopScreen() {
     }, [refetchProducts, refetchEvents, refetchCategories]);
 
     const loadMore = () => {
-        if (productsData?.meta && page < productsData.meta.totalPages && !isProductsFetching) {
-            setPage(p => p + 1);
-        }
+        if (productsData?.meta && page < productsData.meta.totalPages && !productsFetching) setPage((value) => value + 1);
     };
 
-    const isRefreshing = isProductsFetching || isEventsFetching || isCategoriesFetching;
+    const paperColors = [colors.lemon, colors.lilac, colors.mint, colors.peach];
 
-    const banners = [
-        {
-            id: '1',
-            title: 'Spring Collection',
-            subtitle: 'Get up to 30% off on selected items',
-            colors: [colors.primary, colors.secondary],
-            icon: 'gift'
-        },
-        {
-            id: '2',
-            title: 'Personalised Gifts',
-            subtitle: 'Make it special with a custom engraving',
-            colors: ['#8B5CF6', '#C084FC'],
-            icon: 'color-wand'
-        },
-        {
-            id: '3',
-            title: 'Experience Days',
-            subtitle: 'Unforgettable memories for two',
-            colors: ['#F59E0B', '#FCD34D'],
-            icon: 'ticket'
-        }
-    ];
-
-    const renderHeader = () => (
-        <View style={{ paddingBottom: spacing.sm }}>
-            {/* Header Title */}
-            <View style={[styles.header, { paddingHorizontal: spacing.xl, paddingTop: insets.top + spacing.md }]}>
-                <Typography variant="h1">Discover</Typography>
-                <Typography variant="body" color={colors.textSecondary} style={{ marginTop: 4 }}>
-                    Find the perfect gift for any event
-                </Typography>
-            </View>
-
-            {/* Sticky-like Search Bar */}
-            <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing.xl, marginBottom: spacing.lg, zIndex: 10 }}>
-                <View style={[styles.searchRow, { zIndex: 10 }]}>
-                    <View style={[styles.searchBar, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                        <HugeiconsIcon icon={Search01Icon} size={20} color={colors.textMuted} />
-                        <TextInput
-                            placeholder="Search gifts, experiences..."
-                            placeholderTextColor={colors.textMuted}
-                            style={[styles.searchInput, { color: colors.textPrimary }]}
-                            value={searchQuery}
-                            onChangeText={setSearchQuery}
-                        />
-                        {searchQuery.length > 0 && (
-                            <Pressable onPress={() => setSearchQuery('')}>
-                                <HugeiconsIcon icon={CancelCircleIcon} size={20} color={colors.textMuted} />
-                            </Pressable>
-                        )}
-                    </View>
-                    <Pressable
-                        style={[styles.filterBtn, { backgroundColor: colors.primary }]}
-                        onPress={() => filterSheet.open()}
-                    >
-                        <HugeiconsIcon icon={FilterIcon} size={24} color="#FFFFFF" />
-                    </Pressable>
-                </View>
-            </View>
-
-            {searchQuery.length === 0 ? (
-                <>
-                    {/* Hero Banner Carousel */}
-                    {/* <View style={{ marginBottom: spacing.xl }}>
-                        <ScrollView
-                            horizontal
-                            showsHorizontalScrollIndicator={false}
-                            contentContainerStyle={{ paddingHorizontal: spacing.xl, gap: 16 }}
-                            snapToInterval={width - (spacing.xl * 2) + 16}
-                            decelerationRate="fast"
-                        >
-                            {banners.map((banner) => (
-                                <Card key={banner.id} style={{ padding: 0, borderRadius: 24, overflow: 'hidden', width: width - (spacing.xl * 2) }}>
-                                    <LinearGradient
-                                        colors={banner.colors as any}
-                                        start={{ x: 0, y: 0 }}
-                                        end={{ x: 1, y: 1 }}
-                                        style={styles.heroBanner}
-                                    >
-                                        <View style={styles.heroContent}>
-                                            <Typography variant="h3" color="#FFFFFF">{banner.title}</Typography>
-                                            <Typography variant="body" color="#FFFFFF" style={{ opacity: 0.9, marginTop: 4, marginBottom: 16 }}>
-                                                {banner.subtitle}
-                                            </Typography>
-                                            <Button
-                                                title="Shop Now"
-                                                variant="outline"
-                                                size="sm"
-                                                style={{ alignSelf: 'flex-start', borderColor: 'rgba(255,255,255,0.5)' }}
-                                                color="#FFFFFF"
-                                                onPress={() => { }}
-                                            />
-                                        </View>
-                                        <Ionicons name={banner.icon as any} size={100} color="rgba(255,255,255,0.15)" style={{ position: 'absolute', right: -20, bottom: -20 }} />
-                                    </LinearGradient>
-                                </Card>
-                            ))}
-                        </ScrollView>
-                    </View> */}
-
-                    {/* Dynamic Category Pills */}
-                    <ScrollView
-                        ref={categoryScrollRef}
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={{ paddingHorizontal: spacing.xl, gap: 10 }}
-                    >
-                        {categories.map((cat, index) => {
-                            const isActive = activeCategory === cat.id;
-                            return (
-                                <Pressable
-                                    key={cat.id}
-                                    onLayout={(e) => {
-                                        const layout = e.nativeEvent.layout;
-                                        setCategoryLayouts(prev => ({ ...prev, [cat.id]: layout }));
-                                    }}
-                                    onPress={() => {
-                                        setActiveCategory(cat.id);
-                                        const layout = categoryLayouts[cat.id];
-                                        if (layout && categoryScrollRef.current) {
-                                            categoryScrollRef.current.scrollTo({
-                                                x: layout.x - (width / 2) + (layout.width / 2),
-                                                animated: true
-                                            });
-                                        }
-                                    }}
-                                    style={[
-                                        styles.catPill,
-                                        {
-                                            backgroundColor: isActive ? colors.primary : colors.surface,
-                                            shadowColor: isActive ? colors.primary : 'transparent',
-                                        }
-                                    ]}
-                                >
-                                    <Typography variant="label" color={isActive ? '#FFFFFF' : colors.textPrimary}>{cat.name}</Typography>
-                                </Pressable>
-                            );
-                        })}
-                    </ScrollView>
-
-                    {/* <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing.md, marginBottom: spacing.md, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="h4">Trending Now</Typography>
-                        <Pressable>
-                            <Typography variant="label" color={colors.primary}>See All</Typography>
-                        </Pressable>
-                    </View> */}
-                </>
-            ) : (
-                <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing.md, marginBottom: spacing.md }}>
-                    <Typography variant="h4">Search Results for "{searchQuery}"</Typography>
-                </View>
-            )}
-        </View>
-    );
-
-    const renderItem: any = ({ item: product, index }: { item: Product; index: number }) => {
-        const isLeft = index % 2 === 0;
-
+    const renderProduct = ({ item: product, index }: { item: Product; index: number }) => {
         const totalPrice = Number(product.price) + Number(product.deliveryFee) + Number(product.packagingFee);
+        const isLeft = index % 2 === 0;
         return (
             <Animated.View
-                entering={FadeInDown.delay(index * 100).duration(200)} style={[
-                    styles.productWrapper,
-                    isLeft ? { paddingLeft: spacing.xl, paddingRight: 8 } : { paddingRight: spacing.xl, paddingLeft: 8 }
-                ]}>
+                entering={FadeInDown.delay(Math.min(index * 55, 330)).duration(250)}
+                style={[styles.productWrapper, isLeft ? { paddingLeft: spacing.xl, paddingRight: 7 } : { paddingRight: spacing.xl, paddingLeft: 7 }]}
+            >
                 <Pressable
-                    style={[styles.newProductCard, { backgroundColor: colors.surface }]}
                     onPress={() => router.push({ pathname: '/product-detail', params: { id: product.id } })}
+                    style={({ pressed }) => [
+                        styles.productCard,
+                        { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: paperColors[index % paperColors.length] },
+                        pressed && styles.pressed,
+                    ]}
                 >
-                    <View style={styles.imageContainer}>
-                        <Image source={{ uri: product.imageUrls?.[0] }} style={styles.productImageFull} contentFit="cover" />
-                        {/* <View style={styles.ratingBadge}>
-                            <Ionicons name="star" size={12} color="#F59E0B" />
-                            <Typography variant="caption" style={{ fontWeight: 'bold' }}>{product.ratingAvg || '4.5'}</Typography>
-                        </View> */}
+                    <View style={styles.imageWrap}>
+                        <Image source={{ uri: product.imageUrls?.[0] }} style={styles.productImage} contentFit="cover" />
+                        <View style={[styles.colorTab, { backgroundColor: paperColors[index % paperColors.length], borderColor: colors.ink }]} />
                     </View>
-
-                    <View style={styles.cardContent}>
-                        <Typography variant="bodyBold" numberOfLines={1}>{product.name}</Typography>
-                        <Typography variant="caption" color={colors.textSecondary} numberOfLines={1} style={{ marginTop: 2 }}>{product.business?.name || 'GiftSync Choice'}</Typography>
-
+                    <View style={styles.productContent}>
+                        <Typography variant="bodyBold" numberOfLines={2} style={styles.productName}>{product.name}</Typography>
+                        <Typography variant="caption" color={colors.textSecondary} numberOfLines={1}>{product.business?.name || 'GiftSync pick'}</Typography>
                         <View style={styles.priceRow}>
-                            <Typography variant="bodyBold" color={colors.primary}>{formatCurrency(totalPrice, product.currency)}</Typography>
+                            <Typography variant="label">{formatCurrency(totalPrice, product.currency)}</Typography>
                             <Pressable
-                                style={[styles.miniSendBtn, { backgroundColor: colors.primary + '15' }]}
-                                onPress={(e) => {
-                                    e.stopPropagation();
+                                accessibilityLabel={`Send ${product.name} as a gift`}
+                                onPress={(event) => {
+                                    event.stopPropagation();
                                     setSelectedProductId(product.id);
                                     giftSheet.open();
                                 }}
+                                style={[styles.sendButton, { backgroundColor: colors.accent, borderColor: colors.ink }]}
                             >
-                                <HugeiconsIcon icon={SentIcon} size={14} color={colors.primary} />
+                                <HugeiconsIcon icon={SentIcon} size={15} color="#17151D" />
                             </Pressable>
                         </View>
                     </View>
@@ -293,32 +118,111 @@ export default function ShopScreen() {
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            {renderHeader()}
+            <View style={[styles.headerArea, { paddingTop: insets.top + 10, backgroundColor: colors.background }]}>
+                <View style={[styles.header, { paddingHorizontal: spacing.xl }]}>
+                    <View>
+                        <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>THE GIFT SHOP</Typography>
+                        <Typography variant="h1">Find their thing.</Typography>
+                    </View>
+                    <View style={[styles.sparkIcon, { backgroundColor: colors.accent, borderColor: colors.ink }]}>
+                        <HugeiconsIcon icon={SparklesIcon} size={22} color="#17151D" />
+                    </View>
+                </View>
+
+                <View style={[styles.searchRow, { paddingHorizontal: spacing.xl }]}>
+                    <View style={[styles.searchBar, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
+                        <HugeiconsIcon icon={Search01Icon} size={20} color={colors.textSecondary} />
+                        <TextInput
+                            placeholder="Search gifts, makers, ideas..."
+                            placeholderTextColor={colors.textMuted}
+                            style={[styles.searchInput, { color: colors.textPrimary }]}
+                            value={searchQuery}
+                            onChangeText={setSearchQuery}
+                            returnKeyType="search"
+                        />
+                        {!!searchQuery && (
+                            <Pressable onPress={() => setSearchQuery('')}>
+                                <HugeiconsIcon icon={CancelCircleIcon} size={20} color={colors.textSecondary} />
+                            </Pressable>
+                        )}
+                    </View>
+                    <Pressable onPress={filterSheet.open} style={[styles.filterButton, { backgroundColor: colors.primary, borderColor: colors.ink }]}>
+                        <HugeiconsIcon icon={FilterIcon} size={21} color="#FFFFFF" />
+                    </Pressable>
+                </View>
+
+                <Pressable
+                    onPress={() => router.push({ pathname: '/gift-request', params: searchQuery ? { item: searchQuery } : {} })}
+                    style={({ pressed }) => [
+                        styles.conciergeCard,
+                        { marginHorizontal: spacing.xl, backgroundColor: colors.mint, borderColor: colors.ink, shadowColor: colors.ink },
+                        pressed && styles.pressed,
+                    ]}
+                >
+                    <View style={[styles.conciergeIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
+                        <HugeiconsIcon icon={SparklesIcon} size={24} color={colors.primary} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                        <Typography variant="h4">Can’t find exactly right?</Typography>
+                        <Typography variant="caption" color={colors.textSecondary}>Tell our gift concierge what you need.</Typography>
+                    </View>
+                    <HugeiconsIcon icon={ArrowRight01Icon} size={22} color={colors.ink} />
+                </Pressable>
+
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.categories, { paddingHorizontal: spacing.xl }]}>
+                    {categories.map((category) => {
+                        const selected = category.id === activeCategory;
+                        return (
+                            <Pressable
+                                key={category.id}
+                                onPress={() => setActiveCategory(category.id)}
+                                style={[
+                                    styles.category,
+                                    {
+                                        backgroundColor: selected ? colors.ink : colors.surface,
+                                        borderColor: colors.ink,
+                                    },
+                                ]}
+                            >
+                                <Typography variant="label" color={selected ? colors.surface : colors.textPrimary}>{category.name}</Typography>
+                            </Pressable>
+                        );
+                    })}
+                </ScrollView>
+            </View>
 
             {isLoading ? (
                 <ShopScreenSkeleton />
             ) : error ? (
-                <View style={{ flex: 1 }}>
-                    <Typography variant="body" color={colors.error} style={{ textAlign: 'center', marginTop: 24 }}>
-                        Failed to load trending gifts.
-                    </Typography>
+                <View style={styles.centerState}>
+                    <Typography variant="h4">The shelves aren’t loading.</Typography>
+                    <Typography variant="body" color={colors.textSecondary} align="center">Pull down to try again, or send us a custom request.</Typography>
                 </View>
             ) : (
-                <View style={{ flex: 1 }}>
-                    <FlashList
-                        data={productsData?.items || []}
-                        renderItem={renderItem}
-                        numColumns={2}
-                        contentContainerStyle={{ paddingBottom: 100, paddingTop: 10 }}
-                        showsVerticalScrollIndicator={false}
-                        refreshing={isRefreshing && page === 1}
-                        onRefresh={onRefresh}
-                        keyExtractor={(item: any) => item.id}
-                        onEndReached={loadMore}
-                        onEndReachedThreshold={0.5}
-                        ListFooterComponent={isProductsFetching && page > 1 ? <ActivityIndicator style={{ padding: 20 }} color={colors.primary} /> : <View style={{ height: 20 }} />}
-                    />
-                </View>
+                <FlashList
+                    style={styles.productList}
+                    data={productsData?.items || []}
+                    renderItem={renderProduct}
+                    numColumns={2}
+                    keyExtractor={(item) => item.id}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ paddingTop: 12, paddingBottom: 120 }}
+                    refreshing={(productsFetching || eventsFetching || categoriesFetching) && page === 1}
+                    onRefresh={onRefresh}
+                    onEndReached={loadMore}
+                    onEndReachedThreshold={0.5}
+                    ListEmptyComponent={
+                        <View style={styles.centerState}>
+                            <Typography variant="h3">Nothing matches—yet.</Typography>
+                            <Typography variant="body" color={colors.textSecondary} align="center">Make a request and tell us precisely what would make them smile.</Typography>
+                            <Pressable onPress={() => router.push({ pathname: '/gift-request', params: { item: searchQuery } })} style={[styles.emptyButton, { backgroundColor: colors.accent, borderColor: colors.ink }]}>
+                                <Typography variant="bodyBold" color="#17151D">Request a gift</Typography>
+                                <HugeiconsIcon icon={ArrowRight01Icon} size={18} color="#17151D" />
+                            </Pressable>
+                        </View>
+                    }
+                    ListFooterComponent={productsFetching && page > 1 ? <ActivityIndicator color={colors.primary} style={{ padding: 20 }} /> : null}
+                />
             )}
 
             <GiftOptionsSheet
@@ -326,12 +230,9 @@ export default function ShopScreen() {
                 events={upcomingEvents}
                 onSelect={(event) => {
                     giftSheet.close();
-                    if (selectedProductId) {
-                        router.push({ pathname: '/checkout', params: { eventId: event.id, productId: selectedProductId } });
-                    }
+                    if (selectedProductId) router.push({ pathname: '/checkout', params: { occasionId: event.id, productId: selectedProductId } });
                 }}
             />
-
             <FilterSheet
                 ref={filterSheet.ref}
                 initialFilters={{ priceRange, sortBy }}
@@ -345,111 +246,30 @@ export default function ShopScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    header: {
-        paddingBottom: 0
-    },
-    searchRow: {
-        flexDirection: 'row',
-        gap: 12,
-    },
-    searchBar: {
-        flex: 1,
-        height: 52,
-        borderRadius: 16,
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        gap: 12,
-    },
-    searchInput: {
-        flex: 1,
-        fontFamily: 'DMSans_400Regular',
-        fontSize: moderateScale(16),
-    },
-    filterBtn: {
-        width: 52,
-        height: 52,
-        borderRadius: 16,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 8,
-        elevation: 3,
-    },
-    heroBanner: {
-        minHeight: 180,
-        justifyContent: 'center',
-        padding: 24,
-    },
-    heroContent: {
-        flex: 1,
-        justifyContent: 'center',
-        zIndex: 2,
-    },
-    catPill: {
-        paddingHorizontal: 20,
-        paddingVertical: 10,
-        borderRadius: 100,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 2,
-    },
-    productWrapper: {
-        width: '100%',
-        marginBottom: 16,
-    },
-    newProductCard: {
-        borderRadius: 20,
-        overflow: 'hidden',
-        // shadowColor: "#000",
-        // shadowOffset: { width: 0, height: 6 },
-        // shadowOpacity: 0.05,
-        // shadowRadius: 10,
-        // elevation: 3,
-        borderWidth: 1,
-        borderColor: 'rgba(0,0,0,0.02)',
-    },
-    imageContainer: {
-        position: 'relative',
-        width: '100%',
-        height: 150,
-    },
-    productImageFull: {
-        width: '100%',
-        height: '100%',
-    },
-    ratingBadge: {
-        position: 'absolute',
-        top: 10,
-        right: 10,
-        backgroundColor: 'rgba(255,255,255,0.9)',
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 6,
-        paddingVertical: 4,
-        borderRadius: 12,
-        gap: 4,
-    },
-    cardContent: {
-        padding: 12,
-    },
-    priceRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginTop: 10,
-    },
-    miniSendBtn: {
-        width: 32,
-        height: 32,
-        borderRadius: 16,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
+    container: { flex: 1 },
+    headerArea: { zIndex: 2 },
+    productList: { flex: 1 },
+    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 1 },
+    sparkIcon: { width: 48, height: 48, borderRadius: 15, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '4deg' }] },
+    searchRow: { flexDirection: 'row', gap: 10, marginTop: 18 },
+    searchBar: { flex: 1, height: 52, borderWidth: 1.5, borderRadius: 16, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, gap: 10 },
+    searchInput: { flex: 1, fontFamily: 'DMSans_400Regular', fontSize: moderateScale(15) },
+    filterButton: { width: 52, height: 52, borderWidth: 1.5, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+    conciergeCard: { marginTop: 16, padding: 14, borderWidth: 1.5, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 12, shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0, elevation: 4 },
+    conciergeIcon: { width: 46, height: 46, borderRadius: 14, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+    categories: { gap: 9, paddingTop: 18, paddingBottom: 8 },
+    category: { paddingHorizontal: 16, paddingVertical: 9, borderRadius: 13, borderWidth: 1.5 },
+    productWrapper: { width: '100%', marginBottom: 18 },
+    productCard: { borderWidth: 1.5, borderRadius: 20, shadowOffset: { width: 4, height: 5 }, shadowOpacity: 1, shadowRadius: 0, elevation: 4 },
+    imageWrap: { height: 145, margin: 8, marginBottom: 0 },
+    productImage: { width: '100%', height: '100%', borderRadius: 13, borderWidth: 1, borderColor: '#17151D' },
+    colorTab: { position: 'absolute', width: 38, height: 12, borderWidth: 1, top: -13, left: 14, transform: [{ rotate: '-5deg' }] },
+    productContent: { padding: 12, gap: 3 },
+    productName: { minHeight: 46 },
+    priceRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, gap: 4 },
+    sendButton: { width: 32, height: 32, borderRadius: 11, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+    centerState: { paddingHorizontal: 38, paddingTop: 50, alignItems: 'center', gap: 10 },
+    emptyButton: { marginTop: 10, minHeight: 48, borderRadius: 15, borderWidth: 1.5, paddingHorizontal: 18, flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center' },
+    pressed: { opacity: 0.86, transform: [{ translateY: 2 }] },
 });

@@ -51,7 +51,7 @@ const DisputeSheet = forwardRef<BottomSheetRef, Props>(
         };
 
         return (
-            <BottomSheetWrapper ref={ref} snapPoints={['50%']} 
+            <BottomSheetWrapper ref={ref} snapPoints={['50%']}
                 scrollable
                 keyboardBehavior="interactive"
                 android_keyboardInputMode="adjustPan">
@@ -99,5 +99,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
 });
+
+DisputeSheet.displayName = 'DisputeSheet';
 
 export default DisputeSheet;

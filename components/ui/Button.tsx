@@ -52,11 +52,11 @@ const Button: React.FC<Props> = ({
         styles.base,
         { paddingVertical: size === 'sm' ? spacing.sm : size === 'lg' ? spacing.lg : spacing.md },
         { paddingHorizontal: size === 'sm' ? spacing.md : size === 'lg' ? spacing.xl : spacing.lg },
-        variant === 'primary' && { backgroundColor: colors.primary },
+        variant === 'primary' && { backgroundColor: colors.accent, borderColor: colors.ink },
         variant === 'secondary' && { backgroundColor: colors.surfaceRaised },
         variant === 'ghost' && { backgroundColor: 'transparent' },
         variant === 'destructive' && { backgroundColor: colors.error },
-        variant === 'outline' && { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.border },
+        variant === 'outline' && { backgroundColor: colors.surface, borderColor: colors.border },
         disabled && { opacity: 0.5 },
         style,
     ] as ViewStyle[];
@@ -64,7 +64,7 @@ const Button: React.FC<Props> = ({
     const textStyles = [
         styles.text,
         { fontSize: size === 'sm' ? moderateScale(14) : size === 'lg' ? moderateScale(18) : moderateScale(16) },
-        variant === 'primary' && { color: '#FFFFFF' },
+        variant === 'primary' && { color: '#17151D' },
         variant === 'secondary' && { color: colors.textPrimary },
         variant === 'ghost' && { color: colors.textPrimary },
         variant === 'destructive' && { color: '#FFFFFF' },
@@ -82,7 +82,7 @@ const Button: React.FC<Props> = ({
                 style={buttonStyles}
             >
                 {isLoading ? (
-                    <ActivityIndicator color={color || (variant === 'ghost' || variant === 'outline' ? colors.primary : '#FFFFFF')} />
+                    <ActivityIndicator color={color || (variant === 'primary' ? '#17151D' : variant === 'ghost' || variant === 'outline' ? colors.primary : '#FFFFFF')} />
                 ) : (
                     <>
                         {leftIcon}
@@ -97,11 +97,19 @@ const Button: React.FC<Props> = ({
 
 const styles = StyleSheet.create({
     base: {
-        borderRadius: 100,
+        minHeight: 48,
+        borderRadius: 16,
+        borderWidth: 1.5,
+        borderColor: 'transparent',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         gap: 8,
+        shadowColor: '#17151D',
+        shadowOffset: { width: 3, height: 3 },
+        shadowOpacity: 1,
+        shadowRadius: 0,
+        elevation: 3,
     },
     text: {
         fontFamily: typography.fonts.bodyBold,

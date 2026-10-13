@@ -5,6 +5,8 @@ import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Button from '../ui/Button';
 import Typography from '../ui/Typography';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Alert01Icon } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
 
 interface Props {
     title: string;
@@ -22,8 +24,12 @@ const ConfirmDeleteSheet = forwardRef<BottomSheetRef, Props>(
         const insets = useSafeAreaInsets();
 
         return (
-            <BottomSheetWrapper ref={ref} snapPoints={['35%']}>
+            <BottomSheetWrapper ref={ref} snapPoints={['46%']}>
                 <View style={styles.content}>
+                    <View style={[styles.warningSeal, { backgroundColor: colors.peach, borderColor: colors.ink }]}>
+                        <HugeiconsIcon icon={Alert01Icon} size={30} color={colors.ink} />
+                    </View>
+                    <Typography variant="caption" align="center" color={colors.textSecondary} style={styles.overline}>PLEASE CHECK THIS ACTION</Typography>
                     <Typography variant="h3" align="center" style={{ marginBottom: spacing.sm }}>
                         {title}
                     </Typography>
@@ -31,7 +37,7 @@ const ConfirmDeleteSheet = forwardRef<BottomSheetRef, Props>(
                         {description}
                     </Typography>
 
-                    <View style={[styles.actions, {marginBottom: insets.bottom + 20}]}>
+                    <View style={[styles.actions, { marginBottom: insets.bottom + 20 }]}>
                         <Button
                             title={cancelLabel}
                             variant="outline"
@@ -58,13 +64,19 @@ const ConfirmDeleteSheet = forwardRef<BottomSheetRef, Props>(
 const styles = StyleSheet.create({
     content: {
         paddingVertical: 12,
+        alignItems: 'center',
     },
+    warningSeal: { width: 62, height: 62, borderRadius: 20, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', marginBottom: 9, transform: [{ rotate: '-4deg' }] },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.9, marginBottom: 3 },
     actions: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         gap: 12,
+        width: '100%',
     },
 });
+
+ConfirmDeleteSheet.displayName = 'ConfirmDeleteSheet';
 
 export default ConfirmDeleteSheet;

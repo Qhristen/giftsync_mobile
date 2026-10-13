@@ -1,392 +1,265 @@
-import ContactDetailSheet from '@/components/sheets/ContactDetailSheet';
-import CreateContactSheet from '@/components/sheets/CreateContactSheet';
 import CreateEventSheet from '@/components/sheets/CreateEventSheet';
 import EventGridSkeleton from '@/components/skeletons/EventGridSkeleton';
-import Avatar from '@/components/ui/Avatar';
 import { BottomSheetRef } from '@/components/ui/BottomSheetWrapper';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
-import { moderateScale } from '@/utils/scaling';
-import * as Contacts from "expo-contacts/legacy";
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, SectionList, StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
 import { useGetMonthlyEventsQuery, useGetUpcomingEventsQuery } from '@/store/api/event';
-import { spacing } from '@/theme';
-import { Contact, Event } from '@/types';
-import { HugeiconsIcon } from '@hugeicons/react-native';
 import {
     Add01Icon,
+    ArrowRight01Icon,
     Calendar01Icon,
     CourseIcon,
     FavouriteIcon,
     GiftIcon,
     SmileIcon,
-    SparklesIcon
+    SparklesIcon,
 } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
+import * as Contacts from 'expo-contacts/legacy';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useRef, useState } from 'react';
+import { Pressable, RefreshControl, ScrollView, SectionList, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const getEventIcon = (title?: string) => {
-    if (!title) return GiftIcon;
-    const lower = title.toLowerCase();
-    if (lower.includes('birthday')) return GiftIcon;
-    if (lower.includes('anniversary') || lower.includes('wedding') || lower.includes('valentine')) return FavouriteIcon;
-    if (lower.includes('graduat')) return CourseIcon;
-    if (lower.includes('baby')) return SmileIcon;
-    if (lower.includes('holiday') || lower.includes('christmas') || lower.includes('party')) return SparklesIcon;
+const eventIcon = (title?: string) => {
+    const value = title?.toLowerCase() || '';
+    if (value.includes('birthday')) return GiftIcon;
+    if (value.includes('anniversary') || value.includes('wedding') || value.includes('valentine')) return FavouriteIcon;
+    if (value.includes('graduat')) return CourseIcon;
+    if (value.includes('baby')) return SmileIcon;
+    if (value.includes('holiday') || value.includes('party') || value.includes('christmas')) return SparklesIcon;
     return Calendar01Icon;
 };
 
+const dateParts = (date: string) => ({
+    day: new Date(date).toLocaleDateString(undefined, { day: '2-digit' }),
+    month: new Date(date).toLocaleDateString(undefined, { month: 'short' }).toUpperCase(),
+    weekday: new Date(date).toLocaleDateString(undefined, { weekday: 'short' }).toUpperCase(),
+});
 
-
-export default function EventsScreen() {
+export default function PlansScreen() {
     const router = useRouter();
-    const { colors, spacing } = useTheme();
     const insets = useSafeAreaInsets();
-    const { openAdd, view } = useLocalSearchParams<{ openAdd?: string; view?: string }>();
-
-    // API Hooks
-    const [selectedMonthIndex, setSelectedMonthIndex] = useState(new Date().getMonth());
+    const { colors, spacing } = useTheme();
+    const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth(); // 0-indexed
+    const [selectedMonthIndex, setSelectedMonthIndex] = useState(currentMonth);
     const selectedYear = selectedMonthIndex < currentMonth ? currentYear + 1 : currentYear;
+    const [selectedPhoneContact, setSelectedPhoneContact] = useState<{ name: string; phone: string } | null>(null);
+    const createSheetRef = useRef<BottomSheetRef>(null);
+    const monthScrollRef = useRef<ScrollView>(null);
+    const monthLayouts = useRef<Record<string, { x: number; width: number }>>({});
+    const [scrollWidth, setScrollWidth] = useState(0);
 
-    // Fetch the selected month's events
-    const { data: monthlyEvents, isFetching: isMonthlyFetching, refetch: refetchMonthly } = useGetMonthlyEventsQuery({
-        month: selectedMonthIndex + 1,
-        year: selectedYear
+    const { data: monthlyEvents, isFetching: monthlyFetching, refetch: refetchMonthly } = useGetMonthlyEventsQuery({ month: selectedMonthIndex + 1, year: selectedYear });
+    const { data: upcomingEvents = [], isFetching: upcomingFetching, refetch: refetchUpcoming } = useGetUpcomingEventsQuery();
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const visibleMonths = Array.from({ length: 6 }, (_, offset) => {
+        const index = (currentMonth + offset) % 12;
+        return { index, name: months[index] };
     });
-
-    // Use the upcoming events query for "Other Events" instead of individual monthly fetches
-    // This is much more efficient than firing 11 extra requests.
-    const { data: upcomingEvents = [], isFetching: isUpcomingFetching, refetch: refetchUpcoming } = useGetUpcomingEventsQuery();
-
+    const selectedMonthName = months[selectedMonthIndex];
+    const monthItems = monthlyEvents?.items || [];
     const otherEvents = upcomingEvents
-        .filter(o => {
-            const date = new Date(o.date);
-            // Exclude events in the currently selected month to avoid duplication
+        .filter((event) => {
+            const date = new Date(event.date);
             return date.getMonth() !== selectedMonthIndex || date.getFullYear() !== selectedYear;
         })
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
-    const isRefreshing = isMonthlyFetching || isUpcomingFetching;
-
-    const [viewMode, setViewMode] = useState<'calendar' | 'contacts'>('calendar');
-    const [page, setPage] = useState(1);
-
-
-    const onRefresh = React.useCallback(() => {
-        setPage(1);
-        refetchMonthly();
-        refetchUpcoming();
-    }, [refetchMonthly, refetchUpcoming]);
-
-    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-    const visibleMonths = Array.from({ length: 6 }).map((_, i) => {
-        const index = (currentMonth + i) % 12;
-        return { name: months[index], index };
-    });
-    const selectedMonthName = months[selectedMonthIndex];
-
-    const createSheetRef = useRef<BottomSheetRef>(null);
-    const contactSheetRef = useRef<BottomSheetRef>(null);
-    const contactDetailSheetRef = useRef<BottomSheetRef>(null);
-    const scrollRef = useRef<ScrollView>(null);
-    const [scrollWidth, setScrollWidth] = useState(0);
-    const monthLayouts = useRef<Record<string, { x: number; width: number }>>({});
-    const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
-    const [selectedPhoneContact, setSelectedPhoneContact] = useState<{ name: string; phone: string } | null>(null);
-
-    const centerMonth = (month: string) => {
-        const layout = monthLayouts.current[month];
-        if (layout && scrollRef.current && scrollWidth) {
-            const centerX = layout.x - (scrollWidth / 2) + (layout.width / 2);
-            scrollRef.current.scrollTo({ x: centerX, animated: true });
-        }
-    };
-
-    // useEffect(() => {
-    //     if (view === 'contacts') setViewMode('contacts');
-    //     if (openAdd === 'true') {
-    //         createSheetRef.current?.expand();
-    //     }
-    // }, [view, openAdd]);
-
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            centerMonth(selectedMonthName);
-        }, 100);
-        return () => clearTimeout(timer);
-    }, [selectedMonthIndex, scrollWidth]);
-
-    const handleOpenCreateSheet = async () => {
-        if (viewMode === 'contacts') {
-            contactSheetRef.current?.expand();
-        } else {
-            // Open native device contact picker
-            try {
-                const { status } = await Contacts.requestPermissionsAsync();
-                if (status === 'granted') {
-                    const contact = await Contacts.presentContactPickerAsync();
-                    if (contact && contact.name) {
-                        const contactName = contact.name || 'Unknown';
-                        const contactPhone = contact.phoneNumbers?.[0]?.number || '';
-
-                        setSelectedPhoneContact({ name: contactName, phone: contactPhone });
-                        createSheetRef.current?.expand();
-                    }
-                }
-            } catch (err) {
-                console.error('Error picking contact:', err);
-            }
-        }
-    };
-
-    const chunkArray = <T,>(arr: T[], size: number): T[][] => {
-        return arr.reduce((acc, _, i) => {
-            if (i % size === 0) acc.push(arr.slice(i, i + size));
-            return acc;
-        }, [] as T[][]);
-    };
+    const featured = monthItems[0] || otherEvents[0];
 
     const sections = [
-        { title: `Upcoming in ${selectedMonthName}`, data: chunkArray(monthlyEvents?.items ?? [], 3) },
-        { title: 'Other Events', data: chunkArray(otherEvents, 3) },
-    ].filter(section => section.data.length > 0);
+        { title: `${selectedMonthName.toUpperCase()} POCKET`, data: monthItems.filter((item) => item.id !== featured?.id) },
+        { title: 'FURTHER ALONG THE MAP', data: otherEvents.filter((item) => item.id !== featured?.id) },
+    ].filter((section) => section.data.length);
+
+    const centerMonth = React.useCallback((month: string) => {
+        const layout = monthLayouts.current[month];
+        if (layout && monthScrollRef.current && scrollWidth) {
+            monthScrollRef.current.scrollTo({ x: layout.x - scrollWidth / 2 + layout.width / 2, animated: true });
+        }
+    }, [scrollWidth]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => centerMonth(selectedMonthName), 100);
+        return () => clearTimeout(timer);
+    }, [centerMonth, selectedMonthName]);
+
+    const onRefresh = () => {
+        refetchMonthly();
+        refetchUpcoming();
+    };
+
+    const addPlan = async () => {
+        try {
+            const { status } = await Contacts.requestPermissionsAsync();
+            if (status !== 'granted') return;
+            const contact = await Contacts.presentContactPickerAsync();
+            if (!contact?.name) return;
+            setSelectedPhoneContact({ name: contact.name, phone: contact.phoneNumbers?.[0]?.number || '' });
+            createSheetRef.current?.expand();
+        } catch (error) {
+            console.error('Error picking contact:', error);
+        }
+    };
+
+    const palette = [colors.lilac, colors.peach, colors.mint, colors.lemon];
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <View style={styles.header}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingRight: spacing.xl }}>
-                    <Typography variant="h1" style={{ paddingHorizontal: spacing.xl, marginTop: spacing.xl }}>Events</Typography>
+            <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+                <View style={{ paddingHorizontal: spacing.xl }}>
+                    <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>THE DATE MAP</Typography>
+                    <Typography variant="h1">Plans for your people</Typography>
+                    <Typography variant="body" color={colors.textSecondary}>Follow the trail to every moment that matters.</Typography>
                 </View>
 
                 <ScrollView
-                    ref={scrollRef}
+                    ref={monthScrollRef}
                     horizontal
                     showsHorizontalScrollIndicator={false}
-                    onLayout={(e) => setScrollWidth(e.nativeEvent.layout.width)}
-                    contentContainerStyle={{ paddingHorizontal: spacing.xl, gap: 12, paddingVertical: spacing.md }}
+                    onLayout={(event) => setScrollWidth(event.nativeEvent.layout.width)}
+                    contentContainerStyle={{ paddingHorizontal: spacing.xl, gap: 9, paddingVertical: 16 }}
                 >
-                    {visibleMonths.map(({ name, index }) => (
-                        <Pressable
-                            key={name}
-                            onLayout={(e) => {
-                                const { x, width } = e.nativeEvent.layout;
-                                monthLayouts.current[name] = { x, width };
-                                if (index === selectedMonthIndex) centerMonth(name);
-                            }}
-                            onPress={() => setSelectedMonthIndex(index)}
-                            style={({ pressed }) => [
-                                styles.monthBtn,
-                                { backgroundColor: selectedMonthIndex === index ? colors.primary : colors.surface },
-                                pressed && { opacity: 0.8 },
-                            ]}
-                        >
-                            <Typography variant="label" color={selectedMonthIndex === index ? '#FFFFFF' : colors.textPrimary}>{name}</Typography>
-                        </Pressable>
-                    ))}
+                    {visibleMonths.map(({ name, index }) => {
+                        const active = index === selectedMonthIndex;
+                        return (
+                            <Pressable
+                                key={name}
+                                onLayout={(event) => {
+                                    monthLayouts.current[name] = event.nativeEvent.layout;
+                                    if (active) centerMonth(name);
+                                }}
+                                onPress={() => setSelectedMonthIndex(index)}
+                                style={[styles.monthTicket, { backgroundColor: active ? colors.ink : colors.surface, borderColor: colors.ink }]}
+                            >
+                                <Typography variant="caption" color={active ? colors.surface : colors.textSecondary} style={styles.overline}>{name.slice(0, 3).toUpperCase()}</Typography>
+                                <Typography variant="h4" color={active ? colors.surface : colors.textPrimary}>{String(index + 1).padStart(2, '0')}</Typography>
+                            </Pressable>
+                        );
+                    })}
                 </ScrollView>
 
-
+                {featured ? (
+                    <Animated.View entering={FadeInDown.duration(350)} style={{ paddingHorizontal: spacing.xl }}>
+                        <Pressable
+                            onPress={() => router.push({ pathname: '/event-detail', params: { id: featured.id } })}
+                            style={({ pressed }) => [styles.featuredPlan, { backgroundColor: colors.lemon, borderColor: colors.ink, shadowColor: colors.ink }, pressed && styles.pressed]}
+                        >
+                            <View style={[styles.featuredDate, { backgroundColor: colors.accent, borderColor: colors.ink }]}>
+                                <Typography variant="caption" style={styles.overline}>{dateParts(featured.date).weekday}</Typography>
+                                <Typography variant="h1" style={styles.featuredDay}>{dateParts(featured.date).day}</Typography>
+                                <Typography variant="caption" style={styles.overline}>{dateParts(featured.date).month}</Typography>
+                            </View>
+                            <View style={styles.featuredCopy}>
+                                <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>NEXT STOP ON THE MAP</Typography>
+                                <Typography variant="h2" numberOfLines={1}>{featured.contact?.name || featured.title}</Typography>
+                                <Typography variant="body" color={colors.textSecondary} numberOfLines={1}>{featured.title}</Typography>
+                                <View style={[styles.openPlan, { backgroundColor: colors.ink }]}>
+                                    <Typography variant="caption" color={colors.surface} style={styles.overline}>OPEN PLAN</Typography>
+                                    <HugeiconsIcon icon={ArrowRight01Icon} size={16} color={colors.surface} />
+                                </View>
+                            </View>
+                            <View style={[styles.featuredIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
+                                <HugeiconsIcon icon={eventIcon(featured.title)} size={25} color={colors.primary} />
+                            </View>
+                        </Pressable>
+                    </Animated.View>
+                ) : (
+                    <Pressable onPress={addPlan} style={[styles.emptyFeature, { marginHorizontal: spacing.xl, backgroundColor: colors.mint, borderColor: colors.ink }]}>
+                        <HugeiconsIcon icon={Add01Icon} size={28} color={colors.ink} />
+                        <View style={{ flex: 1 }}>
+                            <Typography variant="h3">Map the first moment.</Typography>
+                            <Typography variant="caption" color={colors.textSecondary}>Choose someone from your contacts to begin.</Typography>
+                        </View>
+                    </Pressable>
+                )}
             </View>
 
-            {(isMonthlyFetching || isUpcomingFetching) && sections.length === 0 ? (
-                <View style={{ flex: 1, paddingTop: 20 }}>
-                    <EventGridSkeleton />
-                </View>
+            {monthlyFetching && upcomingFetching && !featured ? (
+                <EventGridSkeleton />
             ) : (
                 <SectionList
                     sections={sections}
-                    refreshControl={
-                        <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={colors.primary} />
-                    }
+                    keyExtractor={(item) => item.id}
                     showsVerticalScrollIndicator={false}
-                    keyExtractor={(item, index) => item[0]?.id || `row-${index}`}
-                    renderItem={({ item: row, index: rowIndex }) => (
-                        <View style={styles.gridRow}>
-                            {row.map((item: Event, itemIndex: number) => (
-                                <Animated.View
-                                    key={item.id}
-                                    entering={FadeInDown.delay((rowIndex * 3 + itemIndex) * 60).duration(300).springify().damping(50)}
-                                    style={{ flex: 1 }}
+                    refreshControl={<RefreshControl refreshing={monthlyFetching || upcomingFetching} onRefresh={onRefresh} tintColor={colors.primary} />}
+                    contentContainerStyle={{ paddingTop: 12, paddingBottom: 120 }}
+                    renderSectionHeader={({ section }) => (
+                        <View style={[styles.sectionHeader, { backgroundColor: colors.background, paddingHorizontal: spacing.xl }]}>
+                            <View style={[styles.sectionLine, { backgroundColor: colors.ink }]} />
+                            <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>{section.title}</Typography>
+                        </View>
+                    )}
+                    renderItem={({ item, index, section }) => {
+                        const colorIndex = (index + (section.title.startsWith('FURTHER') ? 2 : 0)) % palette.length;
+                        const parts = dateParts(item.date);
+                        return (
+                            <Animated.View entering={FadeInDown.delay(Math.min(index * 55, 250)).duration(300)} style={{ paddingHorizontal: spacing.xl }}>
+                                <Pressable
+                                    onPress={() => router.push({ pathname: '/event-detail', params: { id: item.id } })}
+                                    style={({ pressed }) => [styles.mapRow, { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: palette[colorIndex] }, pressed && styles.pressed]}
                                 >
-                                    <Pressable
-                                        onPress={() => router.push({ pathname: '/event-detail', params: { id: item.id } })}
-                                        style={({ pressed }) => [
-                                            styles.gridCard,
-                                            { backgroundColor: colors.surface },
-                                            pressed && { opacity: 0.7, transform: [{ scale: 0.98 }] },
-                                        ]}
-                                    >
-                                        <View style={[styles.iconContainer]}>
-                                            <HugeiconsIcon icon={getEventIcon(item.title)} size={30} color={colors.primary} />
-                                        </View>
-                                        <View style={styles.gridCardContent}>
-                                            <Typography variant="bodyBold" numberOfLines={2} style={{ textAlign: 'center', fontSize: moderateScale(13) }}>
-                                                {item.contact?.name}
-                                            </Typography>
-                                            <Typography variant="caption" color={colors.textSecondary} numberOfLines={1} style={{ textAlign: 'center', fontSize: moderateScale(10) }}>
-                                                {item.title}
-                                            </Typography>
-                                            <Typography variant="caption" color={colors.primary} style={{ textAlign: 'center', fontSize: moderateScale(10), marginTop: 2 }}>
-                                                {new Date(item.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                                            </Typography>
-                                        </View>
-                                    </Pressable>
-                                </Animated.View>
-                            ))}
-                            {/* Fillers to maintain grid layout */}
-                            {row.length < 3 && Array(3 - row.length).fill(0).map((_, i) => (
-                                <View key={`filler-${i}`} style={[styles.gridCard, { backgroundColor: 'transparent' }]} />
-                            ))}
+                                    <View style={[styles.mapDate, { backgroundColor: palette[colorIndex], borderColor: colors.ink }]}>
+                                        <Typography variant="h3">{parts.day}</Typography>
+                                        <Typography variant="caption" style={styles.overline}>{parts.month}</Typography>
+                                    </View>
+                                    <View style={{ flex: 1 }}>
+                                        <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>{parts.weekday} · {item.title.toUpperCase()}</Typography>
+                                        <Typography variant="h4" numberOfLines={1}>{item.contact?.name || item.title}</Typography>
+                                    </View>
+                                    <View style={[styles.rowIcon, { backgroundColor: palette[colorIndex], borderColor: colors.ink }]}>
+                                        <HugeiconsIcon icon={eventIcon(item.title)} size={19} color={colors.ink} />
+                                    </View>
+                                </Pressable>
+                            </Animated.View>
+                        );
+                    }}
+                    ListEmptyComponent={featured ? (
+                        <View style={[styles.onlyPlan, { marginHorizontal: spacing.xl }]}>
+                            <Typography variant="caption" color={colors.textSecondary}>That’s the whole map for this month.</Typography>
                         </View>
-                    )}
-                    renderSectionHeader={({ section: { title } }) => (
-                        <View style={[styles.sectionHeader, { backgroundColor: colors.background, paddingHorizontal: spacing.xl, paddingVertical: spacing.xs }]}>
-                            <Typography variant="label" color={colors.textSecondary} style={{ paddingVertical: 8 }}>
-                                {title}
-                            </Typography>
-                        </View>
-                    )}
-                    contentContainerStyle={{ paddingBottom: 100 }}
+                    ) : null}
                 />
             )}
 
-
-            {/* Add Contact FAB */}
             <Pressable
-                onPress={handleOpenCreateSheet}
-                style={({ pressed }) => [
-                    styles.fab,
-                    {
-                        backgroundColor: colors.primary,
-                        bottom: insets.bottom + spacing.md,
-                        right: spacing.xl
-                    },
-                    pressed && { opacity: 0.9, transform: [{ scale: 0.95 }] }
-                ]}
+                onPress={addPlan}
+                style={({ pressed }) => [styles.fab, { bottom: Math.max(insets.bottom, 10) + 78, right: spacing.xl, backgroundColor: colors.accent, borderColor: colors.ink, shadowColor: colors.ink }, pressed && styles.pressed]}
             >
-                <HugeiconsIcon icon={Add01Icon} size={32} color="#FFFFFF" />
+                <HugeiconsIcon icon={Add01Icon} size={21} color="#17151D" />
+                <Typography variant="label" color="#17151D">Add a stop</Typography>
             </Pressable>
 
             <CreateEventSheet
                 ref={createSheetRef}
-                fixedContactId={selectedContact?.id}
-                fixedContactName={selectedPhoneContact?.name || selectedContact?.name}
-                fixedContactPhone={selectedPhoneContact?.phone || selectedContact?.phoneNumber}
-            />
-
-            <CreateContactSheet
-                ref={contactSheetRef}
-                onSuccess={() => {
-                    refetchMonthly();
-                }}
-            />
-
-            <ContactDetailSheet
-                ref={contactDetailSheetRef}
-                contact={selectedContact}
-                onClose={() => setSelectedContact(null)}
-                onAddEvent={(c) => {
-                    setSelectedContact(c);
-                    contactDetailSheetRef.current?.close();
-                    setTimeout(() => {
-                        createSheetRef.current?.expand();
-                    }, 350);
-                }}
-                onEditEvent={(id) => {
-                    contactDetailSheetRef.current?.close();
-                    router.push({ pathname: '/event-detail', params: { id } });
-                }}
+                fixedContactName={selectedPhoneContact?.name}
+                fixedContactPhone={selectedPhoneContact?.phone}
+                onSuccess={onRefresh}
             />
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        paddingTop: 30,
-    },
-    header: {
-        // paddingBottom: 0,
-    },
-    monthBtn: {
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 100,
-    },
-    tabSwitcher: {
-        flexDirection: 'row',
-        padding: 4,
-        borderRadius: 12,
-        marginTop: spacing.xl,
-    },
-    tabBtn: {
-        width: 36,
-        height: 32,
-        borderRadius: 8,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    item: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 14,
-        gap: 12,
-    },
-    itemContent: {
-        flex: 1,
-    },
-    gridRow: {
-        flexDirection: 'row',
-        paddingHorizontal: spacing.xl,
-        gap: 12,
-        marginBottom: 12,
-    },
-    gridCard: {
-        flex: 1,
-        alignItems: 'center',
-        padding: 12,
-        borderRadius: 20,
-        gap: 8,
-    },
-    gridCardContent: {
-        width: '100%',
-        alignItems: 'center',
-    },
-    sectionHeader: {
-        // borderBottomWidth: 1,
-        borderBottomColor: 'rgba(0,0,0,0.05)',
-    },
-    fab: {
-        position: 'absolute',
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        justifyContent: 'center',
-        alignItems: 'center',
-        elevation: 4,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-    },
-    pickerItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 12,
-        paddingHorizontal: 4,
-        gap: 12,
-        borderRadius: 12,
-    },
-    iconContainer: {
-        width: 40,
-        height: 40,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
+    container: { flex: 1 },
+    header: { paddingBottom: 8 },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.8 },
+    monthTicket: { width: 62, height: 63, borderWidth: 1.5, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+    featuredPlan: { minHeight: 156, borderWidth: 1.5, borderRadius: 24, padding: 15, flexDirection: 'row', alignItems: 'stretch', gap: 13, shadowOffset: { width: 5, height: 6 }, shadowOpacity: 1, shadowRadius: 0, elevation: 5 },
+    featuredDate: { width: 78, borderWidth: 1.5, borderRadius: 18, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-3deg' }] },
+    featuredDay: { fontSize: 38, lineHeight: 42 },
+    featuredCopy: { flex: 1, justifyContent: 'center', gap: 3 },
+    openPlan: { alignSelf: 'flex-start', minHeight: 33, borderRadius: 10, paddingHorizontal: 9, flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 8 },
+    featuredIcon: { position: 'absolute', width: 42, height: 42, borderWidth: 1.25, borderRadius: 13, right: 12, top: -9, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '5deg' }] },
+    emptyFeature: { minHeight: 112, borderWidth: 1.5, borderRadius: 22, padding: 17, flexDirection: 'row', alignItems: 'center', gap: 13 },
+    sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingTop: 15, paddingBottom: 10 },
+    sectionLine: { width: 28, height: 2 },
+    mapRow: { minHeight: 90, borderWidth: 1.5, borderRadius: 20, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 14, shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0, elevation: 3 },
+    mapDate: { width: 58, height: 62, borderWidth: 1.25, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+    rowIcon: { width: 38, height: 38, borderWidth: 1.25, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+    onlyPlan: { paddingVertical: 16, alignItems: 'center' },
+    fab: { position: 'absolute', minWidth: 126, height: 50, borderWidth: 1.5, borderRadius: 16, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0, elevation: 5 },
+    pressed: { opacity: 0.85, transform: [{ translateY: 2 }] },
 });

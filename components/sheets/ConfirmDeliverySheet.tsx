@@ -84,4 +84,6 @@ const styles = StyleSheet.create({
     },
 });
 
+ConfirmDeliverySheet.displayName = 'ConfirmDeliverySheet';
+
 export default ConfirmDeliverySheet;

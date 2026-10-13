@@ -38,12 +38,11 @@ const ThemePickerSheet = forwardRef<BottomSheetRef, ThemePickerSheetProps>(({ on
 
     return (
         <BottomSheetWrapper ref={ref} snapPoints={['35%']}>
-            <Typography variant="h3" style={{ marginBottom: spacing.lg }}>
-                Appearance
-            </Typography>
+            <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>PICK THE PAPER</Typography>
+            <Typography variant="h2" style={{ marginBottom: spacing.lg }}>Set the room mood</Typography>
 
             <View style={styles.list}>
-                {options.map((option) => {
+                {options.map((option, index) => {
                     const isSelected = currentPreference === option.value;
                     return (
                         <Pressable
@@ -52,24 +51,25 @@ const ThemePickerSheet = forwardRef<BottomSheetRef, ThemePickerSheetProps>(({ on
                             style={[
                                 styles.item,
                                 {
-                                    backgroundColor: isSelected ? colors.primarySoft : colors.surfaceRaised,
-                                    borderColor: isSelected ? colors.primary : 'transparent',
+                                    backgroundColor: [colors.lemon, colors.lavender, colors.mint][index],
+                                    borderColor: colors.ink,
+                                    shadowColor: isSelected ? colors.ink : 'transparent',
                                 },
                             ]}
                         >
                             <HugeiconsIcon
                                 icon={option.icon}
                                 size={24}
-                                color={isSelected ? colors.primary : colors.textPrimary}
+                                color={colors.ink}
                             />
                             <Typography
                                 variant="bodyMedium"
-                                color={isSelected ? colors.primary : colors.textPrimary}
+                                color={colors.textPrimary}
                             >
                                 {option.label}
                             </Typography>
                             {isSelected && (
-                                <HugeiconsIcon icon={CheckmarkCircle02Icon} size={24} color={colors.primary} style={styles.check} />
+                                <HugeiconsIcon icon={CheckmarkCircle02Icon} size={24} color={colors.ink} style={styles.check} />
                             )}
                         </Pressable>
                     );
@@ -80,6 +80,7 @@ const ThemePickerSheet = forwardRef<BottomSheetRef, ThemePickerSheetProps>(({ on
 });
 
 const styles = StyleSheet.create({
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 1 },
     list: {
         gap: 12,
     },
@@ -87,13 +88,18 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         padding: 16,
-        borderRadius: 12,
+        borderRadius: 18,
         borderWidth: 1.5,
         gap: 16,
+        shadowOffset: { width: 3, height: 3 },
+        shadowOpacity: 1,
+        shadowRadius: 0,
     },
     check: {
         marginLeft: 'auto',
     },
 });
+
+ThemePickerSheet.displayName = 'ThemePickerSheet';
 
 export default ThemePickerSheet;

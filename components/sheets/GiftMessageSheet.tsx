@@ -52,4 +52,6 @@ const GiftMessageSheet = forwardRef<BottomSheetRef, Props>(
     }
 );
 
+GiftMessageSheet.displayName = 'GiftMessageSheet';
+
 export default GiftMessageSheet;

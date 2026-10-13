@@ -2,8 +2,6 @@ import DisputeSheet from '@/components/sheets/DisputeSheet';
 import OrderDetailSheet from '@/components/sheets/OrderDetailSheet';
 import ReviewBusinessSheet from '@/components/sheets/ReviewBusinessSheet';
 import OrderListSkeleton from '@/components/skeletons/OrderListSkeleton';
-import Badge from '@/components/ui/Badge';
-import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
@@ -11,127 +9,121 @@ import { useGetOrdersQuery } from '@/store/api/orderApi';
 import { Order } from '@/types';
 import { formatDate } from '@/utils/dateUtils';
 import { formatCurrency } from '@/utils/formatCurrency';
-import { moderateScale } from '@/utils/scaling';
-import { HugeiconsIcon } from '@hugeicons/react-native';
 import {
     ArrowLeft01Icon,
+    ArrowRight01Icon,
     BubbleChatIcon,
     CreditCardIcon,
-    RefreshIcon
+    GiftIcon,
+    RefreshIcon,
 } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react-native';
 import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export default function OrderListScreen() {
+const statusStep = (status: Order['status']) => {
+    if (status === 'Delivered') return 3;
+    if (status === 'Shipped') return 2;
+    if (status === 'Processing' || status === 'Disputed') return 1;
+    return 0;
+};
+
+export default function OrdersScreen() {
     const router = useRouter();
+    const insets = useSafeAreaInsets();
     const { colors, spacing } = useTheme();
     const [activeTab, setActiveTab] = useState<'Active' | 'History'>('Active');
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+    const [page, setPage] = useState(1);
     const orderSheet = useBottomSheet();
     const reviewSheet = useBottomSheet();
     const disputeSheet = useBottomSheet();
-
-    const [page, setPage] = useState(1);
     const { data, isLoading, isFetching, refetch } = useGetOrdersQuery({ page, limit: 20 });
+    const allOrders = useMemo(() => data?.items || [], [data?.items]);
 
-    // We get all accumulated items directly from RTKQ since we used merge/serializeQueryArgs
-    const allOrders = data?.items || [];
-    console.log(allOrders, "all orders")
-
-    const loadMore = () => {
-        if (data?.meta && page < data.meta.totalPages && !isFetching) {
-            setPage(p => p + 1);
-        }
-    };
-
-    const handleChat = async (conversationId: string) => {
-        try {
-            router.push(`/chat/${conversationId}`);
-        } catch (error) {
-            console.error('Failed to create/join chat:', error);
-        }
-    };
-
-    const filteredOrders = useMemo(() =>
-        allOrders.filter(o =>
-            activeTab === 'Active'
-                ? (o.status !== 'Delivered' && o.status !== 'Cancelled')
-                : (o.status === 'Delivered' || o.status === 'Cancelled')
-        ),
-        [allOrders, activeTab]
+    const filteredOrders = useMemo(
+        () => allOrders.filter((order) => activeTab === 'Active'
+            ? order.status !== 'Delivered' && order.status !== 'Cancelled'
+            : order.status === 'Delivered' || order.status === 'Cancelled'),
+        [activeTab, allOrders],
     );
 
-    const handleReview = (order: Order) => {
-        setSelectedOrder(order);
-        orderSheet.close();
-        setTimeout(() => {
-            reviewSheet.open();
-        }, 200);
+    const activeCount = allOrders.filter((order) => order.status !== 'Delivered' && order.status !== 'Cancelled').length;
+    const deliveredCount = allOrders.filter((order) => order.status === 'Delivered').length;
+
+    const loadMore = () => {
+        if (data?.meta && page < data.meta.totalPages && !isFetching) setPage((value) => value + 1);
     };
 
-    const handleDispute = (order: Order) => {
+    const handleChat = (conversationId: string) => router.push(`/chat/${conversationId}`);
+
+    const openReview = (order: Order) => {
         setSelectedOrder(order);
         orderSheet.close();
-        setTimeout(() => {
-            disputeSheet.open();
-        }, 200);
+        setTimeout(reviewSheet.open, 200);
     };
 
-    const handleReviewSuccess = () => {
-        reviewSheet.close();
+    const openDispute = (order: Order) => {
+        setSelectedOrder(order);
+        orderSheet.close();
+        setTimeout(disputeSheet.open, 200);
     };
+
+    const paperColors = [colors.lemon, colors.mint, colors.lilac, colors.peach];
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <View style={[styles.header, { padding: spacing.xl }]}>
+            <View style={[styles.header, { paddingTop: insets.top + 10, paddingHorizontal: spacing.xl }]}>
                 <View style={styles.headerTop}>
-                    <Pressable onPress={() => router.back()} style={styles.backBtn}>
-                        <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
+                    <Pressable onPress={() => router.back()} style={[styles.headerButton, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
+                        <HugeiconsIcon icon={ArrowLeft01Icon} size={22} color={colors.ink} />
                     </Pressable>
-                    <Typography variant="h1">Orders</Typography>
-                    <View style={{ flex: 1 }} />
+                    <View style={{ flex: 1 }}>
+                        <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>FROM CART TO HEART</Typography>
+                        <Typography variant="h1">Gift journey</Typography>
+                    </View>
                     <Pressable
                         onPress={() => { setPage(1); refetch(); }}
-                        style={({ pressed }) => [
-                            styles.refreshBtn,
-                            { backgroundColor: colors.surface },
-                            pressed && { opacity: 0.7 }
-                        ]}
+                        style={[styles.headerButton, { backgroundColor: colors.accent, borderColor: colors.ink }]}
                     >
-                        <HugeiconsIcon
-                            icon={RefreshIcon}
-                            size={20}
-                            color={isFetching ? colors.primary : colors.textPrimary}
-                        />
+                        <HugeiconsIcon icon={RefreshIcon} size={20} color="#17151D" />
                     </Pressable>
                 </View>
 
-                {/* Tab Switcher */}
-                <View style={[styles.tabs, { backgroundColor: colors.surface }]}>
-                    {['Active', 'History'].map((tab) => (
+                <View style={styles.summaryBoard}>
+                    <View style={[styles.summaryMain, { backgroundColor: colors.lilac, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                        <View style={[styles.summaryIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
+                            <HugeiconsIcon icon={GiftIcon} size={25} color={colors.primary} />
+                        </View>
+                        <Typography variant="h1">{activeCount}</Typography>
+                        <Typography variant="caption" color={colors.textSecondary}>GIFTS ON THE MOVE</Typography>
+                    </View>
+                    <View style={[styles.summarySide, { backgroundColor: colors.mint, borderColor: colors.ink }]}>
+                        <Typography variant="h2">{deliveredCount}</Typography>
+                        <Typography variant="caption" color={colors.textSecondary}>landed safely</Typography>
+                    </View>
+                </View>
+
+                <View style={[styles.tabs, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
+                    {(['Active', 'History'] as const).map((tab) => (
                         <Pressable
                             key={tab}
-                            onPress={() => setActiveTab(tab as 'Active' | 'History')}
-                            style={[
-                                styles.tab,
-                                { backgroundColor: activeTab === tab ? colors.surfaceRaised : 'transparent' },
-                                activeTab === tab && styles.tabActiveShadow,
-                            ]}
+                            onPress={() => setActiveTab(tab)}
+                            style={[styles.tab, activeTab === tab && { backgroundColor: colors.ink }]}
                         >
-                            <Typography variant="label" color={activeTab === tab ? colors.primary : colors.textSecondary}>{tab}</Typography>
+                            <Typography variant="label" color={activeTab === tab ? colors.surface : colors.textSecondary}>{tab === 'Active' ? 'On the move' : 'Gift archive'}</Typography>
                         </Pressable>
                     ))}
                 </View>
             </View>
 
-
             {isLoading ? (
-                <View style={{ flex: 1, paddingTop: 20 }}>
-                    <OrderListSkeleton />
-                </View>
+                <OrderListSkeleton />
             ) : (
                 <FlashList
                     data={filteredOrders}
@@ -140,94 +132,115 @@ export default function OrderListScreen() {
                     refreshing={isFetching && page === 1}
                     onEndReached={loadMore}
                     onEndReachedThreshold={0.5}
-                    renderItem={({ item }) => {
-                        console.log(item.item?.product, "item product")
-                        const productName = item.item?.product?.name;
-                        const productImage = item.item?.product?.imageUrls?.[0];
-
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ paddingTop: 10, paddingBottom: 50 }}
+                    renderItem={({ item, index }) => {
+                        const product = item.item?.product;
+                        const step = statusStep(item.status);
+                        const cancelled = item.status === 'Cancelled';
+                        const accent = paperColors[index % paperColors.length];
                         return (
-                            <Card
-                                variant="elevated"
-                                style={[styles.orderCard, { marginHorizontal: spacing.xl, marginVertical: spacing.sm }]}
-                                onPress={() => {
-                                    setSelectedOrder(item);
-                                    orderSheet.open();
-                                }}
-                            >
-                                <View style={styles.orderTop}>
-                                    {productImage ? (
-                                        <Image
-                                            source={{ uri: productImage }}
-                                            style={styles.orderImage}
-                                            contentFit="cover"
-                                            transition={200}
-                                        />
-                                    ) : (
-                                        <View style={styles.placeholderImage} />
-                                    )}
-                                    <View style={{ flex: 1 }}>
-                                        <Typography variant="bodyBold">{productName}</Typography>
-                                        <Typography variant="caption" color={colors.textSecondary}>To {item.event?.contact?.name}</Typography>
-                                    </View>
-                                    <Badge
-                                        label={item.status}
-                                        variant={item.status === 'Delivered' ? 'success' : item.status === 'Cancelled' ? 'error' : 'amber'}
-                                        size="xs"
-                                    />
-                                </View>
-                                <View style={[styles.divider, { backgroundColor: colors.border }]} />
-                                <View style={styles.orderFooter}>
-                                    <View>
-                                        <Typography variant="caption" color={colors.textMuted}>{formatDate(item.createdAt)}</Typography>
-                                        <Typography variant="label" color={colors.primary}>{formatCurrency(item.total, item.item?.product?.currency || 'NGN')}</Typography>
+                            <Animated.View entering={FadeInDown.delay(Math.min(index * 60, 300)).duration(300)}>
+                                <Pressable
+                                    onPress={() => {
+                                        setSelectedOrder(item);
+                                        orderSheet.open();
+                                    }}
+                                    style={({ pressed }) => [
+                                        styles.orderCard,
+                                        { marginHorizontal: spacing.xl, backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: accent },
+                                        pressed && styles.pressed,
+                                    ]}
+                                >
+                                    <View style={styles.orderMeta}>
+                                        <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>ORDER #{item.id.slice(-6).toUpperCase()}</Typography>
+                                        <View style={[styles.statusStamp, { backgroundColor: cancelled ? colors.peach : accent, borderColor: colors.ink }]}>
+                                            <Typography variant="caption" style={styles.overline}>{item.status.toUpperCase()}</Typography>
+                                        </View>
                                     </View>
 
-                                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                                    <View style={styles.productRow}>
+                                        {product?.imageUrls?.[0] ? (
+                                            <Image source={{ uri: product.imageUrls[0] }} style={[styles.productImage, { borderColor: colors.ink }]} contentFit="cover" />
+                                        ) : (
+                                            <View style={[styles.productImage, styles.center, { backgroundColor: accent, borderColor: colors.ink }]}>
+                                                <HugeiconsIcon icon={GiftIcon} size={24} color={colors.ink} />
+                                            </View>
+                                        )}
+                                        <View style={{ flex: 1, gap: 3 }}>
+                                            <Typography variant="h4" numberOfLines={2}>{product?.name || item.item?.productName || 'Gift order'}</Typography>
+                                            <Typography variant="caption" color={colors.textSecondary}>For {item.event?.contact?.name || item.recipientName || 'someone special'}</Typography>
+                                            <Typography variant="caption" color={colors.textSecondary}>{formatDate(item.createdAt)}</Typography>
+                                        </View>
+                                        <HugeiconsIcon icon={ArrowRight01Icon} size={20} color={colors.ink} />
+                                    </View>
+
+                                    <View style={styles.journeyWrap}>
+                                        <View style={[styles.journeyLine, { backgroundColor: colors.surfaceRaised }]} />
+                                        <View style={[styles.journeyProgress, { backgroundColor: cancelled ? colors.error : colors.primary, width: `${cancelled ? 0 : (step / 3) * 100}%` }]} />
+                                        {['Ordered', 'Preparing', 'Sent', 'Landed'].map((label, stopIndex) => (
+                                            <View key={label} style={styles.journeyStop}>
+                                                <View style={[styles.stopDot, { backgroundColor: stopIndex <= step && !cancelled ? colors.accent : colors.surface, borderColor: colors.ink }]} />
+                                                <Typography variant="caption" color={colors.textSecondary} style={styles.stopLabel}>{label}</Typography>
+                                            </View>
+                                        ))}
+                                    </View>
+
+                                    <View style={[styles.orderFooter, { borderTopColor: colors.ink }]}>
+                                        <View>
+                                            <Typography variant="caption" color={colors.textSecondary}>ORDER TOTAL</Typography>
+                                            <Typography variant="bodyBold">{formatCurrency(item.total, product?.currency || 'NGN')}</Typography>
+                                        </View>
                                         {item.paymentStatus !== 'paid' && item.status !== 'Cancelled' ? (
                                             <Pressable
-                                                onPress={() => router.push({ pathname: '/checkout/payment', params: { orderId: item.id } })}
-                                                style={[styles.cardChatBtn, { backgroundColor: colors.success + '10' }]}
+                                                onPress={(event) => {
+                                                    event.stopPropagation();
+                                                    router.push({ pathname: '/checkout/payment', params: { orderId: item.id } });
+                                                }}
+                                                style={[styles.actionButton, { backgroundColor: colors.accent, borderColor: colors.ink }]}
                                             >
-                                                <HugeiconsIcon icon={CreditCardIcon} size={16} color={colors.success} />
-                                                <Typography variant="label" color={colors.success} style={{ fontSize: moderateScale(12) }}>Pay Now</Typography>
+                                                <HugeiconsIcon icon={CreditCardIcon} size={16} color="#17151D" />
+                                                <Typography variant="caption" color="#17151D" style={styles.overline}>PAY NOW</Typography>
                                             </Pressable>
-                                        ) : item.conversationId &&
-                                        <Pressable
-                                            onPress={() => handleChat(item.conversationId)}
-                                            style={[styles.cardChatBtn, { backgroundColor: colors.primary + '10' }]}
-                                        >
-                                            <HugeiconsIcon icon={BubbleChatIcon} size={16} color={colors.primary} />
-                                            <Typography variant="label" color={colors.primary} style={{ fontSize: moderateScale(12) }}>Chat Vendor</Typography>
-                                        </Pressable>
-                                        }
+                                        ) : item.conversationId ? (
+                                            <Pressable
+                                                onPress={(event) => {
+                                                    event.stopPropagation();
+                                                    handleChat(item.conversationId);
+                                                }}
+                                                style={[styles.actionButton, { backgroundColor: colors.mint, borderColor: colors.ink }]}
+                                            >
+                                                <HugeiconsIcon icon={BubbleChatIcon} size={16} color={colors.ink} />
+                                                <Typography variant="caption" style={styles.overline}>CHAT</Typography>
+                                            </Pressable>
+                                        ) : null}
                                     </View>
-                                </View>
-                            </Card>
+                                </Pressable>
+                            </Animated.View>
                         );
                     }}
-                    ListEmptyComponent={<Typography align="center" style={{ marginTop: 40 }}>No orders found.</Typography>}
-                    ListFooterComponent={isFetching && page > 1 ? <ActivityIndicator style={{ padding: 20 }} color={colors.primary} /> : null}
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ paddingBottom: 100 }}
+                    ListEmptyComponent={
+                        <View style={[styles.emptyState, { marginHorizontal: spacing.xl, backgroundColor: colors.lemon, borderColor: colors.ink }]}>
+                            <View style={[styles.emptyIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
+                                <HugeiconsIcon icon={GiftIcon} size={30} color={colors.primary} />
+                            </View>
+                            <Typography variant="h3">This lane is quiet.</Typography>
+                            <Typography variant="body" color={colors.textSecondary} align="center">{activeTab === 'Active' ? 'Your next gift journey will appear here.' : 'Delivered and cancelled gifts become part of the archive.'}</Typography>
+                        </View>
+                    }
+                    ListFooterComponent={isFetching && page > 1 ? <ActivityIndicator color={colors.primary} style={{ padding: 20 }} /> : null}
                 />
             )}
 
-            {/* Sheets */}
             <OrderDetailSheet
                 ref={orderSheet.ref}
                 order={selectedOrder}
-                onClose={() => orderSheet.close()}
-                onChat={(id) => handleChat(id)}
-                onReview={handleReview}
-                onDispute={handleDispute}
+                onClose={orderSheet.close}
+                onChat={handleChat}
+                onReview={openReview}
+                onDispute={openDispute}
             />
-
-            <ReviewBusinessSheet
-                ref={reviewSheet.ref}
-                order={selectedOrder}
-                onSuccess={handleReviewSuccess}
-            />
-
+            <ReviewBusinessSheet ref={reviewSheet.ref} order={selectedOrder} onSuccess={reviewSheet.close} />
             <DisputeSheet
                 ref={disputeSheet.ref}
                 orderId={selectedOrder?.id || ''}
@@ -241,85 +254,32 @@ export default function OrderListScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        paddingTop: 30,
-    },
-    header: {
-        paddingBottom: 24,
-    },
-    refreshBtn: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    headerTop: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 16,
-        marginBottom: 24,
-    },
-    backBtn: {
-        padding: 8,
-    },
-    tabs: {
-        flexDirection: 'row',
-        padding: 4,
-        borderRadius: 14,
-        gap: 4,
-    },
-    tab: {
-        flex: 1,
-        height: 40,
-        borderRadius: 10,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    tabActiveShadow: {
-        // shadowColor: '#000',
-        // shadowOffset: { width: 0, height: 2 },
-        // shadowOpacity: 0.1,
-        // shadowRadius: 4,
-        // elevation: 3,
-    },
-    orderCard: {
-        padding: 16,
-        gap: 12,
-    },
-    orderTop: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
-    },
-    orderImage: {
-        width: 48,
-        height: 48,
-        borderRadius: 8,
-    },
-    placeholderImage: {
-        width: 48,
-        height: 48,
-        borderRadius: 8,
-        backgroundColor: '#F5F5F5',
-    },
-    divider: {
-        height: 1,
-        width: '100%',
-        opacity: 0.05,
-    },
-    orderFooter: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    cardChatBtn: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 20,
-    },
+    container: { flex: 1 },
+    header: { paddingBottom: 12 },
+    headerTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    headerButton: { width: 44, height: 44, borderRadius: 14, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.8 },
+    summaryBoard: { flexDirection: 'row', gap: 12, marginTop: 20 },
+    summaryMain: { flex: 1.35, minHeight: 112, borderWidth: 1.5, borderRadius: 22, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, shadowOffset: { width: 4, height: 5 }, shadowOpacity: 1, shadowRadius: 0, elevation: 4 },
+    summaryIcon: { width: 46, height: 46, borderRadius: 15, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+    summarySide: { flex: 0.65, minHeight: 112, borderWidth: 1.5, borderRadius: 22, padding: 14, justifyContent: 'center' },
+    tabs: { flexDirection: 'row', gap: 4, marginTop: 18, padding: 4, borderWidth: 1.5, borderRadius: 16 },
+    tab: { flex: 1, height: 42, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+    orderCard: { borderWidth: 1.5, borderRadius: 24, padding: 15, marginVertical: 10, shadowOffset: { width: 5, height: 6 }, shadowOpacity: 1, shadowRadius: 0, elevation: 4 },
+    orderMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 13 },
+    statusStamp: { borderWidth: 1.25, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 5, transform: [{ rotate: '2deg' }] },
+    productRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    productImage: { width: 70, height: 70, borderWidth: 1.5, borderRadius: 16 },
+    center: { alignItems: 'center', justifyContent: 'center' },
+    journeyWrap: { height: 47, marginTop: 18, flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
+    journeyLine: { position: 'absolute', height: 3, left: 7, right: 7, top: 7 },
+    journeyProgress: { position: 'absolute', height: 3, left: 7, top: 7 },
+    journeyStop: { alignItems: 'center', width: 48, gap: 5 },
+    stopDot: { width: 16, height: 16, borderRadius: 6, borderWidth: 1.5 },
+    stopLabel: { fontSize: 10 },
+    orderFooter: { borderTopWidth: 1, marginTop: 8, paddingTop: 13, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    actionButton: { minHeight: 38, borderWidth: 1.25, borderRadius: 12, paddingHorizontal: 11, flexDirection: 'row', alignItems: 'center', gap: 6 },
+    emptyState: { marginTop: 30, borderWidth: 1.5, borderRadius: 24, padding: 28, alignItems: 'center', gap: 8 },
+    emptyIcon: { width: 58, height: 58, borderWidth: 1.5, borderRadius: 18, alignItems: 'center', justifyContent: 'center', marginBottom: 5 },
+    pressed: { opacity: 0.85, transform: [{ translateY: 2 }] },
 });

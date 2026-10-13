@@ -9,7 +9,7 @@ import {
     BottomSheetView,
 } from '@gorhom/bottom-sheet';
 import React, { forwardRef, useCallback, useImperativeHandle, useMemo, useRef } from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export interface BottomSheetRef {
@@ -49,14 +49,16 @@ const BottomSheetWrapper = forwardRef<BottomSheetRef, Props>(
         }), []);
 
         const renderBackdrop = useMemo(
-            () => (props: BottomSheetBackdropProps) => (
-                <BottomSheetBackdrop
-                    {...props}
-                    appearsOnIndex={0}
-                    disappearsOnIndex={-1}
-                    opacity={0.6}
-                />
-            ),
+            () => function SheetBackdrop(props: BottomSheetBackdropProps) {
+                return (
+                    <BottomSheetBackdrop
+                        {...props}
+                        appearsOnIndex={0}
+                        disappearsOnIndex={-1}
+                        opacity={0.6}
+                    />
+                );
+            },
             []
         );
 
@@ -81,14 +83,26 @@ const BottomSheetWrapper = forwardRef<BottomSheetRef, Props>(
                 snapPoints={snapPoints}
                 enablePanDownToClose
                 backdropComponent={renderBackdrop}
-                backgroundStyle={{ backgroundColor: colors.surface }}
-                handleIndicatorStyle={{ backgroundColor: colors.border, width: 40 }}
+                backgroundStyle={{
+                    backgroundColor: colors.surface,
+                    borderColor: colors.ink,
+                    borderWidth: 1.5,
+                    borderBottomWidth: 0,
+                    borderTopLeftRadius: 30,
+                    borderTopRightRadius: 30,
+                    shadowColor: colors.ink,
+                    shadowOffset: { width: 0, height: -5 },
+                    shadowOpacity: 0.2,
+                    shadowRadius: 0,
+                }}
+                handleStyle={[styles.handle, { backgroundColor: colors.lavender, borderColor: colors.ink }]}
+                handleIndicatorStyle={{ backgroundColor: colors.ink, width: 48, height: 4 }}
                 keyboardBehavior={keyboardBehavior}
                 keyboardBlurBehavior={keyboardBlurBehavior}
                 android_keyboardInputMode={android_keyboardInputMode}
                 onDismiss={onClose}
                 footerComponent={renderFooter ? renderFooterComponent : undefined}
-                
+
 
             >
                 <Container
@@ -98,11 +112,45 @@ const BottomSheetWrapper = forwardRef<BottomSheetRef, Props>(
                     ]}
                     {...(scrollable ? { showsVerticalScrollIndicator: false } : {})}
                 >
+                    <View pointerEvents="none" style={styles.paperEdge}>
+                        <View style={[styles.edgeDash, { borderColor: colors.textMuted }]} />
+                        <View style={[styles.sheetStamp, { backgroundColor: colors.lime, borderColor: colors.ink }]} />
+                    </View>
                     {children}
                 </Container>
             </BottomSheetModal>
         );
     }
 );
+
+BottomSheetWrapper.displayName = 'BottomSheetWrapper';
+
+const styles = StyleSheet.create({
+    handle: {
+        height: 28,
+        borderTopLeftRadius: 28,
+        borderTopRightRadius: 28,
+        borderBottomWidth: 1,
+        paddingTop: 11,
+    },
+    paperEdge: {
+        height: 15,
+        justifyContent: 'center',
+        marginBottom: 5,
+    },
+    edgeDash: {
+        borderTopWidth: 1,
+        borderStyle: 'dashed',
+        opacity: 0.7,
+    },
+    sheetStamp: {
+        position: 'absolute',
+        right: 10,
+        width: 24,
+        height: 10,
+        borderWidth: 1,
+        transform: [{ rotate: '5deg' }],
+    },
+});
 
 export default BottomSheetWrapper;

@@ -1,46 +1,36 @@
 import { useTheme } from '@/hooks/useTheme';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import Skeleton from './Skeleton';
+import Skeleton, { SkeletonPaper } from './Skeleton';
 
 export default function NotificationListSkeleton() {
-    const { colors, spacing } = useTheme();
+    const { colors } = useTheme();
+    const notes = [colors.lemon, colors.mint, colors.peach, colors.lavender];
 
     return (
-        <View>
-            {[1, 2, 3, 4, 5, 6].map((_, index) => (
-                <View key={index} style={[styles.notificationItem, { borderBottomColor: colors.border + '11' }]}>
-                    <Skeleton width={48} height={48} borderRadius={24} />
-                    <View style={styles.textContainer}>
-                        <View style={styles.titleRow}>
-                            <Skeleton width="50%" height={16} borderRadius={4} />
-                            <Skeleton width={60} height={12} borderRadius={4} />
+        <View style={styles.board}>
+            {notes.map((color, index) => (
+                <SkeletonPaper key={color} color={color} style={[styles.note, { transform: [{ rotate: index % 2 ? '0.8deg' : '-0.8deg' }] }]}>
+                    <View style={[styles.pin, { backgroundColor: colors.lime, borderColor: colors.ink }]} />
+                    <Skeleton width={45} height={45} borderRadius={14} />
+                    <View style={styles.copy}>
+                        <View style={styles.row}>
+                            <Skeleton width="46%" height={16} />
+                            <Skeleton width={44} height={10} />
                         </View>
-                        <View style={{ marginTop: 8, gap: 4 }}>
-                            <Skeleton width="90%" height={12} borderRadius={4} />
-                            <Skeleton width="70%" height={12} borderRadius={4} />
-                        </View>
+                        <Skeleton width="92%" height={12} />
+                        <Skeleton width="67%" height={12} />
                     </View>
-                </View>
+                </SkeletonPaper>
             ))}
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    notificationItem: {
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-        padding: 20,
-        borderBottomWidth: 1,
-    },
-    textContainer: {
-        flex: 1,
-        marginLeft: 16,
-    },
-    titleRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
+    board: { paddingHorizontal: 20, gap: 15 },
+    note: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, padding: 15 },
+    pin: { position: 'absolute', top: -6, left: '49%', width: 13, height: 13, borderRadius: 7, borderWidth: 1.5, zIndex: 2 },
+    copy: { flex: 1, gap: 7 },
+    row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
 });

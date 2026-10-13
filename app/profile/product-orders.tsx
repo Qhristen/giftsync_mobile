@@ -21,11 +21,13 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ProductOrdersScreen() {
     const router = useRouter();
     const params = useLocalSearchParams();
     const { colors, spacing } = useTheme();
+    const insets = useSafeAreaInsets();
 
     const productId = params.productId as string;
     const productName = params.productName as string;
@@ -42,7 +44,7 @@ export default function ProductOrdersScreen() {
 
     const handleConfirmSuccess = () => {
         confirmSheet.close();
-        // The RTK Query invalidation for 'Orders' in useConfirmDeliveryMutation 
+        // The RTK Query invalidation for 'Orders' in useConfirmDeliveryMutation
         // will automatically refetch the list.
     };
 
@@ -56,14 +58,19 @@ export default function ProductOrdersScreen() {
         }
     };
 
-    const renderOrderItem = ({ item }: { item: Order }) => (
-        <Card style={styles.orderCard}>
+    const paper = [colors.lilac, colors.mint, colors.peach, colors.lemon];
+
+    const renderOrderItem = ({ item, index }: { item: Order; index: number }) => (
+        <Card style={[styles.orderCard, { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: paper[index % paper.length], transform: [{ rotate: index % 2 ? '0.5deg' : '-0.5deg' }] }]}>
+            <View style={[styles.statusTab, { backgroundColor: paper[index % paper.length], borderColor: colors.ink }]}>
+                <Typography variant="caption" style={styles.overline}>DISPATCH {String(index + 1).padStart(2, '0')}</Typography>
+            </View>
             <View style={styles.orderHeader}>
                 <Typography variant="h4">Order #{item.id?.slice(-6).toUpperCase()}</Typography>
                 <Badge variant={getStatusVariant(item.status)} label={item.status} />
             </View>
 
-            <View style={[styles.divider, { backgroundColor: colors.border + '33' }]} />
+            <View style={[styles.divider, { borderColor: colors.textMuted }]} />
 
             <View style={styles.orderDetail}>
                 <View style={styles.detailRow}>
@@ -80,7 +87,7 @@ export default function ProductOrdersScreen() {
                 </View>
             </View>
 
-            <View style={[styles.footer, { borderTopColor: colors.border + '33' }]}>
+            <View style={[styles.footer, { borderTopColor: colors.textMuted }]}>
                 <Typography variant="label">Total:</Typography>
                 <Typography variant="h4" color={colors.primary}>{formatCurrency(item.total, 'NGN')}</Typography>
             </View>
@@ -100,12 +107,13 @@ export default function ProductOrdersScreen() {
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <View style={[styles.header, { borderBottomColor: colors.border + '33' }]}>
-                <Pressable onPress={() => router.back()} style={styles.backButton}>
-                    <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
+            <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+                <Pressable onPress={() => router.back()} style={[styles.backButton, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
+                    <HugeiconsIcon icon={ArrowLeft01Icon} size={22} color={colors.ink} />
                 </Pressable>
                 <View style={{ flex: 1, marginLeft: 12 }}>
-                    <Typography variant="h3" numberOfLines={1}>Product Orders</Typography>
+                    <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>MAKER DISPATCH DESK</Typography>
+                    <Typography variant="h2" numberOfLines={1}>Orders in motion</Typography>
                     <Typography variant="caption" color={colors.textSecondary} numberOfLines={1}>{productName}</Typography>
                 </View>
             </View>
@@ -123,9 +131,10 @@ export default function ProductOrdersScreen() {
                     contentContainerStyle={{ padding: spacing.xl, paddingBottom: 100 }}
                     showsVerticalScrollIndicator={false}
                     ListEmptyComponent={
-                        <View style={styles.emptyContainer}>
-                            <HugeiconsIcon icon={LegalDocument01Icon} size={64} color={colors.border} />
-                            <Typography variant="body" color={colors.textSecondary} style={{ marginTop: 16 }}>No orders for this product yet.</Typography>
+                        <View style={[styles.emptyContainer, { backgroundColor: colors.lemon, borderColor: colors.ink }]}>
+                            <HugeiconsIcon icon={LegalDocument01Icon} size={48} color={colors.ink} />
+                            <Typography variant="h3">No dispatch slips yet.</Typography>
+                            <Typography variant="body" color={colors.textSecondary}>Orders for this gift will land here.</Typography>
                         </View>
                     }
                 />
@@ -148,18 +157,29 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingTop: 60,
         paddingBottom: 16,
         paddingHorizontal: 20,
-        borderBottomWidth: 1,
     },
     backButton: {
-        padding: 4,
+        width: 44,
+        height: 44,
+        borderRadius: 14,
+        borderWidth: 1.5,
+        alignItems: 'center',
+        justifyContent: 'center',
+        transform: [{ rotate: '-3deg' }],
     },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.9 },
     orderCard: {
         marginBottom: 16,
         padding: 16,
+        borderWidth: 1.5,
+        borderRadius: 22,
+        shadowOffset: { width: 4, height: 4 },
+        shadowOpacity: 1,
+        shadowRadius: 0,
     },
+    statusTab: { position: 'absolute', right: 14, top: -9, borderWidth: 1.25, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4, transform: [{ rotate: '2deg' }], zIndex: 2 },
     orderHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -167,7 +187,8 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     divider: {
-        height: 1,
+        borderTopWidth: 1,
+        borderStyle: 'dashed',
         marginBottom: 12,
     },
     orderDetail: {
@@ -188,6 +209,10 @@ const styles = StyleSheet.create({
     },
     emptyContainer: {
         alignItems: 'center',
-        marginTop: 100,
+        marginTop: 60,
+        padding: 24,
+        borderWidth: 1.5,
+        borderRadius: 22,
+        gap: 6,
     }
 });

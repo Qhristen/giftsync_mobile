@@ -32,34 +32,35 @@ const DeliveryOptionsSheet = forwardRef<BottomSheetRef, Props>(
 
         return (
             <BottomSheetWrapper ref={ref} snapPoints={['75%']} scrollable>
-                <Typography variant="h2" style={{ marginBottom: spacing.sm }}>
-                    Delivery Time
-                </Typography>
+                <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>ARRIVAL WINDOW</Typography>
+                <Typography variant="h2" style={{ marginBottom: spacing.sm }}>When should it land?</Typography>
                 <Typography variant="body" color={colors.textSecondary} style={{ marginBottom: spacing.xl }}>
                     Choose a time window for the delivery.
                 </Typography>
 
                 <View style={{ gap: spacing.sm, marginBottom: spacing.xl }}>
-                    {timeWindows.map((tw) => (
+                    {timeWindows.map((tw, index) => (
                         <Pressable
                             key={tw.id}
                             onPress={() => setTimeWindow(tw.id)}
                             style={[
                                 styles.option,
                                 {
-                                    backgroundColor: colors.surface,
-                                    borderColor: timeWindow === tw.id ? colors.primary : colors.border
+                                    backgroundColor: [colors.lemon, colors.sky, colors.peach][index],
+                                    borderColor: colors.ink,
+                                    shadowColor: timeWindow === tw.id ? colors.ink : 'transparent',
+                                    transform: [{ rotate: index % 2 ? '0.5deg' : '-0.5deg' }],
                                 }
                             ]}
                         >
-                            <Typography variant="bodyBold" color={timeWindow === tw.id ? colors.primary : colors.textPrimary}>
+                            <Typography variant="bodyBold">
                                 {tw.label}
                             </Typography>
                             <View style={[
                                 styles.radio,
-                                { borderColor: timeWindow === tw.id ? colors.primary : colors.border }
+                                { borderColor: colors.ink, backgroundColor: timeWindow === tw.id ? colors.lime : colors.surface }
                             ]}>
-                                {timeWindow === tw.id && <View style={[styles.radioInner, { backgroundColor: colors.primary }]} />}
+                                {timeWindow === tw.id && <View style={[styles.radioInner, { backgroundColor: colors.ink }]} />}
                             </View>
                         </Pressable>
                     ))}
@@ -72,13 +73,17 @@ const DeliveryOptionsSheet = forwardRef<BottomSheetRef, Props>(
 );
 
 const styles = StyleSheet.create({
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 1 },
     option: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: 16,
-        borderRadius: 12,
-        borderWidth: 1,
+        borderRadius: 18,
+        borderWidth: 1.5,
+        shadowOffset: { width: 3, height: 3 },
+        shadowOpacity: 1,
+        shadowRadius: 0,
     },
     radio: {
         width: 20,
@@ -94,6 +99,8 @@ const styles = StyleSheet.create({
         borderRadius: 5,
     },
 });
+
+DeliveryOptionsSheet.displayName = 'DeliveryOptionsSheet';
 
 export default DeliveryOptionsSheet;
 

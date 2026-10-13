@@ -103,4 +103,6 @@ const styles = StyleSheet.create({
     },
 });
 
+ReportSheet.displayName = 'ReportSheet';
+
 export default ReportSheet;

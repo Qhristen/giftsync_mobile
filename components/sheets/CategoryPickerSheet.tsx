@@ -15,8 +15,7 @@ import {
     WatchIcon,
 } from '@hugeicons/core-free-icons';
 import React, { forwardRef, useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import Animated, { FadeIn } from 'react-native-reanimated';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Input from '../ui/Input';
 import Typography from '../ui/Typography';
@@ -61,9 +60,8 @@ const CategoryPickerSheet = forwardRef<BottomSheetRef, CategoryPickerSheetProps>
             scrollable
             keyboardBehavior="interactive"
             android_keyboardInputMode="adjustPan">
-            <Typography variant="h3" style={{ marginBottom: spacing.lg }}>
-                Select Category
-            </Typography>
+            <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>CATALOGUE DRAWER</Typography>
+            <Typography variant="h2" style={{ marginBottom: spacing.lg }}>Choose a category</Typography>
 
             <Input
                 placeholder="Search categories..."
@@ -87,7 +85,7 @@ const CategoryPickerSheet = forwardRef<BottomSheetRef, CategoryPickerSheetProps>
                         <ActivityIndicator color={colors.primary} />
                     </View>
                 ) : filteredCategories.length > 0 ? (
-                    filteredCategories.map((category) => {
+                    filteredCategories.map((category, index) => {
                         const isSelected = currentCategoryId === category.id;
                         return (
                             <Pressable
@@ -96,26 +94,27 @@ const CategoryPickerSheet = forwardRef<BottomSheetRef, CategoryPickerSheetProps>
                                 style={[
                                     styles.item,
                                     {
-                                        backgroundColor: isSelected ? colors.primarySoft : colors.surfaceRaised,
-                                        borderColor: isSelected ? colors.primary : 'transparent',
+                                        backgroundColor: [colors.lemon, colors.lavender, colors.mint, colors.peach][index % 4],
+                                        borderColor: colors.ink,
+                                        shadowColor: isSelected ? colors.ink : 'transparent',
                                     },
                                 ]}
                             >
-                                <View style={[styles.iconContainer, { backgroundColor: isSelected ? colors.primary : colors.surface }]}>
+                                <View style={[styles.iconContainer, { backgroundColor: isSelected ? colors.lime : colors.surface, borderColor: colors.ink }]}>
                                     <HugeiconsIcon
                                         icon={getIcon(category.name)}
                                         size={24}
-                                        color={isSelected ? '#FFFFFF' : colors.textPrimary}
+                                        color={colors.ink}
                                     />
                                 </View>
                                 <Typography
                                     variant="bodyMedium"
-                                    color={isSelected ? colors.primary : colors.textPrimary}
+                                    color={colors.textPrimary}
                                 >
                                     {category.name}
                                 </Typography>
                                 {isSelected && (
-                                    <HugeiconsIcon icon={CheckmarkCircle02Icon} size={24} color={colors.primary} style={styles.check} />
+                                    <HugeiconsIcon icon={CheckmarkCircle02Icon} size={24} color={colors.ink} style={styles.check} />
                                 )}
                             </Pressable>
                         );
@@ -124,7 +123,7 @@ const CategoryPickerSheet = forwardRef<BottomSheetRef, CategoryPickerSheetProps>
                     <View style={styles.empty}>
                         <HugeiconsIcon icon={Search01Icon} size={48} color={colors.textSecondary} style={{ opacity: 0.3, marginBottom: 16 }} />
                         <Typography variant="bodyMedium" color={colors.textSecondary} style={{ textAlign: 'center' }}>
-                            No categories found for "{searchQuery}"
+                            No categories found for &quot;{searchQuery}&quot;
                         </Typography>
                     </View>
                 )}
@@ -134,20 +133,7 @@ const CategoryPickerSheet = forwardRef<BottomSheetRef, CategoryPickerSheetProps>
 });
 
 const styles = StyleSheet.create({
-    horizontalScroll: {
-        gap: 12,
-        paddingRight: 20,
-    },
-    chip: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        borderRadius: 24,
-        gap: 8,
-        borderWidth: 1,
-        borderColor: 'rgba(0,0,0,0.05)',
-    },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 1 },
     list: {
         gap: 8,
     },
@@ -157,7 +143,11 @@ const styles = StyleSheet.create({
         padding: 12,
         marginVertical: 2,
         borderRadius: 16,
+        borderWidth: 1.5,
         gap: 16,
+        shadowOffset: { width: 3, height: 3 },
+        shadowOpacity: 1,
+        shadowRadius: 0,
     },
     iconContainer: {
         width: 44,
@@ -165,6 +155,7 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         justifyContent: 'center',
         alignItems: 'center',
+        borderWidth: 1.25,
     },
     check: {
         marginLeft: 'auto',
@@ -179,6 +170,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     }
 });
+
+CategoryPickerSheet.displayName = 'CategoryPickerSheet';
 
 export default CategoryPickerSheet;
 

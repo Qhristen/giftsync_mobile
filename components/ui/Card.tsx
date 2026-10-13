@@ -17,18 +17,17 @@ const Card: React.FC<Props> = ({
     padding = 'md',
     style,
 }) => {
-    const { colors, spacing, isDark } = useTheme();
+    const { colors, spacing } = useTheme();
 
     const cardStyles = [
         styles.base,
         {
             backgroundColor: variant === 'raised' ? colors.surfaceRaised : colors.surface,
             borderColor: colors.border,
-            borderWidth: 0,
+            borderWidth: variant === 'ghost' ? 0 : 1.5,
             padding: spacing[padding],
         },
-        variant === 'elevated' && !isDark && styles.shadow,
-        isDark && variant === 'elevated' && { borderColor: colors.border + '4D' }, // Subtle glow border in dark mode
+        variant === 'elevated' && styles.shadow,
         style,
     ] as ViewStyle[];
 
@@ -45,15 +44,15 @@ const Card: React.FC<Props> = ({
 
 const styles = StyleSheet.create({
     base: {
-        borderRadius: 10,
+        borderRadius: 22,
         overflow: 'hidden',
     },
     shadow: {
-        // shadowColor: '#000',
-        // shadowOffset: { width: 0, height: 4 },
-        // shadowOpacity: 0.05,
-        // shadowRadius: 12,
-        // elevation: 4,
+        shadowColor: '#17151D',
+        shadowOffset: { width: 4, height: 5 },
+        shadowOpacity: 1,
+        shadowRadius: 0,
+        elevation: 4,
     },
 });
 

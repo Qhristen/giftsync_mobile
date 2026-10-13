@@ -5,25 +5,21 @@ import { useGetProfileQuery } from '@/store/api/userApi';
 import { Conversation } from '@/types';
 import { formatDateString, formatTime } from '@/utils/dateUtils';
 import { moderateScale } from '@/utils/scaling';
-import { format } from 'date-fns';
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 interface ConversationItemProps {
     conversation: Conversation;
     onPress: () => void;
+    accentColor?: string;
 }
 
-const ConversationItem: React.FC<ConversationItemProps> = ({ conversation, onPress }) => {
+const ConversationItem: React.FC<ConversationItemProps> = ({ conversation, onPress, accentColor }) => {
     const { colors, spacing } = useTheme();
     const { data: profile } = useGetProfileQuery();
 
     const participants = conversation.participants.filter(p => p.id !== profile?.id);
-    const displayName = conversation?.order?.item?.product?.name
-
-    const lastMessageDate = conversation.lastMessageAt
-        ? format(new Date(conversation.lastMessageAt), 'dd/MM/yyyy')
-        : '';
+    const displayName = conversation?.order?.item?.product?.name || participants.map((participant) => participant.name).join(', ') || 'Gift conversation';
 
     // Avatar group width: first avatar full-width + each additional offset by overlap
     const avatarSize = 55;
@@ -40,8 +36,11 @@ const ConversationItem: React.FC<ConversationItemProps> = ({ conversation, onPre
             style={({ pressed }) => [
                 styles.container,
                 {
-                    backgroundColor: pressed ? colors.surfaceRaised : colors.background,
-                    paddingHorizontal: spacing.xl,
+                    backgroundColor: pressed ? colors.mint : colors.surface,
+                    borderColor: colors.ink,
+                    shadowColor: accentColor || colors.lilac,
+                    marginHorizontal: spacing.xl,
+                    paddingHorizontal: spacing.md,
                     paddingVertical: spacing.md,
                 },
             ]}
@@ -59,16 +58,16 @@ const ConversationItem: React.FC<ConversationItemProps> = ({ conversation, onPre
                             left: index * (avatarSize - overlap),
                             zIndex: participants.length - index,
                             borderWidth: 2,
-                            borderColor: colors.background,
+                            borderColor: colors.ink,
                         }}
                     />
                 ))}
             </View>
             <View style={styles.content}>
                 <View style={styles.header}>
-                    <Typography 
-                        variant="bodyBold" 
-                        numberOfLines={2} 
+                    <Typography
+                        variant="bodyBold"
+                        numberOfLines={2}
                         style={styles.name}
                         color={hasUnread ? colors.textPrimary : colors.textSecondary}
                     >
@@ -91,8 +90,8 @@ const ConversationItem: React.FC<ConversationItemProps> = ({ conversation, onPre
                         {conversation.lastMessagePreview || 'No messages yet'}
                     </Typography>
                     {hasUnread && (
-                        <View style={[styles.badge, { backgroundColor: colors.primary }]}>
-                            <Typography variant="caption" color="#FFFFFF" style={{ fontWeight: 'bold' }}>
+                        <View style={[styles.badge, { backgroundColor: colors.accent, borderColor: colors.ink }]}>
+                            <Typography variant="caption" color="#17151D" style={{ fontWeight: 'bold' }}>
                                 {conversation.unreadCount}
                             </Typography>
                         </View>
@@ -108,6 +107,13 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 12,
+        borderWidth: 1.5,
+        borderRadius: 19,
+        marginBottom: 12,
+        shadowOffset: { width: 4, height: 4 },
+        shadowOpacity: 1,
+        shadowRadius: 0,
+        elevation: 3,
     },
     avatarGroup: {
         flexDirection: 'row',
@@ -143,6 +149,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         paddingHorizontal: 4,
+        borderWidth: 1,
     },
 });
 

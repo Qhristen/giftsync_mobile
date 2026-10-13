@@ -37,4 +37,6 @@ const CreateEventSheet = forwardRef<BottomSheetRef, Props>(
     }
 );
 
+CreateEventSheet.displayName = 'CreateEventSheet';
+
 export default CreateEventSheet;
