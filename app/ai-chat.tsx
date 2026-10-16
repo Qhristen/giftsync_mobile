@@ -573,6 +573,7 @@ export default function AIChatScreen() {
                             const orderId = item.uiData.order?.id || request?.orderId;
                             const total = item.uiData.order?.total ?? request?.orderTotal;
                             const requestCurrency = item.uiData.order?.currency || request?.currency || user?.currency || 'NGN';
+                            const paymentUrl = request?.paymentUrl;
 
                             return (
                                 <View>
@@ -586,12 +587,17 @@ export default function AIChatScreen() {
                                         <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>REQUEST CREATED</Typography>
                                         <Typography variant="h3">Your sourcing brief is in</Typography>
                                         {total != null && <Typography variant="bodyBold" color={colors.primary}>{formatCurrency(Number(total), requestCurrency)}</Typography>}
-                                        {!!orderId && (
+                                        {!!paymentUrl && !!orderId && (
                                             <Pressable
-                                                onPress={() => router.push({ pathname: '/checkout/payment', params: { orderId } })}
+                                                accessibilityRole="button"
+                                                accessibilityLabel="Pay now"
+                                                onPress={() => router.push({
+                                                    pathname: '/checkout/payment',
+                                                    params: { orderId, currency: requestCurrency, paymentUrl },
+                                                })}
                                                 style={[styles.payRequestButton, { backgroundColor: colors.accent, borderColor: colors.ink }]}
                                             >
-                                                <Typography variant="label" color="#17151D">Continue to payment</Typography>
+                                                <Typography variant="label" color="#17151D">Pay now</Typography>
                                             </Pressable>
                                         )}
                                     </View>

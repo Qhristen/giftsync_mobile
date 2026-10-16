@@ -49,14 +49,15 @@ export interface CreateGiftRequestDto {
 
 export interface GiftRequest {
     id: string;
-    status: 'PENDING' | 'IN_REVIEW' | 'SOURCING' | 'FULFILLED' | 'CANCELLED';
-    eventId?: string;
-    contactId?: string;
-    addressId?: string;
-    orderId?: string;
-    orderTotal?: number;
-    paymentStatus?: string;
-    currency?: string;
+    status: 'PENDING' | 'SOURCING' | 'FULFILLED' | 'CANCELLED';
+    eventId: string;
+    contactId: string | null;
+    addressId: string | null;
+    orderId: string | null;
+    orderTotal: number;
+    paymentStatus: string;
+    currency: string;
+    paymentUrl: string;
     createdAt: string;
 }
 

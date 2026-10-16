@@ -48,13 +48,14 @@ export interface AiActionDetails extends Partial<AiGiftRequestDetails> {
     price?: string;
 }
 
-export interface AiGiftRequestResult {
+export interface AiCreatedGiftRequest {
     id: string;
-    status?: string;
+    status: string;
     orderId?: string;
     orderTotal?: number;
     paymentStatus?: string;
     currency?: string;
+    paymentUrl: string;
 }
 
 export interface AiUiData {
@@ -63,7 +64,7 @@ export interface AiUiData {
     details?: AiActionDetails;
     items?: any[];
     suggestions?: AiProductSuggestion[];
-    giftRequest?: AiGiftRequestResult;
+    giftRequest?: AiCreatedGiftRequest;
     order?: {
         id: string;
         total?: number;

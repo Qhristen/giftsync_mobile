@@ -26,7 +26,11 @@ export default function PaymentScreen() {
     const router = useRouter();
     const { colors } = useTheme();
     const { enabled: couponsEnabled } = useFeatureFlag('coupons');
-    const { orderId, currency: requestCurrency } = useLocalSearchParams<{ orderId: string; currency?: string }>();
+    const {
+        orderId,
+        currency: requestCurrency,
+        paymentUrl: initialPaymentUrl,
+    } = useLocalSearchParams<{ orderId: string; currency?: string; paymentUrl?: string }>();
     const { data: order, isLoading: isOrderLoading } = useGetOrderByIdQuery(orderId as string, { skip: !orderId });
     const [handlePayment] = useHandlePaymentMutation();
     const { data: wallet } = useGetWalletBalanceQuery();
@@ -36,7 +40,7 @@ export default function PaymentScreen() {
     const [appliedCoupon, setAppliedCoupon] = useState<ValidateCouponResponse | null>(null);
     const [validateCoupon, { isLoading: isValidating }] = useValidateCouponMutation();
     const [paymentMethod, setPaymentMethod] = useState<PaymentChoice>('coins');
-    const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
+    const [paymentUrl, setPaymentUrl] = useState<string | null>(initialPaymentUrl || null);
     const [isProcessing, setIsProcessing] = useState(false);
 
     const payableTotal = (order?.total ?? 0) - (couponsEnabled ? appliedCoupon?.discountAmount ?? 0 : 0);
