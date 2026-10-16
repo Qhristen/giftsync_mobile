@@ -90,10 +90,6 @@ const BottomSheetWrapper = forwardRef<BottomSheetRef, Props>(
                     borderBottomWidth: 0,
                     borderTopLeftRadius: 30,
                     borderTopRightRadius: 30,
-                    shadowColor: colors.ink,
-                    shadowOffset: { width: 0, height: -5 },
-                    shadowOpacity: 0.2,
-                    shadowRadius: 0,
                 }}
                 handleStyle={[styles.handle, { backgroundColor: colors.lavender, borderColor: colors.ink }]}
                 handleIndicatorStyle={{ backgroundColor: colors.ink, width: 48, height: 4 }}
@@ -102,7 +98,6 @@ const BottomSheetWrapper = forwardRef<BottomSheetRef, Props>(
                 android_keyboardInputMode={android_keyboardInputMode}
                 onDismiss={onClose}
                 footerComponent={renderFooter ? renderFooterComponent : undefined}
-
 
             >
                 <Container

@@ -4,6 +4,7 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
+import { useFeatureFlag } from '@/hooks/useFeatureFlags';
 import { useValidateCouponMutation } from '@/store/api/couponApi';
 import { useGetOrderByIdQuery, useHandlePaymentMutation } from '@/store/api/orderApi';
 import { useGetCoinQuoteQuery, useGetWalletBalanceQuery } from '@/store/api/walletApi';
@@ -24,7 +25,8 @@ type PaymentChoice = 'coins' | 'paystack';
 export default function PaymentScreen() {
     const router = useRouter();
     const { colors } = useTheme();
-    const { orderId } = useLocalSearchParams<{ orderId: string }>();
+    const { enabled: couponsEnabled } = useFeatureFlag('coupons');
+    const { orderId, currency: requestCurrency } = useLocalSearchParams<{ orderId: string; currency?: string }>();
     const { data: order, isLoading: isOrderLoading } = useGetOrderByIdQuery(orderId as string, { skip: !orderId });
     const [handlePayment] = useHandlePaymentMutation();
     const { data: wallet } = useGetWalletBalanceQuery();
@@ -37,8 +39,9 @@ export default function PaymentScreen() {
     const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
 
-    const payableTotal = (order?.total ?? 0) - (appliedCoupon?.discountAmount ?? 0);
-    const currency = order?.item?.product.currency;
+    const payableTotal = (order?.total ?? 0) - (couponsEnabled ? appliedCoupon?.discountAmount ?? 0 : 0);
+    const product = order?.item?.product;
+    const currency = product?.currency || requestCurrency || 'NGN';
     const { data: coinQuote, isLoading: isQuoteLoading } = useGetCoinQuoteQuery(
         { amount: payableTotal, currency },
         { skip: !order?.total },
@@ -69,7 +72,7 @@ export default function PaymentScreen() {
             const response = await handlePayment({
                 orderId: order?.id as string,
                 method: paymentMethod,
-                couponCode: appliedCoupon?.coupon.code,
+                couponCode: couponsEnabled ? appliedCoupon?.coupon.code : undefined,
             }).unwrap();
 
             if (response.paymentMethod === 'paystack' && response.status === 'payment_initiated') {
@@ -111,7 +114,7 @@ export default function PaymentScreen() {
             />
 
             <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-                <View style={[styles.orderTicket, { backgroundColor: colors.lemon, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                <View style={[styles.orderTicket, { backgroundColor: colors.lemon, borderColor: colors.ink }]}>
                     <View style={styles.orderTopLine}>
                         <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>GIFT TILL · READY TO CHECK OUT</Typography>
                         <View style={[styles.orderStamp, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
@@ -119,13 +122,13 @@ export default function PaymentScreen() {
                         </View>
                     </View>
                     <View style={styles.productRow}>
-                        {order?.item?.product.imageUrls?.[0] ? (
-                            <Image source={{ uri: order.item.product.imageUrls[0] }} style={styles.productImage} contentFit="cover" />
+                        {product?.imageUrls?.[0] ? (
+                            <Image source={{ uri: product.imageUrls[0] }} style={styles.productImage} contentFit="cover" />
                         ) : (
                             <View style={[styles.productImage, { backgroundColor: colors.lavender }]} />
                         )}
                         <View style={styles.productCopy}>
-                            <Typography variant="h4" numberOfLines={2}>{order?.item?.product.name || order?.item?.productName || 'A thoughtful gift'}</Typography>
+                            <Typography variant="h4" numberOfLines={2}>{product?.name || order?.item?.productName || 'Custom gift request'}</Typography>
                             <Typography variant="caption" color={colors.textSecondary}>For {order?.recipientName || 'someone special'}</Typography>
                         </View>
                         <Typography variant="bodyBold">{formatCurrency(order?.total ?? 0, currency)}</Typography>
@@ -155,11 +158,11 @@ export default function PaymentScreen() {
                     />
                 </View>
 
-                <View style={styles.sectionHeading}>
+                {couponsEnabled && <View style={styles.sectionHeading}>
                     <Typography variant="label">Clip a coupon</Typography>
                     <Typography variant="caption" color={colors.textSecondary}>OPTIONAL</Typography>
-                </View>
-                {!appliedCoupon ? (
+                </View>}
+                {couponsEnabled && (!appliedCoupon ? (
                     <View style={[styles.couponTicket, { backgroundColor: colors.peach, borderColor: colors.ink }]}>
                         <View style={[styles.couponIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                             <HugeiconsIcon icon={Tag01Icon} size={21} color={colors.ink} />
@@ -200,9 +203,9 @@ export default function PaymentScreen() {
                             <HugeiconsIcon icon={Delete02Icon} size={21} color={colors.error} />
                         </Pressable>
                     </View>
-                )}
+                ))}
 
-                <View style={[styles.receipt, { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                <View style={[styles.receipt, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                     <View style={styles.receiptHeading}>
                         <Typography variant="label">Final receipt</Typography>
                         <Typography variant="caption" color={colors.textSecondary}>GS · {new Date().getFullYear()}</Typography>
@@ -211,7 +214,7 @@ export default function PaymentScreen() {
                     <ReceiptRow label="Gift subtotal" value={formatCurrency(order?.subtotal ?? 0, currency)} />
                     <ReceiptRow label="Delivery" value={formatCurrency(order?.deliveryFee ?? 0, currency)} />
                     <ReceiptRow label="Gift wrapping" value={formatCurrency(order?.packagingFee ?? 0, currency)} />
-                    {appliedCoupon ? (
+                    {couponsEnabled && appliedCoupon ? (
                         <ReceiptRow
                             label={`Coupon · ${appliedCoupon.coupon.code}`}
                             value={`-${formatCurrency(appliedCoupon.discountAmount, currency)}`}
@@ -243,7 +246,7 @@ export default function PaymentScreen() {
                 />
             </View>
 
-            <Modal visible={!!paymentUrl} animationType="slide" presentationStyle="pageSheet">
+            <Modal visible={!!paymentUrl} presentationStyle="pageSheet">
                 <View style={[styles.webViewShell, { backgroundColor: colors.background, paddingTop: insets.top + 12 }]}>
                     <View style={[styles.webViewHeader, { borderColor: colors.ink }]}>
                         <View>
@@ -285,7 +288,6 @@ function PaymentPass({ active, color, icon, title, detail, onPress }: {
                 {
                     backgroundColor: color,
                     borderColor: colors.ink,
-                    shadowColor: active ? colors.ink : 'transparent',
                     opacity: pressed ? 0.72 : 1,
                     transform: [{ rotate: active ? '-0.7deg' : '0deg' }],
                 },
@@ -321,10 +323,7 @@ const styles = StyleSheet.create({
         borderRadius: 24,
         padding: 17,
         gap: 15,
-        shadowOffset: { width: 4, height: 5 },
-        shadowOpacity: 0.15,
-        shadowRadius: 0,
-        elevation: 3,
+
         transform: [{ rotate: '0.5deg' }],
     },
     orderTopLine: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
@@ -343,10 +342,6 @@ const styles = StyleSheet.create({
         borderWidth: 1.5,
         borderRadius: 21,
         padding: 15,
-        shadowOffset: { width: 4, height: 4 },
-        shadowOpacity: 1,
-        shadowRadius: 0,
-        elevation: 2,
     },
     methodIcon: { width: 48, height: 48, borderRadius: 15, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
     choiceDot: { width: 28, height: 28, borderRadius: 14, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
@@ -361,9 +356,7 @@ const styles = StyleSheet.create({
         borderRadius: 22,
         padding: 18,
         gap: 11,
-        shadowOffset: { width: 3, height: 4 },
-        shadowOpacity: 0.12,
-        shadowRadius: 0,
+
         transform: [{ rotate: '-0.4deg' }],
     },
     receiptHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

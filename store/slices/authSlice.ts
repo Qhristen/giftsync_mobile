@@ -1,11 +1,5 @@
 import { User } from '@/types';
-import { tokenCache } from '@/utils/cache';
-import { BASE_URL } from '@/utils/constants';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { baseApi, clearCachedToken } from '../api/baseApi';
-import axios from 'axios';
-import * as jose from 'jose';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface AuthState {
     user: User | null;
@@ -54,7 +48,6 @@ const authSlice = createSlice({
             state.isAuthenticated = false;
         }
     },
-    extraReducers: (builder) => {},
 });
 
 export const { setCredentials, setLoading, setError, setPendingReferralCode, logout } = authSlice.actions;

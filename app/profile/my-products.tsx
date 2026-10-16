@@ -74,7 +74,7 @@ export default function MyProductsScreen() {
     const paper = [colors.lemon, colors.lilac, colors.mint, colors.peach];
 
     const renderProductItem = ({ item, index }: { item: Product; index: number }) => (
-        <Card style={[styles.productCard, { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: paper[index % paper.length], transform: [{ rotate: index % 2 ? '0.5deg' : '-0.5deg' }] }]}>
+        <Card style={[styles.productCard, { backgroundColor: colors.surface, borderColor: colors.ink, transform: [{ rotate: index % 2 ? '0.5deg' : '-0.5deg' }] }]}>
             <View style={[styles.colorTab, { backgroundColor: paper[index % paper.length], borderColor: colors.ink }]} />
             <Pressable
                 onPress={() => router.push({
@@ -164,7 +164,6 @@ export default function MyProductsScreen() {
                 </Pressable>
             </View>
 
-
             {isLoading && page === 1 ? (
                 <View style={{ flex: 1, paddingTop: 20 }}>
                     <ProductListSkeleton />
@@ -213,7 +212,6 @@ export default function MyProductsScreen() {
                     {
                         backgroundColor: colors.lime,
                         borderColor: colors.ink,
-                        shadowColor: colors.ink,
                         bottom: insets.bottom + 24,
                         flexDirection: 'row',
                         alignItems: 'center',
@@ -257,9 +255,6 @@ const styles = StyleSheet.create({
         padding: 12,
         borderWidth: 1.5,
         borderRadius: 22,
-        shadowOffset: { width: 4, height: 4 },
-        shadowOpacity: 1,
-        shadowRadius: 0,
     },
     colorTab: { position: 'absolute', width: 42, height: 13, borderWidth: 1, top: -8, left: 26, transform: [{ rotate: '-4deg' }], zIndex: 2 },
     productCardContent: {
@@ -311,9 +306,5 @@ const styles = StyleSheet.create({
         borderRadius: 17,
         borderWidth: 1.5,
         paddingHorizontal: 20,
-        shadowOffset: { width: 4, height: 4 },
-        shadowOpacity: 1,
-        shadowRadius: 0,
-        elevation: 8,
     }
 });

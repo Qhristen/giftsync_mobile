@@ -1,7 +1,9 @@
 import Avatar from '@/components/ui/Avatar';
+import FeatureUnavailable from '@/components/features/FeatureUnavailable';
 import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
+import { useFeatureFlag } from '@/hooks/useFeatureFlags';
 import { useGetBlockedUsersQuery, useUnblockUserMutation } from '@/store/api/trustSafetyApi';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { ArrowLeft01Icon, Shield01Icon } from '@hugeicons/core-free-icons';
@@ -13,7 +15,8 @@ import { toast } from 'sonner-native';
 export default function BlockedUsersScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
-    const { data: blockedUsers = [], isLoading, refetch } = useGetBlockedUsersQuery();
+    const { enabled: trustSafetyEnabled } = useFeatureFlag('trust_safety');
+    const { data: blockedUsers = [], isLoading, refetch } = useGetBlockedUsersQuery(undefined, { skip: !trustSafetyEnabled });
     const [unblockUser, { isLoading: isUnblocking }] = useUnblockUserMutation();
 
     const handleUnblock = (id: string, name: string) => {
@@ -38,6 +41,8 @@ export default function BlockedUsersScreen() {
         );
     };
 
+    if (!trustSafetyEnabled) return <FeatureUnavailable title="Safety tools are unavailable" />;
+
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             <View style={[styles.header, { paddingHorizontal: spacing.xl }]}>
@@ -61,7 +66,7 @@ export default function BlockedUsersScreen() {
                         <View style={styles.emptyState}>
                             <HugeiconsIcon icon={Shield01Icon} size={64} color={colors.textMuted} />
                             <Typography variant="body" color={colors.textSecondary} style={{ marginTop: spacing.md, textAlign: 'center' }}>
-                                You haven't blocked anyone yet.
+                                You haven&apos;t blocked anyone yet.
                             </Typography>
                         </View>
                     }

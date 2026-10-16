@@ -23,7 +23,6 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const statusStep = (status: Order['status']) => {
@@ -96,7 +95,7 @@ export default function OrdersScreen() {
                 </View>
 
                 <View style={styles.summaryBoard}>
-                    <View style={[styles.summaryMain, { backgroundColor: colors.lilac, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                    <View style={[styles.summaryMain, { backgroundColor: colors.lilac, borderColor: colors.ink }]}>
                         <View style={[styles.summaryIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                             <HugeiconsIcon icon={GiftIcon} size={25} color={colors.primary} />
                         </View>
@@ -133,14 +132,14 @@ export default function OrdersScreen() {
                     onEndReached={loadMore}
                     onEndReachedThreshold={0.5}
                     showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ paddingTop: 10, paddingBottom: 50 }}
+                    contentContainerStyle={{ paddingBottom: 50 }}
                     renderItem={({ item, index }) => {
                         const product = item.item?.product;
                         const step = statusStep(item.status);
                         const cancelled = item.status === 'Cancelled';
                         const accent = paperColors[index % paperColors.length];
                         return (
-                            <Animated.View entering={FadeInDown.delay(Math.min(index * 60, 300)).duration(300)}>
+                            <View>
                                 <Pressable
                                     onPress={() => {
                                         setSelectedOrder(item);
@@ -148,7 +147,7 @@ export default function OrdersScreen() {
                                     }}
                                     style={({ pressed }) => [
                                         styles.orderCard,
-                                        { marginHorizontal: spacing.xl, backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: accent },
+                                        { marginHorizontal: spacing.xl, backgroundColor: colors.surface, borderColor: colors.ink },
                                         pressed && styles.pressed,
                                     ]}
                                 >
@@ -206,7 +205,7 @@ export default function OrdersScreen() {
                                             <Pressable
                                                 onPress={(event) => {
                                                     event.stopPropagation();
-                                                    handleChat(item.conversationId);
+                                                    handleChat(item.conversationId!);
                                                 }}
                                                 style={[styles.actionButton, { backgroundColor: colors.mint, borderColor: colors.ink }]}
                                             >
@@ -216,7 +215,7 @@ export default function OrdersScreen() {
                                         ) : null}
                                     </View>
                                 </Pressable>
-                            </Animated.View>
+                            </View>
                         );
                     }}
                     ListEmptyComponent={
@@ -260,12 +259,12 @@ const styles = StyleSheet.create({
     headerButton: { width: 44, height: 44, borderRadius: 14, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
     overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.8 },
     summaryBoard: { flexDirection: 'row', gap: 12, marginTop: 20 },
-    summaryMain: { flex: 1.35, minHeight: 112, borderWidth: 1.5, borderRadius: 22, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, shadowOffset: { width: 4, height: 5 }, shadowOpacity: 1, shadowRadius: 0, elevation: 4 },
+    summaryMain: { flex: 1.35, minHeight: 112, borderWidth: 1.5, borderRadius: 22, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, },
     summaryIcon: { width: 46, height: 46, borderRadius: 15, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
     summarySide: { flex: 0.65, minHeight: 112, borderWidth: 1.5, borderRadius: 22, padding: 14, justifyContent: 'center' },
     tabs: { flexDirection: 'row', gap: 4, marginTop: 18, padding: 4, borderWidth: 1.5, borderRadius: 16 },
     tab: { flex: 1, height: 42, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-    orderCard: { borderWidth: 1.5, borderRadius: 24, padding: 15, marginVertical: 10, shadowOffset: { width: 5, height: 6 }, shadowOpacity: 1, shadowRadius: 0, elevation: 4 },
+    orderCard: { borderWidth: 1.5, borderRadius: 24, padding: 15, marginVertical: 10, },
     orderMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 13 },
     statusStamp: { borderWidth: 1.25, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 5, transform: [{ rotate: '2deg' }] },
     productRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },

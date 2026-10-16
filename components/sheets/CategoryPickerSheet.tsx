@@ -72,7 +72,6 @@ const CategoryPickerSheet = forwardRef<BottomSheetRef, CategoryPickerSheetProps>
                 style={{ marginBottom: spacing.lg }}
             />
 
-
             <View style={styles.list}>
                 {!searchQuery && !isLoading && categories.length > 0 && (
                     <Typography variant="label" color={colors.textSecondary} style={{ marginBottom: spacing.xs }}>
@@ -96,7 +95,6 @@ const CategoryPickerSheet = forwardRef<BottomSheetRef, CategoryPickerSheetProps>
                                     {
                                         backgroundColor: [colors.lemon, colors.lavender, colors.mint, colors.peach][index % 4],
                                         borderColor: colors.ink,
-                                        shadowColor: isSelected ? colors.ink : 'transparent',
                                     },
                                 ]}
                             >
@@ -145,9 +143,6 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         borderWidth: 1.5,
         gap: 16,
-        shadowOffset: { width: 3, height: 3 },
-        shadowOpacity: 1,
-        shadowRadius: 0,
     },
     iconContainer: {
         width: 44,

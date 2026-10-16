@@ -10,7 +10,7 @@ export default function OrderListSkeleton() {
     return (
         <View style={styles.list}>
             {tabs.map((tab, index) => (
-                <SkeletonPaper key={tab} color={colors.surface} style={[styles.card, { shadowColor: tab, transform: [{ rotate: index % 2 ? '0.6deg' : '-0.6deg' }] }]}>
+                <SkeletonPaper key={tab} color={colors.surface} style={[styles.card, { transform: [{ rotate: index % 2 ? '0.6deg' : '-0.6deg' }] }]}>
                     <View style={[styles.statusTab, { backgroundColor: tab, borderColor: colors.ink }]}><Skeleton width={48} height={9} /></View>
                     <View style={styles.topRow}>
                         <Skeleton width={72} height={72} borderRadius={16} />

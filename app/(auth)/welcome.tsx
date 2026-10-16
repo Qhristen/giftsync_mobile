@@ -9,7 +9,6 @@ import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-si
 import { useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
@@ -57,8 +56,8 @@ export default function WelcomeScreen() {
                 contentContainerStyle={[styles.content, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 170 }]}
                 showsVerticalScrollIndicator={false}
             >
-               
-                <Animated.View entering={FadeInDown.delay(80).duration(480)} style={[styles.invitation, { backgroundColor: colors.lemon, borderColor: colors.ink, shadowColor: colors.ink }]}>
+
+                <View style={[styles.invitation, { backgroundColor: colors.lemon, borderColor: colors.ink }]}>
                     <View style={[styles.inviteTape, { backgroundColor: colors.lilac, borderColor: colors.ink }]} />
                     <View style={styles.inviteTop}>
                         <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>AN INVITATION TO REMEMBER WELL</Typography>
@@ -72,12 +71,12 @@ export default function WelcomeScreen() {
                     </Typography>
 
                     <View style={styles.cardScene}>
-                        <View style={[styles.dateCard, { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: colors.lilac }]}>
+                        <View style={[styles.dateCard, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                             <Typography variant="caption" style={styles.overline}>NEXT UP</Typography>
                             <Typography variant="h2">24</Typography>
                             <Typography variant="caption">APR · SHELLY</Typography>
                         </View>
-                        <View style={[styles.giftCard, { backgroundColor: colors.mint, borderColor: colors.ink, shadowColor: colors.peach }]}>
+                        <View style={[styles.giftCard, { backgroundColor: colors.mint, borderColor: colors.ink }]}>
                             <HugeiconsIcon icon={GiftIcon} size={33} color={colors.ink} />
                             <View>
                                 <Typography variant="caption" color={colors.textSecondary}>GIFT FOUND</Typography>
@@ -85,9 +84,9 @@ export default function WelcomeScreen() {
                             </View>
                         </View>
                     </View>
-                </Animated.View>
+                </View>
 
-                <Animated.View entering={FadeInUp.delay(160).duration(480)} style={styles.bento}>
+                <View style={styles.bento}>
                     <WelcomeTile icon={Calendar01Icon} title="Dates kept" detail="A quiet memory for every big moment." color={colors.sky} />
                     <WelcomeTile icon={SparklesIcon} title="Ideas found" detail="The shop and concierge work together." color={colors.lavender} />
                     <View style={[styles.wideTile, { backgroundColor: colors.peach, borderColor: colors.ink }]}>
@@ -97,10 +96,10 @@ export default function WelcomeScreen() {
                             <Typography variant="caption" color={colors.textSecondary}>Plan the note, route, payment, and doorstep in one flow.</Typography>
                         </View>
                     </View>
-                </Animated.View>
+                </View>
             </ScrollView>
 
-            <Animated.View entering={FadeInUp.delay(260).duration(500)} style={[styles.footer, { backgroundColor: colors.background, paddingBottom: insets.bottom + 16 }]}>
+            <View style={[styles.footer, { backgroundColor: colors.background, paddingBottom: insets.bottom + 16 }]}>
                 <Button title="Continue with Google  →" onPress={handleGoogleLogin} isLoading={isSigningIn} size="lg" style={styles.mainButton} />
                 <Typography variant="caption" color={colors.textSecondary} align="center">
                     By continuing, you agree to our{' '}
@@ -108,7 +107,7 @@ export default function WelcomeScreen() {
                     {' '}and{' '}
                     <Typography variant="caption" onPress={() => router.push('/profile/privacy')} style={styles.legalLink}>Privacy Policy</Typography>.
                 </Typography>
-            </Animated.View>
+            </View>
         </View>
     );
 }
@@ -133,17 +132,17 @@ const styles = StyleSheet.create({
     orbOne: { width: 130, height: 130, borderRadius: 65, top: -54, right: -42 },
     orbTwo: { width: 82, height: 82, borderRadius: 28, bottom: 130, left: -38, transform: [{ rotate: '22deg' }] },
     brandRow: { flexDirection: 'row', alignItems: 'center', gap: 11 },
-    brandMark: { width: 48, height: 48, borderWidth: 1.5, borderRadius: 15, alignItems: 'center', justifyContent: 'center', shadowOffset: { width: 3, height: 3 }, shadowOpacity: 1, shadowRadius: 0, transform: [{ rotate: '-4deg' }] },
+    brandMark: { width: 48, height: 48, borderWidth: 1.5, borderRadius: 15, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-4deg' }] },
     overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 1 },
-    invitation: { borderWidth: 1.5, borderRadius: 28, padding: 21, gap: 10, shadowOffset: { width: 6, height: 7 }, shadowOpacity: 0.16, shadowRadius: 0, elevation: 4, transform: [{ rotate: '-0.5deg' }] },
+    invitation: { borderWidth: 1.5, borderRadius: 28, padding: 21, gap: 10, transform: [{ rotate: '-0.5deg' }] },
     inviteTape: { position: 'absolute', top: -10, left: '42%', width: 68, height: 21, borderWidth: 1, transform: [{ rotate: '3deg' }] },
     inviteTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
     postage: { width: 42, height: 42, borderWidth: 1.5, borderRadius: 8, alignItems: 'center', justifyContent: 'center', borderStyle: 'dashed', transform: [{ rotate: '4deg' }] },
     heroTitle: { fontSize: 40, lineHeight: 44, marginTop: 5 },
     heroCopy: { maxWidth: 330 },
     cardScene: { minHeight: 142, marginTop: 15 },
-    dateCard: { position: 'absolute', left: 4, top: 7, width: 132, height: 126, borderWidth: 1.5, borderRadius: 17, padding: 14, shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0, transform: [{ rotate: '-5deg' }] },
-    giftCard: { position: 'absolute', right: 0, top: 27, width: 205, minHeight: 104, borderWidth: 1.5, borderRadius: 18, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 10, shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0, transform: [{ rotate: '3deg' }] },
+    dateCard: { position: 'absolute', left: 4, top: 7, width: 132, height: 126, borderWidth: 1.5, borderRadius: 17, padding: 14, transform: [{ rotate: '-5deg' }] },
+    giftCard: { position: 'absolute', right: 0, top: 27, width: 205, minHeight: 104, borderWidth: 1.5, borderRadius: 18, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 10, transform: [{ rotate: '3deg' }] },
     bento: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
     tile: { width: '48.2%', minHeight: 148, borderWidth: 1.5, borderRadius: 21, padding: 14, gap: 6 },
     tileIcon: { width: 42, height: 42, borderWidth: 1.25, borderRadius: 13, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },

@@ -2,6 +2,7 @@ import HomeScreenSkeleton from '@/components/skeletons/HomeScreenSkeleton';
 import Avatar from '@/components/ui/Avatar';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
+import { useFeatureFlag } from '@/hooks/useFeatureFlags';
 import { useGetUpcomingEventsQuery } from '@/store/api/event';
 import { useGetUnreadCountQuery } from '@/store/api/notificationApi';
 import { useGetRecommendationsV2Query } from '@/store/api/productApi';
@@ -22,7 +23,6 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type UpcomingEvent = Event & { contacts?: Event['contact'][] };
@@ -42,21 +42,23 @@ export default function HomeScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
     const { colors, spacing } = useTheme();
+    const { enabled: giftRequestsEnabled } = useFeatureFlag('gift_requests');
+    const { enabled: recommendationsEnabled } = useFeatureFlag('gift_recommendations');
     const { data: profile, isLoading: profileLoading, refetch: refetchProfile } = useGetProfileQuery();
     const { data: upcoming = [], isLoading: eventsLoading, refetch: refetchUpcoming } = useGetUpcomingEventsQuery();
     const { data: unreadCount, refetch: refetchUnread } = useGetUnreadCountQuery();
     const firstUpcoming = upcoming[0];
     const { data: recs = [], isLoading: recsLoading, refetch: refetchRecs } = useGetRecommendationsV2Query(
         { eventId: firstUpcoming?.id as string, limit: 8 },
-        { skip: !firstUpcoming },
+        { skip: !firstUpcoming || !recommendationsEnabled },
     );
 
     const onRefresh = React.useCallback(() => {
         refetchProfile();
         refetchUpcoming();
         refetchUnread();
-        if (firstUpcoming) refetchRecs();
-    }, [firstUpcoming, refetchProfile, refetchUpcoming, refetchUnread, refetchRecs]);
+        if (firstUpcoming && recommendationsEnabled) refetchRecs();
+    }, [firstUpcoming, recommendationsEnabled, refetchProfile, refetchUpcoming, refetchUnread, refetchRecs]);
 
     if (profileLoading || eventsLoading) return <HomeScreenSkeleton />;
 
@@ -69,8 +71,8 @@ export default function HomeScreen() {
             <View pointerEvents="none" style={[styles.decorativeOrb, styles.orbOne, { backgroundColor: colors.lilac }]} />
             <View pointerEvents="none" style={[styles.decorativeOrb, styles.orbTwo, { backgroundColor: colors.accent }]} />
 
-            <View style={[styles.headerShell, { paddingTop: insets.top, paddingHorizontal: spacing.xl, paddingBottom: 26 }]}>
-                <Animated.View entering={FadeInDown.duration(300)} style={styles.header}>
+            <View style={[styles.headerShell, { paddingTop: insets.top + 12, paddingHorizontal: spacing.xl, paddingBottom: 15 }]}>
+                <View style={styles.header}>
                     <View>
                         <View style={styles.eyebrowRow}>
                             <View style={[styles.miniMark, { backgroundColor: colors.accent, borderColor: colors.ink }]}>
@@ -83,12 +85,12 @@ export default function HomeScreen() {
                     <Pressable
                         accessibilityLabel="Notifications"
                         onPress={() => router.push('/notifications')}
-                        style={[styles.notificationButton, { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: colors.ink }]}
+                        style={[styles.notificationButton, { backgroundColor: colors.surface, borderColor: colors.ink }]}
                     >
                         <HugeiconsIcon icon={Notification01Icon} size={22} color={colors.ink} />
                         {!!unreadCount?.count && <View style={[styles.notificationDot, { backgroundColor: colors.accent, borderColor: colors.ink }]} />}
                     </Pressable>
-                </Animated.View>
+                </View>
             </View>
 
             <View style={styles.scrollFrame}>
@@ -100,10 +102,10 @@ export default function HomeScreen() {
                 >
 
                 {firstUpcoming && nextDate ? (
-                    <Animated.View entering={FadeInDown.delay(70).duration(340)} style={{ paddingHorizontal: spacing.xl, marginTop: 22 }}>
+                    <View style={{ paddingHorizontal: spacing.xl, marginTop: 22 }}>
                         <Pressable
                             onPress={() => router.push({ pathname: '/event-detail', params: { id: firstUpcoming.id } })}
-                            style={({ pressed }) => [styles.momentCard, { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: colors.ink }, pressed && styles.pressed]}
+                            style={({ pressed }) => [styles.momentCard, { backgroundColor: colors.surface, borderColor: colors.ink }, pressed && styles.pressed]}
                         >
                             <View style={[styles.momentColorBlock, { backgroundColor: colors.lemon, borderRightColor: colors.ink }]} />
                             <View style={[styles.dateStamp, { backgroundColor: colors.accent, borderColor: colors.ink }]}>
@@ -132,12 +134,12 @@ export default function HomeScreen() {
                                 </View>
                             </View>
                         </Pressable>
-                    </Animated.View>
+                    </View>
                 ) : (
-                    <Animated.View entering={FadeInDown.delay(70).duration(340)} style={{ paddingHorizontal: spacing.xl, marginTop: 22 }}>
+                    <View style={{ paddingHorizontal: spacing.xl, marginTop: 22 }}>
                         <Pressable
                             onPress={() => router.push('/(tabs)/events')}
-                            style={[styles.emptyMoment, { backgroundColor: colors.lemon, borderColor: colors.ink, shadowColor: colors.ink }]}
+                            style={[styles.emptyMoment, { backgroundColor: colors.lemon, borderColor: colors.ink }]}
                         >
                             <View style={[styles.emptyMomentIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                                 <HugeiconsIcon icon={Add01Icon} size={26} color={colors.ink} />
@@ -148,31 +150,33 @@ export default function HomeScreen() {
                             </View>
                             <HugeiconsIcon icon={ArrowRight01Icon} size={23} color={colors.ink} />
                         </Pressable>
-                    </Animated.View>
+                    </View>
                 )}
 
-                <Animated.View entering={FadeInDown.delay(120).duration(340)} style={{ paddingHorizontal: spacing.xl, marginTop: 28 }}>
+                <View style={{ paddingHorizontal: spacing.xl, marginTop: 28 }}>
                     <View style={styles.sectionLabelRow}>
                         <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>THE GIFT DESK</Typography>
                         <View style={[styles.squiggle, { backgroundColor: colors.ink }]} />
                     </View>
                     <View style={styles.bentoRow}>
-                        <Pressable
-                            onPress={() => router.push({ pathname: '/gift-request', params: { recipient: recipientName(firstUpcoming), occasion: firstUpcoming?.title, eventId: firstUpcoming?.id } })}
-                            style={({ pressed }) => [styles.conciergeTile, { backgroundColor: colors.mint, borderColor: colors.ink, shadowColor: colors.ink }, pressed && styles.pressed]}
-                        >
-                            <View style={[styles.tileIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                                <HugeiconsIcon icon={SparklesIcon} size={24} color={colors.primary} />
-                            </View>
-                            <View style={{ marginTop: 'auto', gap: 4 }}>
-                                <Typography variant="h3">Find the impossible</Typography>
-                                <Typography variant="caption" color={colors.textSecondary}>Brief your gift concierge</Typography>
-                            </View>
-                            <View style={[styles.tileArrow, { backgroundColor: colors.accent, borderColor: colors.ink }]}>
-                                <HugeiconsIcon icon={ArrowRight01Icon} size={18} color="#17151D" />
-                            </View>
-                        </Pressable>
-                        <View style={styles.bentoStack}>
+                        {giftRequestsEnabled && (
+                            <Pressable
+                                onPress={() => router.push({ pathname: '/gift-request', params: { recipient: recipientName(firstUpcoming), occasion: firstUpcoming?.title, eventId: firstUpcoming?.id } })}
+                                style={({ pressed }) => [styles.conciergeTile, { backgroundColor: colors.mint, borderColor: colors.ink }, pressed && styles.pressed]}
+                            >
+                                <View style={[styles.tileIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
+                                    <HugeiconsIcon icon={SparklesIcon} size={24} color={colors.primary} />
+                                </View>
+                                <View style={{ marginTop: 'auto', gap: 4 }}>
+                                    <Typography variant="h3">Find the impossible</Typography>
+                                    <Typography variant="caption" color={colors.textSecondary}>Brief your gift concierge</Typography>
+                                </View>
+                                <View style={[styles.tileArrow, { backgroundColor: colors.accent, borderColor: colors.ink }]}>
+                                    <HugeiconsIcon icon={ArrowRight01Icon} size={18} color="#17151D" />
+                                </View>
+                            </Pressable>
+                        )}
+                        <View style={[styles.bentoStack, !giftRequestsEnabled && { flex: 1 }]}>
                             <Pressable
                                 onPress={() => router.push('/(tabs)/events')}
                                 style={({ pressed }) => [styles.smallTile, { backgroundColor: colors.peach, borderColor: colors.ink }, pressed && styles.pressed]}
@@ -194,8 +198,8 @@ export default function HomeScreen() {
                                 <HugeiconsIcon icon={PackageIcon} size={23} color={colors.ink} />
                             </Pressable>
                         </View>
+                </View>
                     </View>
-                </Animated.View>
 
                 {upcoming.length > 0 && (
                     <View style={{ marginTop: 34 }}>
@@ -212,7 +216,7 @@ export default function HomeScreen() {
                         <View style={[styles.timeline, { paddingHorizontal: spacing.xl }]}>
                             <View style={[styles.timelineLine, { backgroundColor: colors.ink }]} />
                             {upcoming.slice(0, 5).map((item, index) => (
-                                <Animated.View key={item.id} entering={FadeInDown.delay(150 + index * 55)} style={styles.timelineRow}>
+                                <View key={item.id} style={styles.timelineRow}>
                                     <View style={styles.railColumn}>
                                         <View style={[styles.timelineDot, { backgroundColor: paperColors[index % paperColors.length], borderColor: colors.ink }]}>
                                             <Typography variant="caption" style={styles.dotNumber}>{index + 1}</Typography>
@@ -225,7 +229,6 @@ export default function HomeScreen() {
                                             {
                                                 backgroundColor: colors.surface,
                                                 borderColor: colors.ink,
-                                                shadowColor: paperColors[index % paperColors.length],
                                                 marginLeft: index % 2 ? 14 : 0,
                                                 marginRight: index % 2 ? 0 : 14,
                                                 transform: [{ rotate: index % 2 ? '1deg' : '-1deg' }],
@@ -242,13 +245,13 @@ export default function HomeScreen() {
                                         </View>
                                         <HugeiconsIcon icon={ArrowRight01Icon} size={18} color={colors.ink} />
                                     </Pressable>
-                                </Animated.View>
+                                </View>
                             ))}
                         </View>
                     </View>
                 )}
 
-                <View style={{ marginTop: 38 }}>
+                {recommendationsEnabled && <View style={{ marginTop: 38 }}>
                     <View style={[styles.sectionHeading, { paddingHorizontal: spacing.xl }]}>
                         <View style={{ flex: 1 }}>
                             <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>THE POLAROID TRAY</Typography>
@@ -271,7 +274,6 @@ export default function HomeScreen() {
                                         {
                                             backgroundColor: colors.surface,
                                             borderColor: colors.ink,
-                                            shadowColor: paperColors[index % paperColors.length],
                                             transform: [{ rotate: index % 2 ? '2deg' : '-2deg' }],
                                         },
                                         pressed && styles.pressed,
@@ -287,10 +289,10 @@ export default function HomeScreen() {
                                 </Pressable>
                             ))}
                         </ScrollView>
-                    ) : (
+                    ) : giftRequestsEnabled ? (
                         <Pressable
                             onPress={() => router.push({ pathname: '/gift-request', params: { recipient: recipientName(firstUpcoming), occasion: firstUpcoming?.title, eventId: firstUpcoming?.id } })}
-                            style={[styles.requestBanner, { marginHorizontal: spacing.xl, backgroundColor: colors.mint, borderColor: colors.ink, shadowColor: colors.ink }]}
+                            style={[styles.requestBanner, { marginHorizontal: spacing.xl, backgroundColor: colors.mint, borderColor: colors.ink }]}
                         >
                             <View style={[styles.requestBurst, { backgroundColor: colors.accent, borderColor: colors.ink }]}>
                                 <HugeiconsIcon icon={SparklesIcon} size={22} color="#17151D" />
@@ -301,8 +303,8 @@ export default function HomeScreen() {
                             </View>
                             <HugeiconsIcon icon={ArrowRight01Icon} size={22} color={colors.ink} />
                         </Pressable>
-                    )}
-                </View>
+                    ) : null}
+                </View>}
                 </ScrollView>
             </View>
         </View>
@@ -322,9 +324,9 @@ const styles = StyleSheet.create({
     miniMark: { width: 25, height: 25, borderRadius: 8, borderWidth: 1.25, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-5deg' }] },
     overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.9 },
     pageTitle: { fontSize: 34, lineHeight: 40 },
-    notificationButton: { width: 48, height: 48, borderRadius: 15, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', shadowOffset: { width: 3, height: 3 }, shadowOpacity: 1, shadowRadius: 0, elevation: 3 },
+    notificationButton: { width: 48, height: 48, borderRadius: 15, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', },
     notificationDot: { position: 'absolute', width: 11, height: 11, borderRadius: 6, borderWidth: 1.5, top: 7, right: 7 },
-    momentCard: { minHeight: 270, borderWidth: 1.5, borderRadius: 28, overflow: 'hidden', shadowOffset: { width: 5, height: 6 }, shadowOpacity: 1, shadowRadius: 0, elevation: 5 },
+    momentCard: { minHeight: 270, borderWidth: 1.5, borderRadius: 28, overflow: 'hidden', },
     momentColorBlock: { position: 'absolute', width: '27%', height: '100%', left: 0, top: 0, borderRightWidth: 1.5 },
     momentContent: { flex: 1, padding: 22, paddingLeft: '32%' },
     momentKicker: { flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 18 },
@@ -336,12 +338,12 @@ const styles = StyleSheet.create({
     momentBottom: { marginTop: 'auto', paddingTop: 28, gap: 14 },
     avatarLabel: { flexDirection: 'row', alignItems: 'center', gap: 10 },
     openMoment: { minHeight: 42, borderRadius: 13, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    emptyMoment: { minHeight: 140, padding: 20, flexDirection: 'row', alignItems: 'center', gap: 14, borderWidth: 1.5, borderRadius: 25, shadowOffset: { width: 5, height: 6 }, shadowOpacity: 1, shadowRadius: 0, elevation: 5 },
+    emptyMoment: { minHeight: 140, padding: 20, flexDirection: 'row', alignItems: 'center', gap: 14, borderWidth: 1.5, borderRadius: 25, },
     emptyMomentIcon: { width: 52, height: 52, borderRadius: 17, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
     sectionLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 11 },
     squiggle: { flex: 1, height: 1 },
     bentoRow: { minHeight: 196, flexDirection: 'row', gap: 12 },
-    conciergeTile: { flex: 1.15, borderWidth: 1.5, borderRadius: 24, padding: 16, shadowOffset: { width: 4, height: 5 }, shadowOpacity: 1, shadowRadius: 0, elevation: 4 },
+    conciergeTile: { flex: 1.15, borderWidth: 1.5, borderRadius: 24, padding: 16, },
     tileIcon: { width: 49, height: 49, borderRadius: 15, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
     tileArrow: { position: 'absolute', right: 13, top: 13, width: 34, height: 34, borderRadius: 11, borderWidth: 1.25, alignItems: 'center', justifyContent: 'center' },
     bentoStack: { flex: 0.85, gap: 12 },
@@ -355,14 +357,14 @@ const styles = StyleSheet.create({
     railColumn: { width: 53, alignItems: 'center', zIndex: 2 },
     timelineDot: { width: 34, height: 34, borderRadius: 12, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '5deg' }] },
     dotNumber: { fontFamily: 'DMSans_700Bold' },
-    timelineCard: { flex: 1, minHeight: 78, borderWidth: 1.5, borderRadius: 18, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 11, shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0, elevation: 3 },
+    timelineCard: { flex: 1, minHeight: 78, borderWidth: 1.5, borderRadius: 18, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 11, },
     timelineDate: { width: 52, minHeight: 47, borderWidth: 1.25, borderRadius: 12, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
     polaroidTray: { gap: 18, paddingTop: 10, paddingBottom: 18 },
-    polaroid: { width: 196, padding: 10, paddingBottom: 14, borderWidth: 1.5, borderRadius: 8, shadowOffset: { width: 5, height: 6 }, shadowOpacity: 1, shadowRadius: 0, elevation: 4 },
+    polaroid: { width: 196, padding: 10, paddingBottom: 14, borderWidth: 1.5, borderRadius: 8, },
     polaroidImage: { width: '100%', height: 154, borderWidth: 1, borderColor: '#17151D', marginBottom: 12 },
     polaroidTape: { position: 'absolute', top: 2, left: 70, width: 54, height: 13, borderWidth: 1, transform: [{ rotate: '-3deg' }] },
     polaroidFooter: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 4 },
-    requestBanner: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderWidth: 1.5, borderRadius: 20, shadowOffset: { width: 4, height: 5 }, shadowOpacity: 1, shadowRadius: 0, elevation: 4 },
+    requestBanner: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderWidth: 1.5, borderRadius: 20, },
     requestBurst: { width: 48, height: 48, borderRadius: 15, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-5deg' }] },
     pressed: { opacity: 0.86, transform: [{ translateY: 2 }] },
 });

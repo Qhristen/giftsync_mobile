@@ -19,7 +19,6 @@ import {
 import { useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, SectionList, StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const TX_ICONS: Record<string, { icon: any; color: string; bg: string }> = {
@@ -46,8 +45,6 @@ export default function WalletTransactionsScreen() {
     const transactions = useMemo(() => txData?.items ?? [], [txData?.items]);
     const meta = txData?.meta;
     const hasMore = meta ? page < meta.totalPages : false;
-
-
 
     const groupedTransactions = useMemo(() => {
         const groups: { title: string; data: WalletTransaction[] }[] = [];
@@ -80,8 +77,8 @@ export default function WalletTransactionsScreen() {
             : `Direct payment`;
 
         return (
-            <Animated.View entering={FadeInDown.delay(index * 50).duration(300)}>
-                <Card style={[styles.txCard, { backgroundColor: isCredit ? colors.mint : colors.peach, borderColor: colors.ink, shadowColor: colors.ink, marginHorizontal: spacing.xl, transform: [{ rotate: index % 2 ? '0.4deg' : '-0.4deg' }] }]}>
+            <View>
+                <Card style={[styles.txCard, { backgroundColor: isCredit ? colors.mint : colors.peach, borderColor: colors.ink, marginHorizontal: spacing.xl, transform: [{ rotate: index % 2 ? '0.4deg' : '-0.4deg' }] }]}>
                     <View style={[styles.txIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                         <HugeiconsIcon icon={style.icon} size={22} color={colors.ink} />
                     </View>
@@ -103,7 +100,7 @@ export default function WalletTransactionsScreen() {
                         </Typography>
                     </View>
                 </Card>
-            </Animated.View>
+            </View>
         );
     };
 
@@ -121,8 +118,8 @@ export default function WalletTransactionsScreen() {
             </View>
 
             {/* Balance Summary */}
-            <Animated.View entering={FadeInDown.duration(400)} style={{ paddingHorizontal: spacing.xl, marginBottom: spacing.lg }}>
-                <Card style={[styles.balanceCard, { backgroundColor: colors.lavender, borderColor: colors.ink, shadowColor: colors.ink }]}>
+            <View style={{ paddingHorizontal: spacing.xl, marginBottom: spacing.lg }}>
+                <Card style={[styles.balanceCard, { backgroundColor: colors.lavender, borderColor: colors.ink }]}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                         <View style={[styles.balanceIcon, { backgroundColor: colors.lime, borderColor: colors.ink }]}>
                             <HugeiconsIcon icon={Coins02Icon} size={25} color={colors.ink} />
@@ -142,7 +139,7 @@ export default function WalletTransactionsScreen() {
                         </Typography>
                     )}
                 </Card>
-            </Animated.View>
+            </View>
 
             {/* Transactions List */}
             {isLoading ? (
@@ -220,9 +217,7 @@ const styles = StyleSheet.create({
         padding: 20,
         borderRadius: 24,
         borderWidth: 1.5,
-        shadowOffset: { width: 4, height: 5 },
-        shadowOpacity: 0.15,
-        shadowRadius: 0,
+
         transform: [{ rotate: '-0.6deg' }],
     },
     balanceIcon: { width: 48, height: 48, borderWidth: 1.5, borderRadius: 15, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '4deg' }] },
@@ -234,9 +229,6 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         borderWidth: 1.5,
         borderRadius: 19,
-        shadowOffset: { width: 3, height: 3 },
-        shadowOpacity: 0.1,
-        shadowRadius: 0,
     },
     txIcon: {
         width: 44,

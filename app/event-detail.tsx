@@ -5,6 +5,7 @@ import Button from '@/components/ui/Button';
 import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
+import { useFeatureFlag } from '@/hooks/useFeatureFlags';
 import { useGetEventDetailQuery } from '@/store/api/event';
 import { useGetRecommendationsV2Query } from '@/store/api/productApi';
 import { getCountdown } from '@/utils/dateUtils';
@@ -23,7 +24,6 @@ import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const dateParts = (date: string) => ({
@@ -39,11 +39,13 @@ export default function EventDetailScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
     const { colors, spacing } = useTheme();
+    const { enabled: giftRequestsEnabled } = useFeatureFlag('gift_requests');
+    const { enabled: recommendationsEnabled } = useFeatureFlag('gift_recommendations');
     const editSheet = useBottomSheet();
     const { data: event, isLoading, isFetching, error, refetch } = useGetEventDetailQuery(id, { skip: !id });
     const { data: recommendations = [], isLoading: recommendationsLoading } = useGetRecommendationsV2Query(
         { eventId: event?.id as string, limit: 10 },
-        { skip: !event?.id },
+        { skip: !event?.id || !recommendationsEnabled },
     );
 
     if (isLoading || isFetching) return <EventDetailSkeleton />;
@@ -79,8 +81,8 @@ export default function EventDetailScreen() {
             </View>
 
             <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 50 }}>
-                <Animated.View entering={FadeInDown.duration(400)} style={{ paddingHorizontal: spacing.xl, marginTop: 22 }}>
-                    <View style={[styles.cover, { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                <View style={{ paddingHorizontal: spacing.xl, marginTop: 22 }}>
+                    <View style={[styles.cover, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                         <View style={[styles.coverBand, { backgroundColor: colors.lemon, borderRightColor: colors.ink }]} />
                         <View style={[styles.datePoster, { backgroundColor: colors.accent, borderColor: colors.ink }]}>
                             <Typography variant="caption" color="#17151D" style={styles.overline}>{date.weekday.toUpperCase()}</Typography>
@@ -100,9 +102,9 @@ export default function EventDetailScreen() {
                         </View>
                         <View style={[styles.fileClip, { backgroundColor: colors.lilac, borderColor: colors.ink }]} />
                     </View>
-                </Animated.View>
+                </View>
 
-                <Animated.View entering={FadeInUp.delay(90).duration(400)} style={{ paddingHorizontal: spacing.xl, marginTop: 30 }}>
+                <View style={{ paddingHorizontal: spacing.xl, marginTop: 30 }}>
                     <View style={[styles.sectionLabel, {paddingTop: 10}]}>
                         <Typography variant="caption" color={colors.textSecondary} style={[styles.overline]}>THE PLAN TRAIL</Typography>
                         <View style={[styles.sectionRule, { backgroundColor: colors.ink }]} />
@@ -129,7 +131,7 @@ export default function EventDetailScreen() {
                         ))}
                     </View>
 
-                    <View style={[styles.missionDesk, { backgroundColor: colors.mint, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                    <View style={[styles.missionDesk, { backgroundColor: colors.mint, borderColor: colors.ink }]}>
                         <View style={[styles.missionIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                             <HugeiconsIcon icon={GiftIcon} size={27} color={colors.primary} />
                         </View>
@@ -147,7 +149,7 @@ export default function EventDetailScreen() {
                     </View>
 
                     <View style={styles.conciergeRow}>
-                        <Pressable
+                        {giftRequestsEnabled && <Pressable
                             onPress={() => router.push({ pathname: '/gift-request', params: { recipient, occasion: event.title, eventId: event.id } })}
                             style={[styles.conciergeCard, { backgroundColor: colors.peach, borderColor: colors.ink }]}
                         >
@@ -157,15 +159,15 @@ export default function EventDetailScreen() {
                                 <Typography variant="caption" color={colors.textSecondary}>Brief the concierge</Typography>
                             </View>
                             <HugeiconsIcon icon={ArrowRight01Icon} size={18} color={colors.ink} />
-                        </Pressable>
+                        </Pressable>}
                         <Pressable onPress={editSheet.open} style={[styles.editCard, { backgroundColor: colors.lemon, borderColor: colors.ink }]}>
                             <HugeiconsIcon icon={Edit01Icon} size={22} color={colors.ink} />
                             <Typography variant="caption" style={styles.overline}>EDIT PLAN</Typography>
                         </Pressable>
                     </View>
-                </Animated.View>
+                </View>
 
-                <View style={{ marginTop: 36 }}>
+                {recommendationsEnabled && <View style={{ marginTop: 36 }}>
                     <View style={[styles.recommendationHeader, { paddingHorizontal: spacing.xl }]}>
                         <View>
                             <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>THE IDEA FILE</Typography>
@@ -188,7 +190,7 @@ export default function EventDetailScreen() {
                             renderItem={({ item, index }) => (
                                 <Pressable
                                     onPress={() => router.push({ pathname: '/product-detail', params: { id: item.id, occasionId: event.id } })}
-                                    style={[styles.ideaCard, { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: paperColors[index % paperColors.length], transform: [{ rotate: index % 2 ? '2deg' : '-2deg' }] }]}
+                                    style={[styles.ideaCard, { backgroundColor: colors.surface, borderColor: colors.ink, transform: [{ rotate: index % 2 ? '2deg' : '-2deg' }] }]}
                                 >
                                     <Image source={{ uri: item.imageUrls?.[0] }} style={styles.ideaImage} contentFit="cover" />
                                     <View style={[styles.ideaTape, { backgroundColor: paperColors[index % paperColors.length], borderColor: colors.ink }]} />
@@ -203,7 +205,7 @@ export default function EventDetailScreen() {
                                 </Pressable>
                             )}
                         />
-                    ) : (
+                    ) : giftRequestsEnabled ? (
                         <Pressable
                             onPress={() => router.push({ pathname: '/gift-request', params: { recipient, occasion: event.title, eventId: event.id } })}
                             style={[styles.noIdeas, { marginHorizontal: spacing.xl, backgroundColor: colors.lilac, borderColor: colors.ink }]}
@@ -212,8 +214,8 @@ export default function EventDetailScreen() {
                             <Typography variant="body" color={colors.textSecondary}>Ask the concierge to source something personal.</Typography>
                             <HugeiconsIcon icon={ArrowRight01Icon} size={21} color={colors.ink} />
                         </Pressable>
-                    )}
-                </View>
+                    ) : null}
+                </View>}
             </ScrollView>
 
             <CreateEventSheet ref={editSheet.ref} isEditing occasionId={event.id} onSuccess={refetch} />
@@ -230,7 +232,7 @@ const styles = StyleSheet.create({
     headerButton: { width: 44, height: 44, borderWidth: 1.5, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
     dossierTab: { minHeight: 36, borderWidth: 1.5, borderRadius: 12, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-1deg' }] },
     overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.8 },
-    cover: { minHeight: 292, borderWidth: 1.5, borderRadius: 27, overflow: 'hidden', shadowOffset: { width: 5, height: 6 }, shadowOpacity: 1, shadowRadius: 0, elevation: 5 },
+    cover: { minHeight: 292, borderWidth: 1.5, borderRadius: 27, overflow: 'hidden', },
     coverBand: { position: 'absolute', left: 0, top: 0, bottom: 0, width: '29%', borderRightWidth: 1.5 },
     datePoster: { position: 'absolute', left: 14, top: 30, width: 88, height: 126, borderWidth: 1.5, borderRadius: 19, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-4deg' }] },
     posterDay: { fontSize: 44, lineHeight: 48 },
@@ -245,14 +247,14 @@ const styles = StyleSheet.create({
     trailRow: { minHeight: 76, flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 10 },
     trailDot: { width: 44, height: 44, borderWidth: 1.5, borderRadius: 14, alignItems: 'center', justifyContent: 'center', zIndex: 2 },
     trailCard: { flex: 1, minHeight: 68, borderWidth: 1.5, borderRadius: 17, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 8 },
-    missionDesk: { marginTop: 20, minHeight: 116, borderWidth: 1.5, borderRadius: 22, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, shadowOffset: { width: 4, height: 5 }, shadowOpacity: 1, shadowRadius: 0, elevation: 4 },
+    missionDesk: { marginTop: 20, minHeight: 116, borderWidth: 1.5, borderRadius: 22, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, },
     missionIcon: { width: 52, height: 52, borderWidth: 1.5, borderRadius: 17, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-4deg' }] },
     missionArrow: { width: 42, height: 42, borderWidth: 1.25, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
     conciergeRow: { flexDirection: 'row', gap: 11, marginTop: 14 },
     conciergeCard: { flex: 1, minHeight: 84, borderWidth: 1.5, borderRadius: 18, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 9 },
     editCard: { width: 98, minHeight: 84, borderWidth: 1.5, borderRadius: 18, padding: 10, alignItems: 'center', justifyContent: 'center', gap: 5 },
     recommendationHeader: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 10 },
-    ideaCard: { width: 192, borderWidth: 1.5, borderRadius: 9, padding: 9, paddingBottom: 13, marginRight: 17, shadowOffset: { width: 5, height: 6 }, shadowOpacity: 1, shadowRadius: 0, elevation: 4 },
+    ideaCard: { width: 192, borderWidth: 1.5, borderRadius: 9, padding: 9, paddingBottom: 13, marginRight: 17, },
     ideaImage: { width: '100%', height: 144, borderWidth: 1, borderColor: '#17151D', marginBottom: 10 },
     ideaTape: { position: 'absolute', width: 50, height: 13, borderWidth: 1, top: 3, left: 69, transform: [{ rotate: '-4deg' }] },
     ideaFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 5 },

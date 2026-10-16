@@ -54,7 +54,7 @@ export default function CheckoutEntry() {
             />
 
             <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-                <View style={[styles.briefCard, { backgroundColor: colors.lemon, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                <View style={[styles.briefCard, { backgroundColor: colors.lemon, borderColor: colors.ink }]}>
                     <View style={[styles.tape, { backgroundColor: colors.lilac, borderColor: colors.ink }]} />
                     <View style={styles.recipientRow}>
                         <Avatar name={event?.contact?.name || 'Recipient'} uri={event?.contact?.avatar} size="lg" />
@@ -73,7 +73,7 @@ export default function CheckoutEntry() {
                         </View>
                     </View>
 
-                    <View style={[styles.giftPolaroid, { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: colors.lilac }]}>
+                    <View style={[styles.giftPolaroid, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                         {product?.imageUrls?.[0] ? (
                             <Image source={{ uri: product.imageUrls[0] }} style={styles.giftImage} contentFit="cover" />
                         ) : (
@@ -96,7 +96,6 @@ export default function CheckoutEntry() {
                             {
                                 backgroundColor: deliveryStatus.canArriveOnTime ? colors.mint : colors.peach,
                                 borderColor: colors.ink,
-                                shadowColor: colors.ink,
                             },
                         ]}
                     >
@@ -123,7 +122,7 @@ export default function CheckoutEntry() {
                     <Typography variant="label">Packing receipt</Typography>
                     <Typography variant="caption" color={colors.textSecondary}>ESTIMATE</Typography>
                 </View>
-                <View style={[styles.receipt, { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                <View style={[styles.receipt, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                     <ReceiptRow label="Gift" value={formatCurrency(fees.item, product?.currency)} />
                     <ReceiptRow label="Delivery" value={formatCurrency(fees.delivery, product?.currency)} />
                     <ReceiptRow label="Gift wrapping" value={formatCurrency(fees.packaging, product?.currency)} />
@@ -168,10 +167,7 @@ const styles = StyleSheet.create({
         borderRadius: 26,
         padding: 18,
         gap: 18,
-        shadowOffset: { width: 4, height: 5 },
-        shadowOpacity: 0.16,
-        shadowRadius: 0,
-        elevation: 3,
+
         transform: [{ rotate: '-0.7deg' }],
     },
     tape: {
@@ -204,10 +200,7 @@ const styles = StyleSheet.create({
         gap: 13,
         borderWidth: 1.5,
         borderRadius: 19,
-        shadowOffset: { width: 4, height: 4 },
-        shadowOpacity: 1,
-        shadowRadius: 0,
-        elevation: 2,
+
         transform: [{ rotate: '1.2deg' }],
     },
     giftImage: { width: 106, height: 106, borderRadius: 13 },
@@ -219,9 +212,6 @@ const styles = StyleSheet.create({
         borderWidth: 1.5,
         borderRadius: 19,
         padding: 14,
-        shadowOffset: { width: 3, height: 3 },
-        shadowOpacity: 0.12,
-        shadowRadius: 0,
     },
     noteIcon: { width: 40, height: 40, borderRadius: 13, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
     noteCopy: { flex: 1 },
@@ -231,9 +221,7 @@ const styles = StyleSheet.create({
         borderRadius: 22,
         padding: 18,
         gap: 11,
-        shadowOffset: { width: 3, height: 4 },
-        shadowOpacity: 0.12,
-        shadowRadius: 0,
+
         transform: [{ rotate: '0.6deg' }],
     },
     receiptRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 16 },

@@ -30,7 +30,6 @@ export const notificationApi = baseApi.injectEndpoints({
         method: "POST",
         data,
       }),
-      invalidatesTags: ["Notifications"],
     }),
     markAsRead: builder.mutation<void, string>({
       query: (id) => ({

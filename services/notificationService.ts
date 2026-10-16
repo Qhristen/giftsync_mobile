@@ -71,23 +71,41 @@ class NotificationService {
   private devicePushToken: string | null = null;
   private notificationListener: any = null;
   private responseListener: any = null;
+  private initializationPromise: Promise<void> | null = null;
+  private isInitialized = false;
 
   /**
    * Initialize the notification service
    */
   async initialize(): Promise<void> {
+    if (this.isInitialized) return;
+    if (this.initializationPromise) return this.initializationPromise;
+
+    const initialization = (async () => {
+      try {
+        console.log("🔔 Initializing notification service...");
+
+        // Set up notification listeners first
+        this.setupNotificationListeners();
+
+        // Register for push notifications
+        await this.registerForPushNotifications();
+
+        this.isInitialized = true;
+        console.log("✅ Notification service initialized successfully");
+      } catch (error) {
+        console.error("❌ Failed to initialize notification service:", error);
+      }
+    })();
+
+    this.initializationPromise = initialization;
+
     try {
-      console.log("🔔 Initializing notification service...");
-
-      // Set up notification listeners first
-      this.setupNotificationListeners();
-
-      // Register for push notifications
-      await this.registerForPushNotifications();
-
-      console.log("✅ Notification service initialized successfully");
-    } catch (error) {
-      console.error("❌ Failed to initialize notification service:", error);
+      await initialization;
+    } finally {
+      if (this.initializationPromise === initialization) {
+        this.initializationPromise = null;
+      }
     }
   }
 
@@ -193,6 +211,11 @@ class NotificationService {
 
       // Get the Expo push token with retry logic
       console.log("🎯 Getting Expo push token...");
+      const devicePushTokenPromise = Notifications.getDevicePushTokenAsync()
+        .catch((error) => {
+          console.warn("⚠️ Could not get device push token:", error);
+          return null;
+        });
       let pushTokenData;
       let retryCount = 0;
       const maxRetries = 3;
@@ -223,6 +246,8 @@ class NotificationService {
       }
 
       this.expoPushToken = pushTokenData.data;
+      const devicePushToken = await devicePushTokenPromise;
+      this.devicePushToken = devicePushToken ? String(devicePushToken.data) : null;
       console.log("🎉 Expo Push Token generated successfully!");
       console.log("🎯 Token:", this.expoPushToken);
 
@@ -801,13 +826,15 @@ class NotificationService {
    * Clean up listeners
    */
   cleanup(): void {
-    console.log("🧹 Cleaning up notification service...");
     if (this.notificationListener) {
-      this.notificationListener.remove;
+      this.notificationListener.remove();
+      this.notificationListener = null;
     }
     if (this.responseListener) {
       this.responseListener.remove();
+      this.responseListener = null;
     }
+    this.isInitialized = false;
   }
 
   /**

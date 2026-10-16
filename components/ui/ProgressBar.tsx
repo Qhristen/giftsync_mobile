@@ -1,11 +1,6 @@
 import { useTheme } from '@/hooks/useTheme';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
-import Animated, {
-    useAnimatedStyle,
-    useSharedValue,
-    withSpring,
-} from 'react-native-reanimated';
 
 interface Props {
     progress: number; // 0 to 1
@@ -22,16 +17,8 @@ const ProgressBar: React.FC<Props> = ({
     backgroundColor,
     style,
 }) => {
-    const { colors, spacing } = useTheme();
-    const width = useSharedValue(0);
-
-    useEffect(() => {
-        width.value = withSpring(progress * 100);
-    }, [progress, width]);
-
-    const animatedStyle = useAnimatedStyle(() => ({
-        width: `${width.value}%`,
-    }));
+    const { colors } = useTheme();
+    const progressWidth = Math.min(100, Math.max(0, progress * 100));
 
     const containerStyles = [
         styles.container,
@@ -49,13 +36,13 @@ const ProgressBar: React.FC<Props> = ({
             height,
             backgroundColor: color || colors.primary,
             borderRadius: height / 2,
+            width: `${progressWidth}%`,
         },
-        animatedStyle,
     ] as any;
 
     return (
         <View style={containerStyles}>
-            <Animated.View style={fillStyles} />
+            <View style={fillStyles} />
         </View>
     );
 };

@@ -8,6 +8,7 @@ import { BottomSheetRef } from '@/components/ui/BottomSheetWrapper';
 import Typography from '@/components/ui/Typography';
 import { useSocket } from '@/hooks/useSocket';
 import { useTheme } from '@/hooks/useTheme';
+import { useFeatureFlag } from '@/hooks/useFeatureFlags';
 import { RootState } from '@/store';
 import { useGetConversationQuery, useGetMessagesQuery } from '@/store/api/chatApi';
 import { useBlockUserMutation } from '@/store/api/trustSafetyApi';
@@ -29,7 +30,7 @@ import * as Clipboard from 'expo-clipboard';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
@@ -43,17 +44,18 @@ import {
     View
 } from 'react-native';
 import { KeyboardAvoidingView, OverKeyboardView } from 'react-native-keyboard-controller';
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { toast } from 'sonner-native';
 
-
+const EMPTY_MESSAGES: ChatMessage[] = [];
 
 export default function ChatDetailScreen() {
     const { id: conversationId } = useLocalSearchParams<{ id: string }>();
     const router = useRouter();
     const { colors, spacing } = useTheme();
+    const { enabled: trustSafetyEnabled } = useFeatureFlag('trust_safety');
+    const { enabled: disputesEnabled } = useFeatureFlag('disputes');
     const insets = useSafeAreaInsets();
     const [messageText, setMessageText] = useState('');
     const [selectedImages, setSelectedImages] = useState<string[]>([]);
@@ -80,14 +82,14 @@ export default function ChatDetailScreen() {
     const [blockUser] = useBlockUserMutation();
     const typingUsers = useSelector((state: RootState) => selectTypingUsers(state, conversationId));
 
-    const messages = data?.items || [];
+    const messages = data?.items ?? EMPTY_MESSAGES;
     const memoizedMessages = useMemo(() => [...messages].reverse(), [messages]);
     const isLoading = isMessagesLoading && messages.length === 0;
     const currentUserId = user?.id;
 
     const participants = useMemo(() =>
         conversation?.participants?.filter(p => p.id !== user?.id) || [],
-        [conversation?.participants, user?.id]
+    [conversation?.participants, user?.id]
     );
 
     const displayName = conversation?.order?.item?.product?.name || 'Chat';
@@ -105,7 +107,7 @@ export default function ChatDetailScreen() {
                 socketService.leaveConversation(conversationId);
             };
         }
-    }, [conversationId]);
+    }, [conversationId, socketService]);
 
     const handleSend = async () => {
         if (!messageText.trim() && selectedImages.length === 0) return;
@@ -123,7 +125,7 @@ export default function ChatDetailScreen() {
         const patch = result?.patch;
 
         setTimeout(() => {
-            flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+            flatListRef.current?.scrollToOffset({ offset: 0, animated: false });
         }, 100);
 
         try {
@@ -133,7 +135,7 @@ export default function ChatDetailScreen() {
                     uploadedUrls = await Promise.all(
                         imagesToUpload.map(uri => upload(uri).unwrap())
                     );
-                } catch (error) {
+                } catch {
                     toast.error('Failed to upload images');
                     patch?.undo();
                     // Put them back in state so user can retry
@@ -153,9 +155,9 @@ export default function ChatDetailScreen() {
                 manualMessage?.id
             );
 
-            // removed patch?.undo() here because sendMessage ack or newMessage event 
+            // removed patch?.undo() here because sendMessage ack or newMessage event
             // will handle the replacement of the temp message with the real one.
-            // Undoing the patch here would remove the message from the UI entirely if the 
+            // Undoing the patch here would remove the message from the UI entirely if the
             // replacement already happened or if the undo logic is over-aggressive.
         } catch (error) {
             console.error('Failed to send message:', error);
@@ -190,12 +192,30 @@ export default function ChatDetailScreen() {
         }
     };
 
-    const handleLongPress = (message: ChatMessage, event: GestureResponderEvent) => {
+    const handleLongPress = useCallback((message: ChatMessage, event: GestureResponderEvent) => {
         const { pageX, pageY } = event.nativeEvent;
         setMenuPosition({ x: pageX, y: pageY });
         setSelectedMessage(message);
         setIsOptionsVisible(true);
-    };
+    }, []);
+
+    const handleImagePress = useCallback((images: string[], index: number) => {
+        setViewerConfig({ images, index });
+    }, []);
+
+    const renderMessage = useCallback(({ item }: { item: ChatMessage }) => (
+        <MessageBubble
+            message={item}
+            isOwnMessage={item.sender.id === currentUserId}
+            onLongPress={handleLongPress}
+            onImagePress={handleImagePress}
+        />
+    ), [currentUserId, handleImagePress, handleLongPress]);
+
+    const messageListContentStyle = useMemo(
+        () => [styles.messageList, { paddingBottom: spacing.lg }],
+        [spacing.lg],
+    );
 
     const handleCopy = async () => {
         if (selectedMessage?.content) {
@@ -335,16 +355,9 @@ export default function ChatDetailScreen() {
                         windowSize={10}
                         maxToRenderPerBatch={10}
                         removeClippedSubviews={true}
-                        renderItem={({ item }) => (
-                            <MessageBubble
-                                message={item}
-                                isOwnMessage={item.sender.id === currentUserId}
-                                onLongPress={handleLongPress}
-                                onImagePress={(images, index) => setViewerConfig({ images, index })}
-                            />
-                        )}
+                        renderItem={renderMessage}
                         style={{ flex: 1 }}
-                        contentContainerStyle={[styles.messageList, { paddingBottom: spacing.lg }]}
+                        contentContainerStyle={messageListContentStyle}
                         keyboardShouldPersistTaps="handled"
                         keyboardDismissMode="on-drag"
                         maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
@@ -427,13 +440,12 @@ export default function ChatDetailScreen() {
                     style={StyleSheet.absoluteFill}
                     onPress={() => setIsOptionsVisible(false)}
                 >
-                    <Animated.View
-                        entering={FadeIn.duration(200)}
-                        exiting={FadeOut.duration(200)}
+                    <View
+
                         style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.2)' }]}
                     >
-                        <Animated.View
-                            entering={FadeIn.duration(200)}
+                        <View
+
                             style={[
                                 styles.floatingMenu,
                                 {
@@ -468,8 +480,8 @@ export default function ChatDetailScreen() {
                                 <HugeiconsIcon icon={Cancel01Icon} size={18} color={colors.error} />
                                 <Typography variant="body" color={colors.error}>Cancel</Typography>
                             </Pressable>
-                        </Animated.View>
-                    </Animated.View>
+                        </View>
+                    </View>
                 </Pressable>
             </OverKeyboardView>
 
@@ -477,8 +489,8 @@ export default function ChatDetailScreen() {
                 ref={convOptionsRef}
                 conversation={conversation || null}
                 onViewOrder={handleViewOrder}
-                onBlockUser={handleBlockUser}
-                onReportUser={handleReportUser}
+                onBlockUser={trustSafetyEnabled ? handleBlockUser : undefined}
+                onReportUser={trustSafetyEnabled ? handleReportUser : undefined}
             />
 
             <OrderDetailSheet
@@ -487,7 +499,7 @@ export default function ChatDetailScreen() {
                 onChat={() => {
                     orderDetailsRef.current?.close();
                 }}
-                onDispute={handleOpenDispute}
+                onDispute={disputesEnabled ? handleOpenDispute : undefined}
             />
 
             <ReportSheet
@@ -509,7 +521,6 @@ export default function ChatDetailScreen() {
             <Modal
                 visible={!!viewerConfig}
                 transparent={true}
-                animationType="fade"
                 onRequestClose={() => setViewerConfig(null)}
             >
                 <View style={[styles.viewerContainer, { backgroundColor: 'rgba(0,0,0,0.95)' }]}>
@@ -622,11 +633,6 @@ const styles = StyleSheet.create({
         width: 170,
         borderRadius: 16,
         padding: 4,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 10,
-        elevation: 10,
     },
     menuSeparator: {
         height: 1,

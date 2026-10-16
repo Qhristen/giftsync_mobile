@@ -10,7 +10,7 @@ export default function ProductListSkeleton() {
     return (
         <View style={styles.list}>
             {palette.map((color, index) => (
-                <SkeletonPaper key={color} color={colors.surface} style={[styles.card, { shadowColor: color, transform: [{ rotate: index % 2 ? '0.5deg' : '-0.5deg' }] }]}>
+                <SkeletonPaper key={color} color={colors.surface} style={[styles.card, { transform: [{ rotate: index % 2 ? '0.5deg' : '-0.5deg' }] }]}>
                     <View style={styles.content}>
                         <Skeleton width={84} height={84} borderRadius={15} />
                         <View style={styles.copy}>

@@ -5,10 +5,7 @@ import { HugeiconsIcon } from '@hugeicons/react-native';
 import { Mail01Icon, TelephoneIcon } from '@hugeicons/core-free-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import Animated, { FadeInUp } from 'react-native-reanimated';
-
-export default function HelpCenterScreen() {
+import { ScrollView, StyleSheet, View } from 'react-native';export default function HelpCenterScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
 
@@ -58,8 +55,8 @@ export default function HelpCenterScreen() {
                 contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: 100 }}
                 showsVerticalScrollIndicator={false}
             >
-                <Animated.View entering={FadeInUp.duration(400)}>
-                    <View style={[styles.statusCard, { backgroundColor: colors.mint, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                <View>
+                    <View style={[styles.statusCard, { backgroundColor: colors.mint, borderColor: colors.ink }]}>
                         <View style={[styles.statusDot, { backgroundColor: colors.lime, borderColor: colors.ink }]} />
                         <View style={{ flex: 1 }}>
                             <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>HUMANS ARE ONLINE</Typography>
@@ -72,7 +69,7 @@ export default function HelpCenterScreen() {
                         <View key={cIdx} style={styles.categorySection}>
                             <Typography variant="caption" color={colors.textSecondary} style={[styles.overline, { marginBottom: 10 }]}>0{cIdx + 1} · {category.category.toUpperCase()}</Typography>
                             {category.questions.map((faq, fIdx) => (
-                                <View key={fIdx} style={[styles.faqCard, { backgroundColor: [colors.lemon, colors.lavender, colors.peach][(cIdx + fIdx) % 3], borderColor: colors.ink, shadowColor: colors.ink, transform: [{ rotate: fIdx % 2 ? '0.4deg' : '-0.4deg' }] }]}>
+                                <View key={fIdx} style={[styles.faqCard, { backgroundColor: [colors.lemon, colors.lavender, colors.peach][(cIdx + fIdx) % 3], borderColor: colors.ink, transform: [{ rotate: fIdx % 2 ? '0.4deg' : '-0.4deg' }] }]}>
                                     <View style={[styles.questionMark, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                                         <Typography variant="bodyBold">?</Typography>
                                     </View>
@@ -83,7 +80,7 @@ export default function HelpCenterScreen() {
                         </View>
                     ))}
 
-                    <View style={[styles.contactCard, { backgroundColor: colors.lilac, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                    <View style={[styles.contactCard, { backgroundColor: colors.lilac, borderColor: colors.ink }]}>
                         <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>THE HUMAN DESK</Typography>
                         <Typography variant="h3" style={{ marginBottom: 4 }}>Still need help?</Typography>
                         <Typography variant="body" color={colors.textSecondary} style={{ marginBottom: 20 }}>Our support team is available 24/7 to assist you.</Typography>
@@ -98,7 +95,7 @@ export default function HelpCenterScreen() {
                             <Typography variant="bodyMedium">+234 (0) 800-GIFTSYNC</Typography>
                         </View>
                     </View>
-                </Animated.View>
+                </View>
             </ScrollView>
         </View>
     );
@@ -109,7 +106,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.9 },
-    statusCard: { minHeight: 128, borderWidth: 1.5, borderRadius: 24, padding: 18, flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginTop: 8, marginBottom: 28, shadowOffset: { width: 4, height: 5 }, shadowOpacity: 0.14, shadowRadius: 0 },
+    statusCard: { minHeight: 128, borderWidth: 1.5, borderRadius: 24, padding: 18, flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginTop: 8, marginBottom: 28, },
     statusDot: { width: 22, height: 22, borderRadius: 11, borderWidth: 1.5 },
     categorySection: {
         marginBottom: 32,
@@ -119,9 +116,6 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         borderWidth: 1.5,
         marginBottom: 12,
-        shadowOffset: { width: 3, height: 3 },
-        shadowOpacity: 0.1,
-        shadowRadius: 0,
     },
     questionMark: { position: 'absolute', top: -8, right: 13, width: 29, height: 29, borderRadius: 10, borderWidth: 1.25, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '5deg' }] },
     contactCard: {
@@ -129,9 +123,6 @@ const styles = StyleSheet.create({
         borderRadius: 24,
         borderWidth: 1.5,
         marginTop: 10,
-        shadowOffset: { width: 4, height: 5 },
-        shadowOpacity: 0.15,
-        shadowRadius: 0,
     },
     contactRow: {
         flexDirection: 'row',

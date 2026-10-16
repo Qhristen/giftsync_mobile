@@ -14,7 +14,7 @@ export default function EventGridSkeleton() {
                 <Skeleton width={128} height={15} />
             </View>
             {palette.map((color, index) => (
-                <SkeletonPaper key={color} color={colors.surface} style={[styles.mapRow, { shadowColor: color, marginLeft: index % 2 ? 11 : 0, marginRight: index % 2 ? 0 : 11 }]}>
+                <SkeletonPaper key={color} color={colors.surface} style={[styles.mapRow, { marginLeft: index % 2 ? 11 : 0, marginRight: index % 2 ? 0 : 11 }]}>
                     <View style={[styles.date, { backgroundColor: color, borderColor: colors.ink }]}>
                         <Skeleton width={30} height={21} />
                         <Skeleton width={24} height={9} />

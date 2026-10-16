@@ -1,13 +1,6 @@
 import { useTheme } from '@/hooks/useTheme';
-import React, { useEffect } from 'react';
-import { StyleProp, StyleSheet, ViewStyle } from 'react-native';
-import Animated, {
-    useAnimatedStyle,
-    useSharedValue,
-    withRepeat,
-    withSequence,
-    withTiming,
-} from 'react-native-reanimated';
+import React from 'react';
+import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 
 interface Props {
     width?: number | string;
@@ -22,23 +15,7 @@ const SkeletonChildren: React.FC<Props> = ({
     variant = 'rectangular',
     style,
 }) => {
-    const { colors, spacing } = useTheme();
-    const opacity = useSharedValue(0.3);
-
-    useEffect(() => {
-        opacity.value = withRepeat(
-            withSequence(
-                withTiming(0.7, { duration: 1000 }),
-                withTiming(0.3, { duration: 1000 })
-            ),
-            -1,
-            true
-        );
-    }, [opacity]);
-
-    const animatedStyle = useAnimatedStyle(() => ({
-        opacity: opacity.value,
-    }));
+    const { colors } = useTheme();
 
     const containerStyles = [
         styles.base,
@@ -47,11 +24,12 @@ const SkeletonChildren: React.FC<Props> = ({
             height: height,
             backgroundColor: colors.surfaceRaised,
             borderRadius: variant === 'circle' ? 1000 : variant === 'text' ? 4 : 8,
+            opacity: 0.55,
         },
         style,
     ] as ViewStyle[];
 
-    return <Animated.View style={[containerStyles, animatedStyle]} />;
+    return <View style={containerStyles} />;
 };
 
 const styles = StyleSheet.create({

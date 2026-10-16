@@ -49,13 +49,13 @@ const FilterSheet = forwardRef<BottomSheetRef, FilterSheetProps>(({ initialFilte
                                 {
                                     backgroundColor: isSelected ? colors.primary : colors.surfaceRaised,
                                     borderColor: isSelected ? colors.primary : colors.border
-                                }
+ }
                             ]}
                         >
                             <Typography variant="body" color={isSelected ? '#FFF' : colors.textPrimary}>{p}</Typography>
                         </Pressable>
                     );
-                })}
+ })}
             </View> */}
 
             <Typography variant="h4" style={{ marginBottom: spacing.md }}>Sort By</Typography>
@@ -66,7 +66,7 @@ const FilterSheet = forwardRef<BottomSheetRef, FilterSheetProps>(({ initialFilte
                         <Pressable
                             key={s}
                             onPress={() => setSortBy(s)}
-                            style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 14, backgroundColor: [colors.lemon, colors.lavender, colors.mint, colors.peach][index], borderColor: colors.ink, borderWidth: 1.25, borderRadius: 16, shadowColor: isSelected ? colors.ink : 'transparent', shadowOffset: { width: 3, height: 3 }, shadowOpacity: 1, shadowRadius: 0 }}
+                            style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 14, backgroundColor: [colors.lemon, colors.lavender, colors.mint, colors.peach][index], borderColor: colors.ink, borderWidth: 1.25, borderRadius: 16, }}
                         >
                             <Typography variant="body" color={colors.textPrimary}>{s}</Typography>
                             {isSelected && <HugeiconsIcon icon={Tick01Icon} size={20} color={colors.ink} />}

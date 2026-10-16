@@ -1,13 +1,6 @@
 import { useTheme } from '@/hooks/useTheme';
-import React, { ReactNode, useEffect } from 'react';
+import React, { ReactNode } from 'react';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
-import Animated, {
-    useAnimatedStyle,
-    useSharedValue,
-    withRepeat,
-    withSequence,
-    withTiming,
-} from 'react-native-reanimated';
 
 interface SkeletonProps {
     width?: number | string;
@@ -29,25 +22,9 @@ export default function Skeleton({
     style,
 }: SkeletonProps) {
     const { colors } = useTheme();
-    const opacity = useSharedValue(0.5);
-
-    useEffect(() => {
-        opacity.value = withRepeat(
-            withSequence(
-                withTiming(1, { duration: 1000 }),
-                withTiming(0.5, { duration: 1000 })
-            ),
-            -1,
-            true
-        );
-    }, [opacity]);
-
-    const animatedStyle = useAnimatedStyle(() => ({
-        opacity: opacity.value,
-    }));
 
     return (
-        <Animated.View
+        <View
             style={[
                 styles.skeleton,
                 {
@@ -55,8 +32,8 @@ export default function Skeleton({
                     height: height as any,
                     borderRadius,
                     backgroundColor: colors.textMuted + '45',
+                    opacity: 0.65,
                 },
-                animatedStyle,
                 style,
             ]}
         />
@@ -73,7 +50,6 @@ export function SkeletonPaper({ children, color, style }: SkeletonPaperProps) {
                 {
                     backgroundColor: color || colors.surface,
                     borderColor: colors.ink,
-                    shadowColor: colors.ink,
                 },
                 style,
             ]}
@@ -90,9 +66,5 @@ const styles = StyleSheet.create({
     paper: {
         borderWidth: 1.5,
         borderRadius: 22,
-        shadowOffset: { width: 3, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 0,
-        elevation: 2,
     },
 });

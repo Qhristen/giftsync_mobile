@@ -10,7 +10,7 @@ export default function PackageListSkeleton() {
     return (
         <View style={styles.list}>
             {palette.map((color, index) => (
-                <SkeletonPaper key={color} color={colors.surface} style={[styles.card, { shadowColor: color }]}>
+                <SkeletonPaper key={color} color={colors.surface} style={[styles.card, { }]}>
                     <View style={[styles.packageIcon, { backgroundColor: color, borderColor: colors.ink }]}>
                         <Skeleton width={28} height={28} borderRadius={8} />
                     </View>

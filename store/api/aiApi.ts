@@ -11,23 +11,72 @@ export interface AiChatRequest {
     history?: AiChatHistoryItem[];
 }
 
+export interface AiProductSuggestion {
+    name: string;
+    whyItFits: string;
+    availability: 'not_on_platform';
+    estimatedBudget?: string;
+    canRequest: boolean;
+}
+
+export interface AiGiftRequestDetails {
+    eventId?: string;
+    orderDetails: {
+        deliveryDate: string;
+        deliveryTimeWindow: string;
+        giftMessage?: string;
+        anonymity: boolean;
+        quantity: number;
+    };
+    recipientName: string;
+    recipientPhoneNumber?: string;
+    occasion?: string;
+    description: string;
+    category: string;
+    budget: number;
+    currency: string;
+    neededBy: string;
+    preferences: string[];
+}
+
+export interface AiActionDetails extends Partial<AiGiftRequestDetails> {
+    recipients?: string[];
+    contactName?: string;
+    message?: string;
+    productId?: string;
+    productName?: string;
+    price?: string;
+}
+
+export interface AiGiftRequestResult {
+    id: string;
+    status?: string;
+    orderId?: string;
+    orderTotal?: number;
+    paymentStatus?: string;
+    currency?: string;
+}
+
+export interface AiUiData {
+    type: 'products' | 'occasions' | 'contacts' | 'send_message' | 'businesses' | 'confirm_action' | 'gift_request' | 'none';
+    actionType?: 'send_direct_sms' | 'send_occasion_message' | 'purchase_product' | 'create_gift_request';
+    details?: AiActionDetails;
+    items?: any[];
+    suggestions?: AiProductSuggestion[];
+    giftRequest?: AiGiftRequestResult;
+    order?: {
+        id: string;
+        total?: number;
+        paymentStatus?: string;
+        currency?: string;
+    };
+    item?: { type: string; data: any };
+}
+
 export interface AiChatResponse {
     response: {
         message: string;
-        uiData?: {
-            type: 'products' | 'occasions' | 'contacts' | 'send_message' | 'businesses' | 'confirm_action' | 'none';
-            actionType?: 'send_direct_sms' | 'send_occasion_message' | 'purchase_product';
-            details?: {
-                recipients?: string[];
-                contactName?: string;
-                message?: string;
-                productId?: string;
-                productName?: string;
-                price?: string;
-            };
-            items?: any[];
-            item?: { type: string; data: any[] };
-        };
+        uiData?: AiUiData;
     };
 }
 

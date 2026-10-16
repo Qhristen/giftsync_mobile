@@ -5,6 +5,7 @@ import Input from '@/components/ui/Input';
 import Typography from '@/components/ui/Typography';
 import { usePlatformConfig } from '@/hooks/usePlatformConfig';
 import { useTheme } from '@/hooks/useTheme';
+import { useFeatureFlag } from '@/hooks/useFeatureFlags';
 import { EventTemplate } from '@/types';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import {
@@ -29,6 +30,7 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
     const router = useRouter();
     const sheetRef = useRef<BottomSheetRef>(null);
     const { directSmsCost } = usePlatformConfig();
+    const { enabled: aiEnabled } = useFeatureFlag('ai_assistant');
     const [localContacts, setLocalContacts] = useState<(Contacts.Contact & { id: string })[]>([]);
     const [isLoadingContacts, setIsLoadingContacts] = useState(false);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -111,6 +113,7 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
     }), [handleSearch]);
 
     const handleGenerateMessages = async () => {
+        if (!aiEnabled) return;
         setIsGenerating(true);
         const selected = Array.from(selectedContactsMap.values());
 
@@ -183,7 +186,7 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
             enableFlex
             renderFooter={() => (
                 <View style={[{ paddingHorizontal: spacing.md, paddingTop: spacing.md, paddingBottom: insets.bottom + 20, backgroundColor: colors.surface }]}>
-                    <Button
+                    {aiEnabled && <Button
                         title={isGenerating ? "Sending..." : `Send Messages (${selectedContactsMap.size}) (${Number(directSmsCost * selectedContactsMap.size).toFixed(1) ?? 0} coins)`}
                         variant="primary"
                         size="md"
@@ -191,7 +194,7 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
                         style={{ flex: 1 }}
                         onPress={handleGenerateMessages}
                         disabled={selectedContactsMap.size === 0 || isGenerating}
-                    />
+                    />}
                 </View>
             )}
         >

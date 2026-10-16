@@ -14,7 +14,6 @@ import { HugeiconsIcon } from '@hugeicons/react-native';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function MessagesScreen() {
@@ -22,6 +21,7 @@ export default function MessagesScreen() {
     const insets = useSafeAreaInsets();
     const { colors, spacing } = useTheme();
     const unreadCount = useAppSelector(selectUnreadCount);
+    const currentUserId = useAppSelector((state) => state.auth.user?.id);
     const [filter, setFilter] = useState<'All' | 'Unread'>('All');
     const { data, isLoading, isFetching, refetch } = useGetConversationsQuery({ page: 1, limit: 50 });
 
@@ -34,10 +34,29 @@ export default function MessagesScreen() {
         });
     }, [data?.items]);
 
-    const filtered = filter === 'Unread' ? conversations.filter((item) => (item.unreadCount || 0) > 0) : conversations;
+    const filtered = React.useMemo(
+        () => filter === 'Unread' ? conversations.filter((item) => (item.unreadCount || 0) > 0) : conversations,
+        [conversations, filter],
+    );
     const featured = filtered[0];
-    const threads = featured ? filtered.slice(1) : [];
-    const paperColors = [colors.mint, colors.peach, colors.lilac, colors.lemon];
+    const threads = React.useMemo(
+        () => featured ? filtered.slice(1) : [],
+        [featured, filtered],
+    );
+    const openConversation = React.useCallback(
+        (conversationId: string) => router.push(`/chat/${conversationId}`),
+        [router],
+    );
+    const renderConversation = React.useCallback(
+        ({ item }: { item: (typeof threads)[number] }) => (
+            <ConversationItem
+                conversation={item}
+                currentUserId={currentUserId}
+                onPress={openConversation}
+            />
+        ),
+        [currentUserId, openConversation],
+    );
 
     if (isLoading && !data) {
         return (
@@ -63,7 +82,7 @@ export default function MessagesScreen() {
                 <Pressable
                     disabled={!featured}
                     onPress={() => featured && router.push(`/chat/${featured.id}`)}
-                    style={({ pressed }) => [styles.mailDesk, { backgroundColor: colors.lilac, borderColor: colors.ink, shadowColor: colors.ink }, pressed && styles.pressed]}
+                    style={({ pressed }) => [styles.mailDesk, { backgroundColor: colors.lilac, borderColor: colors.ink }, pressed && styles.pressed]}
                 >
                     <View style={[styles.letterBack, styles.letterOne, { backgroundColor: colors.peach, borderColor: colors.ink }]} />
                     <View style={[styles.letterBack, styles.letterTwo, { backgroundColor: colors.mint, borderColor: colors.ink }]} />
@@ -103,15 +122,7 @@ export default function MessagesScreen() {
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingTop: 4, paddingBottom: 120, flexGrow: 1 }}
                 refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} tintColor={colors.primary} />}
-                renderItem={({ item, index }) => (
-                    <Animated.View entering={FadeInDown.delay(Math.min(index * 60, 300)).duration(350)}>
-                        <ConversationItem
-                            conversation={item}
-                            accentColor={paperColors[index % paperColors.length]}
-                            onPress={() => router.push(`/chat/${item.id}`)}
-                        />
-                    </Animated.View>
-                )}
+                renderItem={renderConversation}
                 ListEmptyComponent={
                     <View style={[styles.emptyTray, { marginHorizontal: spacing.xl, backgroundColor: colors.mint, borderColor: colors.ink }]}>
                         <View style={[styles.emptyIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
@@ -132,7 +143,7 @@ const styles = StyleSheet.create({
     headerTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
     overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.8 },
     refreshButton: { width: 44, height: 44, borderWidth: 1.5, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-    mailDesk: { minHeight: 134, marginTop: 18, borderWidth: 1.5, borderRadius: 23, padding: 15, flexDirection: 'row', alignItems: 'center', gap: 13, overflow: 'hidden', shadowOffset: { width: 4, height: 5 }, shadowOpacity: 1, shadowRadius: 0, elevation: 4 },
+    mailDesk: { minHeight: 134, marginTop: 18, borderWidth: 1.5, borderRadius: 23, padding: 15, flexDirection: 'row', alignItems: 'center', gap: 13, overflow: 'hidden', },
     letterBack: { position: 'absolute', width: 72, height: 50, borderWidth: 1.25, borderRadius: 8, right: -16 },
     letterOne: { top: -8, transform: [{ rotate: '13deg' }] },
     letterTwo: { bottom: -14, transform: [{ rotate: '-10deg' }] },

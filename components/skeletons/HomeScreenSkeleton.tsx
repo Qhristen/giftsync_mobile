@@ -50,7 +50,7 @@ export default function HomeScreenSkeleton() {
                     {palette.map((color, index) => (
                         <View key={color} style={styles.timelineRow}>
                             <View style={[styles.dot, { backgroundColor: color, borderColor: colors.ink }]}><Skeleton width={12} height={12} borderRadius={6} /></View>
-                            <SkeletonPaper color={colors.surface} style={[styles.timelineCard, { shadowColor: color, marginLeft: index % 2 ? 12 : 0 }]}>
+                            <SkeletonPaper color={colors.surface} style={[styles.timelineCard, { marginLeft: index % 2 ? 12 : 0 }]}>
                                 <Skeleton width={62} height={29} borderRadius={9} />
                                 <View style={styles.copy}><Skeleton width="65%" height={16} /><Skeleton width="42%" height={10} /></View>
                                 <Skeleton width={18} height={18} borderRadius={6} />
@@ -62,7 +62,7 @@ export default function HomeScreenSkeleton() {
                 <View style={styles.sectionHeading}><View style={styles.copy}><Skeleton width={118} height={10} /><Skeleton width={185} height={24} /></View><Skeleton width={54} height={13} /></View>
                 <View style={styles.polaroids}>
                     {palette.slice(0, 2).map((color, index) => (
-                        <SkeletonPaper key={color} color={colors.surface} style={[styles.polaroid, { shadowColor: color, transform: [{ rotate: index ? '2deg' : '-2deg' }] }]}>
+                        <SkeletonPaper key={color} color={colors.surface} style={[styles.polaroid, { transform: [{ rotate: index ? '2deg' : '-2deg' }] }]}>
                             <Skeleton width="100%" height={132} borderRadius={7} />
                             <Skeleton width="77%" height={16} />
                             <View style={styles.polaroidFooter}><Skeleton width={76} height={10} /><Skeleton width={55} height={13} /></View>

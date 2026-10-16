@@ -11,7 +11,6 @@ import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function GlobalEventsScreen() {
@@ -28,7 +27,6 @@ export default function GlobalEventsScreen() {
         setSelectedTemplate(template);
         subscribersSheetRef.current?.expand();
     };
-
 
     if (isTemplatesLoading) {
         return (
@@ -67,8 +65,8 @@ export default function GlobalEventsScreen() {
                 showsVerticalScrollIndicator={false}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item, index }) => (
-                    <Animated.View
-                        entering={FadeInDown.delay(index * 100).duration(500)}
+                    <View
+
                         style={{ flex: 1, padding: 6 }}
                     >
                         <Pressable
@@ -78,7 +76,6 @@ export default function GlobalEventsScreen() {
                                 {
                                     backgroundColor: [colors.lemon, colors.lilac, colors.mint, colors.peach][index % 4],
                                     borderColor: colors.ink,
-                                    shadowColor: colors.ink,
                                     transform: [{ rotate: index % 2 ? '1deg' : '-1deg' }],
                                 },
                                 pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] }
@@ -95,7 +92,7 @@ export default function GlobalEventsScreen() {
                                 </Typography>
                             </View>
                         </Pressable>
-                    </Animated.View>
+                    </View>
                 )}
             />
 
@@ -136,10 +133,6 @@ const styles = StyleSheet.create({
         borderWidth: 1.5,
         alignItems: 'center',
         gap: 8,
-        shadowOffset: { width: 4, height: 4 },
-        shadowOpacity: 0.14,
-        shadowRadius: 0,
-        elevation: 3,
     },
     iconContainer: {
         width: 60,

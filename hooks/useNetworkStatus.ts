@@ -1,5 +1,5 @@
 import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import { toast } from 'sonner-native';
 
@@ -12,6 +12,28 @@ const SLOW_THRESHOLD_MS = 3000;  // response time above 3s = slow
 const PING_TIMEOUT_MS = 10000;   // abort after 10s
 const SLOW_CHECK_INTERVAL_MS = 60000; // check for slowness every 60s
 
+/** Measures actual latency to detect slow connections */
+const measureLatency = async (): Promise<'online' | 'slow'> => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), PING_TIMEOUT_MS);
+    const start = Date.now();
+
+    try {
+        await fetch(CONNECTIVITY_CHECK_URL, {
+            method: 'HEAD',
+            cache: 'no-store',
+            signal: controller.signal,
+        });
+
+        clearTimeout(timeout);
+        const duration = Date.now() - start;
+        return duration > SLOW_THRESHOLD_MS ? 'slow' : 'online';
+    } catch {
+        clearTimeout(timeout);
+        return 'slow';
+    }
+};
+
 /**
  * Monitors network connectivity and quality.
  * Uses @react-native-community/netinfo for instant offline/online detection,
@@ -20,34 +42,11 @@ const SLOW_CHECK_INTERVAL_MS = 60000; // check for slowness every 60s
  * Shows sonner-native toast notifications when status changes.
  */
 export function useNetworkStatus() {
-    const [status, setStatus] = useState<NetworkStatus>('online');
     const lastToastId = useRef<string | number | undefined>(undefined);
     const previousStatus = useRef<NetworkStatus>('online');
     const slowCheckInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
-    /** Measures actual latency to detect slow connections */
-    const measureLatency = async (): Promise<'online' | 'slow'> => {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), PING_TIMEOUT_MS);
-        const start = Date.now();
-
-        try {
-            await fetch(CONNECTIVITY_CHECK_URL, {
-                method: 'HEAD',
-                cache: 'no-store',
-                signal: controller.signal,
-            });
-
-            clearTimeout(timeout);
-            const duration = Date.now() - start;
-            return duration > SLOW_THRESHOLD_MS ? 'slow' : 'online';
-        } catch {
-            clearTimeout(timeout);
-            return 'slow'; // if fetch fails but NetInfo says connected → slow
-        }
-    };
-
-    const showToast = (newStatus: NetworkStatus) => {
+    const showToast = useCallback((newStatus: NetworkStatus) => {
         // Dismiss previous network toast
         if (lastToastId.current !== undefined) {
             toast.dismiss(lastToastId.current);
@@ -73,18 +72,17 @@ export function useNetworkStatus() {
                 icon: '✅',
             });
         }
-    };
+    }, []);
 
-    const updateStatus = (newStatus: NetworkStatus) => {
+    const updateStatus = useCallback((newStatus: NetworkStatus) => {
         if (newStatus !== previousStatus.current) {
-            setStatus(newStatus);
             showToast(newStatus);
             previousStatus.current = newStatus;
         }
-    };
+    }, [showToast]);
 
     /** Handle NetInfo state changes (instant offline/online detection) */
-    const handleNetInfoChange = async (state: NetInfoState) => {
+    const handleNetInfoChange = useCallback(async (state: NetInfoState) => {
         if (!state.isConnected || !state.isInternetReachable) {
             updateStatus('offline');
             return;
@@ -93,15 +91,15 @@ export function useNetworkStatus() {
         // Device says it's connected — verify quality with a latency check
         const quality = await measureLatency();
         updateStatus(quality);
-    };
+    }, [updateStatus]);
 
     /** Periodic slow-network check (runs only when "online") */
-    const runSlowCheck = async () => {
+    const runSlowCheck = useCallback(async () => {
         if (previousStatus.current === 'offline') return; // skip if already offline
 
         const quality = await measureLatency();
         updateStatus(quality);
-    };
+    }, [updateStatus]);
 
     useEffect(() => {
         // Subscribe to OS-level network state changes
@@ -133,7 +131,7 @@ export function useNetworkStatus() {
             }
             appStateSub.remove();
         };
-    }, []);
+    }, [handleNetInfoChange, runSlowCheck]);
 
-    return { status, recheckNow: runSlowCheck };
+    return { status: previousStatus.current, recheckNow: runSlowCheck };
 }

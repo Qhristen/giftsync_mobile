@@ -103,7 +103,7 @@ export default function DeliveryScreen() {
                 />
 
                 <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-                    <View style={[styles.routeCard, { backgroundColor: colors.mint, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                    <View style={[styles.routeCard, { backgroundColor: colors.mint, borderColor: colors.ink }]}>
                         <View style={styles.routeTop}>
                             <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>GIFT ROUTE · ONE HAPPY STOP</Typography>
                             <View style={[styles.routeBadge, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
@@ -140,7 +140,6 @@ export default function DeliveryScreen() {
                             {
                                 backgroundColor: colors.surface,
                                 borderColor: colors.ink,
-                                shadowColor: colors.lilac,
                                 opacity: pressed ? 0.72 : 1,
                             },
                         ]}
@@ -213,7 +212,7 @@ export default function DeliveryScreen() {
                         <Typography variant="label">03 · The personal touch</Typography>
                         <Typography variant="caption" color={colors.textSecondary}>OPTIONAL</Typography>
                     </View>
-                    <View style={[styles.postcard, { backgroundColor: colors.lavender, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                    <View style={[styles.postcard, { backgroundColor: colors.lavender, borderColor: colors.ink }]}>
                         <View style={styles.postcardHeader}>
                             <View style={[styles.ticketIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                                 <HugeiconsIcon icon={GiftIcon} size={22} color={colors.ink} />
@@ -252,7 +251,7 @@ export default function DeliveryScreen() {
                         />
                     </View>
 
-                    <View style={[styles.totalTicket, { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                    <View style={[styles.totalTicket, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                         <View>
                             <Typography variant="caption" color={colors.textSecondary}>ROUTE TOTAL</Typography>
                             <Typography variant="caption" color={colors.textSecondary}>Gift + wrap + delivery</Typography>
@@ -294,10 +293,7 @@ const styles = StyleSheet.create({
         borderRadius: 25,
         padding: 18,
         gap: 13,
-        shadowOffset: { width: 4, height: 5 },
-        shadowOpacity: 0.15,
-        shadowRadius: 0,
-        elevation: 3,
+
         transform: [{ rotate: '0.7deg' }],
     },
     routeTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
@@ -317,10 +313,6 @@ const styles = StyleSheet.create({
         borderWidth: 1.5,
         borderRadius: 20,
         padding: 15,
-        shadowOffset: { width: 4, height: 4 },
-        shadowOpacity: 1,
-        shadowRadius: 0,
-        elevation: 2,
     },
     ticketIcon: { width: 44, height: 44, borderRadius: 14, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
     destinationCopy: { flex: 1 },
@@ -332,9 +324,7 @@ const styles = StyleSheet.create({
         borderRadius: 23,
         padding: 15,
         gap: 14,
-        shadowOffset: { width: 3, height: 4 },
-        shadowOpacity: 0.13,
-        shadowRadius: 0,
+
         transform: [{ rotate: '-0.5deg' }],
     },
     postcardHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
@@ -348,9 +338,7 @@ const styles = StyleSheet.create({
         borderWidth: 1.5,
         borderRadius: 20,
         padding: 17,
-        shadowOffset: { width: 3, height: 4 },
-        shadowOpacity: 0.12,
-        shadowRadius: 0,
+
         transform: [{ rotate: '0.5deg' }],
     },
     footer: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 14 },

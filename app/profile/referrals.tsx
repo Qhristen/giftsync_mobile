@@ -1,8 +1,10 @@
 import Avatar from '@/components/ui/Avatar';
+import FeatureUnavailable from '@/components/features/FeatureUnavailable';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
+import { useFeatureFlag } from '@/hooks/useFeatureFlags';
 import { useApplyReferralCodeMutation, useGetReferralInfoQuery, useGetReferralsListQuery } from '@/store/api/referralApi';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { setPendingReferralCode } from '@/store/slices/authSlice';
@@ -26,13 +28,14 @@ import { toast } from 'sonner-native';
 
 export default function ReferralsScreen() {
     const { colors, spacing } = useTheme();
+    const { enabled: referralsEnabled } = useFeatureFlag('referrals');
     const router = useRouter();
     const insets = useSafeAreaInsets();
     const dispatch = useAppDispatch();
     const { pendingReferralCode } = useAppSelector((state) => state.auth);
     const [referralCodeInput, setReferralCodeInput] = useState(pendingReferralCode || '');
-    const { data: info, refetch: refetchInfo, isFetching: isFetchingInfo } = useGetReferralInfoQuery();
-    const { data: referrals, isLoading: isLoadingList, refetch: refetchList, isFetching: isFetchingList } = useGetReferralsListQuery();
+    const { data: info, refetch: refetchInfo, isFetching: isFetchingInfo } = useGetReferralInfoQuery(undefined, { skip: !referralsEnabled });
+    const { data: referrals, isLoading: isLoadingList, refetch: refetchList, isFetching: isFetchingList } = useGetReferralsListQuery(undefined, { skip: !referralsEnabled });
     const [applyCode, { isLoading: isApplying }] = useApplyReferralCodeMutation();
 
     useEffect(() => {
@@ -78,6 +81,8 @@ export default function ReferralsScreen() {
     const totalCoinsEarned = referrals?.reduce((total, item) => total + item.bonusEarned, 0) || 0;
     const paperColors = [colors.mint, colors.peach, colors.lilac, colors.lemon];
 
+    if (!referralsEnabled) return <FeatureUnavailable title="Referrals are unavailable" />;
+
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -97,7 +102,7 @@ export default function ReferralsScreen() {
                         </View>
                     </View>
 
-                    <View style={[styles.pass, { marginHorizontal: spacing.xl, backgroundColor: colors.lilac, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                    <View style={[styles.pass, { marginHorizontal: spacing.xl, backgroundColor: colors.lilac, borderColor: colors.ink }]}>
                         <View style={[styles.passNotch, styles.leftNotch, { backgroundColor: colors.background, borderColor: colors.ink }]} />
                         <View style={[styles.passNotch, styles.rightNotch, { backgroundColor: colors.background, borderColor: colors.ink }]} />
                         <View style={styles.passTop}>
@@ -122,12 +127,12 @@ export default function ReferralsScreen() {
                     </View>
 
                     <View style={[styles.stickerRow, { paddingHorizontal: spacing.xl }]}>
-                        <View style={[styles.statSticker, { backgroundColor: colors.lemon, borderColor: colors.ink, shadowColor: colors.ink, transform: [{ rotate: '-3deg' }] }]}>
+                        <View style={[styles.statSticker, { backgroundColor: colors.lemon, borderColor: colors.ink, transform: [{ rotate: '-3deg' }] }]}>
                             <HugeiconsIcon icon={Wallet01Icon} size={22} color={colors.ink} />
                             <Typography variant="h1">{totalCoinsEarned}</Typography>
                             <Typography variant="caption" color={colors.textSecondary}>COINS EARNED</Typography>
                         </View>
-                        <View style={[styles.statSticker, { backgroundColor: colors.mint, borderColor: colors.ink, shadowColor: colors.ink, transform: [{ rotate: '3deg' }] }]}>
+                        <View style={[styles.statSticker, { backgroundColor: colors.mint, borderColor: colors.ink, transform: [{ rotate: '3deg' }] }]}>
                             <HugeiconsIcon icon={UserGroup02Icon} size={22} color={colors.ink} />
                             <Typography variant="h1">{info?.referralCount || 0}</Typography>
                             <Typography variant="caption" color={colors.textSecondary}>FRIENDS JOINED</Typography>
@@ -145,7 +150,7 @@ export default function ReferralsScreen() {
                     </View>
 
                     {info && !info.referredBy && (
-                        <View style={[styles.secretPass, { marginHorizontal: spacing.xl, backgroundColor: colors.lemon, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                        <View style={[styles.secretPass, { marginHorizontal: spacing.xl, backgroundColor: colors.lemon, borderColor: colors.ink }]}>
                             <View style={styles.secretHeading}>
                                 <View style={[styles.secretIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                                     <HugeiconsIcon icon={UserAdd01Icon} size={22} color={colors.primary} />
@@ -218,7 +223,7 @@ const styles = StyleSheet.create({
     header: { flexDirection: 'row', alignItems: 'center', gap: 12 },
     backButton: { width: 44, height: 44, borderWidth: 1.5, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
     overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.8 },
-    pass: { marginTop: 22, borderWidth: 1.5, borderRadius: 26, padding: 20, gap: 14, shadowOffset: { width: 5, height: 6 }, shadowOpacity: 1, shadowRadius: 0, elevation: 5 },
+    pass: { marginTop: 22, borderWidth: 1.5, borderRadius: 26, padding: 20, gap: 14, },
     passNotch: { position: 'absolute', width: 22, height: 22, borderRadius: 11, borderWidth: 1.5, top: 99 },
     leftNotch: { left: -12 },
     rightNotch: { right: -12 },
@@ -229,11 +234,11 @@ const styles = StyleSheet.create({
     code: { letterSpacing: 4 },
     copyButton: { width: 40, height: 40, borderWidth: 1.25, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
     stickerRow: { flexDirection: 'row', gap: 16, marginTop: 28 },
-    statSticker: { flex: 1, minHeight: 138, borderWidth: 1.5, borderRadius: 20, padding: 15, justifyContent: 'center', alignItems: 'center', shadowOffset: { width: 4, height: 5 }, shadowOpacity: 1, shadowRadius: 0, elevation: 4 },
+    statSticker: { flex: 1, minHeight: 138, borderWidth: 1.5, borderRadius: 20, padding: 15, justifyContent: 'center', alignItems: 'center', },
     stepsRow: { flexDirection: 'row', gap: 9, marginTop: 15 },
     stepStamp: { flex: 1, minHeight: 154, borderWidth: 1.5, borderRadius: 17, padding: 11, gap: 4 },
     stepIcon: { width: 38, height: 38, borderWidth: 1.25, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginVertical: 4 },
-    secretPass: { marginTop: 32, borderWidth: 1.5, borderRadius: 22, padding: 16, gap: 13, shadowOffset: { width: 4, height: 5 }, shadowOpacity: 1, shadowRadius: 0, elevation: 4 },
+    secretPass: { marginTop: 32, borderWidth: 1.5, borderRadius: 22, padding: 16, gap: 13, },
     secretHeading: { flexDirection: 'row', alignItems: 'center', gap: 11 },
     secretIcon: { width: 46, height: 46, borderWidth: 1.25, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
     friendsHeading: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 14 },

@@ -9,7 +9,7 @@ import {
 } from '@hugeicons/core-free-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { LayoutAnimation, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 const FAQS = [
     {
@@ -44,7 +44,6 @@ export default function SellerFaqsScreen() {
     const [expandedIndex, setExpandedIndex] = useState<number | null>(0);
 
     const toggleExpand = (index: number) => {
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         setExpandedIndex(expandedIndex === index ? null : index);
     };
 
@@ -67,12 +66,12 @@ export default function SellerFaqsScreen() {
                 {FAQS.map((faq, index) => {
                     const isExpanded = expandedIndex === index;
                     return (
-                        <Pressable 
-                            key={index} 
+                        <Pressable
+                            key={index}
                             onPress={() => toggleExpand(index)}
                             style={[
-                                styles.faqItem, 
-                                { 
+                                styles.faqItem,
+                                {
                                     backgroundColor: colors.surface,
                                     borderColor: isExpanded ? colors.primary : colors.border + '33'
                                 }
@@ -80,10 +79,10 @@ export default function SellerFaqsScreen() {
                         >
                             <View style={styles.questionRow}>
                                 <Typography variant="bodyBold" style={{ flex: 1 }}>{faq.question}</Typography>
-                                <HugeiconsIcon 
-                                    icon={isExpanded ? ArrowUp01Icon : ArrowDown01Icon} 
-                                    size={20} 
-                                    color={isExpanded ? colors.primary : colors.textMuted} 
+                                <HugeiconsIcon
+                                    icon={isExpanded ? ArrowUp01Icon : ArrowDown01Icon}
+                                    size={20}
+                                    color={isExpanded ? colors.primary : colors.textMuted}
                                 />
                             </View>
                             {isExpanded && (

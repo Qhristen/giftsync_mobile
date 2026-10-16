@@ -5,10 +5,7 @@ import { HugeiconsIcon } from '@hugeicons/react-native';
 import { Shield01Icon } from '@hugeicons/core-free-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import Animated, { FadeInUp } from 'react-native-reanimated';
-
-export default function PrivacyPolicyScreen() {
+import { ScrollView, StyleSheet, View } from 'react-native';export default function PrivacyPolicyScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
 
@@ -55,8 +52,8 @@ export default function PrivacyPolicyScreen() {
                 contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: 100 }}
                 showsVerticalScrollIndicator={false}
             >
-                <Animated.View entering={FadeInUp.duration(400)}>
-                    <View style={[styles.vaultCover, { backgroundColor: colors.lavender, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                <View>
+                    <View style={[styles.vaultCover, { backgroundColor: colors.lavender, borderColor: colors.ink }]}>
                         <View style={[styles.shieldSeal, { backgroundColor: colors.lime, borderColor: colors.ink }]}>
                             <HugeiconsIcon icon={Shield01Icon} size={34} color={colors.ink} />
                         </View>
@@ -75,7 +72,7 @@ export default function PrivacyPolicyScreen() {
                                 </View>
                                 <Typography variant="h3" style={{ flex: 1 }}>{section.title.replace(/^\d+\.\s*/, '')}</Typography>
                             </View>
-                            <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: [colors.mint, colors.peach, colors.lemon][index % 3] }]}>
+                            <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                                 <Typography variant="body" color={colors.textSecondary} style={{ lineHeight: 24 }}>
                                     {section.content}
                                 </Typography>
@@ -88,7 +85,7 @@ export default function PrivacyPolicyScreen() {
                             Privacy concerns? Reach out to privacy@giftsync.app
                         </Typography>
                     </View>
-                </Animated.View>
+                </View>
             </ScrollView>
         </View>
     );
@@ -99,7 +96,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.9 },
-    vaultCover: { minHeight: 156, padding: 19, borderWidth: 1.5, borderRadius: 25, flexDirection: 'row', alignItems: 'center', gap: 14, marginTop: 8, marginBottom: 30, shadowOffset: { width: 5, height: 6 }, shadowOpacity: 0.15, shadowRadius: 0, transform: [{ rotate: '0.6deg' }] },
+    vaultCover: { minHeight: 156, padding: 19, borderWidth: 1.5, borderRadius: 25, flexDirection: 'row', alignItems: 'center', gap: 14, marginTop: 8, marginBottom: 30, transform: [{ rotate: '0.6deg' }] },
     shieldSeal: { width: 68, height: 68, borderRadius: 22, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-4deg' }] },
     section: {
         marginBottom: 24,
@@ -122,9 +119,6 @@ const styles = StyleSheet.create({
         padding: 20,
         borderRadius: 20,
         borderWidth: 1.5,
-        shadowOffset: { width: 4, height: 4 },
-        shadowOpacity: 1,
-        shadowRadius: 0,
     },
     footer: {
         paddingVertical: 20,

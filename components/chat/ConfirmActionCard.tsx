@@ -3,6 +3,7 @@ import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { moderateScale } from '@/utils/scaling';
+import { AiActionDetails, AiUiData } from '@/store/api/aiApi';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import {
     Mail01Icon,
@@ -11,19 +12,9 @@ import {
     UserIcon,
 } from '@hugeicons/core-free-icons';
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
-
-interface ConfirmActionCardProps {
-    actionType: 'send_direct_sms' | 'send_occasion_message' | 'purchase_product';
-    details: {
-        recipients?: string[];
-        contactName?: string;
-        message?: string;
-        productId?: string;
-        productName?: string;
-        price?: string;
-    };
+import { StyleSheet, View } from 'react-native';interface ConfirmActionCardProps {
+    actionType: NonNullable<AiUiData['actionType']>;
+    details: AiActionDetails;
     onConfirm: () => void;
     onEdit: () => void;
     onCancel: () => void;
@@ -76,6 +67,25 @@ const ConfirmActionCard: React.FC<ConfirmActionCardProps> = ({
                         </View>
                     </View>
                 );
+            case 'create_gift_request':
+                return (
+                    <View style={styles.detailsContainer}>
+                        <Detail label="Recipient" value={details.recipientName} />
+                        <Detail label="Occasion" value={details.occasion} />
+                        <Detail label="Gift brief" value={details.description} />
+                        <Detail label="Category" value={details.category} />
+                        <Detail
+                            label="Budget"
+                            value={details.budget != null ? formatCurrency(details.budget, details.currency || currency) : undefined}
+                        />
+                        <Detail
+                            label="Needed by"
+                            value={details.neededBy ? new Date(details.neededBy).toLocaleDateString() : undefined}
+                        />
+                        <Detail label="Delivery window" value={details.orderDetails?.deliveryTimeWindow} />
+                        {!!details.preferences?.length && <Detail label="Preferences" value={details.preferences.join(' · ')} />}
+                    </View>
+                );
             default:
                 return null;
         }
@@ -89,14 +99,16 @@ const ConfirmActionCard: React.FC<ConfirmActionCardProps> = ({
                 return 'Confirm Greeting';
             case 'purchase_product':
                 return 'Confirm Purchase';
+            case 'create_gift_request':
+                return 'Confirm Gift Request';
             default:
                 return 'Confirm Action';
         }
     };
 
     return (
-        <Animated.View
-            entering={FadeInDown.duration(400).springify()}
+        <View
+
             style={[
                 styles.container,
                 {
@@ -111,7 +123,7 @@ const ConfirmActionCard: React.FC<ConfirmActionCardProps> = ({
             <View style={styles.header}>
                 <Typography variant="bodyBold" style={{ fontSize: moderateScale(14) }}>{getTitle()}</Typography>
                 <HugeiconsIcon
-                    icon={actionType === 'purchase_product' ? ShoppingCart01Icon : Mail01Icon}
+                    icon={actionType === 'purchase_product' || actionType === 'create_gift_request' ? ShoppingCart01Icon : Mail01Icon}
                     size={18}
                     color={colors.primary}
                 />
@@ -127,7 +139,7 @@ const ConfirmActionCard: React.FC<ConfirmActionCardProps> = ({
                     size="sm"
                     style={styles.actionButton}
                 />
-                {(actionType === 'send_direct_sms' || actionType === 'send_occasion_message') && (
+                {(actionType === 'send_direct_sms' || actionType === 'send_occasion_message' || actionType === 'create_gift_request') && (
                     <Button
                         title="Edit"
                         onPress={onEdit}
@@ -145,15 +157,26 @@ const ConfirmActionCard: React.FC<ConfirmActionCardProps> = ({
 
                 />
             </View>
-        </Animated.View>
+        </View>
     );
 };
+
+function Detail({ label, value }: { label: string; value?: string }) {
+    const { colors } = useTheme();
+    if (!value) return null;
+
+    return (
+        <View style={styles.summaryRow}>
+            <Typography variant="caption" color={colors.textSecondary}>{label.toUpperCase()}</Typography>
+            <Typography variant="bodyMedium" color={colors.textPrimary}>{value}</Typography>
+        </View>
+    );
+}
 
 const styles = StyleSheet.create({
     container: {
         borderRadius: 20,
         padding: 16,
-      
     },
     header: {
         flexDirection: 'row',
@@ -172,6 +195,9 @@ const styles = StyleSheet.create({
     },
     detailText: {
         fontSize: moderateScale(14),
+    },
+    summaryRow: {
+        gap: 2,
     },
     messagePreview: {
         padding: 12,

@@ -11,7 +11,7 @@ export default function ShopScreenSkeleton() {
         <View style={styles.grid}>
             {palette.map((color, index) => (
                 <View key={`${color}-${index}`} style={[styles.wrapper, index % 2 ? styles.right : styles.left]}>
-                    <SkeletonPaper color={colors.surface} style={[styles.card, { shadowColor: color }]}>
+                    <SkeletonPaper color={colors.surface} style={[styles.card, { }]}>
                         <View style={styles.imageWrap}>
                             <Skeleton width="100%" height={145} borderRadius={13} />
                             <View style={[styles.tab, { backgroundColor: color, borderColor: colors.ink }]} />

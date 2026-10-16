@@ -45,7 +45,6 @@ const CurrencyPickerSheet = forwardRef<BottomSheetRef, CurrencyPickerSheetProps>
                                 {
                                     backgroundColor: isSelected ? colors.lime : colors.lemon,
                                     borderColor: colors.ink,
-                                    shadowColor: isSelected ? colors.ink : 'transparent',
                                 },
                             ]}
                         >
@@ -83,9 +82,6 @@ const styles = StyleSheet.create({
         borderRadius: 18,
         borderWidth: 1.5,
         gap: 16,
-        shadowOffset: { width: 3, height: 3 },
-        shadowOpacity: 1,
-        shadowRadius: 0,
     },
     check: {
         marginLeft: 'auto',

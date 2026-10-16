@@ -8,7 +8,6 @@ import Badge from '../ui/Badge';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Typography from '../ui/Typography';
 
-
 interface Props {
     events: Event[];
     onSelect: (event: Event) => void;
@@ -34,7 +33,7 @@ const EventPickerSheet = forwardRef<BottomSheetRef, Props>(
                             onPress={() => onSelect(event)}
                             style={({ pressed }) => [
                                 styles.item,
-                                { backgroundColor: [colors.lemon, colors.lavender, colors.mint, colors.peach][index % 4], borderColor: colors.ink, shadowColor: colors.ink, opacity: pressed ? 0.72 : 1, transform: [{ rotate: index % 2 ? '0.4deg' : '-0.4deg' }] },
+                                { backgroundColor: [colors.lemon, colors.lavender, colors.mint, colors.peach][index % 4], borderColor: colors.ink, opacity: pressed ? 0.72 : 1, transform: [{ rotate: index % 2 ? '0.4deg' : '-0.4deg' }] },
                             ]}
                         >
                             <View style={[styles.iconContainer, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
@@ -47,11 +46,10 @@ const EventPickerSheet = forwardRef<BottomSheetRef, Props>(
                                 </Typography>
                             </View>
                             {event.date && (
-                                <Badge label={getCountdown(event.date)} size="xs" variant="amber" />
+                                <Badge label={getCountdown(event.date)} size="xs" variant="secondary" />
                             )}
                         </Pressable>
                     ))}
-
 
                 </View>
             </BottomSheetWrapper>
@@ -71,9 +69,6 @@ const styles = StyleSheet.create({
         borderRadius: 19,
         borderWidth: 1.5,
         gap: 12,
-        shadowOffset: { width: 3, height: 3 },
-        shadowOpacity: 0.12,
-        shadowRadius: 0,
     },
     justBecause: {
         borderWidth: 1,

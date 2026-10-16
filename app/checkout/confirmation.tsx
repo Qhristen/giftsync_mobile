@@ -9,7 +9,6 @@ import { HugeiconsIcon } from '@hugeicons/react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import Animated, { BounceIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ConfirmationScreen() {
@@ -36,32 +35,32 @@ export default function ConfirmationScreen() {
             <CheckoutProgress step={4} eyebrow="All wrapped up" title="Gift dispatched!" />
 
             <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-                <Animated.View
-                    entering={FadeInUp.duration(650)}
-                    style={[styles.launchCard, { backgroundColor: colors.mint, borderColor: colors.ink, shadowColor: colors.ink }]}
+                <View
+
+                    style={[styles.launchCard, { backgroundColor: colors.mint, borderColor: colors.ink }]}
                 >
                     <View style={[styles.tape, { backgroundColor: colors.lilac, borderColor: colors.ink }]} />
-                    <Animated.View entering={BounceIn.delay(220).duration(700)} style={[styles.successSeal, { backgroundColor: colors.lime, borderColor: colors.ink }]}>
+                    <View style={[styles.successSeal, { backgroundColor: colors.lime, borderColor: colors.ink }]}>
                         <HugeiconsIcon icon={Tick01Icon} size={56} color={colors.ink} />
-                    </Animated.View>
+                    </View>
                     <Typography variant="h1" align="center">It&apos;s officially on!</Typography>
                     <Typography variant="body" align="center" color={colors.textSecondary} style={styles.heroMessage}>
-                        We&apos;re preparing {order?.item?.product.name || 'your gift'} for {order?.recipientName || 'someone special'} now.
+                        We&apos;re preparing {order?.item?.product?.name || 'your custom gift request'} for {order?.recipientName || 'someone special'} now.
                     </Typography>
                     <View style={[styles.sentBadge, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                         <HugeiconsIcon icon={GiftIcon} size={17} color={colors.ink} />
                         <Typography variant="caption" style={styles.badgeCopy}>ORDER ACCEPTED · #{order?.id?.slice(-6).toUpperCase()}</Typography>
                     </View>
-                </Animated.View>
+                </View>
 
-                <Animated.View entering={FadeInDown.delay(380).duration(650)} style={styles.sectionHeading}>
+                <View style={styles.sectionHeading}>
                     <Typography variant="label">Your dispatch ticket</Typography>
                     <Typography variant="caption" color={colors.textSecondary}>KEEP THIS HANDY</Typography>
-                </Animated.View>
+                </View>
 
-                <Animated.View
-                    entering={FadeInDown.delay(470).duration(650)}
-                    style={[styles.dispatchTicket, { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: colors.lilac }]}
+                <View
+
+                    style={[styles.dispatchTicket, { backgroundColor: colors.surface, borderColor: colors.ink }]}
                 >
                     <View style={styles.ticketRow}>
                         <View style={[styles.ticketIcon, { backgroundColor: colors.lemon, borderColor: colors.ink }]}>
@@ -96,26 +95,26 @@ export default function ConfirmationScreen() {
                             <Typography variant="caption" style={styles.badgeCopy}>PREPARING WITH CARE</Typography>
                         </View>
                     </View>
-                </Animated.View>
+                </View>
 
-                <Animated.View
-                    entering={FadeInDown.delay(560).duration(650)}
+                <View
+
                     style={[styles.nextNote, { backgroundColor: colors.lemon, borderColor: colors.ink }]}
                 >
                     <Typography variant="bodyBold">What happens next?</Typography>
                     <Typography variant="caption" color={colors.textSecondary}>
                         We&apos;ll keep the order timeline updated from preparation to doorstep. You can check it whenever you like.
                     </Typography>
-                </Animated.View>
+                </View>
             </ScrollView>
 
-            <Animated.View
-                entering={FadeInDown.delay(650).duration(650)}
+            <View
+
                 style={[styles.actions, { backgroundColor: colors.background, paddingBottom: insets.bottom + 16 }]}
             >
                 <Button title="Follow the gift  →" onPress={() => router.replace('/orders')} style={styles.actionButton} />
                 <Button title="Back to gift desk" variant="outline" onPress={() => router.replace('/(tabs)')} style={styles.actionButton} />
-            </Animated.View>
+            </View>
         </View>
     );
 }
@@ -150,10 +149,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 24,
         paddingVertical: 27,
         gap: 10,
-        shadowOffset: { width: 5, height: 6 },
-        shadowOpacity: 0.16,
-        shadowRadius: 0,
-        elevation: 3,
+
         transform: [{ rotate: '-0.6deg' }],
     },
     tape: {
@@ -184,10 +180,7 @@ const styles = StyleSheet.create({
         borderRadius: 23,
         padding: 18,
         gap: 16,
-        shadowOffset: { width: 4, height: 4 },
-        shadowOpacity: 1,
-        shadowRadius: 0,
-        elevation: 2,
+
         transform: [{ rotate: '0.5deg' }],
     },
     ticketRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },

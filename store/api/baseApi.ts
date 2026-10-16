@@ -2,6 +2,7 @@ import { tokenCache } from '@/utils/cache';
 import { BaseQueryFn, createApi } from '@reduxjs/toolkit/query/react';
 import axios, { AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
 import * as jose from 'jose';
+import { logout } from '../slices/authSlice';
 
 interface AxiosBaseQueryArgs extends Omit<AxiosRequestConfig, 'url'> {
     url: string;
@@ -10,6 +11,7 @@ interface AxiosBaseQueryArgs extends Omit<AxiosRequestConfig, 'url'> {
 interface ErrorResponse {
     message: string;
     code?: string;
+    feature?: string;
     status?: number;
 }
 
@@ -38,62 +40,77 @@ const axiosInstance = axios.create({
     timeout: 15000, // 15s timeout to prevent hanging requests
 });
 
-export const refreshAuthToken = async () => {
-    const refreshToken = await tokenCache.get('refreshToken');
-
-    if (!refreshToken) {
-        return null;
-    }
-
-    try {
-        const response = await axiosInstance.post("/api/v1/auth/refresh", {
-            refreshToken
-        });
-
-        await tokenCache.save('refreshToken', response.data.refreshToken);
-        await tokenCache.save('accessToken', response.data.accessToken);
-
-        return response.data.accessToken;
-    } catch (error: any) {
-        throw error;
-    }
-};
-
-
-
 let cachedToken: string | null = null;
+let tokenLoadPromise: Promise<string | null> | null = null;
+let tokenRefreshPromise: Promise<string | null> | null = null;
+
+const clearStoredTokens = async () => {
+    await Promise.all([
+        tokenCache.remove('accessToken'),
+        tokenCache.remove('refreshToken'),
+    ]);
+};
 
 export const clearCachedToken = () => {
     cachedToken = null;
 };
 
+export const refreshAuthToken = async (): Promise<string | null> => {
+    if (tokenRefreshPromise) return tokenRefreshPromise;
+
+    tokenRefreshPromise = (async () => {
+        const refreshToken = await tokenCache.get('refreshToken');
+        if (!refreshToken) return null;
+
+        const response = await axiosInstance.post('/api/v1/auth/refresh', {
+            refreshToken,
+        });
+
+        const accessToken = response.data.accessToken as string;
+        cachedToken = accessToken;
+
+        await Promise.all([
+            tokenCache.save('refreshToken', response.data.refreshToken),
+            tokenCache.save('accessToken', accessToken),
+        ]);
+
+        return accessToken;
+    })().finally(() => {
+        tokenRefreshPromise = null;
+    });
+
+    return tokenRefreshPromise;
+};
+
 export const getValidToken = async (forceRefresh = false): Promise<string | null> => {
+    if (forceRefresh) return refreshAuthToken();
 
     if (cachedToken && !isTokenExpired(cachedToken)) {
         return cachedToken;
     }
 
-    const latestToken = await tokenCache.get('accessToken');
-    if (!latestToken) return null;
+    if (!tokenLoadPromise) {
+        tokenLoadPromise = (async () => {
+            const latestToken = await tokenCache.get('accessToken');
+            if (!latestToken) return null;
 
-    if (isTokenExpired(latestToken)) {
+            if (isTokenExpired(latestToken)) {
+                return refreshAuthToken();
+            }
 
-        const newToken = await refreshAuthToken()
-        cachedToken = newToken;
-        return newToken;
+            cachedToken = latestToken;
+            return latestToken;
+        })().finally(() => {
+            tokenLoadPromise = null;
+        });
     }
 
-    cachedToken = latestToken;
-    return latestToken;
-
+    return tokenLoadPromise;
 };
 
 
 axiosInstance.interceptors.request.use(
     async (config: InternalAxiosRequestConfig<any>) => {
-        // Add timestamp to track request duration
-        (config as any).metadata = { startTime: Date.now() };
-
         config.headers.Accept = "application/json";
         config.headers["Content-Type"] = "application/json";
 
@@ -108,9 +125,9 @@ axiosInstance.interceptors.request.use(
             }
         } catch (error) {
             console.error('Token refresh failed in request interceptor:', error);
-            await tokenCache.remove('refreshToken');
-            await tokenCache.remove('accessToken');
-
+            clearCachedToken();
+            await clearStoredTokens();
+            return Promise.reject(error);
         }
 
         return config;
@@ -122,30 +139,18 @@ axiosInstance.interceptors.request.use(
 
 
 axiosInstance.interceptors.response.use(
-    (response) => {
-        const startTime = (response.config as any).metadata?.startTime;
-        if (startTime) {
-            const duration = Date.now() - startTime;
-            console.log(`[BaseApi] ✅ ${response.config.method?.toUpperCase()} ${response.config.url} - ${duration}ms`);
-        }
-        return response;
-    },
+    (response) => response,
     async (error: AxiosError) => {
-        const startTime = (error.config as any)?.metadata?.startTime;
-        if (startTime) {
-            const duration = Date.now() - startTime;
-            console.log(`[BaseApi] ❌ ${error.config?.method?.toUpperCase()} ${error.config?.url} - ${duration}ms (Error: ${error.message})`);
-        }
-
         const originalRequest = error.config as InternalAxiosRequestConfig & {
             _retry?: boolean;
         };
 
+        if (!originalRequest) return Promise.reject(error);
+
         // Don't retry if it's the refresh token endpoint itself that failed
         if (originalRequest.url?.includes('/api/v1/auth/refresh')) {
-            tokenCache.remove('accessToken');
-            tokenCache.remove('refreshToken');
             clearCachedToken();
+            await clearStoredTokens();
             return Promise.reject(error);
         }
 
@@ -153,30 +158,18 @@ axiosInstance.interceptors.response.use(
             originalRequest._retry = true;
 
             try {
-                const currentToken = await tokenCache.get('accessToken');
-
-                // Only try to refresh if we have a token and it will expire within 24 hours
-                if (currentToken && isTokenExpired(currentToken)) {
-                    const newToken = await refreshAuthToken();
-                    if (newToken) {
-                        axiosInstance.defaults.headers.common.Authorization = `Bearer ${newToken}`;
-                        if (originalRequest && originalRequest.headers) {
-                            originalRequest.headers.Authorization = `Bearer ${newToken}`;
-                            return axiosInstance(originalRequest);
-                        }
-                    }
+                const newToken = await getValidToken(true);
+                if (newToken && originalRequest.headers) {
+                    originalRequest.headers.Authorization = `Bearer ${newToken}`;
+                    return axiosInstance(originalRequest);
                 }
 
-             
-                await tokenCache.remove('accessToken');
-                await tokenCache.remove('refreshToken');
                 clearCachedToken();
+                await clearStoredTokens();
                 return Promise.reject(error);
             } catch (refreshError) {
-             
-                await tokenCache.remove('accessToken');
-                await tokenCache.remove('refreshToken');
                 clearCachedToken();
+                await clearStoredTokens();
                 return Promise.reject(refreshError);
             }
         }
@@ -208,12 +201,16 @@ const axiosBaseQuery = (): BaseQueryFn<
         // Automatically log out user if we get a 401 Unauthorized
         // This handles cases where the refresh token has expired or is invalid
         if (status === 401) {
-            const { logout } = require('../slices/authSlice');
             api.dispatch(logout());
             // Clear tokens
-            tokenCache.remove('accessToken');
-            tokenCache.remove('refreshToken');
             clearCachedToken();
+            void clearStoredTokens();
+        }
+
+        // A flag can change between manifest refreshes. Refresh the cached
+        // manifest immediately whenever a feature endpoint rejects the call.
+        if (axiosError.response?.data?.code === 'FEATURE_DISABLED') {
+            api.dispatch(baseApi.util.invalidateTags(['FeatureManifest']));
         }
 
         return {
@@ -229,7 +226,7 @@ export const api = axiosInstance
 export const baseApi = createApi({
     reducerPath: 'api',
     baseQuery: axiosBaseQuery(),
-    tagTypes: ['Contacts', 'Events', 'Recommendations', 'Orders', 'Shortlist', 'UserProfile', 'Wallet', 'Notifications', 'Products', 'Addresses', 'Chat', 'Business', 'Review', 'TrustSafety', 'Disputes', 'ReferralInfo', 'ReferralsList'],
+    tagTypes: ['Contacts', 'Events', 'Recommendations', 'Orders', 'Shortlist', 'UserProfile', 'Wallet', 'Notifications', 'Products', 'Addresses', 'Chat', 'Business', 'Review', 'TrustSafety', 'Disputes', 'ReferralInfo', 'ReferralsList', 'FeatureManifest'],
     // Keep unused data cached for 5 minutes to reduce redundant fetches
     keepUnusedDataFor: 300,
     // Refetch on reconnect and on focus for freshness

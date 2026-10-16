@@ -4,7 +4,8 @@ import Avatar from '@/components/ui/Avatar';
 import Typography from '@/components/ui/Typography';
 import { usePlatformConfig } from '@/hooks/usePlatformConfig';
 import { useTheme } from '@/hooks/useTheme';
-import { AiChatHistoryItem, useChatMutation } from '@/store/api/aiApi';
+import { useFeatureFlag } from '@/hooks/useFeatureFlags';
+import { AiChatHistoryItem, AiProductSuggestion, AiUiData, useChatMutation } from '@/store/api/aiApi';
 import { useAppSelector } from '@/store/hooks';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { moderateScale } from '@/utils/scaling';
@@ -34,7 +35,6 @@ import {
     View
 } from 'react-native';
 import { KeyboardAvoidingView, OverKeyboardView } from 'react-native-keyboard-controller';
-import Animated, { FadeIn, FadeInDown, FadeOut } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
@@ -44,20 +44,7 @@ interface AIMessage {
     isOwnMessage: boolean;
     createdAt: string;
     isTyping?: boolean;
-    uiData?: {
-        type: 'products' | 'occasions' | 'contacts' | 'send_message' | 'businesses' | 'confirm_action' | 'none';
-        actionType?: 'send_direct_sms' | 'send_occasion_message' | 'purchase_product';
-        details?: {
-            recipients?: string[];
-            contactName?: string;
-            message?: string;
-            productId?: string;
-            productName?: string;
-            price?: string;
-        };
-        items?: any[];
-        item?: { type: string; data: any[] };
-    };
+    uiData?: AiUiData;
 }
 
 const AI_CHAT_CACHE_KEY = 'ai_chat_history_v1';
@@ -69,6 +56,8 @@ export default function AIChatScreen() {
     const initialMessageProcessed = useRef(false);
     const { colors, spacing } = useTheme();
     const { aiChatCost } = usePlatformConfig();
+    const { enabled: aiEnabled } = useFeatureFlag('ai_assistant');
+    const { enabled: giftRequestsEnabled } = useFeatureFlag('gift_requests');
     const insets = useSafeAreaInsets();
     const flatListRef = useRef<FlatList>(null);
     const inputRef = useRef<TextInput>(null);
@@ -205,7 +194,7 @@ export default function AIChatScreen() {
         setIsAITyping(true);
 
         setTimeout(() => {
-            flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+            flatListRef.current?.scrollToOffset({ offset: 0, animated: false });
         }, 100);
 
         try {
@@ -229,7 +218,7 @@ export default function AIChatScreen() {
                 setChatHistory(prev => [
                     ...prev,
                     { role: 'user', content: currentText },
-                    { role: 'model', content: result.response.message }
+                    { role: 'model', content: JSON.stringify(result.response) }
                 ]);
             }
         } catch (error: any) {
@@ -246,6 +235,22 @@ export default function AIChatScreen() {
         }
     };
 
+    if (!aiEnabled) {
+        return (
+            <View style={[styles.unavailable, { backgroundColor: colors.background, paddingHorizontal: spacing.xl }]}>
+                <Stack.Screen options={{ headerShown: false }} />
+                <View style={[styles.unavailableIcon, { backgroundColor: colors.lavender, borderColor: colors.ink }]}>
+                    <HugeiconsIcon icon={SparklesIcon} size={30} color={colors.ink} />
+                </View>
+                <Typography variant="h2" align="center">Gift concierge is unavailable</Typography>
+                <Typography variant="body" color={colors.textSecondary} align="center">Please check back shortly.</Typography>
+                <Pressable onPress={() => router.back()} style={[styles.unavailableButton, { backgroundColor: colors.ink }]}>
+                    <Typography variant="bodyBold" color={colors.surface}>Go back</Typography>
+                </Pressable>
+            </View>
+        );
+    }
+
     return (
         <View
             style={[styles.container, { backgroundColor: colors.background }]}
@@ -260,7 +265,7 @@ export default function AIChatScreen() {
                     paddingBottom: 12,
                 }
             ]}>
-                <View style={[styles.conciergeHeader, { backgroundColor: colors.lavender, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                <View style={[styles.conciergeHeader, { backgroundColor: colors.lavender, borderColor: colors.ink }]}>
                     <Pressable onPress={() => router.back()} style={[styles.backBtn, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                         <HugeiconsIcon icon={ArrowLeft01Icon} size={21} color={colors.ink} />
                     </Pressable>
@@ -282,22 +287,22 @@ export default function AIChatScreen() {
                     </View>
 
                     <Pressable
-                    accessibilityLabel="Clear chat"
-                    onPress={async () => {
+                        accessibilityLabel="Clear chat"
+                        onPress={async () => {
                         // Reset to first message
-                        const resetMessages = [messages.find(m => m.id === '1') || messages[0]];
-                        setMessages(resetMessages);
-                        setChatHistory([]);
-                        if (cacheKey) {
-                            try {
-                                await AsyncStorage.removeItem(cacheKey);
-                            } catch (e) {
-                                console.error('Failed to clear cache:', e);
+                            const resetMessages = [messages.find(m => m.id === '1') || messages[0]];
+                            setMessages(resetMessages);
+                            setChatHistory([]);
+                            if (cacheKey) {
+                                try {
+                                    await AsyncStorage.removeItem(cacheKey);
+                                } catch (e) {
+                                    console.error('Failed to clear cache:', e);
+                                }
                             }
-                        }
-                    }}
-                    style={({ pressed }) => [styles.headerAction, { backgroundColor: colors.surface, borderColor: colors.ink, opacity: pressed ? 0.65 : 1 }]}
-                >
+                        }}
+                        style={({ pressed }) => [styles.headerAction, { backgroundColor: colors.surface, borderColor: colors.ink, opacity: pressed ? 0.65 : 1 }]}
+                    >
                         <HugeiconsIcon icon={Delete02Icon} size={17} color={colors.ink} />
                     </Pressable>
                     <View style={[styles.headerTape, { backgroundColor: colors.lemon, borderColor: colors.ink }]} />
@@ -330,7 +335,8 @@ export default function AIChatScreen() {
                         </View>
                     ) : null}
                     renderItem={({ item }) => {
-                        const hasProducts = item.uiData?.type === 'products' && item.uiData.items && item.uiData.items.length > 0;
+                        const hasProducts = item.uiData?.type === 'products'
+                            && (!!item.uiData.items?.length || !!item.uiData.suggestions?.length);
                         const hasEvents = item.uiData?.type === 'occasions' && item.uiData.items && item.uiData.items.length > 0;
                         const hasContacts = item.uiData?.type === 'contacts' && item.uiData.items && item.uiData.items.length > 0;
 
@@ -345,33 +351,71 @@ export default function AIChatScreen() {
                                             isOwnMessage: false,
                                         } as any}
                                         isOwnMessage={false}
+                                        renderMarkdown
                                         onLongPress={handleMessageLongPress}
                                     />
                                     <View style={{ paddingLeft: spacing.xl, paddingRight: spacing.md, paddingBottom: spacing.md }}>
                                         <View style={styles.twoColumnGrid}>
                                             {item.uiData?.items?.map((rec: any, index: number) => (
-                                                <Animated.View
+                                                <View
                                                     key={rec.id}
-                                                    entering={FadeInDown.delay(index * 60).duration(300).springify().damping(50)}
+
                                                     style={{ width: '48%', marginBottom: 12 }}
                                                 >
                                                     <Pressable
                                                         onPress={() => router.push({ pathname: '/product-detail', params: { id: rec.id } })}
                                                         style={({ pressed }) => [
                                                             styles.gridCardInner,
-                                                            { backgroundColor: [colors.lemon, colors.mint, colors.peach, colors.lavender][index % 4], borderColor: colors.ink, shadowColor: colors.ink },
+                                                            { backgroundColor: [colors.lemon, colors.mint, colors.peach, colors.lavender][index % 4], borderColor: colors.ink },
                                                             pressed && { opacity: 0.7, transform: [{ scale: 0.98 }] }
                                                         ]}
                                                     >
-                                                        <Image source={{ uri: rec.imageUrls?.[0] }} style={styles.gridProductImage} />
+                                                        {rec.imageUrls?.[0] ? (
+                                                            <Image source={{ uri: rec.imageUrls[0] }} style={styles.gridProductImage} />
+                                                        ) : (
+                                                            <View style={[styles.gridProductImage, styles.productPlaceholder, { backgroundColor: colors.surface }]}>
+                                                                <HugeiconsIcon icon={SparklesIcon} size={24} color={colors.primary} />
+                                                            </View>
+                                                        )}
                                                         <View style={styles.gridCardContent}>
                                                             <Typography variant="bodyBold" numberOfLines={1} style={{ textAlign: 'center', fontSize: moderateScale(13), marginTop: 4 }}>{rec.name}</Typography>
-                                                            <Typography variant="label" color={colors.primary} style={{ textAlign: 'center', fontSize: moderateScale(12) }}>{formatCurrency(rec.price, rec.currency || 'NGN')}</Typography>
+                                                            {rec.price != null && <Typography variant="label" color={colors.primary} style={{ textAlign: 'center', fontSize: moderateScale(12) }}>{formatCurrency(Number(rec.price), rec.currency || 'NGN')}</Typography>}
                                                         </View>
                                                     </Pressable>
-                                                </Animated.View>
+                                                </View>
                                             ))}
                                         </View>
+                                        {!!item.uiData?.suggestions?.length && (
+                                            <View style={styles.suggestionList}>
+                                                {item.uiData.suggestions.map((suggestion: AiProductSuggestion, index: number) => (
+                                                    <View
+                                                        key={`${suggestion.name}-${index}`}
+
+                                                        style={[styles.suggestionCard, { backgroundColor: colors.surface, borderColor: colors.ink }]}
+                                                    >
+                                                        <View style={styles.suggestionHeading}>
+                                                            <Typography variant="bodyBold" style={{ flex: 1 }}>{suggestion.name}</Typography>
+                                                            <View style={[styles.offPlatformBadge, { backgroundColor: colors.peach, borderColor: colors.ink }]}>
+                                                                <Typography variant="caption">SOURCE IT</Typography>
+                                                            </View>
+                                                        </View>
+                                                        <Typography variant="body" color={colors.textSecondary}>{suggestion.whyItFits}</Typography>
+                                                        {!!suggestion.estimatedBudget && (
+                                                            <Typography variant="caption" color={colors.primary}>{suggestion.estimatedBudget}</Typography>
+                                                        )}
+                                                        {suggestion.canRequest && giftRequestsEnabled && (
+                                                            <Pressable
+                                                                onPress={() => router.push({ pathname: '/gift-request', params: { item: suggestion.name } })}
+                                                                style={[styles.requestSuggestionButton, { backgroundColor: colors.mint, borderColor: colors.ink }]}
+                                                            >
+                                                                <Typography variant="label">Create a sourcing request</Typography>
+                                                                <HugeiconsIcon icon={ArrowLeft01Icon} size={16} color={colors.ink} style={{ transform: [{ rotate: '180deg' }] }} />
+                                                            </Pressable>
+                                                        )}
+                                                    </View>
+                                                ))}
+                                            </View>
+                                        )}
                                     </View>
                                 </View>
                             );
@@ -388,21 +432,22 @@ export default function AIChatScreen() {
                                             isOwnMessage: false,
                                         } as any}
                                         isOwnMessage={false}
+                                        renderMarkdown
                                         onLongPress={handleMessageLongPress}
                                     />
                                     <View style={{ paddingLeft: spacing.xl, paddingRight: spacing.md, paddingBottom: spacing.md }}>
                                         <View style={styles.twoColumnGrid}>
                                             {item.uiData?.items?.map((rec: any, index: number) => (
-                                                <Animated.View
+                                                <View
                                                     key={rec.id}
-                                                    entering={FadeInDown.delay(index * 60).duration(300).springify().damping(50)}
+
                                                     style={{ width: '48%', marginBottom: 12 }}
                                                 >
                                                     <Pressable
                                                         onPress={() => router.push({ pathname: '/event-detail', params: { id: rec.id } })}
                                                         style={({ pressed }) => [
                                                             styles.gridCardInner,
-                                                            { backgroundColor: [colors.lemon, colors.mint, colors.peach, colors.lavender][index % 4], borderColor: colors.ink, shadowColor: colors.ink },
+                                                            { backgroundColor: [colors.lemon, colors.mint, colors.peach, colors.lavender][index % 4], borderColor: colors.ink },
                                                             pressed && { opacity: 0.7, transform: [{ scale: 0.98 }] }
                                                         ]}
                                                     >
@@ -427,7 +472,7 @@ export default function AIChatScreen() {
                                                             </Typography>
                                                         </View>
                                                     </Pressable>
-                                                </Animated.View>
+                                                </View>
                                             ))}
                                         </View>
                                     </View>
@@ -447,20 +492,21 @@ export default function AIChatScreen() {
                                             senderId: '',
                                         } as any}
                                         isOwnMessage={false}
+                                        renderMarkdown
                                         onLongPress={handleMessageLongPress}
                                     />
                                     <View style={{ paddingLeft: spacing.xl, paddingRight: spacing.md, paddingBottom: spacing.md }}>
                                         <View style={styles.twoColumnGrid}>
                                             {item.uiData?.items?.map((rec: any, index: number) => (
-                                                <Animated.View
+                                                <View
                                                     key={rec.id}
-                                                    entering={FadeInDown.delay(index * 60).duration(300).springify().damping(50)}
+
                                                     style={{ width: '48%', marginBottom: 12 }}
                                                 >
                                                     <Pressable
                                                         style={({ pressed }) => [
                                                             styles.gridCardInner,
-                                                            { backgroundColor: [colors.lemon, colors.mint, colors.peach, colors.lavender][index % 4], borderColor: colors.ink, shadowColor: colors.ink },
+                                                            { backgroundColor: [colors.lemon, colors.mint, colors.peach, colors.lavender][index % 4], borderColor: colors.ink },
                                                             pressed && { opacity: 0.7, transform: [{ scale: 0.98 }] }
                                                         ]}
                                                     >
@@ -479,7 +525,7 @@ export default function AIChatScreen() {
                                                             )}
                                                         </View>
                                                     </Pressable>
-                                                </Animated.View>
+                                                </View>
                                             ))}
                                         </View>
                                     </View>
@@ -498,19 +544,57 @@ export default function AIChatScreen() {
                                             isOwnMessage: false,
                                         } as any}
                                         isOwnMessage={false}
+                                        renderMarkdown
                                         onLongPress={handleMessageLongPress}
                                     />
                                     <ConfirmActionCard
                                         actionType={item.uiData.actionType as any}
                                         details={item.uiData.details as any}
                                         currency={user?.currency}
-                                        onConfirm={() => handleSend(item.uiData?.actionType === 'purchase_product' ? 'Yes, place the order' : 'Yes, send it')}
+                                        onConfirm={() => handleSend(
+                                            item.uiData?.actionType === 'create_gift_request'
+                                                ? 'Confirm and create the gift request'
+                                                : item.uiData?.actionType === 'purchase_product'
+                                                    ? 'Yes, place the order'
+                                                    : 'Yes, send it'
+                                        )}
                                         onEdit={() => {
                                             inputRef.current?.focus();
                                             toast.info('You can type your changes in the message box below.');
                                         }}
                                         onCancel={() => handleSend('Cancel')}
                                     />
+                                </View>
+                            );
+                        }
+
+                        if (item.uiData?.type === 'gift_request') {
+                            const request = item.uiData.giftRequest || item.uiData.item?.data || item.uiData.details;
+                            const orderId = item.uiData.order?.id || request?.orderId;
+                            const total = item.uiData.order?.total ?? request?.orderTotal;
+                            const requestCurrency = item.uiData.order?.currency || request?.currency || user?.currency || 'NGN';
+
+                            return (
+                                <View>
+                                    <MessageBubble
+                                        message={{ id: item.id, content: item.content, createdAt: item.createdAt, isOwnMessage: false } as any}
+                                        isOwnMessage={false}
+                                        renderMarkdown
+                                        onLongPress={handleMessageLongPress}
+                                    />
+                                    <View style={[styles.createdRequestCard, { backgroundColor: colors.mint, borderColor: colors.ink, marginLeft: spacing.xl, marginRight: spacing.md }]}>
+                                        <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>REQUEST CREATED</Typography>
+                                        <Typography variant="h3">Your sourcing brief is in</Typography>
+                                        {total != null && <Typography variant="bodyBold" color={colors.primary}>{formatCurrency(Number(total), requestCurrency)}</Typography>}
+                                        {!!orderId && (
+                                            <Pressable
+                                                onPress={() => router.push({ pathname: '/checkout/payment', params: { orderId } })}
+                                                style={[styles.payRequestButton, { backgroundColor: colors.accent, borderColor: colors.ink }]}
+                                            >
+                                                <Typography variant="label" color="#17151D">Continue to payment</Typography>
+                                            </Pressable>
+                                        )}
+                                    </View>
                                 </View>
                             );
                         }
@@ -524,6 +608,7 @@ export default function AIChatScreen() {
                                     isOwnMessage: item.isOwnMessage,
                                 } as any}
                                 isOwnMessage={item.isOwnMessage}
+                                renderMarkdown={!item.isOwnMessage}
                                 onLongPress={handleMessageLongPress}
                             />
                         );
@@ -587,13 +672,12 @@ export default function AIChatScreen() {
                     style={StyleSheet.absoluteFill}
                     onPress={() => setIsOptionsVisible(false)}
                 >
-                    <Animated.View
-                        entering={FadeIn.duration(200)}
-                        exiting={FadeOut.duration(200)}
+                    <View
+
                         style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.2)' }]}
                     >
-                        <Animated.View
-                            entering={FadeIn.duration(200)}
+                        <View
+
                             style={[
                                 styles.floatingMenu,
                                 {
@@ -629,8 +713,8 @@ export default function AIChatScreen() {
                                 <HugeiconsIcon icon={Cancel01Icon} size={18} color={colors.error} />
                                 <Typography variant="body" color={colors.error}>Cancel</Typography>
                             </Pressable>
-                        </Animated.View>
-                    </Animated.View>
+                        </View>
+                    </View>
                 </Pressable>
             </OverKeyboardView>
         </View>
@@ -652,9 +736,7 @@ const styles = StyleSheet.create({
         borderWidth: 1.5,
         borderRadius: 22,
         padding: 10,
-        shadowOffset: { width: 4, height: 4 },
-        shadowOpacity: 0.14,
-        shadowRadius: 0,
+
         transform: [{ rotate: '-0.3deg' }],
     },
     headerTape: { position: 'absolute', top: -8, left: '44%', width: 54, height: 15, borderWidth: 1, transform: [{ rotate: '3deg' }] },
@@ -738,9 +820,6 @@ const styles = StyleSheet.create({
         borderRadius: 18,
         borderWidth: 1.5,
         gap: 8,
-        shadowOffset: { width: 3, height: 3 },
-        shadowOpacity: 0.12,
-        shadowRadius: 0,
     },
     gridCardContent: {
         width: '100%',
@@ -752,6 +831,10 @@ const styles = StyleSheet.create({
         borderRadius: 11,
         borderWidth: 1,
         borderColor: '#17151D',
+    },
+    productPlaceholder: {
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     // Legacy styles kept for safety
     recCard: {
@@ -789,11 +872,6 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         borderWidth: 1.5,
         padding: 4,
-        shadowColor: '#17151D',
-        shadowOffset: { width: 4, height: 4 },
-        shadowOpacity: 0.18,
-        shadowRadius: 0,
-        elevation: 10,
     },
     menuOption: {
         flexDirection: 'row',
@@ -805,5 +883,73 @@ const styles = StyleSheet.create({
     menuSeparator: {
         height: 1,
         marginHorizontal: 12,
+    },
+    suggestionList: {
+        gap: 10,
+        marginTop: 12,
+    },
+    suggestionCard: {
+        borderWidth: 1.5,
+        borderRadius: 17,
+        padding: 14,
+        gap: 7,
+    },
+    suggestionHeading: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    offPlatformBadge: {
+        borderWidth: 1,
+        borderRadius: 9,
+        paddingHorizontal: 7,
+        paddingVertical: 4,
+    },
+    requestSuggestionButton: {
+        minHeight: 40,
+        borderWidth: 1.25,
+        borderRadius: 12,
+        paddingHorizontal: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginTop: 3,
+    },
+    createdRequestCard: {
+        borderWidth: 1.5,
+        borderRadius: 18,
+        padding: 16,
+        gap: 7,
+        marginBottom: 14,
+    },
+    payRequestButton: {
+        minHeight: 42,
+        borderWidth: 1.25,
+        borderRadius: 13,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 5,
+    },
+    unavailable: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 12,
+    },
+    unavailableIcon: {
+        width: 64,
+        height: 64,
+        borderWidth: 1.5,
+        borderRadius: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    unavailableButton: {
+        minWidth: 140,
+        minHeight: 46,
+        borderRadius: 14,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 6,
     },
 });

@@ -34,7 +34,7 @@ const PaymentMethodSheet = forwardRef<BottomSheetRef, PaymentMethodSheetProps>((
     isProcessing = false
 }, ref) => {
     const { colors, spacing } = useTheme();
-      const insets = useSafeAreaInsets();
+    const insets = useSafeAreaInsets();
 
     return (
         <BottomSheetWrapper ref={ref} snapPoints={['40%']}>
@@ -54,7 +54,6 @@ const PaymentMethodSheet = forwardRef<BottomSheetRef, PaymentMethodSheetProps>((
                                         borderColor: colors.ink,
                                         borderWidth: 1.5,
                                         backgroundColor: isSelected ? colors.mint : colors.sky,
-                                        shadowColor: isSelected ? colors.ink : 'transparent',
                                         marginBottom: spacing.lg,
                                         padding: 12
                                     }
@@ -99,9 +98,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         borderRadius: 19,
-        shadowOffset: { width: 3, height: 3 },
-        shadowOpacity: 1,
-        shadowRadius: 0,
     },
     iconBox: {
         justifyContent: 'center',

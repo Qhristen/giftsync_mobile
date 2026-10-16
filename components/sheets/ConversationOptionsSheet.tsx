@@ -38,6 +38,7 @@ const ConversationOptionsSheet = forwardRef<BottomSheetRef, Props>(
                     onReportUser?.();
                 },
                 color: colors.textPrimary,
+                visible: !!onReportUser,
             },
             // {
             //     label: 'Block User',

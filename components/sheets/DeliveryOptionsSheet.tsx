@@ -15,7 +15,7 @@ const DeliveryOptionsSheet = forwardRef<BottomSheetRef, Props>(
     ({ initialTimeWindow, onSave }, ref) => {
         const { spacing, colors } = useTheme();
         const [timeWindow, setTimeWindow] = useState<'morning' | 'afternoon' | 'evening'>(initialTimeWindow || 'morning');
- const insets = useSafeAreaInsets();
+        const insets = useSafeAreaInsets();
         useEffect(() => {
             if (initialTimeWindow) setTimeWindow(initialTimeWindow);
         }, [initialTimeWindow]);
@@ -48,7 +48,6 @@ const DeliveryOptionsSheet = forwardRef<BottomSheetRef, Props>(
                                 {
                                     backgroundColor: [colors.lemon, colors.sky, colors.peach][index],
                                     borderColor: colors.ink,
-                                    shadowColor: timeWindow === tw.id ? colors.ink : 'transparent',
                                     transform: [{ rotate: index % 2 ? '0.5deg' : '-0.5deg' }],
                                 }
                             ]}
@@ -81,9 +80,6 @@ const styles = StyleSheet.create({
         padding: 16,
         borderRadius: 18,
         borderWidth: 1.5,
-        shadowOffset: { width: 3, height: 3 },
-        shadowOpacity: 1,
-        shadowRadius: 0,
     },
     radio: {
         width: 20,

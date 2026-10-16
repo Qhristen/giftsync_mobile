@@ -43,7 +43,10 @@ export const chatApi = baseApi.injectEndpoints({
                 method: 'POST',
                 data: body,
             }),
-            invalidatesTags: [{ type: 'Chat', id: 'CONV_LIST' }],
+            invalidatesTags: (_result, _error, { orderId }) => [
+                { type: 'Chat', id: 'CONV_LIST' },
+                ...(orderId ? ['Orders' as const, { type: 'Orders' as const, id: orderId }] : []),
+            ],
         }),
 
         // ── GET /api/v1/chat/conversations/:id/messages ──────────────────────

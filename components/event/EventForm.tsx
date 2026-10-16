@@ -11,7 +11,7 @@ import {
 } from '@hugeicons/core-free-icons';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, LayoutAnimation, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Avatar from '../ui/Avatar';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
@@ -23,7 +23,6 @@ import { useCreateEventMutation, useGetEventDetailQuery, useGetEventTemplatesQue
 import { useAppSelector } from '@/store/hooks';
 import { spendCoins } from '@/store/slices/walletSlice';
 import { Contact } from '@/types';
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useDispatch } from 'react-redux';
 import { toast } from 'sonner-native';
 
@@ -180,8 +179,6 @@ const EventForm: React.FC<EventFormProps> = ({
         );
     };
 
-
-
     const handleSubmit = async () => {
         if (!name || !phone) {
             toast.error("Required Fields", { description: "Name and phone number are required." });
@@ -278,7 +275,7 @@ const EventForm: React.FC<EventFormProps> = ({
 
                     {/* Smart Behavior: Contact Dropdown */}
                     {filteredContacts.length > 0 && (
-                        <Animated.View entering={FadeIn} exiting={FadeOut} style={[styles.dropdown, { backgroundColor: colors.surfaceRaised, borderColor: colors.border }]}>
+                        <View style={[styles.dropdown, { backgroundColor: colors.surfaceRaised, borderColor: colors.border }]}>
                             {filteredContacts.map(contact => (
                                 <Pressable
                                     key={contact.id}
@@ -293,7 +290,7 @@ const EventForm: React.FC<EventFormProps> = ({
                                     <HugeiconsIcon icon={PlusSignCircleIcon} size={20} color={colors.primary} />
                                 </Pressable>
                             ))}
-                        </Animated.View>
+                        </View>
                     )}
 
                     <Input
@@ -323,14 +320,14 @@ const EventForm: React.FC<EventFormProps> = ({
                             ))}
                         </View>
                         {relationship === 'Other' && (
-                            <Animated.View entering={FadeIn} style={{ marginTop: spacing.sm }}>
+                            <View style={{ marginTop: spacing.sm }}>
                                 <Input
                                     placeholder="e.g. Mentor, Coach"
                                     value={customRelationship}
                                     onChangeText={setCustomRelationship}
                                     isBottomSheet
                                 />
-                            </Animated.View>
+                            </View>
                         )}
                     </View>
 
@@ -407,7 +404,6 @@ const EventForm: React.FC<EventFormProps> = ({
                 {/* Section 3: Optional (Collapsed) */}
                 <Pressable
                     onPress={() => {
-                        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
                         setIsExpanded(!isExpanded);
                     }}
                     style={styles.expandHeader}
@@ -419,7 +415,7 @@ const EventForm: React.FC<EventFormProps> = ({
                 </Pressable>
 
                 {isExpanded && (
-                    <Animated.View entering={FadeIn} style={styles.expandedContent}>
+                    <View style={styles.expandedContent}>
                         <View style={{ marginBottom: spacing.md }}>
                             <Typography variant="label" style={{ marginBottom: spacing.sm }}>Interests</Typography>
                             <View style={styles.chipsContainer}>
@@ -448,7 +444,7 @@ const EventForm: React.FC<EventFormProps> = ({
                             numberOfLines={3}
                             isBottomSheet
                         />
-                    </Animated.View>
+                    </View>
                 )}
 
                 {/* Section 4: Submit */}

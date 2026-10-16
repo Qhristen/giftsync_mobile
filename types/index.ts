@@ -278,14 +278,14 @@ export interface Notification {
 
 export interface OrderItem {
   id: string;
-  productId: string;
-  productName: string;
-  productImage: string;
-  businessName: string;
+  productId?: string | null;
+  productName?: string;
+  productImage?: string;
+  businessName?: string;
   unitPrice: number;
   quantity: number;
   lineTotal: number;
-  product: Product;
+  product?: Product | null;
 }
 
 export type PaymentMethod = 'paystack' | 'flutterwave' | 'card' | 'cash' | 'coins';
@@ -295,14 +295,15 @@ export type OrderStatus = 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled' |
 export interface Order {
   id: string;
   recipientName: string;
-  businessId: string
+  businessId?: string | null
+  business?: Business | null;
   deliveryDate: string; // ISO date (YYYY-MM-DD)
   deliveryTimeWindow: string;
   giftMessage: string;
   paymentMethod: PaymentMethod;
   paymentStatus: PaymentStatus;
   event: Event;
-  conversationId: string;
+  conversationId?: string | null;
   subtotal: number;
   deliveryFee: number;
   packagingFee: number;
@@ -312,7 +313,7 @@ export interface Order {
   deliveryCode: string;
   anonymity: boolean;
   status: OrderStatus;
-  item: OrderItem;
+  item?: OrderItem | null;
   createdAt: string; // ISO datetime
 }
 

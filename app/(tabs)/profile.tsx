@@ -8,6 +8,7 @@ import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
+import { useFeatureFlag } from '@/hooks/useFeatureFlags';
 import { RootState } from '@/store';
 import { useLogoutMutation } from '@/store/api/authApi';
 import { useDeleteAccountMutation } from '@/store/api/userApi';
@@ -49,6 +50,7 @@ interface SettingSection {
 export default function ProfileScreen() {
     const router = useRouter();
     const { colors, spacing, scheme } = useTheme();
+    const { enabled: referralsEnabled } = useFeatureFlag('referrals');
     const insets = useSafeAreaInsets();
     const dispatch = useAppDispatch();
     const user = useAppSelector((state: RootState) => state.auth.user);
@@ -67,7 +69,7 @@ export default function ProfileScreen() {
             title: 'Account',
             items: [
                 { label: 'Edit Profile', icon: UserEdit01Icon, onPress: () => router.push('/profile/edit') },
-                { label: 'Refer & Earn', icon: GiftIcon, onPress: () => router.push('/profile/referrals') },
+                ...(referralsEnabled ? [{ label: 'Refer & Earn', icon: GiftIcon, onPress: () => router.push('/profile/referrals') }] : []),
                 { label: 'Saved Addresses', icon: Location01Icon, onPress: () => addressSheet.open() },
             ],
         },
@@ -104,7 +106,7 @@ export default function ProfileScreen() {
                     <Typography variant="h1">Your corner</Typography>
                 </View>
                 {/* Profile Hero */}
-                <View style={[styles.hero, { padding: spacing.lg, marginHorizontal: spacing.xl, backgroundColor: colors.lilac, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                <View style={[styles.hero, { padding: spacing.lg, marginHorizontal: spacing.xl, backgroundColor: colors.lilac, borderColor: colors.ink }]}>
                     <View style={[styles.heroTape, { backgroundColor: colors.lemon, borderColor: colors.ink }]} />
                     <Avatar name={user?.name || 'User'} uri={user?.avatarUrl} size={78} style={{ borderWidth: 1.5, borderColor: colors.ink }} />
                     <View style={{ flex: 1 }}>
@@ -118,7 +120,7 @@ export default function ProfileScreen() {
 
                 {/* Coin Wallet Card */}
                 <View style={{ paddingHorizontal: spacing.xl, marginBottom: spacing.xl }}>
-                    <Card variant="elevated" style={[styles.upgradeCard, { backgroundColor: colors.lemon, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                    <Card variant="elevated" style={[styles.upgradeCard, { backgroundColor: colors.lemon, borderColor: colors.ink }]}>
                         <View style={{ flex: 1 }}>
                             <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>YOUR BALANCE</Typography>
                             <Typography variant="h3">Coin Wallet</Typography>
@@ -136,7 +138,7 @@ export default function ProfileScreen() {
                         <Typography variant="caption" color={colors.textSecondary} style={[styles.overline, { paddingHorizontal: spacing.xl, marginBottom: spacing.sm }]}>
                             {sec.title.toUpperCase()}
                         </Typography>
-                        <Card style={[styles.sectionCard, { marginHorizontal: spacing.xl, padding: 0, backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: [colors.mint, colors.peach, colors.lilac, colors.lemon][sIdx % 4], transform: [{ rotate: sIdx % 2 ? '0.4deg' : '-0.4deg' }] }]}>
+                        <Card style={[styles.sectionCard, { marginHorizontal: spacing.xl, padding: 0, backgroundColor: colors.surface, borderColor: colors.ink, transform: [{ rotate: sIdx % 2 ? '0.4deg' : '-0.4deg' }] }]}>
                             {sec.items.map((item, iIdx) => (
                                 <Pressable
                                     key={iIdx}
@@ -174,7 +176,7 @@ export default function ProfileScreen() {
                         color={colors.textPrimary}
                     />
 
-                    <View style={[styles.dangerCard, { backgroundColor: colors.peach, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                    <View style={[styles.dangerCard, { backgroundColor: colors.peach, borderColor: colors.ink }]}>
                         <View style={styles.dangerHeading}>
                             <View style={[styles.dangerIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                                 <HugeiconsIcon icon={Delete02Icon} size={24} color={colors.error} />
@@ -266,10 +268,7 @@ const styles = StyleSheet.create({
         gap: 16,
         borderWidth: 1.5,
         borderRadius: 24,
-        shadowOffset: { width: 5, height: 6 },
-        shadowOpacity: 1,
-        shadowRadius: 0,
-        elevation: 5,
+
         marginBottom: 20,
     },
     heroTape: { position: 'absolute', top: -9, right: 38, width: 60, height: 18, borderWidth: 1, transform: [{ rotate: '4deg' }] },
@@ -280,13 +279,11 @@ const styles = StyleSheet.create({
         padding: 24,
         borderRadius: 24,
         borderWidth: 1.5,
-        shadowOffset: { width: 4, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 0,
+
         transform: [{ rotate: '0.5deg' }],
     },
     walletAction: { borderWidth: 1.25, borderRadius: 14, overflow: 'hidden' },
-    sectionCard: { borderWidth: 1.5, borderRadius: 22, overflow: 'hidden', shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0 },
+    sectionCard: { borderWidth: 1.5, borderRadius: 22, overflow: 'hidden', },
     settingItem: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -316,10 +313,7 @@ const styles = StyleSheet.create({
         borderRadius: 22,
         padding: 16,
         gap: 13,
-        shadowOffset: { width: 4, height: 5 },
-        shadowOpacity: 1,
-        shadowRadius: 0,
-        elevation: 4,
+
         transform: [{ rotate: '-0.35deg' }],
     },
     dangerHeading: { flexDirection: 'row', alignItems: 'center', gap: 12 },

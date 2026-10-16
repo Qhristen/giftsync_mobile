@@ -3,8 +3,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/theme';
 import { moderateScale } from '@/utils/scaling';
 import React, { useCallback } from 'react';
-import { ActivityIndicator, Pressable, StyleProp, StyleSheet, TextStyle, ViewStyle } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import { ActivityIndicator, Pressable, StyleProp, StyleSheet, Text, TextStyle, View, ViewStyle } from 'react-native';
 
 interface Props {
     title: string;
@@ -33,20 +32,10 @@ const Button: React.FC<Props> = ({
 }) => {
     const { colors, spacing } = useTheme();
     const { impact } = useHaptics();
-    const scale = useSharedValue(1);
-
-    const animatedStyle = useAnimatedStyle(() => ({
-        transform: [{ scale: scale.value }],
-    }));
 
     const handlePressIn = useCallback(() => {
-        scale.value = withSpring(0.97);
         impact();
-    }, [scale, impact]);
-
-    const handlePressOut = useCallback(() => {
-        scale.value = withSpring(1);
-    }, [scale]);
+    }, [impact]);
 
     const buttonStyles = [
         styles.base,
@@ -73,11 +62,10 @@ const Button: React.FC<Props> = ({
     ] as TextStyle[];
 
     return (
-        <Animated.View style={animatedStyle}>
+        <View>
             <Pressable
                 onPress={onPress}
                 onPressIn={handlePressIn}
-                onPressOut={handlePressOut}
                 disabled={disabled || isLoading}
                 style={buttonStyles}
             >
@@ -86,12 +74,12 @@ const Button: React.FC<Props> = ({
                 ) : (
                     <>
                         {leftIcon}
-                        <Animated.Text style={textStyles}>{title}</Animated.Text>
+                        <Text style={textStyles}>{title}</Text>
                         {rightIcon}
                     </>
                 )}
             </Pressable>
-        </Animated.View>
+        </View>
     );
 };
 
@@ -105,11 +93,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         gap: 8,
-        shadowColor: '#17151D',
-        shadowOffset: { width: 3, height: 3 },
-        shadowOpacity: 1,
-        shadowRadius: 0,
-        elevation: 3,
     },
     text: {
         fontFamily: typography.fonts.bodyBold,

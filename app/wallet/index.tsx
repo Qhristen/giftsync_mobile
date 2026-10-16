@@ -22,7 +22,6 @@ import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import { toast } from 'sonner-native';
@@ -53,7 +52,7 @@ export default function WalletTopUpScreen() {
     const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
     const paymentSheet = useBottomSheet();
     const isNavHandlingRef = useRef(false);
-      const insets = useSafeAreaInsets();
+    const insets = useSafeAreaInsets();
 
     const formatPrice = (price: number, currency: string) => {
         return new Intl.NumberFormat('en-NG', {
@@ -75,7 +74,6 @@ export default function WalletTopUpScreen() {
                 paymentType: 'deposit',
                 packageId: selectedPackage.id,
             }).unwrap();
-
 
             // Close the payment method sheet first
             paymentSheet.close();
@@ -106,14 +104,14 @@ export default function WalletTopUpScreen() {
     //             action: {
     //                 label: 'Great',
     //                 onClick: () => router.back()
-    //             }
-    //         });
-    //     } catch (error: any) {
+    // }
+    // });
+    // } catch (error: any) {
     //         console.error('Payment verification error:', error);
     //         toast.error(error?.data?.message || 'Payment verification failed. If you were charged, your wallet will be credited shortly.');
-    //     } finally {
+    // } finally {
 
-    //     }
+    // }
     // };
 
     const handleWebViewNavChange = (newNavState: any) => {
@@ -162,8 +160,8 @@ export default function WalletTopUpScreen() {
             </View>
 
             {/* Current Balance */}
-            <Animated.View entering={FadeInDown.duration(400)} style={[styles.balanceSection, { paddingHorizontal: spacing.xl }]}>
-                <Card style={[styles.balanceCard, { backgroundColor: colors.lavender, borderColor: colors.ink, shadowColor: colors.ink }]}>
+            <View style={[styles.balanceSection, { paddingHorizontal: spacing.xl }]}>
+                <Card style={[styles.balanceCard, { backgroundColor: colors.lavender, borderColor: colors.ink }]}>
                     <View style={[styles.coinSeal, { backgroundColor: colors.lime, borderColor: colors.ink }]}>
                         <HugeiconsIcon icon={Coins02Icon} size={27} color={colors.ink} />
                     </View>
@@ -174,7 +172,7 @@ export default function WalletTopUpScreen() {
                         {wallet?.balance.toLocaleString() ?? '0'} <Typography variant="h3">coins</Typography>
                     </Typography>
                 </Card>
-            </Animated.View>
+            </View>
 
             {/* Transaction History Link */}
             <Pressable
@@ -206,12 +204,11 @@ export default function WalletTopUpScreen() {
                             </View>
                         }
                         renderItem={({ item, index }) => {
-                            const isSelected = selectedPackage?.id === item.id;
                             const style = getPackageStyle(index);
                             const isPopular = item.isPopular;
 
                             return (
-                                <Animated.View entering={FadeInDown.delay(index * 100 + 200).duration(400)}>
+                                <View>
                                     <Card
                                         onPress={() => setSelectedPackage(item)}
                                         style={[
@@ -220,7 +217,6 @@ export default function WalletTopUpScreen() {
                                                 borderColor: colors.ink,
                                                 borderWidth: 1.5,
                                                 backgroundColor: [colors.lemon, colors.mint, colors.lavender, colors.peach][index % 4],
-                                                shadowColor: isSelected ? colors.ink : 'transparent',
                                                 transform: [{ rotate: index % 2 ? '0.5deg' : '-0.5deg' }],
                                                 marginBottom: spacing.md,
                                             }
@@ -246,7 +242,7 @@ export default function WalletTopUpScreen() {
                                             )}
                                         </View>
                                     </Card>
-                                </Animated.View>
+                                </View>
                             );
                         }}
                     />
@@ -274,7 +270,7 @@ export default function WalletTopUpScreen() {
             />
 
             {/* Paystack WebView Modal */}
-            <Modal visible={!!paymentUrl} animationType="slide" onRequestClose={handleCancelPayment}>
+            <Modal visible={!!paymentUrl} onRequestClose={handleCancelPayment}>
                 <View style={[styles.webviewContainer, { backgroundColor: colors.background }]}>
                     <View style={styles.webviewHeader}>
                         <Button title="Cancel" variant="ghost" onPress={handleCancelPayment} />
@@ -327,9 +323,7 @@ const styles = StyleSheet.create({
         padding: 22,
         borderRadius: 24,
         borderWidth: 1.5,
-        shadowOffset: { width: 5, height: 5 },
-        shadowOpacity: 0.15,
-        shadowRadius: 0,
+
         transform: [{ rotate: '-0.7deg' }],
     },
     coinSeal: { width: 54, height: 54, borderRadius: 18, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', alignSelf: 'flex-end', marginBottom: -32, transform: [{ rotate: '5deg' }] },
@@ -340,9 +334,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 16,
         borderRadius: 21,
-        shadowOffset: { width: 4, height: 4 },
-        shadowOpacity: 1,
-        shadowRadius: 0,
     },
     iconBox: {
         width: 48,

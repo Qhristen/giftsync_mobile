@@ -2,7 +2,6 @@ import { useTheme } from '@/hooks/useTheme';
 import { useGetUnreadCountQuery as useGetChatUnreadCountQuery } from '@/store/api/chatApi';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectUnreadCount, setUnreadCount } from '@/store/slices/chatSlice';
-import { moderateScale } from '@/utils/scaling';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import {
   Calendar01Icon,
@@ -15,7 +14,6 @@ import { Tabs } from 'expo-router';
 import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
 
 export default function TabLayout() {
   const { colors, spacing } = useTheme();
@@ -41,6 +39,8 @@ export default function TabLayout() {
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.textSecondaryForeground,
         tabBarShowLabel: false,
+        lazy: true,
+        freezeOnBlur: true,
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderWidth: 1.5,
@@ -54,15 +54,6 @@ export default function TabLayout() {
           // left: 14,
           // right: 14,
           // bottom: Math.max(insets.bottom, 10),
-          // elevation: 6,
-          // shadowColor: '#17151D',
-          // shadowOffset: { width: 4, height: 5 },
-          // shadowOpacity: 1,
-          // shadowRadius: 0,
-        },
-        tabBarLabelStyle: {
-          fontSize: moderateScale(12),
-          fontFamily: 'DMSans_500Medium',
         },
       }}
     >
@@ -92,7 +83,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="events/index"
         options={{
-          title: 'Events',
+          title: 'Moments',
           tabBarIcon: ({ color, focused }) => (
             <View style={[styles.tabIcon, focused && { backgroundColor: colors.ink }]}>
               <HugeiconsIcon icon={Calendar01Icon} size={23} color={focused ? colors.surface : color} />

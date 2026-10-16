@@ -22,7 +22,6 @@ import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
@@ -41,7 +40,7 @@ export default function EditProfileScreen() {
     const [avatarUrl, setAvatarUrl] = useState('');
     const [country, setCountry] = useState('');
     const [currency, setCurrency] = useState('NGN');
-    const [theme, setTheme] = useState('system');
+    const [theme, setTheme] = useState('light');
 
     useEffect(() => {
         if (userProfile) {
@@ -49,7 +48,7 @@ export default function EditProfileScreen() {
             setAvatarUrl(userProfile.avatarUrl || '');
             setCountry(userProfile.country || '');
             setCurrency(userProfile.currency || 'NGN');
-            setTheme(userProfile.theme || 'system');
+            setTheme(userProfile.theme || 'light');
         }
     }, [userProfile]);
 
@@ -90,7 +89,7 @@ export default function EditProfileScreen() {
             <PaperScreenHeader eyebrow="Identity card" title="Make it feel like you" onBack={() => router.back()} accent={colors.peach} />
 
             <ScrollView contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
-                <Animated.View entering={FadeInDown.duration(400)} style={[styles.avatarSection, { backgroundColor: colors.lavender, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                <View style={[styles.avatarSection, { backgroundColor: colors.lavender, borderColor: colors.ink }]}>
                     <View style={[styles.photoTape, { backgroundColor: colors.lemon, borderColor: colors.ink }]} />
                     <View>
                         <View style={{ opacity: isUploadingImage ? 0.5 : 1 }}>
@@ -106,9 +105,9 @@ export default function EditProfileScreen() {
                     </View>
                     <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>PROFILE PORTRAIT</Typography>
                     <Typography variant="h3">{name || 'Your name goes here'}</Typography>
-                </Animated.View>
+                </View>
 
-                <Animated.View entering={FadeInDown.delay(100).duration(400)} style={[styles.formPaper, { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: colors.lilac }]}>
+                <View style={[styles.formPaper, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                     <View style={styles.formHeading}>
                         <Typography variant="label">Personal details</Typography>
                         <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>EDITABLE</Typography>
@@ -142,7 +141,7 @@ export default function EditProfileScreen() {
                         </View>
                     </Pressable>
 
-                    <Pressable onPress={() => themeSheet.open()}>
+                    {/* <Pressable onPress={() => themeSheet.open()}>
                         <View pointerEvents="none">
                             <Input
                                 label="App Theme"
@@ -153,8 +152,8 @@ export default function EditProfileScreen() {
                                 editable={false}
                             />
                         </View>
-                    </Pressable>
-                </Animated.View>
+                    </Pressable> */}
+                </View>
             </ScrollView>
 
             <CurrencyPickerSheet
@@ -194,9 +193,7 @@ const styles = StyleSheet.create({
         marginVertical: 12,
         borderWidth: 1.5,
         borderRadius: 25,
-        shadowOffset: { width: 4, height: 5 },
-        shadowOpacity: 0.15,
-        shadowRadius: 0,
+
         transform: [{ rotate: '-0.6deg' }],
     },
     photoTape: { position: 'absolute', top: -9, width: 64, height: 19, borderWidth: 1, transform: [{ rotate: '4deg' }] },
@@ -212,7 +209,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderWidth: 1.5,
     },
-    formPaper: { marginTop: 12, padding: 17, borderWidth: 1.5, borderRadius: 23, gap: 18, shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0 },
+    formPaper: { marginTop: 12, padding: 17, borderWidth: 1.5, borderRadius: 23, gap: 18, },
     formHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     footer: {
         position: 'absolute',

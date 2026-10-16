@@ -7,15 +7,23 @@ import { format } from 'date-fns';
 import { Image } from 'expo-image';
 import React from 'react';
 import { GestureResponderEvent, Pressable, StyleSheet, View } from 'react-native';
+import MarkdownMessage from './MarkdownMessage';
 
 interface MessageBubbleProps {
     message: ChatMessage;
     isOwnMessage: boolean;
     onLongPress?: (message: ChatMessage, event: GestureResponderEvent) => void;
     onImagePress?: (attachments: string[], index: number) => void;
+    renderMarkdown?: boolean;
 }
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isOwnMessage, onLongPress, onImagePress }) => {
+const MessageBubble: React.FC<MessageBubbleProps> = ({
+    message,
+    isOwnMessage,
+    onLongPress,
+    onImagePress,
+    renderMarkdown = false,
+}) => {
     const { colors, spacing } = useTheme();
 
     const timeString = format(new Date(message.createdAt), 'HH:mm');
@@ -52,7 +60,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isOwnMessage, on
                             source={{ uri: attachment }}
                             style={styles.attachmentImage}
                             contentFit="cover"
-                            transition={200}
+                            cachePolicy="memory-disk"
+                            recyclingKey={`${message.id}-${attachment}`}
                         />
                     </Pressable>
                 ))}
@@ -93,7 +102,12 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isOwnMessage, on
                         paddingTop: message.attachments?.length && !message.content ? 0 : (message.attachments?.length ? spacing.sm : spacing.md),
                         paddingBottom: spacing.sm,
                     }}>
-                        {message.content ? (
+                        {message.content && renderMarkdown ? (
+                            <MarkdownMessage
+                                content={message.content}
+                                color={isOwnMessage ? '#FFFFFF' : colors.textPrimary}
+                            />
+                        ) : message.content ? (
                             <Typography
                                 variant="body"
                                 color={isOwnMessage ? '#FFFFFF' : colors.textPrimary}
@@ -175,4 +189,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default MessageBubble;
+export default React.memo(MessageBubble);

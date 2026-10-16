@@ -10,10 +10,7 @@ import {
 } from '@hugeicons/core-free-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import Animated, { FadeInUp } from 'react-native-reanimated';
-
-export default function SellerGuideScreen() {
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';export default function SellerGuideScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
 
@@ -55,7 +52,7 @@ export default function SellerGuideScreen() {
             </View>
 
             <ScrollView contentContainerStyle={{ padding: spacing.xl, paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
-                <Animated.View entering={FadeInUp.duration(400)}>
+                <View>
                     <Typography variant="h1" style={{ marginBottom: 8 }}>Seller Guide</Typography>
                     <Typography variant="body" color={colors.textSecondaryForeground} style={{ marginBottom: spacing.xl }}>
                         Follow these guidelines to maximize your sales and provide a great experience for your customers.
@@ -96,7 +93,7 @@ export default function SellerGuideScreen() {
                             )}
                         </View>
                     ))}
-                </Animated.View>
+                </View>
             </ScrollView>
         </View>
     );

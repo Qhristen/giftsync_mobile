@@ -13,7 +13,7 @@ interface Props {
 }
 
 const Avatar: React.FC<Props> = ({ uri, name, size = 'md', style }) => {
-    const { colors, spacing } = useTheme();
+    const { colors } = useTheme();
 
     const getPxSize = () => {
         if (typeof size === 'number') return size;
@@ -56,7 +56,8 @@ const Avatar: React.FC<Props> = ({ uri, name, size = 'md', style }) => {
                     source={{ uri }}
                     style={[styles.image, { borderRadius: px / 2 }]}
                     contentFit="cover"
-                    transition={200}
+                    cachePolicy="memory-disk"
+                    recyclingKey={uri}
                 />
             ) : (
                 <Text style={[styles.initials, { fontSize: moderateScale(px / 2.5), color: colors.textSecondary }]}>
@@ -82,4 +83,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default Avatar;
+export default React.memo(Avatar);

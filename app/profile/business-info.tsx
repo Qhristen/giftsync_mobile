@@ -1,9 +1,11 @@
 import Avatar from '@/components/ui/Avatar';
+import FeatureUnavailable from '@/components/features/FeatureUnavailable';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import PaperScreenHeader from '@/components/ui/PaperScreenHeader';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
+import { useFeatureFlag } from '@/hooks/useFeatureFlags';
 import { useCreateBusinessMutation, useGetBusinessQuery, useUpdateBusinessMutation } from '@/store/api/businessApi';
 import { useUploadMutation } from '@/store/api/uploadApi';
 import { HugeiconsIcon } from '@hugeicons/react-native';
@@ -29,6 +31,7 @@ import BottomSheetWrapper, { BottomSheetRef } from '@/components/ui/BottomSheetW
 export default function BusinessInfoScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
+    const { enabled: businessOnboardingEnabled } = useFeatureFlag('business_onboarding');
 
     const { data: business, isLoading: isFetching } = useGetBusinessQuery();
     const [createBusiness, { isLoading: isCreating }] = useCreateBusinessMutation();
@@ -110,6 +113,10 @@ export default function BusinessInfoScreen() {
     }, []);
 
     const handleSave = async () => {
+        if (!business && !businessOnboardingEnabled) {
+            toast.error('Business onboarding is currently unavailable.');
+            return;
+        }
         if (!isAccountVerified && !business) {
             toast.error('Please verify your bank account details first');
             return;
@@ -198,13 +205,13 @@ export default function BusinessInfoScreen() {
     const InfoSection = ({ title, children, icon }: { title: string, children: React.ReactNode, icon?: any }) => {
         const paperColor = title.includes('Basic') ? colors.mint : title.includes('Legal') ? colors.lemon : colors.lavender;
         return (
-        <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: paperColor }]}>
-            <View style={styles.sectionHeader}>
-                {icon && <View style={[styles.sectionIcon, { backgroundColor: paperColor, borderColor: colors.ink }]}><HugeiconsIcon icon={icon} size={20} color={colors.ink} /></View>}
-                <Typography variant="h4" style={{ fontWeight: '700' }}>{title}</Typography>
+            <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
+                <View style={styles.sectionHeader}>
+                    {icon && <View style={[styles.sectionIcon, { backgroundColor: paperColor, borderColor: colors.ink }]}><HugeiconsIcon icon={icon} size={20} color={colors.ink} /></View>}
+                    <Typography variant="h4" style={{ fontWeight: '700' }}>{title}</Typography>
+                </View>
+                <View style={styles.sectionContent}>{children}</View>
             </View>
-            <View style={styles.sectionContent}>{children}</View>
-        </View>
         );
     };
 
@@ -222,6 +229,10 @@ export default function BusinessInfoScreen() {
 
     const showForm = isEditing || !business;
 
+    if (!isFetching && !business && !businessOnboardingEnabled) {
+        return <FeatureUnavailable title="Business onboarding is unavailable" />;
+    }
+
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1 }}>
@@ -231,13 +242,13 @@ export default function BusinessInfoScreen() {
                     onBack={() => router.back()}
                     accent={colors.mint}
                     right={business ? (
-                    <Pressable onPress={() => setIsEditing(!isEditing)} style={[styles.editButton, { backgroundColor: isEditing ? colors.peach : colors.lime, borderColor: colors.ink }]}>
-                        {business && (
-                            <Typography variant="caption" style={{ fontWeight: '800' }}>
-                                {isEditing ? 'Cancel' : 'Edit'}
-                            </Typography>
-                        )}
-                    </Pressable>) : undefined}
+                        <Pressable onPress={() => setIsEditing(!isEditing)} style={[styles.editButton, { backgroundColor: isEditing ? colors.peach : colors.lime, borderColor: colors.ink }]}>
+                            {business && (
+                                <Typography variant="caption" style={{ fontWeight: '800' }}>
+                                    {isEditing ? 'Cancel' : 'Edit'}
+                                </Typography>
+                            )}
+                        </Pressable>) : undefined}
                 />
 
                 {isFetching && (
@@ -263,7 +274,7 @@ export default function BusinessInfoScreen() {
                         </View>
                     ))}
 
-                    <View style={[styles.logoSection, { backgroundColor: colors.lilac, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                    <View style={[styles.logoSection, { backgroundColor: colors.lilac, borderColor: colors.ink }]}>
                         <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>STOREFRONT PORTRAIT</Typography>
                         <Avatar
                             name={formData.name}
@@ -535,9 +546,7 @@ const styles = StyleSheet.create({
         borderWidth: 1.5,
         borderRadius: 24,
         gap: 7,
-        shadowOffset: { width: 4, height: 5 },
-        shadowOpacity: 0.15,
-        shadowRadius: 0,
+
         transform: [{ rotate: '0.5deg' }],
     },
     section: {
@@ -545,9 +554,6 @@ const styles = StyleSheet.create({
         padding: 17,
         borderWidth: 1.5,
         borderRadius: 23,
-        shadowOffset: { width: 4, height: 4 },
-        shadowOpacity: 1,
-        shadowRadius: 0,
     },
     sectionHeader: {
         flexDirection: 'row',
@@ -587,11 +593,6 @@ const styles = StyleSheet.create({
         height: 20,
         borderRadius: 10,
         backgroundColor: '#FFF',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
-        elevation: 2,
     },
     loadingOverlay: {
         position: 'absolute',

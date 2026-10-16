@@ -2,41 +2,41 @@ import {
   DMSans_400Regular,
   DMSans_500Medium,
   DMSans_700Bold,
-  useFonts as useDMSans
 } from '@expo-google-fonts/dm-sans';
 import {
   Fraunces_400Regular,
   Fraunces_500Medium,
   Fraunces_600SemiBold,
   Fraunces_700Bold,
-  useFonts as useFraunces
 } from '@expo-google-fonts/fraunces';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { useFonts } from 'expo-font';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider, useRouter, useSegments } from 'expo-router';
 
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { InteractionManager, Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { Provider } from 'react-redux';
-
-import { useTheme } from '@/hooks/useTheme';
-import { persistor, store } from '@/store';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import 'react-native-reanimated';
+import { Provider, useSelector } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
 import { Toaster } from 'sonner-native';
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
-
+import { useFeatureManifestSync } from '@/hooks/useFeatureFlags';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { useSocket } from '@/hooks/useSocket';
-import notificationService from '@/services/notificationService';
-import { RootState } from '@/store';
-import { useRegisterDeviceTokenMutation } from '@/store/api/notificationApi';
+import { useTheme } from '@/hooks/useTheme';
+import { notificationService } from '@/services/notificationService';
+import { RootState, persistor, store } from '@/store';
+import { notificationApi } from '@/store/api/notificationApi';
+import { platformConfigApi } from '@/store/api/platformConfigApi';
 import { useAppDispatch } from '@/store/hooks';
-import { Platform } from 'react-native';
-import { useSelector } from 'react-redux';
-import { PersistGate } from 'redux-persist/integration/react';
+import { setConfigs } from '@/store/slices/configSlice';
+
+// Prevent the splash screen from auto-hiding before asset loading is complete.
+void SplashScreen.preventAutoHideAsync();
 
 function RootLayoutContent() {
   const { isDark, colors, spacing } = useTheme();
@@ -44,90 +44,99 @@ function RootLayoutContent() {
   const dispatch = useAppDispatch();
   const segments = useSegments();
   const router = useRouter();
+  const firstSegment = segments[0];
+  const secondSegment = segments[1];
 
   useSocket();
   useNetworkStatus();
+  useFeatureManifestSync();
 
   const { isAuthenticated, isLoading } = useSelector((state: RootState) => state.auth);
-  const [registerDeviceToken] = useRegisterDeviceTokenMutation()
-  const [getPlatformConfig] = useLazyGetPlatformConfigQuery();
 
   useEffect(() => {
+    if (isLoading) return;
 
-    const inAuthGroup = segments[0] === '(auth)';
-    const isPublicRoute = segments[0] === 'profile' && (segments[1] === 'terms' || segments[1] === 'privacy');
+    const inAuthGroup = firstSegment === '(auth)';
+    const isPublicRoute = firstSegment === 'profile' && (secondSegment === 'terms' || secondSegment === 'privacy');
 
-    // Initialize authentication routing logic
     if (!isAuthenticated && !inAuthGroup && !isPublicRoute) {
       router.replace('/welcome');
-    }
-
-    // Initialize authenticated routing logic
-    if (isAuthenticated && inAuthGroup) {
+    } else if (isAuthenticated && inAuthGroup) {
       router.replace('/(tabs)');
+    }
+  }, [firstSegment, isAuthenticated, isLoading, router, secondSegment]);
 
+  useEffect(() => {
+    if (!isAuthenticated) {
+      notificationService.cleanup();
+      return;
     }
 
-    // Initialize notification service
-    initNotifications();
+    let cancelled = false;
+    const task = InteractionManager.runAfterInteractions(async () => {
+      try {
+        await notificationService.initialize();
+        if (cancelled) {
+          notificationService.cleanup();
+          return;
+        }
 
-    // Initialize platform config
-    fetchPlatformConfig();
-    // Cleanup on unmount
+        const devicePushToken = notificationService.getDevicePushToken();
+        const expoPushToken = notificationService.getPushToken();
+
+        if (devicePushToken || expoPushToken) {
+          const registration = dispatch(
+            notificationApi.endpoints.registerDeviceToken.initiate({
+              fcmToken: devicePushToken as string,
+              expoToken: expoPushToken as string,
+              deviceType: Platform.OS,
+            }),
+          );
+
+          try {
+            await registration.unwrap();
+          } finally {
+            registration.reset();
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to initialize notifications:', error);
+      }
+    });
+
     return () => {
+      cancelled = true;
+      task.cancel();
       notificationService.cleanup();
     };
+  }, [dispatch, isAuthenticated]);
 
+  useEffect(() => {
+    if (!isAuthenticated) return;
 
-  }, [isAuthenticated, dispatch]);
+    let cancelled = false;
+    const task = InteractionManager.runAfterInteractions(async () => {
+      const configRequest = dispatch(
+        platformConfigApi.endpoints.getPlatformConfig.initiate(undefined, { subscribe: false }),
+      );
 
-
-  const initNotifications = async () => {
-    try {
-      await notificationService.initialize();
-      console.log("🔔 Notification service ready");
-
-      // If already authenticated, sync token
-      if (isAuthenticated) {
-        syncDeviceToken();
-      }
-    } catch (error) {
-      console.log("❌ Failed to initialize notifications:", error);
-    }
-  };
-
-
-
-  const fetchPlatformConfig = async () => {
-    try {
-      const platformConfigs = await getPlatformConfig().unwrap();
-      if (platformConfigs) {
-        dispatch(setConfigs(platformConfigs));
-      }
-    } catch (error) {
-      console.error("❌ Failed to fetch platform config:", error);
-    }
-  };
-
-
-  const syncDeviceToken = async () => {
-    const status = await notificationService.getNotificationStatus();
-
-    if (status.devicePushToken || status.expoPushToken) {
       try {
-        await registerDeviceToken({
-          fcmToken: status.devicePushToken as string,
-          expoToken: status.expoPushToken as string,
-          deviceType: Platform.OS.toString()
-        }).unwrap();
-        console.log("✅ Device token synced with server");
+        const platformConfigs = await configRequest.unwrap();
+        if (!cancelled && platformConfigs) {
+          dispatch(setConfigs(platformConfigs));
+        }
       } catch (error) {
-        console.log("❌ Failed to sync device token:", error);
+        console.warn('Failed to fetch platform config:', error);
+      } finally {
+        configRequest.unsubscribe();
       }
-    }
-  };
+    });
 
-
+    return () => {
+      cancelled = true;
+      task.cancel();
+    };
+  }, [dispatch, isAuthenticated]);
 
   return (
     <ThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
@@ -156,36 +165,29 @@ function RootLayoutContent() {
   );
 }
 
-import { useLazyGetPlatformConfigQuery } from '@/store/api/platformConfigApi';
-import { setConfigs } from '@/store/slices/configSlice';
-import { KeyboardProvider } from 'react-native-keyboard-controller';
-
-
 export default function RootLayout() {
-  const [frauncesLoaded, frauncesError] = useFraunces({
+  const [fontsLoaded, fontsError] = useFonts({
     Fraunces_400Regular,
     Fraunces_500Medium,
     Fraunces_600SemiBold,
     Fraunces_700Bold,
-  });
-
-  const [dmSansLoaded, dmSansError] = useDMSans({
     DMSans_400Regular,
     DMSans_500Medium,
     DMSans_700Bold,
   });
 
   useEffect(() => {
-    if (frauncesLoaded && dmSansLoaded) {
-      SplashScreen.hideAsync();
+    if (fontsLoaded || fontsError) {
+      void SplashScreen.hideAsync();
     }
-  }, [frauncesLoaded, dmSansLoaded]);
+  }, [fontsError, fontsLoaded]);
 
-  if (!frauncesLoaded || !dmSansLoaded) {
-    if (frauncesError || dmSansError) {
-      console.error('Error loading fonts', frauncesError, dmSansError);
-    }
+  if (!fontsLoaded && !fontsError) {
     return null;
+  }
+
+  if (fontsError) {
+    console.warn('Error loading fonts; using system fallbacks.', fontsError);
   }
 
   return (

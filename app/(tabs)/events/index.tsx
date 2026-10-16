@@ -19,7 +19,6 @@ import * as Contacts from 'expo-contacts/legacy';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, SectionList, StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const eventIcon = (title?: string) => {
@@ -77,7 +76,7 @@ export default function PlansScreen() {
     const centerMonth = React.useCallback((month: string) => {
         const layout = monthLayouts.current[month];
         if (layout && monthScrollRef.current && scrollWidth) {
-            monthScrollRef.current.scrollTo({ x: layout.x - scrollWidth / 2 + layout.width / 2, animated: true });
+            monthScrollRef.current.scrollTo({ x: layout.x - scrollWidth / 2 + layout.width / 2, animated: false });
         }
     }, [scrollWidth]);
 
@@ -142,10 +141,10 @@ export default function PlansScreen() {
                 </ScrollView>
 
                 {featured ? (
-                    <Animated.View entering={FadeInDown.duration(350)} style={{ paddingHorizontal: spacing.xl }}>
+                    <View style={{ paddingHorizontal: spacing.xl }}>
                         <Pressable
                             onPress={() => router.push({ pathname: '/event-detail', params: { id: featured.id } })}
-                            style={({ pressed }) => [styles.featuredPlan, { backgroundColor: colors.lemon, borderColor: colors.ink, shadowColor: colors.ink }, pressed && styles.pressed]}
+                            style={({ pressed }) => [styles.featuredPlan, { backgroundColor: colors.lemon, borderColor: colors.ink }, pressed && styles.pressed]}
                         >
                             <View style={[styles.featuredDate, { backgroundColor: colors.accent, borderColor: colors.ink }]}>
                                 <Typography variant="caption" style={styles.overline}>{dateParts(featured.date).weekday}</Typography>
@@ -165,7 +164,7 @@ export default function PlansScreen() {
                                 <HugeiconsIcon icon={eventIcon(featured.title)} size={25} color={colors.primary} />
                             </View>
                         </Pressable>
-                    </Animated.View>
+                    </View>
                 ) : (
                     <Pressable onPress={addPlan} style={[styles.emptyFeature, { marginHorizontal: spacing.xl, backgroundColor: colors.mint, borderColor: colors.ink }]}>
                         <HugeiconsIcon icon={Add01Icon} size={28} color={colors.ink} />
@@ -196,10 +195,10 @@ export default function PlansScreen() {
                         const colorIndex = (index + (section.title.startsWith('FURTHER') ? 2 : 0)) % palette.length;
                         const parts = dateParts(item.date);
                         return (
-                            <Animated.View entering={FadeInDown.delay(Math.min(index * 55, 250)).duration(300)} style={{ paddingHorizontal: spacing.xl }}>
+                            <View style={{ paddingHorizontal: spacing.xl }}>
                                 <Pressable
                                     onPress={() => router.push({ pathname: '/event-detail', params: { id: item.id } })}
-                                    style={({ pressed }) => [styles.mapRow, { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: palette[colorIndex] }, pressed && styles.pressed]}
+                                    style={({ pressed }) => [styles.mapRow, { backgroundColor: colors.surface, borderColor: colors.ink }, pressed && styles.pressed]}
                                 >
                                     <View style={[styles.mapDate, { backgroundColor: palette[colorIndex], borderColor: colors.ink }]}>
                                         <Typography variant="h3">{parts.day}</Typography>
@@ -213,7 +212,7 @@ export default function PlansScreen() {
                                         <HugeiconsIcon icon={eventIcon(item.title)} size={19} color={colors.ink} />
                                     </View>
                                 </Pressable>
-                            </Animated.View>
+                            </View>
                         );
                     }}
                     ListEmptyComponent={featured ? (
@@ -226,7 +225,7 @@ export default function PlansScreen() {
 
             <Pressable
                 onPress={addPlan}
-                style={({ pressed }) => [styles.fab, { bottom: Math.max(insets.bottom, 10) + 78, right: spacing.xl, backgroundColor: colors.accent, borderColor: colors.ink, shadowColor: colors.ink }, pressed && styles.pressed]}
+                style={({ pressed }) => [styles.fab, { bottom: Math.max(insets.bottom, 10) + 78, right: spacing.xl, backgroundColor: colors.accent, borderColor: colors.ink }, pressed && styles.pressed]}
             >
                 <HugeiconsIcon icon={Add01Icon} size={21} color="#17151D" />
                 <Typography variant="label" color="#17151D">Add a stop</Typography>
@@ -247,7 +246,7 @@ const styles = StyleSheet.create({
     header: { paddingBottom: 8 },
     overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.8 },
     monthTicket: { width: 62, height: 63, borderWidth: 1.5, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-    featuredPlan: { minHeight: 156, borderWidth: 1.5, borderRadius: 24, padding: 15, flexDirection: 'row', alignItems: 'stretch', gap: 13, shadowOffset: { width: 5, height: 6 }, shadowOpacity: 1, shadowRadius: 0, elevation: 5 },
+    featuredPlan: { minHeight: 156, borderWidth: 1.5, borderRadius: 24, padding: 15, flexDirection: 'row', alignItems: 'stretch', gap: 13, },
     featuredDate: { width: 78, borderWidth: 1.5, borderRadius: 18, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-3deg' }] },
     featuredDay: { fontSize: 38, lineHeight: 42 },
     featuredCopy: { flex: 1, justifyContent: 'center', gap: 3 },
@@ -256,10 +255,10 @@ const styles = StyleSheet.create({
     emptyFeature: { minHeight: 112, borderWidth: 1.5, borderRadius: 22, padding: 17, flexDirection: 'row', alignItems: 'center', gap: 13 },
     sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingTop: 15, paddingBottom: 10 },
     sectionLine: { width: 28, height: 2 },
-    mapRow: { minHeight: 90, borderWidth: 1.5, borderRadius: 20, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 14, shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0, elevation: 3 },
+    mapRow: { minHeight: 90, borderWidth: 1.5, borderRadius: 20, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 14, },
     mapDate: { width: 58, height: 62, borderWidth: 1.25, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
     rowIcon: { width: 38, height: 38, borderWidth: 1.25, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
     onlyPlan: { paddingVertical: 16, alignItems: 'center' },
-    fab: { position: 'absolute', minWidth: 126, height: 50, borderWidth: 1.5, borderRadius: 16, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0, elevation: 5 },
+    fab: { position: 'absolute', minWidth: 126, height: 50, borderWidth: 1.5, borderRadius: 16, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, },
     pressed: { opacity: 0.85, transform: [{ translateY: 2 }] },
 });

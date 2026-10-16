@@ -2,7 +2,7 @@ import { io, Socket } from 'socket.io-client';
 import { AppDispatch, RootState } from '../store';
 import { chatApi } from '../store/api/chatApi';
 
-import { getValidToken } from '@/store/api/baseApi';
+import { baseApi, getValidToken } from '@/store/api/baseApi';
 import { setUnreadCount, setUserStopTyping, setUserTyping } from '@/store/slices/chatSlice';
 import { ChatMessage, Conversation, PaginationMeta } from '../types';
 import { walletApi } from '@/store/api/walletApi';
@@ -123,6 +123,10 @@ class SocketService {
 
         this.socket.on('exception', (error: { status: string; message: string }) => {
             console.error('Socket exception:', error);
+        });
+
+        this.socket.on('feature-flag.updated', () => {
+            dispatch(baseApi.util.invalidateTags(['FeatureManifest']));
         });
 
         // ── unreadCount ───────────────────────────────────────────────────────

@@ -120,7 +120,6 @@ export default function AddProductScreen() {
             return;
         }
 
-
         try {
             // Upload local images to Cloudinary (skip URLs that are already remote)
             const uploadedUrls: string[] = [];
@@ -159,7 +158,6 @@ export default function AddProductScreen() {
                 error?.data?.message || error?.message || 'Something went wrong. Please try again.';
             toast.error(message);
         } finally {
-
         }
     };
 
@@ -310,7 +308,6 @@ export default function AddProductScreen() {
                             onChangeText={(text) => setFormData({ ...formData, quantity: parseInt(text) || 0 })}
                         />
 
-
                         <View>
                             <Input
                                 label="Tags"
@@ -346,7 +343,6 @@ export default function AddProductScreen() {
                             </View>
                         </View>
 
-
                         <View style={styles.switchRow}>
                             <Typography variant="body">Available for Purchase</Typography>
                             <Pressable
@@ -363,15 +359,15 @@ export default function AddProductScreen() {
 
                 </ScrollView>
             </KeyboardAvoidingView>
-              <View style={[styles.footer, { backgroundColor: colors.surface, paddingBottom: insets.bottom + 20 }]}>
-                        
-                    <Button
-                        title={(isSubmitting || isUploading) ? 'Saving...' : (isEditing ? 'Update Product' : `Create Product (${productCreationCost} coins)`)}
-                        onPress={handleSave}
-                        disabled={isSubmitting || isUploading || isUpdating}
-                        style={{ marginTop: spacing.xl}}
-                    />
-                        </View>
+            <View style={[styles.footer, { backgroundColor: colors.surface, paddingBottom: insets.bottom + 20 }]}>
+
+                <Button
+                    title={(isSubmitting || isUploading) ? 'Saving...' : (isEditing ? 'Update Product' : `Create Product (${productCreationCost} coins)`)}
+                    onPress={handleSave}
+                    disabled={isSubmitting || isUploading || isUpdating}
+                    style={{ marginTop: spacing.xl}}
+                />
+            </View>
 
             <CategoryPickerSheet
                 ref={categorySheet.ref}
@@ -458,9 +454,8 @@ const styles = StyleSheet.create({
         paddingVertical: 6,
         borderRadius: 20,
     },
-     footer: {
+    footer: {
         width: '100%',
         paddingHorizontal: 24,
-        
-     },
+    },
 });

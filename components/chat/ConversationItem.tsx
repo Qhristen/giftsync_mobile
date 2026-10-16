@@ -1,7 +1,6 @@
 import Avatar from '@/components/ui/Avatar';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
-import { useGetProfileQuery } from '@/store/api/userApi';
 import { Conversation } from '@/types';
 import { formatDateString, formatTime } from '@/utils/dateUtils';
 import { moderateScale } from '@/utils/scaling';
@@ -10,15 +9,14 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 interface ConversationItemProps {
     conversation: Conversation;
-    onPress: () => void;
-    accentColor?: string;
+    currentUserId?: string;
+    onPress: (conversationId: string) => void;
 }
 
-const ConversationItem: React.FC<ConversationItemProps> = ({ conversation, onPress, accentColor }) => {
+const ConversationItem: React.FC<ConversationItemProps> = ({ conversation, currentUserId, onPress }) => {
     const { colors, spacing } = useTheme();
-    const { data: profile } = useGetProfileQuery();
 
-    const participants = conversation.participants.filter(p => p.id !== profile?.id);
+    const participants = conversation.participants.filter(p => p.id !== currentUserId);
     const displayName = conversation?.order?.item?.product?.name || participants.map((participant) => participant.name).join(', ') || 'Gift conversation';
 
     // Avatar group width: first avatar full-width + each additional offset by overlap
@@ -32,13 +30,12 @@ const ConversationItem: React.FC<ConversationItemProps> = ({ conversation, onPre
 
     return (
         <Pressable
-            onPress={onPress}
+            onPress={() => onPress(conversation.id)}
             style={({ pressed }) => [
                 styles.container,
                 {
                     backgroundColor: pressed ? colors.mint : colors.surface,
                     borderColor: colors.ink,
-                    shadowColor: accentColor || colors.lilac,
                     marginHorizontal: spacing.xl,
                     paddingHorizontal: spacing.md,
                     paddingVertical: spacing.md,
@@ -110,10 +107,6 @@ const styles = StyleSheet.create({
         borderWidth: 1.5,
         borderRadius: 19,
         marginBottom: 12,
-        shadowOffset: { width: 4, height: 4 },
-        shadowOpacity: 1,
-        shadowRadius: 0,
-        elevation: 3,
     },
     avatarGroup: {
         flexDirection: 'row',
@@ -153,4 +146,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default ConversationItem;
+export default React.memo(ConversationItem);

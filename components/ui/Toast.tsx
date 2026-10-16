@@ -2,14 +2,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { typography } from '@/theme';
 import { moderateScale } from '@/utils/scaling';
 import React, { useEffect } from 'react';
-import { StyleSheet, Text } from 'react-native';
-import Animated, {
-    runOnJS,
-    useAnimatedStyle,
-    useSharedValue,
-    withSpring,
-    withTiming,
-} from 'react-native-reanimated';
+import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface Props {
@@ -23,29 +16,12 @@ interface Props {
 const Toast: React.FC<Props> = ({ message, type = 'info', visible, onHide, duration = 3000 }) => {
     const { colors, spacing } = useTheme();
     const insets = useSafeAreaInsets();
-    const translateY = useSharedValue(-100);
 
     useEffect(() => {
-        if (visible) {
-            translateY.value = withSpring(insets.top + spacing.md);
-            const timer = setTimeout(() => {
-                hideToast();
-            }, duration);
-            return () => clearTimeout(timer);
-        } else {
-            hideToast();
-        }
-    }, [visible, insets.top, spacing.md, duration]);
-
-    const hideToast = () => {
-        translateY.value = withTiming(-100, { duration: 300 }, (finished) => {
-            if (finished) runOnJS(onHide)();
-        });
-    };
-
-    const animatedStyle = useAnimatedStyle(() => ({
-        transform: [{ translateY: translateY.value }],
-    }));
+        if (!visible) return;
+        const timer = setTimeout(onHide, duration);
+        return () => clearTimeout(timer);
+    }, [duration, onHide, visible]);
 
     const getVariantStyles = () => {
         switch (type) {
@@ -57,11 +33,12 @@ const Toast: React.FC<Props> = ({ message, type = 'info', visible, onHide, durat
     };
 
     const { bg, text } = getVariantStyles();
+    if (!visible) return null;
 
     return (
-        <Animated.View style={[styles.container, { backgroundColor: bg }, animatedStyle]}>
+        <View style={[styles.container, { backgroundColor: bg, top: insets.top + spacing.md }]}>
             <Text style={[styles.text, { color: text }]}>{message}</Text>
-        </Animated.View>
+        </View>
     );
 };
 
@@ -76,11 +53,6 @@ const styles = StyleSheet.create({
         zIndex: 9999,
         flexDirection: 'row',
         alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 6,
     },
     text: {
         fontFamily: typography.fonts.bodyMedium,

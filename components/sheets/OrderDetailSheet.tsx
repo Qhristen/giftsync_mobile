@@ -1,4 +1,6 @@
 import { useTheme } from '@/hooks/useTheme';
+import { useFeatureFlag } from '@/hooks/useFeatureFlags';
+import { useCreateConversationMutation } from '@/store/api/chatApi';
 import { Order } from '@/types';
 import { formatDate } from '@/utils/dateUtils';
 import { formatCurrency } from '@/utils/formatCurrency';
@@ -13,6 +15,7 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { forwardRef } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { toast } from 'sonner-native';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Button from '../ui/Button';
 import Typography from '../ui/Typography';
@@ -34,7 +37,43 @@ const stageFor = (status: Order['status']) => {
 
 const OrderDetailSheet = forwardRef<BottomSheetRef, OrderDetailSheetProps>(({ order, onClose, onChat, onReview, onDispute }, ref) => {
     const { colors } = useTheme();
+    const { enabled: reviewsEnabled } = useFeatureFlag('business_reviews');
+    const { enabled: disputesEnabled } = useFeatureFlag('disputes');
     const router = useRouter();
+    const [createConversation, { isLoading: isOpeningChat }] = useCreateConversationMutation();
+    const product = order?.item?.product;
+    const currency = product?.currency || 'NGN';
+    const vendorUserId = order?.business?.userId || product?.business?.userId;
+
+    const openChat = async () => {
+        if (!order || isOpeningChat) return;
+
+        try {
+            let conversationId = order.conversationId;
+
+            if (!conversationId && vendorUserId) {
+                const conversation = await createConversation({
+                    participantIds: [vendorUserId],
+                    orderId: order.id,
+                }).unwrap();
+                conversationId = conversation.id;
+            }
+
+            if (!conversationId) {
+                toast.error('Chat is not available yet', {
+                    description: 'A sourcing team member must be assigned to this order first.',
+                });
+                return;
+            }
+
+            onClose?.();
+            if (onChat) onChat(conversationId);
+            else router.push(`/chat/${conversationId}`);
+        } catch (error: unknown) {
+            const message = (error as { data?: { message?: string } })?.data?.message;
+            toast.error('Could not open chat', { description: message || 'Please try again.' });
+        }
+    };
 
     return (
         <BottomSheetWrapper ref={ref} snapPoints={['82%']} scrollable>
@@ -52,9 +91,9 @@ const OrderDetailSheet = forwardRef<BottomSheetRef, OrderDetailSheetProps>(({ or
                         </View>
                     </View>
 
-                    <View style={[styles.productCard, { backgroundColor: colors.lilac, borderColor: colors.ink, shadowColor: colors.ink }]}>
-                        {order.item.product.imageUrls?.[0] ? (
-                            <Image source={{ uri: order.item.product.imageUrls[0] }} style={[styles.productImage, { borderColor: colors.ink }]} contentFit="cover" />
+                    <View style={[styles.productCard, { backgroundColor: colors.lilac, borderColor: colors.ink }]}>
+                        {product?.imageUrls?.[0] ? (
+                            <Image source={{ uri: product.imageUrls[0] }} style={[styles.productImage, { borderColor: colors.ink }]} contentFit="cover" />
                         ) : (
                             <View style={[styles.productImage, styles.center, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                                 <HugeiconsIcon icon={GiftIcon} size={28} color={colors.primary} />
@@ -62,8 +101,8 @@ const OrderDetailSheet = forwardRef<BottomSheetRef, OrderDetailSheetProps>(({ or
                         )}
                         <View style={{ flex: 1 }}>
                             <Typography variant="caption" style={styles.overline}>FOR {order.event?.contact?.name?.toUpperCase() || order.recipientName?.toUpperCase()}</Typography>
-                            <Typography variant="h3" numberOfLines={2}>{order.item.product.name}</Typography>
-                            <Typography variant="caption" color={colors.textSecondary}>{order.item.product.business?.name}</Typography>
+                            <Typography variant="h3" numberOfLines={2}>{product?.name || order.item?.productName || 'Custom gift request'}</Typography>
+                            <Typography variant="caption" color={colors.textSecondary}>{product?.business?.name || 'GiftSync sourcing team'}</Typography>
                         </View>
                     </View>
 
@@ -89,14 +128,14 @@ const OrderDetailSheet = forwardRef<BottomSheetRef, OrderDetailSheetProps>(({ or
                         </View>
                         <ReceiptRow label="Order number" value={`#${order.id.slice(-8).toUpperCase()}`} />
                         <ReceiptRow label="Order date" value={formatDate(order.createdAt)} icon={Calendar01Icon} />
-                        <ReceiptRow label="Item subtotal" value={formatCurrency(order.subtotal, order.item.product.currency)} />
-                        <ReceiptRow label="Packaging" value={formatCurrency(order.packagingFee, order.item.product.currency)} />
-                        <ReceiptRow label="Delivery" value={formatCurrency(order.deliveryFee, order.item.product.currency)} />
-                        {!!order.discountAmount && <ReceiptRow label="Discount" value={`−${formatCurrency(order.discountAmount, order.item.product.currency)}`} />}
+                        <ReceiptRow label="Item subtotal" value={formatCurrency(order.subtotal, currency)} />
+                        <ReceiptRow label="Packaging" value={formatCurrency(order.packagingFee, currency)} />
+                        <ReceiptRow label="Delivery" value={formatCurrency(order.deliveryFee, currency)} />
+                        {!!order.discountAmount && <ReceiptRow label="Discount" value={`−${formatCurrency(order.discountAmount, currency)}`} />}
                         <View style={[styles.receiptDivider, { borderColor: colors.ink }]} />
                         <View style={styles.totalRow}>
                             <Typography variant="h3">Total</Typography>
-                            <Typography variant="h2" color={colors.primary}>{formatCurrency(order.total, order.item.product.currency)}</Typography>
+                            <Typography variant="h2" color={colors.primary}>{formatCurrency(order.total, currency)}</Typography>
                         </View>
                     </View>
 
@@ -115,7 +154,7 @@ const OrderDetailSheet = forwardRef<BottomSheetRef, OrderDetailSheetProps>(({ or
                     </View>
 
                     <View style={styles.actions}>
-                        {order.paymentStatus !== 'paid' && order.status !== 'Cancelled' ? (
+                        {order.paymentStatus !== 'paid' && order.status !== 'Cancelled' && (
                             <Button
                                 title="Complete payment"
                                 onPress={() => {
@@ -123,26 +162,23 @@ const OrderDetailSheet = forwardRef<BottomSheetRef, OrderDetailSheetProps>(({ or
                                     router.push({ pathname: '/checkout/payment', params: { orderId: order.id } });
                                 }}
                             />
-                        ) : (
-                            <>
-                                {order.conversationId && (
-                                    <Pressable
-                                        onPress={() => {
-                                            onClose?.();
-                                            onChat?.(order.conversationId);
-                                        }}
-                                        style={[styles.chatButton, { backgroundColor: colors.mint, borderColor: colors.ink }]}
-                                    >
-                                        <HugeiconsIcon icon={Comment01Icon} size={18} color={colors.ink} />
-                                        <Typography variant="label">Chat with vendor</Typography>
-                                    </Pressable>
-                                )}
-                                <View style={styles.secondaryActions}>
-                                    {order.status === 'Delivered' && <Button title="Leave a review" variant="secondary" onPress={() => onReview?.(order)} style={{ flex: 1 }} />}
-                                    {order.paymentStatus === 'paid' && order.status !== 'Cancelled' && <Button title="Report an issue" variant="outline" onPress={() => onDispute?.(order)} style={{ flex: 1 }} color={colors.error} />}
-                                </View>
-                            </>
                         )}
+                        {order.status !== 'Cancelled' && (
+                            <Pressable
+                                disabled={isOpeningChat}
+                                onPress={openChat}
+                                style={[styles.chatButton, { backgroundColor: colors.mint, borderColor: colors.ink }, isOpeningChat && styles.disabled]}
+                            >
+                                <HugeiconsIcon icon={Comment01Icon} size={18} color={colors.ink} />
+                                <Typography variant="label">
+                                    {isOpeningChat ? 'Opening chat…' : product ? 'Chat with vendor' : 'Chat with sourcing team'}
+                                </Typography>
+                            </Pressable>
+                        )}
+                        <View style={styles.secondaryActions}>
+                            {reviewsEnabled && order.status === 'Delivered' && <Button title="Leave a review" variant="secondary" onPress={() => onReview?.(order)} style={{ flex: 1 }} />}
+                            {disputesEnabled && order.paymentStatus === 'paid' && order.status !== 'Cancelled' && <Button title="Report an issue" variant="outline" onPress={() => onDispute?.(order)} style={{ flex: 1 }} color={colors.error} />}
+                        </View>
                     </View>
                 </View>
             )}
@@ -171,7 +207,7 @@ const styles = StyleSheet.create({
     headingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 20 },
     overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.8 },
     statusStamp: { borderWidth: 1.5, borderRadius: 11, paddingHorizontal: 10, paddingVertical: 7, transform: [{ rotate: '3deg' }] },
-    productCard: { borderWidth: 1.5, borderRadius: 22, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 13, shadowOffset: { width: 4, height: 5 }, shadowOpacity: 1, shadowRadius: 0, elevation: 4 },
+    productCard: { borderWidth: 1.5, borderRadius: 22, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 13, },
     productImage: { width: 76, height: 76, borderWidth: 1.5, borderRadius: 16 },
     center: { alignItems: 'center', justifyContent: 'center' },
     routeSection: { marginTop: 25 },
@@ -191,6 +227,7 @@ const styles = StyleSheet.create({
     infoCard: { width: '48.3%', minHeight: 145, borderWidth: 1.5, borderRadius: 19, padding: 13, gap: 5 },
     actions: { gap: 11, marginTop: 22 },
     chatButton: { height: 48, borderWidth: 1.5, borderRadius: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+    disabled: { opacity: 0.6 },
     secondaryActions: { flexDirection: 'row', gap: 9 },
 });
 

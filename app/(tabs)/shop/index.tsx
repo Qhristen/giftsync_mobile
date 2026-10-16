@@ -5,6 +5,7 @@ import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useTheme } from '@/hooks/useTheme';
+import { useFeatureFlag } from '@/hooks/useFeatureFlags';
 import { useGetUpcomingEventsQuery } from '@/store/api/event';
 import { useGetCategoriesQuery, useGetProductsQuery } from '@/store/api/productApi';
 import { Product } from '@/types';
@@ -23,14 +24,16 @@ import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const EMPTY_LIST: never[] = [];
 
 export default function ShopScreen() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
     const { colors, spacing } = useTheme();
+    const { enabled: giftRequestsEnabled } = useFeatureFlag('gift_requests');
     const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
     const [activeCategory, setActiveCategory] = useState('All');
     const [searchQuery, setSearchQuery] = useState('');
@@ -38,23 +41,33 @@ export default function ShopScreen() {
     const [sortBy, setSortBy] = useState('Trending');
     const [page, setPage] = useState(1);
     const debouncedSearch = useDebounce(searchQuery);
-    const giftSheet = useBottomSheet();
+    const {
+        ref: giftSheetRef,
+        open: openGiftSheet,
+        close: closeGiftSheet,
+    } = useBottomSheet();
     const filterSheet = useBottomSheet();
 
-    const { data: categoriesData = [], refetch: refetchCategories, isFetching: categoriesFetching } = useGetCategoriesQuery({ hasProductsOnly: true });
-    const { data: upcomingEvents = [], refetch: refetchEvents, isFetching: eventsFetching } = useGetUpcomingEventsQuery();
-    const categories = [{ id: 'All', name: 'All gifts' }, ...categoriesData];
+    const { data: categoriesData, refetch: refetchCategories, isFetching: categoriesFetching } = useGetCategoriesQuery({ hasProductsOnly: true });
+    const { data: upcomingEvents, refetch: refetchEvents, isFetching: eventsFetching } = useGetUpcomingEventsQuery();
+    const categories = React.useMemo(
+        () => [{ id: 'All', name: 'All gifts' }, ...(categoriesData ?? EMPTY_LIST)],
+        [categoriesData],
+    );
 
-    const queryParams: Record<string, string | number> = { page, limit: 20 };
-    if (activeCategory !== 'All') queryParams.categoryId = activeCategory;
-    if (debouncedSearch) queryParams.search = debouncedSearch;
-    if (sortBy !== 'Trending') queryParams.sortBy = sortBy.toLowerCase();
-    if (priceRange === 'Under $50') queryParams.maxPrice = 50;
-    if (priceRange === '$50 - $100') {
-        queryParams.minPrice = 50;
-        queryParams.maxPrice = 100;
-    }
-    if (priceRange === 'Over $100') queryParams.minPrice = 100;
+    const queryParams = React.useMemo(() => {
+        const params: Record<string, string | number> = { page, limit: 20 };
+        if (activeCategory !== 'All') params.categoryId = activeCategory;
+        if (debouncedSearch) params.search = debouncedSearch;
+        if (sortBy !== 'Trending') params.sortBy = sortBy.toLowerCase();
+        if (priceRange === 'Under $50') params.maxPrice = 50;
+        if (priceRange === '$50 - $100') {
+            params.minPrice = 50;
+            params.maxPrice = 100;
+        }
+        if (priceRange === 'Over $100') params.minPrice = 100;
+        return params;
+    }, [activeCategory, debouncedSearch, page, priceRange, sortBy]);
 
     const { data: productsData, isLoading, isFetching: productsFetching, error, refetch: refetchProducts } = useGetProductsQuery(queryParams);
 
@@ -67,30 +80,38 @@ export default function ShopScreen() {
         refetchCategories();
     }, [refetchProducts, refetchEvents, refetchCategories]);
 
-    const loadMore = () => {
+    const loadMore = React.useCallback(() => {
         if (productsData?.meta && page < productsData.meta.totalPages && !productsFetching) setPage((value) => value + 1);
-    };
+    }, [page, productsData?.meta, productsFetching]);
 
-    const paperColors = [colors.lemon, colors.lilac, colors.mint, colors.peach];
+    const paperColors = React.useMemo(
+        () => [colors.lemon, colors.lilac, colors.mint, colors.peach],
+        [colors.lemon, colors.lilac, colors.mint, colors.peach],
+    );
 
-    const renderProduct = ({ item: product, index }: { item: Product; index: number }) => {
+    const renderProduct = React.useCallback(({ item: product, index }: { item: Product; index: number }) => {
         const totalPrice = Number(product.price) + Number(product.deliveryFee) + Number(product.packagingFee);
         const isLeft = index % 2 === 0;
         return (
-            <Animated.View
-                entering={FadeInDown.delay(Math.min(index * 55, 330)).duration(250)}
+            <View
                 style={[styles.productWrapper, isLeft ? { paddingLeft: spacing.xl, paddingRight: 7 } : { paddingRight: spacing.xl, paddingLeft: 7 }]}
             >
                 <Pressable
                     onPress={() => router.push({ pathname: '/product-detail', params: { id: product.id } })}
                     style={({ pressed }) => [
                         styles.productCard,
-                        { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: paperColors[index % paperColors.length] },
+                        { backgroundColor: colors.surface, borderColor: colors.ink },
                         pressed && styles.pressed,
                     ]}
                 >
                     <View style={styles.imageWrap}>
-                        <Image source={{ uri: product.imageUrls?.[0] }} style={styles.productImage} contentFit="cover" />
+                        <Image
+                            source={{ uri: product.imageUrls?.[0] }}
+                            style={styles.productImage}
+                            contentFit="cover"
+                            cachePolicy="memory-disk"
+                            recyclingKey={product.id}
+                        />
                         <View style={[styles.colorTab, { backgroundColor: paperColors[index % paperColors.length], borderColor: colors.ink }]} />
                     </View>
                     <View style={styles.productContent}>
@@ -103,7 +124,7 @@ export default function ShopScreen() {
                                 onPress={(event) => {
                                     event.stopPropagation();
                                     setSelectedProductId(product.id);
-                                    giftSheet.open();
+                                    openGiftSheet();
                                 }}
                                 style={[styles.sendButton, { backgroundColor: colors.accent, borderColor: colors.ink }]}
                             >
@@ -112,9 +133,9 @@ export default function ShopScreen() {
                         </View>
                     </View>
                 </Pressable>
-            </Animated.View>
+            </View>
         );
-    };
+    }, [colors.accent, colors.ink, colors.surface, colors.textSecondary, openGiftSheet, paperColors, router, spacing.xl]);
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -124,9 +145,9 @@ export default function ShopScreen() {
                         <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>THE GIFT SHOP</Typography>
                         <Typography variant="h1">Find their thing.</Typography>
                     </View>
-                    <View style={[styles.sparkIcon, { backgroundColor: colors.accent, borderColor: colors.ink }]}>
+                    <TouchableOpacity onPress={()=> router.push("/ai-chat")} style={[styles.sparkIcon, { backgroundColor: colors.accent, borderColor: colors.ink }]}>
                         <HugeiconsIcon icon={SparklesIcon} size={22} color="#17151D" />
-                    </View>
+                    </TouchableOpacity>
                 </View>
 
                 <View style={[styles.searchRow, { paddingHorizontal: spacing.xl }]}>
@@ -151,11 +172,11 @@ export default function ShopScreen() {
                     </Pressable>
                 </View>
 
-                <Pressable
+                {giftRequestsEnabled && <Pressable
                     onPress={() => router.push({ pathname: '/gift-request', params: searchQuery ? { item: searchQuery } : {} })}
                     style={({ pressed }) => [
                         styles.conciergeCard,
-                        { marginHorizontal: spacing.xl, backgroundColor: colors.mint, borderColor: colors.ink, shadowColor: colors.ink },
+                        { marginHorizontal: spacing.xl, backgroundColor: colors.mint, borderColor: colors.ink },
                         pressed && styles.pressed,
                     ]}
                 >
@@ -167,7 +188,7 @@ export default function ShopScreen() {
                         <Typography variant="caption" color={colors.textSecondary}>Tell our gift concierge what you need.</Typography>
                     </View>
                     <HugeiconsIcon icon={ArrowRight01Icon} size={22} color={colors.ink} />
-                </Pressable>
+                </Pressable>}
 
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.categories, { paddingHorizontal: spacing.xl }]}>
                     {categories.map((category) => {
@@ -201,7 +222,7 @@ export default function ShopScreen() {
             ) : (
                 <FlashList
                     style={styles.productList}
-                    data={productsData?.items || []}
+                    data={productsData?.items ?? EMPTY_LIST}
                     renderItem={renderProduct}
                     numColumns={2}
                     keyExtractor={(item) => item.id}
@@ -214,11 +235,13 @@ export default function ShopScreen() {
                     ListEmptyComponent={
                         <View style={styles.centerState}>
                             <Typography variant="h3">Nothing matches—yet.</Typography>
-                            <Typography variant="body" color={colors.textSecondary} align="center">Make a request and tell us precisely what would make them smile.</Typography>
-                            <Pressable onPress={() => router.push({ pathname: '/gift-request', params: { item: searchQuery } })} style={[styles.emptyButton, { backgroundColor: colors.accent, borderColor: colors.ink }]}>
-                                <Typography variant="bodyBold" color="#17151D">Request a gift</Typography>
-                                <HugeiconsIcon icon={ArrowRight01Icon} size={18} color="#17151D" />
-                            </Pressable>
+                            <Typography variant="body" color={colors.textSecondary} align="center">{giftRequestsEnabled ? 'Make a request and tell us precisely what would make them smile.' : 'Try another search or category.'}</Typography>
+                            {giftRequestsEnabled && (
+                                <Pressable onPress={() => router.push({ pathname: '/gift-request', params: { item: searchQuery } })} style={[styles.emptyButton, { backgroundColor: colors.accent, borderColor: colors.ink }]}>
+                                    <Typography variant="bodyBold" color="#17151D">Request a gift</Typography>
+                                    <HugeiconsIcon icon={ArrowRight01Icon} size={18} color="#17151D" />
+                                </Pressable>
+                            )}
                         </View>
                     }
                     ListFooterComponent={productsFetching && page > 1 ? <ActivityIndicator color={colors.primary} style={{ padding: 20 }} /> : null}
@@ -226,10 +249,10 @@ export default function ShopScreen() {
             )}
 
             <GiftOptionsSheet
-                ref={giftSheet.ref}
-                events={upcomingEvents}
+                ref={giftSheetRef}
+                events={upcomingEvents ?? EMPTY_LIST}
                 onSelect={(event) => {
-                    giftSheet.close();
+                    closeGiftSheet();
                     if (selectedProductId) router.push({ pathname: '/checkout', params: { occasionId: event.id, productId: selectedProductId } });
                 }}
             />
@@ -256,12 +279,12 @@ const styles = StyleSheet.create({
     searchBar: { flex: 1, height: 52, borderWidth: 1.5, borderRadius: 16, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, gap: 10 },
     searchInput: { flex: 1, fontFamily: 'DMSans_400Regular', fontSize: moderateScale(15) },
     filterButton: { width: 52, height: 52, borderWidth: 1.5, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-    conciergeCard: { marginTop: 16, padding: 14, borderWidth: 1.5, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 12, shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0, elevation: 4 },
+    conciergeCard: { marginTop: 16, padding: 14, borderWidth: 1.5, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 12, },
     conciergeIcon: { width: 46, height: 46, borderRadius: 14, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
     categories: { gap: 9, paddingTop: 18, paddingBottom: 8 },
     category: { paddingHorizontal: 16, paddingVertical: 9, borderRadius: 13, borderWidth: 1.5 },
     productWrapper: { width: '100%', marginBottom: 18 },
-    productCard: { borderWidth: 1.5, borderRadius: 20, shadowOffset: { width: 4, height: 5 }, shadowOpacity: 1, shadowRadius: 0, elevation: 4 },
+    productCard: { borderWidth: 1.5, borderRadius: 20, },
     imageWrap: { height: 145, margin: 8, marginBottom: 0 },
     productImage: { width: '100%', height: '100%', borderRadius: 13, borderWidth: 1, borderColor: '#17151D' },
     colorTab: { position: 'absolute', width: 38, height: 12, borderWidth: 1, top: -13, left: 14, transform: [{ rotate: '-5deg' }] },

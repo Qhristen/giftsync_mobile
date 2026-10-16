@@ -1,8 +1,39 @@
 import { baseApi } from './baseApi';
 
+type EventRecurrence = 'NONE' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
+
+export interface GiftRequestNewEvent {
+    title: string;
+    date: string;
+    recurrenceType: EventRecurrence;
+    name: string;
+    phoneNumber: string;
+    relationship?: string;
+}
+
+export interface GiftRequestNewAddress {
+    recipientName: string;
+    line1: string;
+    line2?: string;
+    city: string;
+    state: string;
+    country: string;
+}
+
+export interface GiftRequestOrderDetails {
+    deliveryDate: string;
+    deliveryTimeWindow: 'Morning' | 'Afternoon' | 'Evening';
+    giftMessage?: string;
+    anonymity: boolean;
+    quantity: number;
+}
+
 export interface CreateGiftRequestDto {
     eventId?: string;
     contactId?: string;
+    newEvent?: GiftRequestNewEvent;
+    newAddress?: GiftRequestNewAddress;
+    orderDetails: GiftRequestOrderDetails;
     recipientName: string;
     recipientPhoneNumber?: string;
     occasion?: string;
@@ -19,6 +50,13 @@ export interface CreateGiftRequestDto {
 export interface GiftRequest {
     id: string;
     status: 'PENDING' | 'IN_REVIEW' | 'SOURCING' | 'FULFILLED' | 'CANCELLED';
+    eventId?: string;
+    contactId?: string;
+    addressId?: string;
+    orderId?: string;
+    orderTotal?: number;
+    paymentStatus?: string;
+    currency?: string;
     createdAt: string;
 }
 

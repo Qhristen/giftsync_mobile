@@ -48,11 +48,6 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
     },
     shadow: {
-        shadowColor: '#17151D',
-        shadowOffset: { width: 4, height: 5 },
-        shadowOpacity: 1,
-        shadowRadius: 0,
-        elevation: 4,
     },
 });
 

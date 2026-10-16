@@ -19,7 +19,6 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
-import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
 
@@ -88,7 +87,7 @@ export default function NotificationsScreen() {
                     </View>
                 </View>
 
-                <View style={[styles.mailbox, { backgroundColor: colors.lilac, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                <View style={[styles.mailbox, { backgroundColor: colors.lilac, borderColor: colors.ink }]}>
                     <View style={[styles.mailIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                         <HugeiconsIcon icon={Notification01Icon} size={27} color={colors.primary} />
                     </View>
@@ -134,7 +133,7 @@ export default function NotificationsScreen() {
                         );
 
                         return (
-                            <Animated.View entering={FadeInDown.delay(Math.min(index * 55, 300)).duration(300)} style={{ marginHorizontal: spacing.xl, marginBottom: 16 }}>
+                            <View style={{ marginHorizontal: spacing.xl, marginBottom: 16 }}>
                                 <Swipeable
                                     renderLeftActions={item.isRead ? undefined : leftAction}
                                     renderRightActions={rightAction}
@@ -147,7 +146,6 @@ export default function NotificationsScreen() {
                                             {
                                                 backgroundColor: item.isRead ? colors.surface : noteColor,
                                                 borderColor: colors.ink,
-                                                shadowColor: item.isRead ? colors.textMuted : colors.ink,
                                                 transform: [{ rotate: index % 2 ? '0.6deg' : '-0.6deg' }],
                                             },
                                             pressed && styles.pressed,
@@ -172,7 +170,7 @@ export default function NotificationsScreen() {
                                         </View>
                                     </Pressable>
                                 </Swipeable>
-                            </Animated.View>
+                            </View>
                         );
                     }}
                     ListEmptyComponent={
@@ -196,10 +194,10 @@ const styles = StyleSheet.create({
     headerTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
     backButton: { width: 44, height: 44, borderRadius: 14, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
     overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.8 },
-    mailbox: { minHeight: 100, borderWidth: 1.5, borderRadius: 22, marginTop: 20, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, shadowOffset: { width: 4, height: 5 }, shadowOpacity: 1, shadowRadius: 0, elevation: 4 },
+    mailbox: { minHeight: 100, borderWidth: 1.5, borderRadius: 22, marginTop: 20, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, },
     mailIcon: { width: 50, height: 50, borderWidth: 1.5, borderRadius: 16, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-4deg' }] },
     clearButton: { height: 38, borderWidth: 1.25, borderRadius: 12, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', gap: 5 },
-    note: { minHeight: 144, borderWidth: 1.5, borderRadius: 20, padding: 16, paddingTop: 20, flexDirection: 'row', gap: 13, shadowOffset: { width: 4, height: 5 }, shadowOpacity: 1, shadowRadius: 0, elevation: 4 },
+    note: { minHeight: 144, borderWidth: 1.5, borderRadius: 20, padding: 16, paddingTop: 20, flexDirection: 'row', gap: 13, },
     pin: { position: 'absolute', width: 16, height: 16, borderRadius: 8, borderWidth: 1.5, top: -7, left: '50%' },
     noteIcon: { width: 44, height: 44, borderRadius: 14, borderWidth: 1.25, alignItems: 'center', justifyContent: 'center' },
     noteMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },

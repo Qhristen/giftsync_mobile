@@ -7,7 +7,6 @@ import { GiftIcon } from '@hugeicons/core-free-icons';
 import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
 import { ScrollView, View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
 import HolidaySubscribersSheet from '../sheets/HolidaySubscribersSheet';
 import { BottomSheetRef } from '../ui/BottomSheetWrapper';
 
@@ -50,7 +49,7 @@ export default function UpcomingHolidays({ templates }: UpcomingHolidaysProps) {
 
     return (
         <View>
-            <Animated.View entering={FadeInDown.delay(500).duration(600)} style={{ paddingVertical: spacing.md }}>
+            <View style={{ paddingVertical: spacing.md }}>
                 <View style={{ paddingHorizontal: spacing.xl, marginBottom: spacing.xs }}>
                     <Typography variant="h4">Upcoming Holidays</Typography>
                 </View>
@@ -84,7 +83,7 @@ export default function UpcomingHolidays({ templates }: UpcomingHolidaysProps) {
                         </Card>
                     ))}
                 </ScrollView>
-            </Animated.View>
+            </View>
 
             <HolidaySubscribersSheet
                 ref={subscribersSheetRef}

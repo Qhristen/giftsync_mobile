@@ -61,7 +61,7 @@ export default function ProductOrdersScreen() {
     const paper = [colors.lilac, colors.mint, colors.peach, colors.lemon];
 
     const renderOrderItem = ({ item, index }: { item: Order; index: number }) => (
-        <Card style={[styles.orderCard, { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: paper[index % paper.length], transform: [{ rotate: index % 2 ? '0.5deg' : '-0.5deg' }] }]}>
+        <Card style={[styles.orderCard, { backgroundColor: colors.surface, borderColor: colors.ink, transform: [{ rotate: index % 2 ? '0.5deg' : '-0.5deg' }] }]}>
             <View style={[styles.statusTab, { backgroundColor: paper[index % paper.length], borderColor: colors.ink }]}>
                 <Typography variant="caption" style={styles.overline}>DISPATCH {String(index + 1).padStart(2, '0')}</Typography>
             </View>
@@ -117,7 +117,6 @@ export default function ProductOrdersScreen() {
                     <Typography variant="caption" color={colors.textSecondary} numberOfLines={1}>{productName}</Typography>
                 </View>
             </View>
-
 
             {isLoading ? (
                 <View style={{ flex: 1, paddingTop: 20 }}>
@@ -175,9 +174,6 @@ const styles = StyleSheet.create({
         padding: 16,
         borderWidth: 1.5,
         borderRadius: 22,
-        shadowOffset: { width: 4, height: 4 },
-        shadowOpacity: 1,
-        shadowRadius: 0,
     },
     statusTab: { position: 'absolute', right: 14, top: -9, borderWidth: 1.25, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4, transform: [{ rotate: '2deg' }], zIndex: 2 },
     orderHeader: {

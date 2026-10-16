@@ -30,7 +30,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Dimensions, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
@@ -109,7 +108,7 @@ export default function ProductDetailScreen() {
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             <View style={[styles.fixedHeader, { paddingTop: insets.top + 10, paddingHorizontal: spacing.xl, backgroundColor: colors.background }]}>
-                <Pressable onPress={() => router.back()} style={[styles.headerButton, { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                <Pressable onPress={() => router.back()} style={[styles.headerButton, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                     <HugeiconsIcon icon={ArrowLeft01Icon} size={22} color={colors.ink} />
                 </Pressable>
                 <View style={[styles.catalogLabel, { backgroundColor: colors.accent, borderColor: colors.ink }]}>
@@ -118,7 +117,7 @@ export default function ProductDetailScreen() {
             </View>
 
             <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 18, paddingBottom: 126 }}>
-                <Animated.View entering={FadeInDown.duration(400)}>
+                <View>
                     <View style={styles.galleryFrame}>
                         {product.imageUrls?.length ? (
                             <FlashList
@@ -130,7 +129,7 @@ export default function ProductDetailScreen() {
                                 onMomentumScrollEnd={(event) => setActiveIndex(Math.round(event.nativeEvent.contentOffset.x / width))}
                                 renderItem={({ item, index }) => (
                                     <View style={{ width, paddingHorizontal: spacing.xl }}>
-                                        <View style={[styles.imagePaper, { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: paperColors[index % paperColors.length] }]}>
+                                        <View style={[styles.imagePaper, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                                             <Image source={{ uri: item }} style={styles.heroImage} contentFit="cover" />
                                             <View style={[styles.imageTape, { backgroundColor: paperColors[index % paperColors.length], borderColor: colors.ink }]} />
                                         </View>
@@ -139,7 +138,7 @@ export default function ProductDetailScreen() {
                             />
                         ) : (
                             <View style={{ paddingHorizontal: spacing.xl }}>
-                                <View style={[styles.imagePaper, styles.center, { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: colors.lilac }]}>
+                                <View style={[styles.imagePaper, styles.center, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                                     <HugeiconsIcon icon={Image01Icon} size={48} color={colors.textMuted} />
                                 </View>
                             </View>
@@ -152,9 +151,9 @@ export default function ProductDetailScreen() {
                             </View>
                         )}
                     </View>
-                </Animated.View>
+                </View>
 
-                <Animated.View entering={FadeInUp.delay(80).duration(400)} style={{ paddingHorizontal: spacing.xl, marginTop: 26 }}>
+                <View style={{ paddingHorizontal: spacing.xl, marginTop: 26 }}>
                     <View style={styles.titleBlock}>
                         <View style={{ flex: 1 }}>
                             <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>{product.category?.name?.toUpperCase() || 'A SPECIAL FIND'}</Typography>
@@ -181,7 +180,7 @@ export default function ProductDetailScreen() {
                     </Pressable>
 
                     {deliveryStatus && (
-                        <View style={[styles.deliveryNote, { backgroundColor: deliveryStatus.canArriveOnTime ? colors.mint : colors.peach, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                        <View style={[styles.deliveryNote, { backgroundColor: deliveryStatus.canArriveOnTime ? colors.mint : colors.peach, borderColor: colors.ink }]}>
                             <View style={[styles.noteIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                                 <HugeiconsIcon icon={deliveryStatus.canArriveOnTime ? Time02Icon : Alert01Icon} size={22} color={deliveryStatus.canArriveOnTime ? colors.success : colors.error} />
                             </View>
@@ -199,7 +198,7 @@ export default function ProductDetailScreen() {
                     </View>
 
                     {product.description && (
-                        <View style={[styles.storyCard, { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: colors.lilac }]}>
+                        <View style={[styles.storyCard, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                             <View style={styles.storyHeading}>
                                 <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>THE STORY</Typography>
                                 <View style={[styles.storyLine, { backgroundColor: colors.ink }]} />
@@ -225,7 +224,7 @@ export default function ProductDetailScreen() {
                     )}
 
                     {businessLocationCoords && (
-                        <View style={[styles.mapCard, { backgroundColor: colors.sky, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                        <View style={[styles.mapCard, { backgroundColor: colors.sky, borderColor: colors.ink }]}>
                             <View style={styles.mapHeading}>
                                 <View style={{ flex: 1 }}>
                                     <Typography variant="caption" style={styles.overline}>MADE NEARBY</Typography>
@@ -248,7 +247,7 @@ export default function ProductDetailScreen() {
                             </View>
                         </View>
                     )}
-                </Animated.View>
+                </View>
             </ScrollView>
 
             <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12), backgroundColor: colors.background, borderTopColor: colors.ink }]}>
@@ -292,11 +291,11 @@ const styles = StyleSheet.create({
     center: { alignItems: 'center', justifyContent: 'center', gap: 12 },
     scroll: { flex: 1 },
     fixedHeader: { zIndex: 10, paddingBottom: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    headerButton: { width: 44, height: 44, borderRadius: 14, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', shadowOffset: { width: 3, height: 3 }, shadowOpacity: 1, shadowRadius: 0, elevation: 4 },
+    headerButton: { width: 44, height: 44, borderRadius: 14, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', },
     catalogLabel: { height: 36, borderRadius: 12, borderWidth: 1.5, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '2deg' }] },
     overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.8 },
     galleryFrame: { minHeight: 398 },
-    imagePaper: { height: 380, borderRadius: 14, borderWidth: 1.5, padding: 9, shadowOffset: { width: 6, height: 7 }, shadowOpacity: 1, shadowRadius: 0, elevation: 5 },
+    imagePaper: { height: 380, borderRadius: 14, borderWidth: 1.5, padding: 9, },
     heroImage: { width: '100%', height: '100%', borderRadius: 8, borderWidth: 1, borderColor: '#17151D' },
     imageTape: { position: 'absolute', width: 58, height: 15, top: -8, left: '42%', borderWidth: 1, transform: [{ rotate: '-3deg' }] },
     pagination: { position: 'absolute', bottom: 0, alignSelf: 'center', flexDirection: 'row', gap: 5, paddingHorizontal: 9, paddingVertical: 6, borderWidth: 1.25, borderRadius: 12 },
@@ -307,19 +306,19 @@ const styles = StyleSheet.create({
     priceTicket: { minWidth: 122, minHeight: 82, borderWidth: 1.5, borderRadius: 16, padding: 12, justifyContent: 'center', transform: [{ rotate: '3deg' }] },
     ticketHole: { position: 'absolute', width: 12, height: 12, borderRadius: 6, borderWidth: 1, left: -7, top: 34 },
     makerStrip: { marginTop: 22, borderWidth: 1.5, borderRadius: 20, padding: 13, flexDirection: 'row', alignItems: 'center', gap: 12 },
-    deliveryNote: { marginTop: 18, borderWidth: 1.5, borderRadius: 19, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0, elevation: 3 },
+    deliveryNote: { marginTop: 18, borderWidth: 1.5, borderRadius: 19, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, },
     noteIcon: { width: 44, height: 44, borderWidth: 1.25, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
     factBento: { marginTop: 24, flexDirection: 'row', flexWrap: 'wrap', gap: 11 },
     factTile: { width: '48.3%', minHeight: 118, borderWidth: 1.5, borderRadius: 20, padding: 13, justifyContent: 'space-between' },
     factTileWide: { width: '100%', minHeight: 78, flexDirection: 'row', alignItems: 'center', gap: 11 },
     factIcon: { width: 38, height: 38, borderRadius: 12, borderWidth: 1.25, alignItems: 'center', justifyContent: 'center' },
-    storyCard: { marginTop: 26, borderWidth: 1.5, borderRadius: 22, padding: 18, gap: 12, shadowOffset: { width: 5, height: 5 }, shadowOpacity: 1, shadowRadius: 0, elevation: 4 },
+    storyCard: { marginTop: 26, borderWidth: 1.5, borderRadius: 22, padding: 18, gap: 12, },
     storyHeading: { flexDirection: 'row', alignItems: 'center', gap: 10 },
     storyLine: { flex: 1, height: 1 },
     readButton: { alignSelf: 'flex-start', borderWidth: 1.25, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 7 },
     tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 },
     tag: { borderWidth: 1.25, borderRadius: 11, paddingHorizontal: 10, paddingVertical: 7 },
-    mapCard: { marginTop: 28, borderWidth: 1.5, borderRadius: 22, padding: 14, shadowOffset: { width: 5, height: 5 }, shadowOpacity: 1, shadowRadius: 0, elevation: 4 },
+    mapCard: { marginTop: 28, borderWidth: 1.5, borderRadius: 22, padding: 14, },
     mapHeading: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
     distancePill: { backgroundColor: '#FFFEFB', overflow: 'hidden', borderRadius: 9, paddingHorizontal: 8, paddingVertical: 4 },
     mapFrame: { height: 130, borderWidth: 1.5, borderRadius: 14, overflow: 'hidden' },

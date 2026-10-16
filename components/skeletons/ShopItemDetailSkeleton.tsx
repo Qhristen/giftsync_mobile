@@ -16,7 +16,7 @@ export default function ShopItemDetailSkeleton() {
             </View>
 
             <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-                <SkeletonPaper color={colors.surface} style={[styles.imagePaper, { shadowColor: colors.lilac }]}>
+                <SkeletonPaper color={colors.surface} style={[styles.imagePaper, { }]}>
                     <Skeleton width="100%" height="100%" borderRadius={8} />
                     <View style={[styles.tape, { backgroundColor: colors.lemon, borderColor: colors.ink }]} />
                 </SkeletonPaper>
@@ -38,7 +38,7 @@ export default function ShopItemDetailSkeleton() {
                     <View style={[styles.factWide, { backgroundColor: colors.lemon, borderColor: colors.ink }]}><Skeleton width={38} height={38} borderRadius={12} /><View style={styles.copy}><Skeleton width={48} height={10} /><Skeleton width={92} height={16} /></View></View>
                 </View>
 
-                <SkeletonPaper color={colors.surface} style={[styles.story, { shadowColor: colors.lilac }]}>
+                <SkeletonPaper color={colors.surface} style={[styles.story, { }]}>
                     <View style={styles.storyHeading}><Skeleton width={74} height={10} /><Skeleton width="66%" height={1} borderRadius={1} /></View>
                     <Skeleton width="100%" height={13} />
                     <Skeleton width="96%" height={13} />

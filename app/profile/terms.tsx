@@ -3,10 +3,7 @@ import PaperScreenHeader from '@/components/ui/PaperScreenHeader';
 import { useTheme } from '@/hooks/useTheme';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import Animated, { FadeInUp } from 'react-native-reanimated';
-
-export default function TermsAndConditionsScreen() {
+import { ScrollView, StyleSheet, View } from 'react-native';export default function TermsAndConditionsScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
 
@@ -57,8 +54,8 @@ export default function TermsAndConditionsScreen() {
                 contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: 100 }}
                 showsVerticalScrollIndicator={false}
             >
-                <Animated.View entering={FadeInUp.duration(400)}>
-                    <View style={[styles.cover, { backgroundColor: colors.lemon, borderColor: colors.ink, shadowColor: colors.ink }]}>
+                <View>
+                    <View style={[styles.cover, { backgroundColor: colors.lemon, borderColor: colors.ink }]}>
                         <View style={[styles.binding, { backgroundColor: colors.lilac, borderColor: colors.ink }]} />
                         <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>GIFTSYNC · AGREEMENT FILE</Typography>
                         <Typography variant="h1">The good-faith rules</Typography>
@@ -76,7 +73,7 @@ export default function TermsAndConditionsScreen() {
                                 </View>
                                 <Typography variant="h3" style={{ flex: 1 }}>{section.title.replace(/^\d+\.\s*/, '')}</Typography>
                             </View>
-                            <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.ink, shadowColor: [colors.mint, colors.peach, colors.lavender][index % 3] }]}>
+                            <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                                 <Typography variant="body" color={colors.textSecondary} style={{ lineHeight: 24 }}>
                                     {section.content}
                                 </Typography>
@@ -89,7 +86,7 @@ export default function TermsAndConditionsScreen() {
                             Questions about our Terms? Contact us at legal@giftsync.app
                         </Typography>
                     </View>
-                </Animated.View>
+                </View>
             </ScrollView>
         </View>
     );
@@ -100,7 +97,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.9 },
-    cover: { padding: 22, borderWidth: 1.5, borderRadius: 25, gap: 7, marginTop: 8, marginBottom: 30, shadowOffset: { width: 5, height: 6 }, shadowOpacity: 0.15, shadowRadius: 0, transform: [{ rotate: '-0.6deg' }] },
+    cover: { padding: 22, borderWidth: 1.5, borderRadius: 25, gap: 7, marginTop: 8, marginBottom: 30, transform: [{ rotate: '-0.6deg' }] },
     binding: { position: 'absolute', left: 13, top: -8, width: 72, height: 17, borderWidth: 1, transform: [{ rotate: '-3deg' }] },
     updatedStamp: { alignSelf: 'flex-start', borderWidth: 1.25, borderRadius: 9, paddingHorizontal: 9, paddingVertical: 6, marginTop: 8, transform: [{ rotate: '2deg' }] },
     section: {
@@ -112,9 +109,6 @@ const styles = StyleSheet.create({
         padding: 20,
         borderRadius: 20,
         borderWidth: 1.5,
-        shadowOffset: { width: 4, height: 4 },
-        shadowOpacity: 1,
-        shadowRadius: 0,
     },
     footer: {
         paddingVertical: 20,

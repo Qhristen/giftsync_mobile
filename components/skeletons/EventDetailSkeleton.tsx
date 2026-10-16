@@ -61,7 +61,7 @@ export default function EventDetailSkeleton() {
                 <View style={styles.sectionHeading}><View style={styles.copy}><Skeleton width={92} height={10} /><Skeleton width={176} height={24} /></View><Skeleton width={46} height={13} /></View>
                 <View style={styles.ideas}>
                     {steps.slice(0, 2).map((color, index) => (
-                        <SkeletonPaper key={color} color={colors.surface} style={[styles.idea, { shadowColor: color, transform: [{ rotate: index ? '2deg' : '-2deg' }] }]}>
+                        <SkeletonPaper key={color} color={colors.surface} style={[styles.idea, { transform: [{ rotate: index ? '2deg' : '-2deg' }] }]}>
                             <Skeleton width="100%" height={144} borderRadius={4} />
                             <Skeleton width="74%" height={16} />
                             <View style={styles.ideaFooter}><Skeleton width={60} height={14} /><Skeleton width={34} height={12} /></View>

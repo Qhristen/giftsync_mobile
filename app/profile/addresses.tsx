@@ -18,7 +18,6 @@ import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function SavedAddressesScreen() {
@@ -65,8 +64,8 @@ export default function SavedAddressesScreen() {
                         </View>
                     )}
                     renderItem={({ item, index }) => (
-                        <Animated.View entering={FadeInDown.delay(index * 100).duration(400)}>
-                            <Card style={[styles.addressCard, { backgroundColor: paper[index % paper.length], borderColor: colors.ink, shadowColor: colors.ink, transform: [{ rotate: index % 2 ? '0.6deg' : '-0.6deg' }] }]}>
+                        <View>
+                            <Card style={[styles.addressCard, { backgroundColor: paper[index % paper.length], borderColor: colors.ink, transform: [{ rotate: index % 2 ? '0.6deg' : '-0.6deg' }] }]}>
                                 <View style={[styles.iconBox, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                                     <HugeiconsIcon icon={Location01Icon} size={23} color={colors.ink} />
                                 </View>
@@ -87,7 +86,7 @@ export default function SavedAddressesScreen() {
                                     <HugeiconsIcon icon={Edit01Icon} size={19} color={colors.ink} />
                                 </Pressable>
                             </Card>
-                        </Animated.View>
+                        </View>
                     )}
                 />
             )}
@@ -139,9 +138,6 @@ const styles = StyleSheet.create({
         gap: 13,
         borderWidth: 1.5,
         borderRadius: 21,
-        shadowOffset: { width: 3, height: 4 },
-        shadowOpacity: 0.13,
-        shadowRadius: 0,
     },
     iconBox: {
         width: 48,
