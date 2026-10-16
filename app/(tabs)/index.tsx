@@ -1,9 +1,10 @@
+import UpcomingHolidays from '@/components/event/UpcomingHolidays';
 import HomeScreenSkeleton from '@/components/skeletons/HomeScreenSkeleton';
 import Avatar from '@/components/ui/Avatar';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { useFeatureFlag } from '@/hooks/useFeatureFlags';
-import { useGetUpcomingEventsQuery } from '@/store/api/event';
+import { useGetEventTemplatesQuery, useGetUpcomingEventsQuery } from '@/store/api/event';
 import { useGetUnreadCountQuery } from '@/store/api/notificationApi';
 import { useGetRecommendationsV2Query } from '@/store/api/productApi';
 import { useGetProfileQuery } from '@/store/api/userApi';
@@ -46,6 +47,7 @@ export default function HomeScreen() {
     const { enabled: recommendationsEnabled } = useFeatureFlag('gift_recommendations');
     const { data: profile, isLoading: profileLoading, refetch: refetchProfile } = useGetProfileQuery();
     const { data: upcoming = [], isLoading: eventsLoading, refetch: refetchUpcoming } = useGetUpcomingEventsQuery();
+    const { data: eventTemplates = [], isFetching: templatesFetching, refetch: refetchTemplates } = useGetEventTemplatesQuery();
     const { data: unreadCount, refetch: refetchUnread } = useGetUnreadCountQuery();
     const firstUpcoming = upcoming[0];
     const { data: recs = [], isLoading: recsLoading, refetch: refetchRecs } = useGetRecommendationsV2Query(
@@ -56,9 +58,10 @@ export default function HomeScreen() {
     const onRefresh = React.useCallback(() => {
         refetchProfile();
         refetchUpcoming();
+        refetchTemplates();
         refetchUnread();
         if (firstUpcoming && recommendationsEnabled) refetchRecs();
-    }, [firstUpcoming, recommendationsEnabled, refetchProfile, refetchUpcoming, refetchUnread, refetchRecs]);
+    }, [firstUpcoming, recommendationsEnabled, refetchProfile, refetchUpcoming, refetchTemplates, refetchUnread, refetchRecs]);
 
     if (profileLoading || eventsLoading) return <HomeScreenSkeleton />;
 
@@ -98,7 +101,7 @@ export default function HomeScreen() {
                     style={styles.scroll}
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={{ paddingBottom: 120 }}
-                    refreshControl={<RefreshControl refreshing={profileLoading || eventsLoading} onRefresh={onRefresh} tintColor={colors.primary} />}
+                    refreshControl={<RefreshControl refreshing={profileLoading || eventsLoading || templatesFetching} onRefresh={onRefresh} tintColor={colors.primary} />}
                 >
 
                 {firstUpcoming && nextDate ? (
@@ -250,6 +253,8 @@ export default function HomeScreen() {
                         </View>
                     </View>
                 )}
+
+                <UpcomingHolidays templates={eventTemplates} />
 
                 {recommendationsEnabled && <View style={{ marginTop: 38 }}>
                     <View style={[styles.sectionHeading, { paddingHorizontal: spacing.xl }]}>

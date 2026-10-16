@@ -13,6 +13,9 @@ interface ErrorResponse {
     code?: string;
     feature?: string;
     status?: number;
+    statusCode?: number;
+    timestamp?: string;
+    path?: string;
 }
 
 
@@ -226,7 +229,7 @@ export const api = axiosInstance
 export const baseApi = createApi({
     reducerPath: 'api',
     baseQuery: axiosBaseQuery(),
-    tagTypes: ['Contacts', 'Events', 'Recommendations', 'Orders', 'Shortlist', 'UserProfile', 'Wallet', 'Notifications', 'Products', 'Addresses', 'Chat', 'Business', 'Review', 'TrustSafety', 'Disputes', 'ReferralInfo', 'ReferralsList', 'FeatureManifest'],
+    tagTypes: ['Contacts', 'Events', 'Recommendations', 'Orders', 'Shortlist', 'UserProfile', 'Wallet', 'Notifications', 'Products', 'Addresses', 'Chat', 'Business', 'Review', 'TrustSafety', 'Disputes', 'ReferralInfo', 'ReferralsList', 'FeatureManifest', 'PlatformConfig'],
     // Keep unused data cached for 5 minutes to reduce redundant fetches
     keepUnusedDataFor: 300,
     // Refetch on reconnect and on focus for freshness

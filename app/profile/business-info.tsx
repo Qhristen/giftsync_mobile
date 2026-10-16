@@ -26,6 +26,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { toast } from 'sonner-native';
 import { useListBanksQuery, useVerifyAccountMutation } from '@/store/api/paymentApi';
+import { useGetDefaultPaymentGatewayQuery } from '@/store/api/platformConfigApi';
 import BottomSheetWrapper, { BottomSheetRef } from '@/components/ui/BottomSheetWrapper';
 
 export default function BusinessInfoScreen() {
@@ -38,7 +39,8 @@ export default function BusinessInfoScreen() {
     const [updateBusiness, { isLoading: isUpdating }] = useUpdateBusinessMutation();
     const [uploadLogo, { isLoading: isUploading }] = useUploadMutation();
 
-    const { data: banks, isLoading: isLoadingBanks } = useListBanksQuery();
+    const { data: defaultGateway } = useGetDefaultPaymentGatewayQuery();
+    const { data: banks, isLoading: isLoadingBanks } = useListBanksQuery(defaultGateway?.gateway);
     const [verifyAccount, { isLoading: isVerifying }] = useVerifyAccountMutation();
 
     const bankSheetRef = useRef<BottomSheetRef>(null);
@@ -186,7 +188,8 @@ export default function BusinessInfoScreen() {
         try {
             const result = await verifyAccount({
                 accountNumber: accNo,
-                bankCode: selectedBank.code
+                bankCode: selectedBank.code,
+                gateway: defaultGateway?.gateway,
             }).unwrap();
             setFormData(prev => ({ ...prev, bankAccountName: result.accountName }));
             setIsAccountVerified(true);

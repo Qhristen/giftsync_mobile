@@ -7,20 +7,22 @@ import { useTheme } from '@/hooks/useTheme';
 import { useFeatureFlag } from '@/hooks/useFeatureFlags';
 import { useValidateCouponMutation } from '@/store/api/couponApi';
 import { useGetOrderByIdQuery, useHandlePaymentMutation } from '@/store/api/orderApi';
+import { useGetDefaultPaymentGatewayQuery } from '@/store/api/platformConfigApi';
 import { useGetCoinQuoteQuery, useGetWalletBalanceQuery } from '@/store/api/walletApi';
 import { ValidateCouponResponse } from '@/types';
 import { formatCurrency } from '@/utils/formatCurrency';
+import { isPaymentCallbackUrl, isPaymentFailureUrl, PAYMENT_GATEWAY_LABELS } from '@/utils/payment';
 import { CreditCardIcon, Delete02Icon, Money01Icon, Tag01Icon, Tick01Icon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import { toast } from 'sonner-native';
 
-type PaymentChoice = 'coins' | 'paystack';
+type PaymentChoice = 'coins' | 'card';
 
 export default function PaymentScreen() {
     const router = useRouter();
@@ -31,16 +33,27 @@ export default function PaymentScreen() {
         currency: requestCurrency,
         paymentUrl: initialPaymentUrl,
     } = useLocalSearchParams<{ orderId: string; currency?: string; paymentUrl?: string }>();
-    const { data: order, isLoading: isOrderLoading } = useGetOrderByIdQuery(orderId as string, { skip: !orderId });
+    const [paymentUrl, setPaymentUrl] = useState<string | null>(initialPaymentUrl || null);
+    const [isAwaitingPayment, setIsAwaitingPayment] = useState(false);
+    const hasCompletedPaymentRef = useRef(false);
+    const hasHandledCheckoutNavigationRef = useRef(false);
+    const { data: order, isLoading: isOrderLoading, refetch: refetchOrder } = useGetOrderByIdQuery(
+        orderId as string,
+        {
+            skip: !orderId,
+            pollingInterval: isAwaitingPayment ? 2_000 : 0,
+            skipPollingIfUnfocused: true,
+        },
+    );
     const [handlePayment] = useHandlePaymentMutation();
     const { data: wallet } = useGetWalletBalanceQuery();
+    const { data: defaultGateway } = useGetDefaultPaymentGatewayQuery();
     const insets = useSafeAreaInsets();
 
     const [couponCode, setCouponCode] = useState('');
     const [appliedCoupon, setAppliedCoupon] = useState<ValidateCouponResponse | null>(null);
     const [validateCoupon, { isLoading: isValidating }] = useValidateCouponMutation();
     const [paymentMethod, setPaymentMethod] = useState<PaymentChoice>('coins');
-    const [paymentUrl, setPaymentUrl] = useState<string | null>(initialPaymentUrl || null);
     const [isProcessing, setIsProcessing] = useState(false);
 
     const payableTotal = (order?.total ?? 0) - (couponsEnabled ? appliedCoupon?.discountAmount ?? 0 : 0);
@@ -50,6 +63,29 @@ export default function PaymentScreen() {
         { amount: payableTotal, currency },
         { skip: !order?.total },
     );
+    const gatewayName = defaultGateway?.gateway
+        ? PAYMENT_GATEWAY_LABELS[defaultGateway.gateway]
+        : 'your configured payment provider';
+
+    useEffect(() => {
+        if (!isAwaitingPayment || order?.paymentStatus !== 'paid' || hasCompletedPaymentRef.current) return;
+
+        hasCompletedPaymentRef.current = true;
+        setIsAwaitingPayment(false);
+        router.replace({ pathname: '/checkout/confirmation', params: { orderId } });
+        toast.success('Payment successful!', { description: 'Your gift is ready for dispatch.' });
+    }, [isAwaitingPayment, order?.paymentStatus, orderId, router]);
+
+    useEffect(() => {
+        if (!isAwaitingPayment) return;
+
+        const timeout = setTimeout(() => {
+            setIsAwaitingPayment(false);
+            toast.error('Payment confirmation is taking longer than expected. Check your orders again shortly.');
+        }, 120_000);
+
+        return () => clearTimeout(timeout);
+    }, [isAwaitingPayment]);
 
     const handleApplyCoupon = async () => {
         if (!couponCode.trim()) return;
@@ -75,14 +111,18 @@ export default function PaymentScreen() {
             setIsProcessing(true);
             const response = await handlePayment({
                 orderId: order?.id as string,
-                method: paymentMethod,
+                method: paymentMethod === 'coins' ? 'coins' : undefined,
                 couponCode: couponsEnabled ? appliedCoupon?.coupon.code : undefined,
             }).unwrap();
 
-            if (response.paymentMethod === 'paystack' && response.status === 'payment_initiated') {
-                setPaymentUrl(response.checkoutUrl as string);
+            if (response.status === 'payment_initiated' && response.checkoutUrl) {
+                hasCompletedPaymentRef.current = false;
+                hasHandledCheckoutNavigationRef.current = false;
+                setPaymentUrl(response.checkoutUrl);
             } else if (response.status === 'paid') {
                 router.replace({ pathname: '/checkout/confirmation', params: { orderId } });
+            } else {
+                toast.error(response.message || 'The payment could not be started. Please try again.');
             }
         } catch (error: any) {
             console.error('Payment Error:', error);
@@ -92,15 +132,25 @@ export default function PaymentScreen() {
         }
     };
 
+    const beginPaymentConfirmation = () => {
+        if (hasHandledCheckoutNavigationRef.current) return;
+        hasHandledCheckoutNavigationRef.current = true;
+        setPaymentUrl(null);
+        setIsAwaitingPayment(true);
+        void refetchOrder();
+        toast('Confirming payment…');
+    };
+
     const handleWebViewStateChange = ({ url }: { url?: string }) => {
         if (!url) return;
-        if (url.includes('success') || url.includes('callback') || url.includes('trxref')) {
-            setPaymentUrl(null);
-            router.replace({ pathname: '/checkout/confirmation', params: { orderId } });
-            toast.success('Payment successful!', { description: 'Your gift is ready for dispatch.' });
-        } else if (url.includes('cancel') || url.includes('fail')) {
+
+        if (isPaymentFailureUrl(url)) {
+            if (hasHandledCheckoutNavigationRef.current) return;
+            hasHandledCheckoutNavigationRef.current = true;
             setPaymentUrl(null);
             toast.error('Payment was cancelled.');
+        } else if (isPaymentCallbackUrl(url)) {
+            beginPaymentConfirmation();
         }
     };
 
@@ -153,12 +203,12 @@ export default function PaymentScreen() {
                         onPress={() => setPaymentMethod('coins')}
                     />
                     <PaymentPass
-                        active={paymentMethod === 'paystack'}
+                        active={paymentMethod === 'card'}
                         color={colors.sky}
                         icon={<HugeiconsIcon icon={CreditCardIcon} size={25} color={colors.ink} />}
                         title="Bank card"
-                        detail="Secure checkout powered by Paystack"
-                        onPress={() => setPaymentMethod('paystack')}
+                        detail={`Secure checkout powered by ${gatewayName}`}
+                        onPress={() => setPaymentMethod('card')}
                     />
                 </View>
 
@@ -244,8 +294,8 @@ export default function PaymentScreen() {
                         ? `Send ${coinQuote?.coins?.toLocaleString() ?? '…'} coins  →`
                         : `Pay ${formatCurrency(payableTotal, currency)}  →`}
                     onPress={handlePay}
-                    isLoading={isProcessing || (paymentMethod === 'coins' && isQuoteLoading)}
-                    disabled={!order}
+                    isLoading={isProcessing || isAwaitingPayment || (paymentMethod === 'coins' && isQuoteLoading)}
+                    disabled={!order || isAwaitingPayment}
                     style={styles.submitButton}
                 />
             </View>
@@ -257,7 +307,7 @@ export default function PaymentScreen() {
                             <Typography variant="caption" color={colors.textSecondary}>SECURE CHECKOUT</Typography>
                             <Typography variant="h3">Complete card payment</Typography>
                         </View>
-                        <Button title="Close" variant="outline" size="sm" onPress={() => setPaymentUrl(null)} />
+                        <Button title="Close" variant="outline" size="sm" onPress={beginPaymentConfirmation} />
                     </View>
                     <View style={[styles.webViewFrame, { borderColor: colors.ink }]}>
                         <WebView
@@ -265,6 +315,13 @@ export default function PaymentScreen() {
                             javaScriptEnabled
                             domStorageEnabled
                             originWhitelist={['*']}
+                            onShouldStartLoadWithRequest={({ url }) => {
+                                if (isPaymentFailureUrl(url) || isPaymentCallbackUrl(url)) {
+                                    handleWebViewStateChange({ url });
+                                    return false;
+                                }
+                                return true;
+                            }}
                             onNavigationStateChange={handleWebViewStateChange}
                             startInLoadingState
                         />

@@ -1,6 +1,8 @@
+import TransactionDetailSheet from '@/components/sheets/TransactionDetailSheet';
 import TransactionListSkeleton from '@/components/skeletons/TransactionListSkeleton';
 import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
+import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
 import { useGetTransactionsQuery, useGetWalletBalanceQuery } from '@/store/api/walletApi';
 import { WalletTransaction } from '@/types';
@@ -37,6 +39,8 @@ export default function WalletTransactionsScreen() {
     const { colors, spacing } = useTheme();
     const insets = useSafeAreaInsets();
     const [page, setPage] = useState(1);
+    const [selectedTransaction, setSelectedTransaction] = useState<WalletTransaction | null>(null);
+    const transactionSheet = useBottomSheet();
     const limit = 20;
 
     const { data: wallet, refetch: refetchWallet, isLoading: isLoadingWallet } = useGetWalletBalanceQuery();
@@ -72,13 +76,20 @@ export default function WalletTransactionsScreen() {
                 ? formatCurrency(Math.abs(item.amount), 'NGN')
                 : `${Math.abs(item.coinAmount || 0).toLocaleString()} Coins`;
 
-        const balanceText = item.paymentMethod !== 'paystack' || item?.reference?.startsWith('DEPOSIT')
-            ? `Bal: ${item.coinBalanceAfter?.toLocaleString()} Coins`
-            : `Direct payment`;
+        const isDirectOrderPayment = item.paymentMethod !== 'coins' && item?.reference?.startsWith('ORDER');
+        const balanceText = isDirectOrderPayment
+            ? 'Direct payment'
+            : `Bal: ${item.coinBalanceAfter?.toLocaleString()} Coins`;
 
         return (
             <View>
-                <Card style={[styles.txCard, { backgroundColor: isCredit ? colors.mint : colors.peach, borderColor: colors.ink, marginHorizontal: spacing.xl, transform: [{ rotate: index % 2 ? '0.4deg' : '-0.4deg' }] }]}>
+                <Card
+                    onPress={() => {
+                        setSelectedTransaction(item);
+                        transactionSheet.open();
+                    }}
+                    style={[styles.txCard, { backgroundColor: isCredit ? colors.mint : colors.peach, borderColor: colors.ink, marginHorizontal: spacing.xl, transform: [{ rotate: index % 2 ? '0.4deg' : '-0.4deg' }] }]}
+                >
                     <View style={[styles.txIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                         <HugeiconsIcon icon={style.icon} size={22} color={colors.ink} />
                     </View>
@@ -189,6 +200,12 @@ export default function WalletTransactionsScreen() {
                     }
                 />
             )}
+
+            <TransactionDetailSheet
+                ref={transactionSheet.ref}
+                transaction={selectedTransaction}
+                onClose={() => setSelectedTransaction(null)}
+            />
         </View>
     );
 }

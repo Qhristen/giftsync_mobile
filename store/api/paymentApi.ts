@@ -1,13 +1,17 @@
 import { baseApi } from './baseApi';
+import { PaymentGateway } from '@/types';
 
 export interface Bank {
     name: string;
     code: string;
+    country: string;
+    currency: string;
 }
 
 export interface VerifyAccountRequest {
     accountNumber: string;
     bankCode: string;
+    gateway?: PaymentGateway;
 }
 
 export interface VerifyAccountResponse {
@@ -18,10 +22,11 @@ export interface VerifyAccountResponse {
 
 export const paymentApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
-        listBanks: builder.query<Bank[], void>({
-            query: () => ({
+        listBanks: builder.query<Bank[], PaymentGateway | void>({
+            query: (gateway) => ({
                 url: '/api/v1/payment/banks',
                 method: 'GET',
+                params: gateway ? { gateway } : undefined,
             }),
             transformResponse: (response: { data: Bank[] }) => response.data,
         }),

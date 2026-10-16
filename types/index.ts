@@ -288,7 +288,8 @@ export interface OrderItem {
   product?: Product | null;
 }
 
-export type PaymentMethod = 'paystack' | 'flutterwave' | 'card' | 'cash' | 'coins';
+export type PaymentGateway = 'paystack' | 'flutterwave' | 'bachs';
+export type PaymentMethod = PaymentGateway | 'card' | 'cash' | 'coins';
 export type PaymentStatus = 'pending' | 'paid' | 'failed';
 export type OrderStatus = 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled' | 'Disputed';
 
@@ -320,6 +321,7 @@ export interface Order {
 export interface PaymentResponse {
   status: string;
   paymentMethod: string;
+  orderId?: string;
   checkoutUrl?: string;
   reference?: string;
   accessCode?: string;

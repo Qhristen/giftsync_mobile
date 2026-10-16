@@ -53,7 +53,7 @@ export default function WelcomeScreen() {
             <View style={[styles.orb, styles.orbTwo, { backgroundColor: colors.lilac, borderColor: colors.ink }]} />
 
             <ScrollView
-                contentContainerStyle={[styles.content, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 170 }]}
+                contentContainerStyle={[styles.content, { paddingTop: insets.top + 16}]}
                 showsVerticalScrollIndicator={false}
             >
 

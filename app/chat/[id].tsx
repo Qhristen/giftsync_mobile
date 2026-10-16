@@ -162,6 +162,9 @@ export default function ChatDetailScreen() {
         } catch (error) {
             console.error('Failed to send message:', error);
             patch?.undo();
+            setMessageText(current => current || content);
+            setSelectedImages(current => current.length > 0 ? current : imagesToUpload);
+            toast.error(typeof error === 'string' ? error : 'Message could not be sent. Please try again.');
         }
     };
 

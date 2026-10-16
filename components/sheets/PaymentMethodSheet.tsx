@@ -1,4 +1,5 @@
 import { useTheme } from '@/hooks/useTheme';
+import { PaymentGateway } from '@/types';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import {
     CheckmarkCircle02Icon,
@@ -13,14 +14,14 @@ import Typography from '../ui/Typography';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export const PAYMENT_METHODS = [
+    { id: 'bachs', name: 'Bachs', icon: CreditCardIcon, color: '#6D5DFB' },
     { id: 'paystack', name: 'Paystack', icon: CreditCardIcon, color: '#0BA4DB' },
-    // { id: 'stripe', name: 'Stripe', icon: CreditCardIcon, color: '#635BFF' },
-    // { id: 'crypto', name: 'Cryptocurrency', icon: CreditCardIcon, color: '#F7931A' },
-];
+    { id: 'flutterwave', name: 'Flutterwave', icon: CreditCardIcon, color: '#F5A623' },
+] satisfies { id: PaymentGateway; name: string; icon: typeof CreditCardIcon; color: string }[];
 
 export interface PaymentMethodSheetProps {
-    selectedMethod: string;
-    onSelectMethod: (methodId: string) => void;
+    selectedMethod: PaymentGateway;
+    onSelectMethod: (methodId: PaymentGateway) => void;
     onConfirm: () => void;
     confirmButtonText?: string;
     isProcessing?: boolean;
@@ -37,7 +38,7 @@ const PaymentMethodSheet = forwardRef<BottomSheetRef, PaymentMethodSheetProps>((
     const insets = useSafeAreaInsets();
 
     return (
-        <BottomSheetWrapper ref={ref} snapPoints={['40%']}>
+        <BottomSheetWrapper ref={ref} snapPoints={['65%']}>
             <View style={[styles.modalHeader, { paddingTop: spacing.md, paddingBottom: spacing.lg }]}>
                 <View><Typography variant="caption" color={colors.textSecondary} style={styles.overline}>SECURE CHECKOUT</Typography><Typography variant="h2">Pick a payment rail</Typography></View>
             </View>

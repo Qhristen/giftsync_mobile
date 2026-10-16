@@ -1,4 +1,4 @@
-import { CoinPackage, PaginatedWalletTransactionResponse, WalletBalance } from '@/types';
+import { CoinPackage, PaginatedWalletTransactionResponse, PaymentGateway, WalletBalance } from '@/types';
 import { baseApi } from './baseApi';
 
 export interface InitializeFundingRequest {
@@ -6,6 +6,7 @@ export interface InitializeFundingRequest {
     paymentType: 'deposit';
     packageId?: string;
     callbackUrl?: string;
+    gateway?: PaymentGateway;
 }
 
 export interface InitializeFundingResponse {
@@ -25,13 +26,9 @@ export interface VerifyFundingRequest {
 export interface VerifyFundingResponse {
     success: boolean;
     data: {
-        transaction: {
-            id: string;
-            type: string;
-            amount: number;
-            balanceAfter: number;
+        balance: {
+            balance: number;
         };
-        balance: number;
     };
     message: string;
 }

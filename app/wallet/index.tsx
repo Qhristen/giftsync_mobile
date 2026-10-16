@@ -1,12 +1,12 @@
-import PaymentMethodSheet from '@/components/sheets/PaymentMethodSheet';
 import PackageListSkeleton from '@/components/skeletons/PackageListSkeleton';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
-import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
-import { useGetCoinPackagesQuery, useGetWalletBalanceQuery, useInitializeFundingMutation } from '@/store/api/walletApi';
+import { useGetDefaultPaymentGatewayQuery } from '@/store/api/platformConfigApi';
+import { useGetCoinPackagesQuery, useGetWalletBalanceQuery, useInitializeFundingMutation, useVerifyFundingMutation } from '@/store/api/walletApi';
 import { CoinPackage } from '@/types';
+import { isPaymentCallbackUrl, isPaymentFailureUrl, PAYMENT_GATEWAY_LABELS } from '@/utils/payment';
 import { moderateScale } from '@/utils/scaling';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import {
@@ -41,18 +41,22 @@ export default function WalletTopUpScreen() {
 
     const { data: coinPackages = [], isLoading, isFetching: isFetchingPackages, refetch: refetchPackages } = useGetCoinPackagesQuery();
     const { data: wallet, refetch: refetchWallet, isFetching: isFetchingWallet } = useGetWalletBalanceQuery();
+    const { data: defaultGateway } = useGetDefaultPaymentGatewayQuery();
 
     const isRefreshing = isFetchingPackages || isFetchingWallet;
     const handleRefresh = () => { refetchPackages(); refetchWallet(); };
 
     const [initializeFunding] = useInitializeFundingMutation();
+    const [verifyFunding] = useVerifyFundingMutation();
     const [selectedPackage, setSelectedPackage] = useState<CoinPackage | null>(null);
-    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('paystack');
     const [isPurchasing, setIsPurchasing] = useState(false);
     const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
-    const paymentSheet = useBottomSheet();
     const isNavHandlingRef = useRef(false);
+    const paymentReferenceRef = useRef<string | null>(null);
     const insets = useSafeAreaInsets();
+    const gatewayName = defaultGateway?.gateway
+        ? PAYMENT_GATEWAY_LABELS[defaultGateway.gateway]
+        : 'card';
 
     const formatPrice = (price: number, currency: string) => {
         return new Intl.NumberFormat('en-NG', {
@@ -63,10 +67,11 @@ export default function WalletTopUpScreen() {
     };
 
     const handlePurchase = async () => {
-        if (!selectedPackage || !selectedPaymentMethod) return;
+        if (!selectedPackage) return;
 
         setIsPurchasing(true);
         isNavHandlingRef.current = false;
+        paymentReferenceRef.current = null;
 
         try {
             const response = await initializeFunding({
@@ -75,10 +80,10 @@ export default function WalletTopUpScreen() {
                 packageId: selectedPackage.id,
             }).unwrap();
 
-            // Close the payment method sheet first
-            paymentSheet.close();
+            paymentReferenceRef.current = response.data.reference;
 
-            // Open Paystack checkout in a WebView
+            // Keep the backend reference for verification; callback checkout IDs
+            // belong to the hosted checkout and must not replace it.
             setPaymentUrl(response.data.authorizationUrl);
         } catch (error: any) {
             console.error('Payment initialization error:', error);
@@ -88,62 +93,53 @@ export default function WalletTopUpScreen() {
         }
     };
 
-    // const handleVerifyPayment = async (reference: string) => {
-
-    //     console.log(reference, "reference");
-    //     if (!reference) return;
-
-    //     try {
-    //         const result = await verifyFunding({ reference }).unwrap();
-
-    //         // Refetch wallet balance to reflect new coins
-    //         refetchWallet();
-
-    //         toast.success('Deposit Successful!', {
-    //             description: result.message || `Your wallet has been credited.`,
-    //             action: {
-    //                 label: 'Great',
-    //                 onClick: () => router.back()
-    // }
-    // });
-    // } catch (error: any) {
-    //         console.error('Payment verification error:', error);
-    //         toast.error(error?.data?.message || 'Payment verification failed. If you were charged, your wallet will be credited shortly.');
-    // } finally {
-
-    // }
-    // };
-
-    const handleWebViewNavChange = (newNavState: any) => {
-        console.log(newNavState, "newNavState");
-        const { url } = newNavState;
-        if (!url) return;
-
-        // Detect Paystack callback/success/cancel URLs
-        if (url.includes('success') || url.includes('callback') || url.includes('trxref')) {
-            if (isNavHandlingRef.current) return;
-            isNavHandlingRef.current = true;
-
-            setPaymentUrl(null);
-            toast.success('Deposit Successful!', {
-                description: `Your wallet has been credited.`,
-            });
+    const handleVerifyPayment = async () => {
+        const reference = paymentReferenceRef.current;
+        if (!reference) {
+            toast.error('Payment reference is missing. Please try again.');
             return;
         }
 
-        if (url.includes('cancel') || url.includes('fail')) {
+        try {
+            const result = await verifyFunding({ reference }).unwrap();
+            await refetchWallet();
+            setPaymentUrl(null);
+            toast.success('Deposit successful!', {
+                description: result.message || 'Your wallet has been credited.',
+            });
+        } catch (error: any) {
+            console.error('Payment verification error:', error);
+            setPaymentUrl(null);
+            toast.error(error?.data?.message || 'Payment verification failed. If you were charged, your wallet will be credited shortly.');
+        } finally {
+            paymentReferenceRef.current = null;
+        }
+    };
+
+    const handleWebViewNavChange = ({ url }: { url?: string }) => {
+        if (!url) return;
+
+        if (isPaymentFailureUrl(url)) {
             if (isNavHandlingRef.current) return;
             isNavHandlingRef.current = true;
 
             setPaymentUrl(null);
+            paymentReferenceRef.current = null;
             toast.error('Payment cancelled or failed.');
             return;
+        }
+
+        if (isPaymentCallbackUrl(url)) {
+            if (isNavHandlingRef.current) return;
+            isNavHandlingRef.current = true;
+            void handleVerifyPayment();
         }
     };
 
     const handleCancelPayment = () => {
         isNavHandlingRef.current = true;
         setPaymentUrl(null);
+        paymentReferenceRef.current = null;
         toast('Payment cancelled');
     };
 
@@ -206,6 +202,7 @@ export default function WalletTopUpScreen() {
                         renderItem={({ item, index }) => {
                             const style = getPackageStyle(index);
                             const isPopular = item.isPopular;
+                            const isSelected = selectedPackage?.id === item.id;
 
                             return (
                                 <View>
@@ -215,9 +212,11 @@ export default function WalletTopUpScreen() {
                                             styles.packageCard,
                                             {
                                                 borderColor: colors.ink,
-                                                borderWidth: 1.5,
-                                                backgroundColor: [colors.lemon, colors.mint, colors.lavender, colors.peach][index % 4],
-                                                transform: [{ rotate: index % 2 ? '0.5deg' : '-0.5deg' }],
+                                                borderWidth: isSelected ? 3 : 1.5,
+                                                backgroundColor: isSelected
+                                                    ? colors.lime
+                                                    : [colors.lemon, colors.mint, colors.lavender, colors.peach][index % 4],
+                                                transform: [{ rotate: isSelected ? '-1deg' : index % 2 ? '0.5deg' : '-0.5deg' }],
                                                 marginBottom: spacing.md,
                                             }
                                         ]}
@@ -233,6 +232,13 @@ export default function WalletTopUpScreen() {
                                             <Typography variant="label">
                                                 {formatPrice(item.price, item.currency)}
                                             </Typography>
+                                            {isSelected && (
+                                                <View style={[styles.selectedBadge, { backgroundColor: colors.ink }]}>
+                                                    <Typography variant="caption" color={colors.surface} style={styles.selectedBadgeText}>
+                                                        ✓
+                                                    </Typography>
+                                                </View>
+                                            )}
                                             {isPopular && (
                                                 <View style={[styles.popularBadge, { backgroundColor: colors.lime, borderColor: colors.ink }]}>
                                                     <Typography variant="caption" style={{ fontSize: moderateScale(10), fontFamily: 'DMSans_700Bold' }}>
@@ -252,24 +258,17 @@ export default function WalletTopUpScreen() {
             {/* Footer */}
             <View pointerEvents="box-none" style={[styles.footer, { backgroundColor: colors.background, paddingBottom: insets.bottom + spacing.md }]}>
                 <Button
-                    title={selectedPackage ? `Pay ${formatPrice(selectedPackage.price, selectedPackage.currency)}` : 'Select a package'}
+                    title={selectedPackage
+                        ? `Pay ${formatPrice(selectedPackage.price, selectedPackage.currency)} with ${gatewayName}`
+                        : 'Select a package'}
                     variant="primary"
-                    disabled={!selectedPackage}
-                    onPress={() => paymentSheet.open()}
+                    disabled={!selectedPackage || isPurchasing}
+                    isLoading={isPurchasing}
+                    onPress={handlePurchase}
                 />
             </View>
 
-            {/* Payment Method Sheet */}
-            <PaymentMethodSheet
-                ref={paymentSheet.ref}
-                selectedMethod={selectedPaymentMethod}
-                onSelectMethod={setSelectedPaymentMethod}
-                onConfirm={handlePurchase}
-                confirmButtonText={selectedPackage ? `Confirm ${formatPrice(selectedPackage.price, selectedPackage.currency)}` : 'Confirm Purchase'}
-                isProcessing={isPurchasing}
-            />
-
-            {/* Paystack WebView Modal */}
+            {/* Hosted payment WebView */}
             <Modal visible={!!paymentUrl} onRequestClose={handleCancelPayment}>
                 <View style={[styles.webviewContainer, { backgroundColor: colors.background }]}>
                     <View style={styles.webviewHeader}>
@@ -282,10 +281,15 @@ export default function WalletTopUpScreen() {
                         javaScriptEnabled
                         domStorageEnabled
                         originWhitelist={["*"]}
+                        onShouldStartLoadWithRequest={({ url }) => {
+                            if (isPaymentFailureUrl(url) || isPaymentCallbackUrl(url)) {
+                                handleWebViewNavChange({ url });
+                                return false;
+                            }
+                            return true;
+                        }}
                         onNavigationStateChange={handleWebViewNavChange}
                         startInLoadingState={true}
-                        onLoadStart={() => console.log('[Paystack] WebView Load Start')}
-                        onLoadEnd={() => console.log('[Paystack] WebView Load End')}
                         style={{ flex: 1 }}
                     />
                 </View>
@@ -349,6 +353,16 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         borderWidth: 1.25,
         marginTop: 4,
+    },
+    selectedBadge: {
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 8,
+        marginTop: 4,
+    },
+    selectedBadgeText: {
+        fontFamily: 'DMSans_700Bold',
+        letterSpacing: 0.5,
     },
     footer: {
         position: 'absolute',

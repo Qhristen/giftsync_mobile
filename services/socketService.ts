@@ -91,9 +91,13 @@ class SocketService {
             // Fetch initial unread count on connect
             this.getUnreadCount();
 
-            // If we joined a conversation while the socket was disconnected, mark it as read now
+            // Room membership is lost whenever the socket disconnects, so restore it
+            // before sending conversation-scoped events again.
             if (this.activeConversationId) {
-                this.markAsRead(this.activeConversationId);
+                const conversationId = this.activeConversationId;
+                this.socket?.emit('joinConversation', { conversationId }, () => {
+                    this.markAsRead(conversationId);
+                });
             }
         });
 
@@ -534,10 +538,18 @@ class SocketService {
             console.log('Chat Socket: Emitting sendMessage', { conversationId, content });
 
             // Ack callback receives the saved message object directly (no wrapper)
-            this.socket!.emit(
+            this.socket!.timeout(15000).emit(
                 'sendMessage',
                 { conversationId, content, attachments: attachments ?? null },
-                (finalMessage: ChatMessage) => {
+                (ackError: Error | null, finalMessage: ChatMessage) => {
+                    if (ackError) {
+                        console.error('Chat Socket: sendMessage acknowledgement timed out');
+                        patchMessages?.undo();
+                        patchConversations?.undo();
+                        reject('Message could not be sent. Please try again.');
+                        return;
+                    }
+
                     if (finalMessage && finalMessage.id) {
                         // Replace temp with the real server message
                         const idToReplace = optimisticMessage?.id || manualTempId;

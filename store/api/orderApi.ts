@@ -1,4 +1,4 @@
-import { Order, PaginationMeta, PaymentResponse } from '@/types';
+import { Order, PaginationMeta, PaymentGateway, PaymentResponse } from '@/types';
 import { baseApi } from './baseApi';
 
 export interface CreateOrderDto {
@@ -82,11 +82,15 @@ export const orderApi = baseApi.injectEndpoints({
             }),
             invalidatesTags: (result, error, { orderId }) => ['Orders', { type: 'Orders', id: orderId }],
         }),
-        handlePayment: builder.mutation<PaymentResponse, { orderId: string; method: string; couponCode?: string }>({
+        handlePayment: builder.mutation<PaymentResponse, { orderId: string; method?: PaymentGateway | 'coins'; couponCode?: string }>({
             query: ({ orderId, method, couponCode }) => ({
                 url: `/api/v1/orders/${orderId}/pay`,
                 method: 'POST',
-                data: { method, orderId, couponCode },
+                data: {
+                    orderId,
+                    ...(method ? { method } : {}),
+                    ...(couponCode ? { couponCode } : {}),
+                },
             }),
             invalidatesTags: (result, error, { orderId }) => ['Orders', { type: 'Orders', id: orderId }, 'Wallet'],
         }),

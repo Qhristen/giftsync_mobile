@@ -5,21 +5,24 @@ import Input from '@/components/ui/Input';
 import Typography from '@/components/ui/Typography';
 import { usePlatformConfig } from '@/hooks/usePlatformConfig';
 import { useTheme } from '@/hooks/useTheme';
-import { useFeatureFlag } from '@/hooks/useFeatureFlags';
+import { useCreateEventMutation } from '@/store/api/event';
+import { useAppDispatch } from '@/store/hooks';
+import { spendCoins } from '@/store/slices/walletSlice';
 import { EventTemplate } from '@/types';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import {
+    Calendar01Icon,
     GiftIcon,
     Search01Icon,
-    SparklesIcon,
     Tick01Icon,
 } from '@hugeicons/core-free-icons';
 import { BottomSheetFlatList } from '@gorhom/bottom-sheet';
+import { format } from 'date-fns';
 import * as Contacts from "expo-contacts/legacy";
-import { useRouter } from 'expo-router';
 import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { toast } from 'sonner-native';
 
 interface Props {
     holiday: EventTemplate | null;
@@ -27,10 +30,10 @@ interface Props {
 
 const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, ref) => {
     const { colors, spacing } = useTheme();
-    const router = useRouter();
+    const dispatch = useAppDispatch();
     const sheetRef = useRef<BottomSheetRef>(null);
-    const { directSmsCost } = usePlatformConfig();
-    const { enabled: aiEnabled } = useFeatureFlag('ai_assistant');
+    const { occasionCreationCost } = usePlatformConfig();
+    const [createEvent] = useCreateEventMutation();
     const [localContacts, setLocalContacts] = useState<(Contacts.Contact & { id: string })[]>([]);
     const [isLoadingContacts, setIsLoadingContacts] = useState(false);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -39,9 +42,8 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
     const insets = useSafeAreaInsets();
     const [selectedContactsMap, setSelectedContactsMap] = useState<Map<string, Contacts.Contact & { id: string }>>(new Map());
 
-    // New states for search and AI generation
     const [searchQuery, setSearchQuery] = useState('');
-    const [isGenerating, setIsGenerating] = useState(false);
+    const [isCreating, setIsCreating] = useState(false);
 
     const latestQueryRef = useRef('');
     const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -112,27 +114,52 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
         dismiss: () => sheetRef.current?.dismiss(),
     }), [handleSearch]);
 
-    const handleGenerateMessages = async () => {
-        if (!aiEnabled) return;
-        setIsGenerating(true);
+    const handleCreateEvents = async () => {
+        if (!holiday || selectedContactsMap.size === 0 || isCreating) return;
+
         const selected = Array.from(selectedContactsMap.values());
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const eventDate = new Date(today.getFullYear(), holiday.month - 1, holiday.day);
+        if (eventDate < today) eventDate.setFullYear(eventDate.getFullYear() + 1);
+
+        setIsCreating(true);
 
         try {
-            const contactsList = selected.map(c => `(${c.phoneNumbers?.[0]?.number || 'No number'})`).join(', ');
+            const results = await Promise.allSettled(
+                selected.map((contact) => createEvent({
+                    title: holiday.title,
+                    date: format(eventDate, 'yyyy-MM-dd'),
+                    recurrenceType: 'YEARLY',
+                    name: contact.name || 'Contact',
+                    phoneNumber: contact.phoneNumbers?.[0]?.number?.trim(),
+                }).unwrap()),
+            );
 
-            const prompt = `Please write and send a unique, short, casual ${holiday?.title || 'Holiday'} SMS message to the following contacts: ${contactsList}`;
+            const failedContacts = selected.filter((_, index) => results[index].status === 'rejected');
+            const successCount = selected.length - failedContacts.length;
 
-            setSelectedContactsMap(new Map());
-            sheetRef.current?.close();
+            if (successCount > 0) {
+                dispatch(spendCoins(Number(occasionCreationCost || 0) * successCount));
+            }
 
-            router.push({
-                pathname: '/ai-chat',
-                params: { initialMessage: prompt }
-            });
-        } catch (e) {
-            console.error(e);
+            if (failedContacts.length === 0) {
+                setSelectedContactsMap(new Map());
+                sheetRef.current?.close();
+                toast.success(`${holiday.title} added`, {
+                    description: `Created ${successCount} event${successCount === 1 ? '' : 's'} for your selected contact${successCount === 1 ? '' : 's'}.`,
+                });
+            } else {
+                setSelectedContactsMap(new Map(failedContacts.map(contact => [contact.id, contact])));
+                toast.error('Some events could not be created', {
+                    description: `${successCount} added, ${failedContacts.length} still selected so you can retry.`,
+                });
+            }
+        } catch (error: unknown) {
+            const message = (error as { data?: { message?: string } })?.data?.message;
+            toast.error('Could not create events', { description: message || 'Please try again.' });
         } finally {
-            setIsGenerating(false);
+            setIsCreating(false);
         }
     };
 
@@ -186,15 +213,17 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
             enableFlex
             renderFooter={() => (
                 <View style={[{ paddingHorizontal: spacing.md, paddingTop: spacing.md, paddingBottom: insets.bottom + 20, backgroundColor: colors.surface }]}>
-                    {aiEnabled && <Button
-                        title={isGenerating ? "Sending..." : `Send Messages (${selectedContactsMap.size}) (${Number(directSmsCost * selectedContactsMap.size).toFixed(1) ?? 0} coins)`}
+                    <Button
+                        title={isCreating
+                            ? 'Adding events...'
+                            : `Add Events (${selectedContactsMap.size}) (${Number(occasionCreationCost || 0) * selectedContactsMap.size} coins)`}
                         variant="primary"
                         size="md"
-                        leftIcon={isGenerating ? <ActivityIndicator size="small" color="#FFF" /> : <HugeiconsIcon icon={SparklesIcon} size={18} color="#FFF" />}
+                        leftIcon={isCreating ? <ActivityIndicator size="small" color="#FFF" /> : <HugeiconsIcon icon={Calendar01Icon} size={18} color="#FFF" />}
                         style={{ flex: 1 }}
-                        onPress={handleGenerateMessages}
-                        disabled={selectedContactsMap.size === 0 || isGenerating}
-                    />}
+                        onPress={handleCreateEvents}
+                        disabled={selectedContactsMap.size === 0 || isCreating}
+                    />
                 </View>
             )}
         >
