@@ -52,9 +52,15 @@ export const authApi = baseApi.injectEndpoints({
         }),
         logout: builder.mutation<void, void>({
             queryFn: async (_, { dispatch }, _extraOptions, baseQuery) => {
-                // Call backend logout if we have a refresh token
+                // Start reading the refresh token, then clear the local session immediately.
+                // Remote/Google cleanup continues without keeping the signed-in UI on screen.
+                const refreshTokenPromise = tokenCache.get('refreshToken');
+                clearCachedToken();
+                dispatch(baseApi.util.resetApiState());
+                dispatch(logout());
+
                 try {
-                    const refreshToken = await tokenCache.get('refreshToken');
+                    const refreshToken = await refreshTokenPromise;
                     if (refreshToken) {
                         await baseQuery({
                             url: '/api/v1/auth/logout',
@@ -66,7 +72,6 @@ export const authApi = baseApi.injectEndpoints({
                     console.error('logout failed:', error);
                 }
 
-                // Perform local cleanup
                 try {
                     await GoogleSignin.signOut();
                 } catch (error) {
@@ -80,11 +85,6 @@ export const authApi = baseApi.injectEndpoints({
                 } catch (error) {
                     console.error('Error clearing tokens from SecureStore:', error);
                 }
-
-                // Always clear memory cache and reset API state
-                clearCachedToken();
-                dispatch(baseApi.util.resetApiState());
-                dispatch(logout());
 
                 return { data: undefined };
             },

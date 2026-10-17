@@ -1,24 +1,12 @@
 import { Contact, CreateEventDto, Event, EventTemplate, PaginationMeta, SubscribeEventDto, UpdateEventDto } from '@/types';
 import { baseApi } from './baseApi';
+import { createOptimisticId, getCachedQueryArgs, OptimisticPatch, undoOptimisticPatches } from './optimistic';
 
-/**
- * Helper: returns a small set of { month, year } entries near a given date,
- * so we only patch the caches that are likely loaded instead of 36 months.
- */
-const getNearbyMonthKeys = (date?: string): { month: number; year: number }[] => {
-    const d = date ? new Date(date) : new Date();
-    const month = d.getMonth() + 1; // 1-based
-    const year = d.getFullYear();
+type MonthlyEventArgs = { month: number; year: number };
 
-    const keys: { month: number; year: number }[] = [];
-    for (let offset = -1; offset <= 1; offset++) {
-        let m = month + offset;
-        let y = year;
-        if (m < 1) { m = 12; y--; }
-        if (m > 12) { m = 1; y++; }
-        keys.push({ month: m, year: y });
-    }
-    return keys;
+const eventMatchesMonth = (date: string, args: MonthlyEventArgs) => {
+    const parsed = new Date(date);
+    return parsed.getMonth() + 1 === args.month && parsed.getFullYear() === args.year;
 };
 
 type UpcommingEvent = Event & {
@@ -84,7 +72,16 @@ export const eventApi = baseApi.injectEndpoints({
                 );
 
                 try {
-                    await queryFulfilled;
+                    const { data: savedEvent } = await queryFulfilled;
+                    dispatch(eventApi.util.upsertQueryData('getEventDetail', savedEvent.id, savedEvent));
+                    dispatch(eventApi.util.updateQueryData('getMonthlyEvents', { month, year }, (draft) => {
+                        const index = draft.items.findIndex((event) => event.id === tempId);
+                        if (index !== -1) draft.items[index] = savedEvent;
+                    }));
+                    dispatch(eventApi.util.updateQueryData('getUpcomingEvents', undefined, (draft) => {
+                        const index = draft.findIndex((event) => event.id === tempId);
+                        if (index !== -1) draft[index] = { ...savedEvent, contacts: [] };
+                    }));
                 } catch {
                     patchMonthly.undo();
                     patchUpcoming.undo();
@@ -98,6 +95,57 @@ export const eventApi = baseApi.injectEndpoints({
                 data,
             }),
             invalidatesTags: ['Events', "Contacts"],
+            async onQueryStarted({ templateId, contactIds }, { dispatch, getState, queryFulfilled }) {
+                const template = eventApi.endpoints.getEventTemplates.select()(getState() as any).data
+                    ?.find((item) => item.id === templateId);
+                if (!template) {
+                    await queryFulfilled.catch(() => undefined);
+                    return;
+                }
+
+                const now = new Date();
+                let year = now.getFullYear();
+                const templateDate = new Date(year, template.month - 1, template.day);
+                if (templateDate < now) year += 1;
+                const date = new Date(year, template.month - 1, template.day).toISOString();
+                const createdAt = new Date().toISOString();
+                const optimisticEvents = contactIds.map((contactId, index): Event => ({
+                    id: createOptimisticId(`event-subscription-${index}`),
+                    userId: 'optimistic',
+                    contactId,
+                    templateId,
+                    title: template.title,
+                    date,
+                    recurrenceType: template.recurrence,
+                    source: 'template',
+                    createdAt,
+                    updatedAt: createdAt,
+                }));
+                const patches: OptimisticPatch[] = [
+                    dispatch(eventApi.util.updateQueryData('getUpcomingEvents', undefined, (draft) => {
+                        draft.push(...optimisticEvents.map((event) => ({ ...event, contacts: [] })));
+                        draft.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+                    })),
+                ];
+                for (const args of getCachedQueryArgs<MonthlyEventArgs>(getState(), 'getMonthlyEvents')) {
+                    if (!eventMatchesMonth(date, args)) continue;
+                    patches.push(dispatch(eventApi.util.updateQueryData('getMonthlyEvents', args, (draft) => {
+                        draft.items.push(...optimisticEvents);
+                        draft.items.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+                    })));
+                }
+
+                try {
+                    const { data: savedEvent } = await queryFulfilled;
+                    dispatch(eventApi.util.upsertQueryData('getEventDetail', savedEvent.id, savedEvent));
+                    dispatch(eventApi.util.updateQueryData('getUpcomingEvents', undefined, (draft) => {
+                        const index = draft.findIndex((event) => event.id === optimisticEvents[0]?.id);
+                        if (index !== -1) draft[index] = { ...savedEvent, contacts: [] };
+                    }));
+                } catch {
+                    undoOptimisticPatches(patches);
+                }
+            },
         }),
         updateEvent: builder.mutation<Event, { id: string; data: UpdateEventDto }>({
             query: ({ id, data }) => ({
@@ -106,7 +154,16 @@ export const eventApi = baseApi.injectEndpoints({
                 data,
             }),
             invalidatesTags: (result, error, { id }) => ['Events', { type: 'Events', id }],
-            async onQueryStarted({ id, data }, { dispatch, queryFulfilled }) {
+            async onQueryStarted({ id, data }, { dispatch, getState, queryFulfilled }) {
+                const state = getState();
+                let previousEvent = eventApi.endpoints.getEventDetail.select(id)(state as any).data;
+                const monthlyArgs = getCachedQueryArgs<MonthlyEventArgs>(state, 'getMonthlyEvents');
+                if (!previousEvent) {
+                    for (const args of monthlyArgs) {
+                        previousEvent = eventApi.endpoints.getMonthlyEvents.select(args)(state as any).data?.items.find((event) => event.id === id);
+                        if (previousEvent) break;
+                    }
+                }
                 const patchDetail = dispatch(
                     eventApi.util.updateQueryData('getEventDetail', id, (draft) => {
                         Object.assign(draft, data);
@@ -123,14 +180,19 @@ export const eventApi = baseApi.injectEndpoints({
                     })
                 );
 
-                // Only patch nearby months instead of 3 years × 12 months
-                const nearbyKeys = getNearbyMonthKeys(data.date);
-                const patchesMonthly = nearbyKeys.map(key =>
+                const optimisticEvent = previousEvent ? { ...previousEvent, ...data } : undefined;
+                const patchesMonthly = monthlyArgs.map(key =>
                     dispatch(
                         eventApi.util.updateQueryData('getMonthlyEvents', key, (draft) => {
                             const index = draft.items.findIndex(o => o.id === id);
-                            if (index !== -1) {
+                            const matches = optimisticEvent ? eventMatchesMonth(optimisticEvent.date, key) : index !== -1;
+                            if (index !== -1 && matches) {
                                 Object.assign(draft.items[index], data);
+                                draft.items.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+                            } else if (index !== -1 && !matches) {
+                                draft.items.splice(index, 1);
+                            } else if (index === -1 && matches && optimisticEvent) {
+                                draft.items.push(optimisticEvent);
                                 draft.items.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
                             }
                         })
@@ -138,7 +200,8 @@ export const eventApi = baseApi.injectEndpoints({
                 );
 
                 try {
-                    await queryFulfilled;
+                    const { data: savedEvent } = await queryFulfilled;
+                    dispatch(eventApi.util.upsertQueryData('getEventDetail', id, savedEvent));
                 } catch {
                     patchDetail.undo();
                     patchUpcoming.undo();
@@ -152,7 +215,7 @@ export const eventApi = baseApi.injectEndpoints({
                 method: 'DELETE',
             }),
             invalidatesTags: ['Events'],
-            async onQueryStarted(id, { dispatch, queryFulfilled }) {
+            async onQueryStarted(id, { dispatch, getState, queryFulfilled }) {
                 const patchUpcoming = dispatch(
                     eventApi.util.updateQueryData('getUpcomingEvents', undefined, (draft) => {
                         const index = draft.findIndex(o => o.id === id);
@@ -160,9 +223,7 @@ export const eventApi = baseApi.injectEndpoints({
                     })
                 );
 
-                // Only patch nearby months instead of 3 years × 12 months
-                const nearbyKeys = getNearbyMonthKeys();
-                const patchesMonthly = nearbyKeys.map(key =>
+                const patchesMonthly = getCachedQueryArgs<MonthlyEventArgs>(getState(), 'getMonthlyEvents').map(key =>
                     dispatch(
                         eventApi.util.updateQueryData('getMonthlyEvents', key, (draft) => {
                             const index = draft.items.findIndex(o => o.id === id);

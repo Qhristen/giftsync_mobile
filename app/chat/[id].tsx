@@ -253,10 +253,11 @@ export default function ChatDetailScreen() {
                     text: 'Block',
                     style: 'destructive',
                     onPress: async () => {
+                        const request = blockUser({ blockedId: otherParticipant.id });
+                        router.back();
                         try {
-                            await blockUser({ blockedId: otherParticipant.id }).unwrap();
+                            await request.unwrap();
                             toast.success('User blocked');
-                            router.back();
                         } catch (error: any) {
                             toast.error('Error', { description: error?.data?.message || 'Failed to block user' });
                         }

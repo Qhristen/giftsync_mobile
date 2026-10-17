@@ -113,6 +113,7 @@ export default function PaymentScreen() {
                 orderId: order?.id as string,
                 method: paymentMethod === 'coins' ? 'coins' : undefined,
                 couponCode: couponsEnabled ? appliedCoupon?.coupon.code : undefined,
+                optimisticCoinAmount: paymentMethod === 'coins' ? coinQuote?.coins : undefined,
             }).unwrap();
 
             if (response.status === 'payment_initiated' && response.checkoutUrl) {

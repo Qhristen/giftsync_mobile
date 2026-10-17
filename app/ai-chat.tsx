@@ -6,7 +6,9 @@ import { usePlatformConfig } from '@/hooks/usePlatformConfig';
 import { useTheme } from '@/hooks/useTheme';
 import { useFeatureFlag } from '@/hooks/useFeatureFlags';
 import { AiChatHistoryItem, AiProductSuggestion, AiUiData, useChatMutation } from '@/store/api/aiApi';
-import { useAppSelector } from '@/store/hooks';
+import { walletApi } from '@/store/api/walletApi';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { adjustCoinBalance } from '@/store/slices/authSlice';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { moderateScale } from '@/utils/scaling';
 import { HugeiconsIcon } from '@hugeicons/react-native';
@@ -52,6 +54,7 @@ const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
 export default function AIChatScreen() {
     const router = useRouter();
+    const dispatch = useAppDispatch();
     const { initialMessage } = useLocalSearchParams<{ initialMessage?: string }>();
     const initialMessageProcessed = useRef(false);
     const { colors, spacing } = useTheme();
@@ -163,6 +166,7 @@ export default function AIChatScreen() {
     };
 
     const handleSend = async (customMessage?: string | any) => {
+        if (isAITyping) return;
         const textToSend = typeof customMessage === 'string' ? customMessage : messageText;
         if (!textToSend.trim()) return;
 
@@ -188,6 +192,12 @@ export default function AIChatScreen() {
         };
 
         setMessages(prev => [...prev, userMsg]);
+        dispatch(adjustCoinBalance(-aiChatCost));
+        dispatch(
+            walletApi.util.updateQueryData('getWalletBalance', undefined, (draft) => {
+                draft.balance = Math.max(0, draft.balance - aiChatCost);
+            }),
+        );
         if (typeof customMessage !== 'string') {
             setMessageText('');
         }
@@ -223,6 +233,10 @@ export default function AIChatScreen() {
             }
         } catch (error: any) {
             console.error('Chat Error:', error);
+            dispatch(adjustCoinBalance(aiChatCost));
+            dispatch(walletApi.util.updateQueryData('getWalletBalance', undefined, (draft) => {
+                draft.balance += aiChatCost;
+            }));
             const errorMsg: AIMessage = {
                 id: (Date.now() + 1).toString(),
                 content: error?.data?.message || "I'm having trouble connecting right now. Please try again later.",
@@ -639,6 +653,7 @@ export default function AIChatScreen() {
                             value={messageText}
                             onChangeText={setMessageText}
                             onSubmitEditing={handleSend}
+                            editable={!isAITyping}
                             placeholderTextColor={colors.textPrimary + '20'}
                             style={[
                                 styles.input,
@@ -655,7 +670,7 @@ export default function AIChatScreen() {
                     </View>
                     <Pressable
                         onPress={handleSend}
-                        disabled={!messageText.trim()}
+                        disabled={!messageText.trim() || isAITyping}
                         style={[
                             styles.sendBtn,
                             {

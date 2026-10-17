@@ -6,8 +6,9 @@ import Typography from '@/components/ui/Typography';
 import { usePlatformConfig } from '@/hooks/usePlatformConfig';
 import { useTheme } from '@/hooks/useTheme';
 import { useCreateEventMutation } from '@/store/api/event';
-import { useAppDispatch } from '@/store/hooks';
-import { spendCoins } from '@/store/slices/walletSlice';
+import { walletApi } from '@/store/api/walletApi';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { adjustCoinBalance, setCoinBalance } from '@/store/slices/authSlice';
 import { EventTemplate } from '@/types';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import {
@@ -31,6 +32,7 @@ interface Props {
 const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, ref) => {
     const { colors, spacing } = useTheme();
     const dispatch = useAppDispatch();
+    const user = useAppSelector((state) => state.auth.user);
     const sheetRef = useRef<BottomSheetRef>(null);
     const { occasionCreationCost } = usePlatformConfig();
     const [createEvent] = useCreateEventMutation();
@@ -118,12 +120,25 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
         if (!holiday || selectedContactsMap.size === 0 || isCreating) return;
 
         const selected = Array.from(selectedContactsMap.values());
+        const costPerEvent = Number(occasionCreationCost || 0);
+        const optimisticCost = costPerEvent * selected.length;
+        const balanceBeforeSubmit = user?.coinBalance ?? 0;
+        if (balanceBeforeSubmit < optimisticCost) {
+            toast.error('Insufficient Balance', {
+                description: `Adding these events costs ${optimisticCost} coins.`,
+            });
+            return;
+        }
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const eventDate = new Date(today.getFullYear(), holiday.month - 1, holiday.day);
         if (eventDate < today) eventDate.setFullYear(eventDate.getFullYear() + 1);
 
         setIsCreating(true);
+        dispatch(adjustCoinBalance(-optimisticCost));
+        dispatch(walletApi.util.updateQueryData('getWalletBalance', undefined, (draft) => {
+            draft.balance = Math.max(0, draft.balance - optimisticCost);
+        }));
 
         try {
             const results = await Promise.allSettled(
@@ -139,9 +154,9 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
             const failedContacts = selected.filter((_, index) => results[index].status === 'rejected');
             const successCount = selected.length - failedContacts.length;
 
-            if (successCount > 0) {
-                dispatch(spendCoins(Number(occasionCreationCost || 0) * successCount));
-            }
+            const reconciledBalance = balanceBeforeSubmit - successCount * costPerEvent;
+            dispatch(setCoinBalance(reconciledBalance));
+            dispatch(walletApi.util.upsertQueryData('getWalletBalance', undefined, { balance: reconciledBalance }));
 
             if (failedContacts.length === 0) {
                 setSelectedContactsMap(new Map());
@@ -156,6 +171,8 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
                 });
             }
         } catch (error: unknown) {
+            dispatch(setCoinBalance(balanceBeforeSubmit));
+            dispatch(walletApi.util.upsertQueryData('getWalletBalance', undefined, { balance: balanceBeforeSubmit }));
             const message = (error as { data?: { message?: string } })?.data?.message;
             toast.error('Could not create events', { description: message || 'Please try again.' });
         } finally {

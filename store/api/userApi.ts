@@ -23,6 +23,26 @@ export const userApi = baseApi.injectEndpoints({
                 data,
             }),
             invalidatesTags: ['UserProfile'],
+            async onQueryStarted(data, { dispatch, getState, queryFulfilled }) {
+                const previousUser = (getState() as unknown as { auth: { user: User | null } }).auth.user;
+                const optimisticUser = previousUser ? { ...previousUser, ...data } : null;
+                const profilePatch = dispatch(
+                    userApi.util.updateQueryData('getProfile', undefined, (draft) => {
+                        Object.assign(draft, data);
+                    }),
+                );
+
+                if (optimisticUser) dispatch(setCredentials({ user: optimisticUser }));
+
+                try {
+                    const { data: savedUser } = await queryFulfilled;
+                    dispatch(setCredentials({ user: savedUser }));
+                    dispatch(userApi.util.upsertQueryData('getProfile', undefined, savedUser));
+                } catch {
+                    profilePatch.undo();
+                    if (previousUser) dispatch(setCredentials({ user: previousUser }));
+                }
+            },
         }),
         deleteAccount: builder.mutation<void, void>({
             query: () => ({

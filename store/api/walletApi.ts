@@ -1,4 +1,6 @@
 import { CoinPackage, PaginatedWalletTransactionResponse, PaymentGateway, WalletBalance } from '@/types';
+import { setCoinBalance } from '../slices/authSlice';
+import { setCoins } from '../slices/walletSlice';
 import { baseApi } from './baseApi';
 
 export interface InitializeFundingRequest {
@@ -93,6 +95,17 @@ export const walletApi = baseApi.injectEndpoints({
                 data: body,
             }),
             invalidatesTags: ['Wallet'],
+            async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+                try {
+                    const { data } = await queryFulfilled;
+                    const balance = data.data.balance.balance;
+                    dispatch(walletApi.util.upsertQueryData('getWalletBalance', undefined, { balance }));
+                    dispatch(setCoinBalance(balance));
+                    dispatch(setCoins(balance));
+                } catch {
+                    // The caller presents the verification error; no local balance changed.
+                }
+            },
         }),
         requestWithdrawal: builder.mutation<void, void>({
             query: () => ({

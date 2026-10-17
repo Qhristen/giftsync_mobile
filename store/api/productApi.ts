@@ -1,6 +1,36 @@
 import { Category, CreateProductDto, PaginatedProductResponse, Product, UpdateProductDto } from '@/types';
-import { baseApi, AxiosBaseQueryError } from './baseApi';
+import { baseApi } from './baseApi';
 import type { EndpointBuilder } from '@reduxjs/toolkit/query';
+import { createOptimisticId, getCachedQueryArgs, OptimisticPatch, undoOptimisticPatches } from './optimistic';
+
+type ProductsQueryArgs = { page?: number; limit?: number; [key: string]: unknown };
+type BusinessProductsQueryArgs = { businessId: string; page?: number; limit?: number };
+
+const productMatchesQuery = (product: Product, args: ProductsQueryArgs) => {
+    if (args.categoryId && args.categoryId !== product.category.id) return false;
+    const search = typeof args.search === 'string' ? args.search.trim().toLowerCase() : '';
+    if (search && !`${product.name} ${product.description ?? ''}`.toLowerCase().includes(search)) return false;
+    if (typeof args.minPrice === 'number' && product.price < args.minPrice) return false;
+    if (typeof args.maxPrice === 'number' && product.price > args.maxPrice) return false;
+    return true;
+};
+
+const patchProductLists = (
+    dispatch: any,
+    getState: () => unknown,
+    endpointName: 'getProducts' | 'getProductsByBusiness',
+    recipe: (draft: PaginatedProductResponse) => void,
+    businessId?: string,
+) => {
+    const args = endpointName === 'getProducts'
+        ? getCachedQueryArgs<ProductsQueryArgs>(getState(), endpointName)
+        : getCachedQueryArgs<BusinessProductsQueryArgs>(getState(), endpointName)
+            .filter((query) => !businessId || query.businessId === businessId);
+
+    return args.map((queryArgs) => dispatch(
+        productApi.util.updateQueryData(endpointName, queryArgs as any, recipe),
+    ));
+};
 
 export const productApi = baseApi.injectEndpoints({
     endpoints: (builder: EndpointBuilder<any, string, string>) => ({
@@ -111,6 +141,49 @@ export const productApi = baseApi.injectEndpoints({
                 data,
             }),
             invalidatesTags: [{ type: 'Products', id: 'LIST' }],
+            async onQueryStarted({ businessId, data }, { dispatch, getState, queryFulfilled }) {
+                const tempId = createOptimisticId('product');
+                const state = getState() as { auth?: { user?: { business?: Product['business'] } } };
+                const optimisticProduct = {
+                    ...data,
+                    id: tempId,
+                    businessId,
+                    currency: data.currency ?? 'NGN',
+                    category: { id: data.categoryId, name: '' },
+                    tags: data.tags ?? [],
+                    ratingAvg: 0,
+                    ratingCount: 0,
+                    isAvailable: data.isAvailable ?? true,
+                    deliveryDays: data.deliveryDays ?? 0,
+                    business: state.auth?.user?.business,
+                } as Product;
+                const globalListPatches = getCachedQueryArgs<ProductsQueryArgs>(getState(), 'getProducts')
+                    .filter((args) => productMatchesQuery(optimisticProduct, args))
+                    .map((args) => dispatch(productApi.util.updateQueryData('getProducts', args, (draft) => {
+                        draft.items.unshift(optimisticProduct);
+                        draft.meta.total += 1;
+                    })));
+                const patches: OptimisticPatch[] = [
+                    ...patchProductLists(dispatch, getState, 'getProductsByBusiness', (draft) => {
+                        draft.items.unshift(optimisticProduct);
+                        draft.meta.total += 1;
+                    }, businessId),
+                    ...globalListPatches,
+                ];
+
+                try {
+                    const { data: savedProduct } = await queryFulfilled;
+                    for (const endpointName of ['getProductsByBusiness', 'getProducts'] as const) {
+                        patchProductLists(dispatch, getState, endpointName, (draft) => {
+                            const index = draft.items.findIndex((product) => product.id === tempId);
+                            if (index !== -1) draft.items[index] = savedProduct;
+                        }, businessId);
+                    }
+                    dispatch(productApi.util.upsertQueryData('getProductById', savedProduct.id, savedProduct));
+                } catch {
+                    undoOptimisticPatches(patches);
+                }
+            },
         }),
         updateProduct: builder.mutation<Product, { businessId: string; productId: string; data: UpdateProductDto }>({
             query: ({ businessId, productId, data }) => ({
@@ -119,48 +192,33 @@ export const productApi = baseApi.injectEndpoints({
                 data,
             }),
             async onQueryStarted({ businessId, productId, data }, { dispatch, queryFulfilled, getState }) {
-                type PatchResult = { undo: () => void };
-                const patchResults: PatchResult[] = [];
-
-                // Find all cached getProductsByBusiness queries for this business and patch them
-                const state = getState() as unknown as { api: { queries: Record<string, { endpointName?: string; originalArgs?: { businessId: string; page?: number; limit?: number }; data?: PaginatedProductResponse }> } };
-                const queries = state.api?.queries ?? {};
-
-                for (const entry of Object.values(queries)) {
-                    if (
-                        entry?.endpointName === 'getProductsByBusiness' &&
-                        entry.originalArgs?.businessId === businessId
-                    ) {
-                        patchResults.push(
-                            dispatch(
-                                productApi.util.updateQueryData(
-                                    'getProductsByBusiness',
-                                    entry.originalArgs,
-                                    (draft) => {
-                                        const product = draft.items.find((p) => p.id === productId);
-                                        if (product) {
-                                            Object.assign(product, data);
-                                        }
-                                    },
-                                ),
-                            ),
-                        );
-                    }
-                }
-
-                // Optimistically update getProductById cache
-                patchResults.push(
+                const patchResults: OptimisticPatch[] = [
+                    ...patchProductLists(dispatch, getState, 'getProductsByBusiness', (draft) => {
+                        const product = draft.items.find((item) => item.id === productId);
+                        if (product) Object.assign(product, data);
+                    }, businessId),
+                    ...patchProductLists(dispatch, getState, 'getProducts', (draft) => {
+                        const product = draft.items.find((item) => item.id === productId);
+                        if (product) Object.assign(product, data);
+                    }),
                     dispatch(
                         productApi.util.updateQueryData('getProductById', productId, (draft) => {
                             Object.assign(draft, data);
                         }),
                     ),
-                );
+                ];
 
                 try {
-                    await queryFulfilled;
+                    const { data: savedProduct } = await queryFulfilled;
+                    dispatch(productApi.util.upsertQueryData('getProductById', productId, savedProduct));
+                    for (const endpointName of ['getProductsByBusiness', 'getProducts'] as const) {
+                        patchProductLists(dispatch, getState, endpointName, (draft) => {
+                            const index = draft.items.findIndex((product) => product.id === productId);
+                            if (index !== -1) draft.items[index] = savedProduct;
+                        }, businessId);
+                    }
                 } catch {
-                    patchResults.forEach((patch) => patch.undo());
+                    undoOptimisticPatches(patchResults);
                 }
             },
             invalidatesTags: (result, error, { productId }) => [
@@ -174,6 +232,37 @@ export const productApi = baseApi.injectEndpoints({
                 method: 'DELETE',
             }),
             invalidatesTags: [{ type: 'Products', id: 'LIST' }],
+            async onQueryStarted({ businessId, productId }, { dispatch, getState, queryFulfilled }) {
+                const removeProduct = (draft: PaginatedProductResponse) => {
+                    const index = draft.items.findIndex((product) => product.id === productId);
+                    if (index !== -1) {
+                        draft.items.splice(index, 1);
+                        draft.meta.total = Math.max(0, draft.meta.total - 1);
+                    }
+                };
+                const patches: OptimisticPatch[] = [
+                    ...patchProductLists(dispatch, getState, 'getProductsByBusiness', removeProduct, businessId),
+                    ...patchProductLists(dispatch, getState, 'getProducts', removeProduct),
+                    ...getCachedQueryArgs<{ contactId?: string; eventId?: string }>(getState(), 'getRecommendations').map((args) =>
+                        dispatch(productApi.util.updateQueryData('getRecommendations', args, (draft) => {
+                            const index = draft.findIndex((product) => product.id === productId);
+                            if (index !== -1) draft.splice(index, 1);
+                        })),
+                    ),
+                    ...getCachedQueryArgs<{ eventId: string; limit?: number }>(getState(), 'getRecommendationsV2').map((args) =>
+                        dispatch(productApi.util.updateQueryData('getRecommendationsV2', args, (draft) => {
+                            const index = draft.findIndex((product) => product.id === productId);
+                            if (index !== -1) draft.splice(index, 1);
+                        })),
+                    ),
+                ];
+
+                try {
+                    await queryFulfilled;
+                } catch {
+                    undoOptimisticPatches(patches);
+                }
+            },
         }),
         getCategories: builder.query<Category[], { hasProductsOnly: boolean }>({
             query: (params) => ({

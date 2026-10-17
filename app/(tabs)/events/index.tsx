@@ -225,7 +225,7 @@ export default function PlansScreen() {
 
             <Pressable
                 onPress={addPlan}
-                style={({ pressed }) => [styles.fab, { bottom: Math.max(insets.bottom, 10) + 78, right: spacing.xl, backgroundColor: colors.accent, borderColor: colors.ink }, pressed && styles.pressed]}
+                style={({ pressed }) => [styles.fab, { bottom: Math.max(insets.bottom, 10), right: spacing.xl, backgroundColor: colors.accent, borderColor: colors.ink }, pressed && styles.pressed]}
             >
                 <HugeiconsIcon icon={Add01Icon} size={21} color="#17151D" />
                 <Typography variant="label" color="#17151D">Add a stop</Typography>

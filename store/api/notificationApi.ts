@@ -1,5 +1,16 @@
 import { Notification, PaginationMeta, UnreadCount } from "@/types";
 import { baseApi } from "./baseApi";
+import { getCachedQueryArgs, OptimisticPatch, undoOptimisticPatches } from "./optimistic";
+
+type NotificationQueryArgs = { page: number; limit: number };
+
+const patchNotificationLists = (
+  dispatch: any,
+  getState: () => unknown,
+  recipe: (draft: { items: Notification[]; meta: PaginationMeta }) => void,
+) => getCachedQueryArgs<NotificationQueryArgs>(getState(), "getNotifications").map((args) =>
+  dispatch(notificationApi.util.updateQueryData("getNotifications", args, recipe)),
+);
 
 export const notificationApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -37,6 +48,29 @@ export const notificationApi = baseApi.injectEndpoints({
         method: "PATCH",
       }),
       invalidatesTags: ["Notifications"],
+      async onQueryStarted(id, { dispatch, getState, queryFulfilled }) {
+        let changed = false;
+        const patches: OptimisticPatch[] = patchNotificationLists(dispatch, getState, (draft) => {
+          const notification = draft.items.find((item) => item.id === id);
+          if (notification && !notification.isRead) {
+            notification.isRead = true;
+            changed = true;
+          }
+        });
+        if (changed) {
+          patches.push(dispatch(
+            notificationApi.util.updateQueryData("getUnreadCount", undefined, (draft) => {
+              draft.count = Math.max(0, draft.count - 1);
+            }),
+          ));
+        }
+
+        try {
+          await queryFulfilled;
+        } catch {
+          undoOptimisticPatches(patches);
+        }
+      },
     }),
     markAllAsRead: builder.mutation<void, void>({
       query: () => ({
@@ -44,6 +78,22 @@ export const notificationApi = baseApi.injectEndpoints({
         method: "PATCH",
       }),
       invalidatesTags: ["Notifications"],
+      async onQueryStarted(_arg, { dispatch, getState, queryFulfilled }) {
+        const patches: OptimisticPatch[] = patchNotificationLists(dispatch, getState, (draft) => {
+          draft.items.forEach((notification) => { notification.isRead = true; });
+        });
+        patches.push(dispatch(
+          notificationApi.util.updateQueryData("getUnreadCount", undefined, (draft) => {
+            draft.count = 0;
+          }),
+        ));
+
+        try {
+          await queryFulfilled;
+        } catch {
+          undoOptimisticPatches(patches);
+        }
+      },
     }),
     deleteNotification: builder.mutation<void, string>({
       query: (id) => ({
@@ -51,6 +101,29 @@ export const notificationApi = baseApi.injectEndpoints({
         method: "DELETE",
       }),
       invalidatesTags: ["Notifications"],
+      async onQueryStarted(id, { dispatch, getState, queryFulfilled }) {
+        let removedUnread = false;
+        const patches: OptimisticPatch[] = patchNotificationLists(dispatch, getState, (draft) => {
+          const index = draft.items.findIndex((item) => item.id === id);
+          if (index === -1) return;
+          removedUnread ||= !draft.items[index].isRead;
+          draft.items.splice(index, 1);
+          draft.meta.total = Math.max(0, draft.meta.total - 1);
+        });
+        if (removedUnread) {
+          patches.push(dispatch(
+            notificationApi.util.updateQueryData("getUnreadCount", undefined, (draft) => {
+              draft.count = Math.max(0, draft.count - 1);
+            }),
+          ));
+        }
+
+        try {
+          await queryFulfilled;
+        } catch {
+          undoOptimisticPatches(patches);
+        }
+      },
     }),
   }),
   overrideExisting: true,

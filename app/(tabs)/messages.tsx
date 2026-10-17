@@ -28,9 +28,12 @@ export default function MessagesScreen() {
     const conversations = React.useMemo(() => {
         const items = data?.items ? [...data.items] : [];
         return items.sort((a, b) => {
+            const latestMessageDifference = new Date(b.lastMessageAt || b.updatedAt || b.createdAt).getTime()
+                - new Date(a.lastMessageAt || a.updatedAt || a.createdAt).getTime();
+            if (latestMessageDifference) return latestMessageDifference;
             const unreadDifference = Number((b.unreadCount || 0) > 0) - Number((a.unreadCount || 0) > 0);
             if (unreadDifference) return unreadDifference;
-            return new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime();
+            return 0;
         });
     }, [data?.items]);
 
@@ -81,7 +84,7 @@ export default function MessagesScreen() {
 
                 <Pressable
                     disabled={!featured}
-                    onPress={() => featured && router.push(`/chat/${featured.id}`)}
+                    onPress={() => featured && openConversation(featured.id)}
                     style={({ pressed }) => [styles.mailDesk, { backgroundColor: colors.lilac, borderColor: colors.ink }, pressed && styles.pressed]}
                 >
                     <View style={[styles.letterBack, styles.letterOne, { backgroundColor: colors.peach, borderColor: colors.ink }]} />

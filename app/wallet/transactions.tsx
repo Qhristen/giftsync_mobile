@@ -1,5 +1,6 @@
 import TransactionDetailSheet from '@/components/sheets/TransactionDetailSheet';
 import TransactionListSkeleton from '@/components/skeletons/TransactionListSkeleton';
+import Badge from '@/components/ui/Badge';
 import Card from '@/components/ui/Card';
 import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
@@ -33,6 +34,10 @@ const TX_ICONS: Record<string, { icon: any; color: string; bg: string }> = {
 };
 
 const getTxStyle = (type: string) => TX_ICONS[type] || TX_ICONS.spend;
+
+const SUCCESS_STATUSES = new Set(['success', 'successful', 'completed', 'paid']);
+const FAILED_STATUSES = new Set(['failed', 'cancelled', 'canceled', 'declined']);
+const REFUND_STATUSES = new Set(['refunded', 'reversed']);
 
 export default function WalletTransactionsScreen() {
     const router = useRouter();
@@ -69,6 +74,25 @@ export default function WalletTransactionsScreen() {
     const renderTransaction = ({ item, index }: { item: WalletTransaction; index: number }) => {
         const style = getTxStyle(item.type);
         const isCredit = item.type === 'purchase' || item.type === 'deposit' || item.type === 'refund' || item.type === 'referral_bonus';
+        const normalizedStatus = item.status?.toLowerCase() || 'unknown';
+        const cardColor = SUCCESS_STATUSES.has(normalizedStatus)
+            ? colors.mint
+            : FAILED_STATUSES.has(normalizedStatus)
+                ? colors.peach
+                : REFUND_STATUSES.has(normalizedStatus)
+                    ? colors.sky
+                    : normalizedStatus === 'pending' || normalizedStatus === 'processing'
+                        ? colors.lemon
+                        : colors.lavender;
+        const statusVariant = SUCCESS_STATUSES.has(normalizedStatus)
+            ? 'success'
+            : FAILED_STATUSES.has(normalizedStatus)
+                ? 'error'
+                : normalizedStatus === 'pending' || normalizedStatus === 'processing'
+                    ? 'muted'
+                    : REFUND_STATUSES.has(normalizedStatus)
+                        ? 'primary'
+                        : 'muted';
 
         const amountText = item.paymentMethod === 'coins' || item?.reference?.startsWith('DEPOSIT')
             ? `${Math.abs(item.coinAmount || 0).toLocaleString()} Coins`
@@ -88,16 +112,19 @@ export default function WalletTransactionsScreen() {
                         setSelectedTransaction(item);
                         transactionSheet.open();
                     }}
-                    style={[styles.txCard, { backgroundColor: isCredit ? colors.mint : colors.peach, borderColor: colors.ink, marginHorizontal: spacing.xl, transform: [{ rotate: index % 2 ? '0.4deg' : '-0.4deg' }] }]}
+                    style={[styles.txCard, { backgroundColor: cardColor, borderColor: colors.ink, marginHorizontal: spacing.xl, transform: [{ rotate: index % 2 ? '0.4deg' : '-0.4deg' }] }]}
                 >
                     <View style={[styles.txIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                         <HugeiconsIcon icon={style.icon} size={22} color={colors.ink} />
                     </View>
                     <View style={{ flex: 1 }}>
                         <Typography variant="bodyBold" numberOfLines={1}>{item.description || item.type}</Typography>
-                        <Typography variant="caption" color={colors.textSecondary}>
-                            {formatDateString(item.createdAt)} • {formatTime(item.createdAt)}
-                        </Typography>
+                        <View style={styles.txMeta}>
+                            <Typography variant="caption" color={colors.textSecondary}>
+                                {formatDateString(item.createdAt)} • {formatTime(item.createdAt)}
+                            </Typography>
+                            <Badge label={item.status || 'Unknown'} variant={statusVariant} size="xs" />
+                        </View>
                     </View>
                     <View style={{ alignItems: 'flex-end' }}>
                         <Typography
@@ -254,6 +281,13 @@ const styles = StyleSheet.create({
         borderWidth: 1.5,
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    txMeta: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        marginTop: 3,
+        flexWrap: 'wrap',
     },
     sectionHeader: {
         width: '100%',

@@ -194,7 +194,6 @@ export default function ProductDetailScreen() {
                     <View style={styles.factBento}>
                         <FactTile icon={BoxIcon} label="Availability" value={product.isAvailable ? 'In stock' : 'Sold out'} color={colors.lilac} />
                         <FactTile icon={DeliveryTruck02Icon} label="Delivery" value={`${product.deliveryDays} ${product.deliveryDays === 1 ? 'day' : 'days'}`} color={colors.peach} />
-                        <FactTile icon={Tag01Icon} label="Item" value={formatCurrency(product.price, product.currency)} color={colors.lemon} wide />
                     </View>
 
                     {product.description && (
@@ -278,7 +277,7 @@ function FactTile({ icon, label, value, color, wide = false }: { icon: any; labe
             <View style={[styles.factIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                 <HugeiconsIcon icon={icon} size={19} color={colors.ink} />
             </View>
-            <View style={{ flex: 1 }}>
+            <View style={{ flex: 1, paddingTop: 10}}>
                 <Typography variant="caption" color={colors.textSecondary}>{label.toUpperCase()}</Typography>
                 <Typography variant="bodyBold" numberOfLines={1}>{value}</Typography>
             </View>

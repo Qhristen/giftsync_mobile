@@ -41,6 +41,14 @@ const authSlice = createSlice({
         setPendingReferralCode: (state, action: PayloadAction<string | null>) => {
             state.pendingReferralCode = action.payload;
         },
+        adjustCoinBalance: (state, action: PayloadAction<number>) => {
+            if (state.user) {
+                state.user.coinBalance = Math.max(0, state.user.coinBalance + action.payload);
+            }
+        },
+        setCoinBalance: (state, action: PayloadAction<number>) => {
+            if (state.user) state.user.coinBalance = action.payload;
+        },
         logout: (state) => {
             state.user = null;
             state.accessToken = null;
@@ -50,6 +58,6 @@ const authSlice = createSlice({
     },
 });
 
-export const { setCredentials, setLoading, setError, setPendingReferralCode, logout } = authSlice.actions;
+export const { setCredentials, setLoading, setError, setPendingReferralCode, adjustCoinBalance, setCoinBalance, logout } = authSlice.actions;
 export default authSlice.reducer;
 

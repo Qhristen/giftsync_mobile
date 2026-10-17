@@ -3,7 +3,9 @@ import { AppDispatch, RootState } from '../store';
 import { chatApi } from '../store/api/chatApi';
 
 import { baseApi, getValidToken } from '@/store/api/baseApi';
+import { setCoinBalance } from '@/store/slices/authSlice';
 import { setUnreadCount, setUserStopTyping, setUserTyping } from '@/store/slices/chatSlice';
+import { setCoins } from '@/store/slices/walletSlice';
 import { ChatMessage, Conversation, PaginationMeta } from '../types';
 import { walletApi } from '@/store/api/walletApi';
 
@@ -199,8 +201,9 @@ class SocketService {
                         );
                         if (convIndex !== -1) {
                             const conv = conversations.items[convIndex];
-                            conv.lastMessagePreview = message.content;
+                            conv.lastMessagePreview = message.content || (message.attachments?.length ? 'Sent an image' : 'New message');
                             conv.lastMessageAt = message.createdAt;
+                            conv.updatedAt = message.updatedAt || message.createdAt;
 
                             // Increment unread when the message is from someone else and
                             // we are not actively viewing that conversation
@@ -310,7 +313,9 @@ class SocketService {
         });
 
         this.socket.on('walletUpdate', (data: { balance: number }) => {
-            dispatch(walletApi.util.invalidateTags([{ type: 'Wallet', id: 'BALANCE' }]));
+            dispatch(walletApi.util.upsertQueryData('getWalletBalance', undefined, { balance: data.balance }));
+            dispatch(setCoinBalance(data.balance));
+            dispatch(setCoins(data.balance));
         });
     }
 
@@ -385,6 +390,7 @@ class SocketService {
                         const conv = draft.items[convIndex];
                         conv.lastMessagePreview = content || (attachments?.[0] ? 'Sent an image' : '');
                         conv.lastMessageAt = optimisticMessage.createdAt;
+                        conv.updatedAt = optimisticMessage.updatedAt;
 
                         // Bubble to top
                         const [updatedConv] = draft.items.splice(convIndex, 1);
@@ -525,6 +531,7 @@ class SocketService {
                             const conv = draft.items[convIndex];
                             conv.lastMessagePreview = content || (attachments?.[0] ? 'Sent an image' : '');
                             conv.lastMessageAt = optimisticMessage.createdAt;
+                            conv.updatedAt = optimisticMessage.updatedAt;
 
                             const [updatedConv] = draft.items.splice(convIndex, 1);
                             draft.items.unshift(updatedConv);
@@ -621,6 +628,8 @@ class SocketService {
         if (!this.dispatch) return;
 
         const dispatch = this.dispatch;
+        let clearedCount = 0;
+        const currentUserId = this.getState?.().auth.user?.id;
 
         // 1. Optimistic update for the conversation list to clear the badge immediately
         dispatch(
@@ -631,13 +640,35 @@ class SocketService {
                     if (!draft?.items) return;
                     const conv = draft.items.find((c: any) => c.id === conversationId);
                     if (conv && (conv.unreadCount || 0) > 0) {
+                        clearedCount = conv.unreadCount || 0;
                         conv.unreadCount = 0;
                     }
                 }
             )
         );
 
-        // 2. Invalidate unread count to trigger a global badge refresh
+        // 2. Optimistically update both unread-count stores and message receipts.
+        const currentUnreadCount = this.getState?.().chat.unreadCount ?? 0;
+        dispatch(setUnreadCount(Math.max(0, currentUnreadCount - clearedCount)));
+        dispatch(
+            chatApi.util.updateQueryData('getUnreadCount', undefined, (draft) => {
+                draft.count = Math.max(0, draft.count - clearedCount);
+            }),
+        );
+        dispatch(
+            chatApi.util.updateQueryData(
+                'getMessages',
+                { conversationId, limit: 50 },
+                (draft: { items: ChatMessage[]; meta: PaginationMeta } | undefined) => {
+                    if (!draft?.items) return;
+                    draft.items.forEach((message) => {
+                        if (message.senderId !== currentUserId) message.isRead = true;
+                    });
+                },
+            ),
+        );
+
+        // Reconcile with server truth after the immediate local update.
         dispatch(chatApi.util.invalidateTags([{ type: 'Chat', id: 'UNREAD_COUNT' }]));
 
         if (this.socket?.connected) {

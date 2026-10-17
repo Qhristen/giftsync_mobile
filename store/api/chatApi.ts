@@ -5,6 +5,9 @@ import {
     PaginationMeta
 } from '@/types';
 import { baseApi } from './baseApi';
+import { setUnreadCount } from '../slices/chatSlice';
+import { createOptimisticId, getCachedQueryArgs, OptimisticPatch, undoOptimisticPatches } from './optimistic';
+import { orderApi } from './orderApi';
 
 export const chatApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
@@ -47,6 +50,47 @@ export const chatApi = baseApi.injectEndpoints({
                 { type: 'Chat', id: 'CONV_LIST' },
                 ...(orderId ? ['Orders' as const, { type: 'Orders' as const, id: orderId }] : []),
             ],
+            async onQueryStarted({ orderId }, { dispatch, getState, queryFulfilled }) {
+                const state = getState() as { auth?: { user?: Conversation['participants'][number] } };
+                const currentUser = state.auth?.user;
+                const order = orderId
+                    ? orderApi.endpoints.getOrderById.select(orderId)(getState() as any).data
+                    : undefined;
+                const tempId = createOptimisticId('conversation');
+                const now = new Date().toISOString();
+                const optimisticConversation = {
+                    id: tempId,
+                    orderId: orderId ?? '',
+                    order,
+                    lastMessagePreview: '',
+                    lastMessageAt: now,
+                    lastMessageSenderId: '',
+                    participants: currentUser ? [currentUser] : [],
+                    messages: [],
+                    unreadCount: 0,
+                    createdAt: now,
+                    updatedAt: now,
+                } as Conversation;
+                const patches = getCachedQueryArgs<{ page?: number; limit?: number }>(getState(), 'getConversations').map((args) =>
+                    dispatch(chatApi.util.updateQueryData('getConversations', args, (draft) => {
+                        draft.items.unshift(optimisticConversation);
+                        draft.meta.total += 1;
+                    })),
+                );
+
+                try {
+                    const { data: savedConversation } = await queryFulfilled;
+                    dispatch(chatApi.util.upsertQueryData('getConversation', savedConversation.id, savedConversation));
+                    for (const args of getCachedQueryArgs<{ page?: number; limit?: number }>(getState(), 'getConversations')) {
+                        dispatch(chatApi.util.updateQueryData('getConversations', args, (draft) => {
+                            const index = draft.items.findIndex((conversation) => conversation.id === tempId);
+                            if (index !== -1) draft.items[index] = savedConversation;
+                        }));
+                    }
+                } catch {
+                    undoOptimisticPatches(patches);
+                }
+            },
         }),
 
         // ── GET /api/v1/chat/conversations/:id/messages ──────────────────────
@@ -76,6 +120,46 @@ export const chatApi = baseApi.injectEndpoints({
                 { type: 'Chat', id: 'CONV_LIST' },
                 { type: 'Chat', id: `CONV_${conversationId}` }
             ],
+            async onQueryStarted(conversationId, { dispatch, getState, queryFulfilled }) {
+                let clearedCount = 0;
+                const currentUserId = (getState() as { auth?: { user?: { id?: string } } }).auth?.user?.id;
+                const patches: OptimisticPatch[] = [];
+                for (const args of getCachedQueryArgs<{ page?: number; limit?: number }>(getState(), 'getConversations')) {
+                    patches.push(dispatch(
+                        chatApi.util.updateQueryData('getConversations', args, (draft) => {
+                            const conversation = draft.items.find((item) => item.id === conversationId);
+                            if (conversation) {
+                                clearedCount = Math.max(clearedCount, conversation.unreadCount ?? 0);
+                                conversation.unreadCount = 0;
+                            }
+                        }),
+                    ));
+                }
+                for (const args of getCachedQueryArgs<{ conversationId: string; page?: number; limit?: number }>(getState(), 'getMessages')) {
+                    if (args.conversationId !== conversationId) continue;
+                    patches.push(dispatch(
+                        chatApi.util.updateQueryData('getMessages', args, (draft) => {
+                            draft.items.forEach((message) => {
+                                if (message.senderId !== currentUserId) message.isRead = true;
+                            });
+                        }),
+                    ));
+                }
+                patches.push(dispatch(
+                    chatApi.util.updateQueryData('getUnreadCount', undefined, (draft) => {
+                        draft.count = Math.max(0, draft.count - clearedCount);
+                    }),
+                ));
+                const previousSliceCount = (getState() as { chat?: { unreadCount?: number } }).chat?.unreadCount ?? 0;
+                dispatch(setUnreadCount(Math.max(0, previousSliceCount - clearedCount)));
+
+                try {
+                    await queryFulfilled;
+                } catch {
+                    undoOptimisticPatches(patches);
+                    dispatch(setUnreadCount(previousSliceCount));
+                }
+            },
         }),
         // ── GET /api/v1/chat/unread-count ──────────────────────────────────
         getUnreadCount: builder.query<{ count: number }, void>({

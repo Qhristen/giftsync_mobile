@@ -18,6 +18,19 @@ export const referralApi = baseApi.injectEndpoints({
                 data,
             }),
             invalidatesTags: ['ReferralInfo', 'UserProfile'],
+            async onQueryStarted({ code }, { dispatch, queryFulfilled }) {
+                const patch = dispatch(
+                    referralApi.util.updateQueryData('getReferralInfo', undefined, (draft) => {
+                        draft.referredBy = code;
+                    }),
+                );
+
+                try {
+                    await queryFulfilled;
+                } catch {
+                    patch.undo();
+                }
+            },
         }),
     }),
     overrideExisting: true,

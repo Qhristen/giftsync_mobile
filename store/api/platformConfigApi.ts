@@ -43,6 +43,26 @@ export const platformConfigApi = baseApi.injectEndpoints({
                 'PlatformConfig',
                 { type: 'PlatformConfig', id: 'DEFAULT_PAYMENT_GATEWAY' },
             ],
+            async onQueryStarted({ gateway }, { dispatch, queryFulfilled }) {
+                const patches = [
+                    dispatch(platformConfigApi.util.updateQueryData('getDefaultPaymentGateway', undefined, (draft) => {
+                        draft.gateway = gateway;
+                    })),
+                    dispatch(platformConfigApi.util.updateQueryData('getPlatformConfig', undefined, (draft) => {
+                        const item = draft.find((entry) => entry.key === 'default_payment_gateway');
+                        if (item) {
+                            item.value = gateway;
+                            item.updatedAt = new Date().toISOString();
+                        }
+                    })),
+                ];
+
+                try {
+                    await queryFulfilled;
+                } catch {
+                    patches.reverse().forEach((patch) => patch.undo());
+                }
+            },
         }),
     }),
     overrideExisting: true,

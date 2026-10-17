@@ -20,10 +20,10 @@ import Typography from '../ui/Typography';
 import { usePlatformConfig } from '@/hooks/usePlatformConfig';
 import { useGetContactsQuery } from '@/store/api/contactsApi';
 import { useCreateEventMutation, useGetEventDetailQuery, useGetEventTemplatesQuery, useUpdateEventMutation } from '@/store/api/event';
-import { useAppSelector } from '@/store/hooks';
-import { spendCoins } from '@/store/slices/walletSlice';
+import { walletApi } from '@/store/api/walletApi';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { adjustCoinBalance, setCoinBalance } from '@/store/slices/authSlice';
 import { Contact } from '@/types';
-import { useDispatch } from 'react-redux';
 import { toast } from 'sonner-native';
 
 interface EventFormProps {
@@ -78,7 +78,7 @@ const EventForm: React.FC<EventFormProps> = ({
     fixedContactPhone
 }) => {
     const { spacing, colors } = useTheme();
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const { occasionCreationCost } = usePlatformConfig();
     const { user } = useAppSelector(s => s.auth);
 
@@ -206,6 +206,15 @@ const EventForm: React.FC<EventFormProps> = ({
             }
         }
 
+        const optimisticCost = isEditing ? 0 : Number(occasionCreationCost || 0);
+        const balanceBeforeSubmit = user?.coinBalance ?? 0;
+        if (optimisticCost > 0) {
+            dispatch(adjustCoinBalance(-optimisticCost));
+            dispatch(walletApi.util.updateQueryData('getWalletBalance', undefined, (draft) => {
+                draft.balance = Math.max(0, draft.balance - optimisticCost);
+            }));
+        }
+
         setIsSubmitting(true);
         try {
             let contactId = selectedContact?.id || fixedContactId;
@@ -233,7 +242,6 @@ const EventForm: React.FC<EventFormProps> = ({
                     notes,
                     relationship: relationship === 'Other' ? customRelationship.trim() : relationship
                 }).unwrap();
-                dispatch(spendCoins(occasionCreationCost));
                 toast.success("event Added 🎉");
             }
 
@@ -241,6 +249,10 @@ const EventForm: React.FC<EventFormProps> = ({
             onCompleted?.();
         } catch (err: any) {
             console.error(err);
+            if (optimisticCost > 0) {
+                dispatch(setCoinBalance(balanceBeforeSubmit));
+                dispatch(walletApi.util.upsertQueryData('getWalletBalance', undefined, { balance: balanceBeforeSubmit }));
+            }
             toast.error("Error", { description: err?.data?.message || "Something went wrong" });
         } finally {
             setIsSubmitting(false);
