@@ -6,17 +6,19 @@ import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { useFeatureFlag } from '@/hooks/useFeatureFlags';
 import { useValidateCouponMutation } from '@/store/api/couponApi';
+import { useGetGiftRequestQuery } from '@/store/api/giftRequestApi';
 import { useGetOrderByIdQuery, useHandlePaymentMutation } from '@/store/api/orderApi';
 import { useGetDefaultPaymentGatewayQuery } from '@/store/api/platformConfigApi';
 import { useGetCoinQuoteQuery, useGetWalletBalanceQuery } from '@/store/api/walletApi';
 import { ValidateCouponResponse } from '@/types';
 import { formatCurrency } from '@/utils/formatCurrency';
+import { getOutstandingAmount } from '@/utils/normalizeOrder';
 import { isPaymentCallbackUrl, isPaymentFailureUrl, PAYMENT_GATEWAY_LABELS } from '@/utils/payment';
 import { CreditCardIcon, Delete02Icon, Money01Icon, Tag01Icon, Tick01Icon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
@@ -30,21 +32,23 @@ export default function PaymentScreen() {
     const { enabled: couponsEnabled } = useFeatureFlag('coupons');
     const {
         orderId,
+        giftRequestId,
         currency: requestCurrency,
         paymentUrl: initialPaymentUrl,
-    } = useLocalSearchParams<{ orderId: string; currency?: string; paymentUrl?: string }>();
+    } = useLocalSearchParams<{ orderId: string; giftRequestId?: string; currency?: string; paymentUrl?: string }>();
     const [paymentUrl, setPaymentUrl] = useState<string | null>(initialPaymentUrl || null);
-    const [isAwaitingPayment, setIsAwaitingPayment] = useState(false);
-    const hasCompletedPaymentRef = useRef(false);
     const hasHandledCheckoutNavigationRef = useRef(false);
-    const { data: order, isLoading: isOrderLoading, refetch: refetchOrder } = useGetOrderByIdQuery(
+    const { data: fetchedOrder, isLoading: isOrderLoading, refetch: refetchOrder } = useGetOrderByIdQuery(
         orderId as string,
         {
             skip: !orderId,
-            pollingInterval: isAwaitingPayment ? 2_000 : 0,
-            skipPollingIfUnfocused: true,
         },
     );
+    const {
+        data: giftRequest,
+        isLoading: isGiftRequestLoading,
+        refetch: refetchGiftRequest,
+    } = useGetGiftRequestQuery(giftRequestId as string, { skip: !giftRequestId });
     const [handlePayment] = useHandlePaymentMutation();
     const { data: wallet } = useGetWalletBalanceQuery();
     const { data: defaultGateway } = useGetDefaultPaymentGatewayQuery();
@@ -56,43 +60,29 @@ export default function PaymentScreen() {
     const [paymentMethod, setPaymentMethod] = useState<PaymentChoice>('coins');
     const [isProcessing, setIsProcessing] = useState(false);
 
-    const payableTotal = (order?.total ?? 0) - (couponsEnabled ? appliedCoupon?.discountAmount ?? 0 : 0);
+    const order = fetchedOrder && giftRequest?.order
+        ? { ...fetchedOrder, ...giftRequest.order }
+        : fetchedOrder;
+    const outstandingAmount = getOutstandingAmount(order);
+    const isAdditionalPayment = Number(order?.amountPaid ?? 0) > 0;
+    const canUseCoupons = couponsEnabled && !isAdditionalPayment;
+    const payableTotal = Math.max(0, outstandingAmount - (canUseCoupons ? appliedCoupon?.discountAmount ?? 0 : 0));
     const product = order?.item?.product;
     const currency = product?.currency || requestCurrency || 'NGN';
     const { data: coinQuote, isLoading: isQuoteLoading } = useGetCoinQuoteQuery(
         { amount: payableTotal, currency },
-        { skip: !order?.total },
+        { skip: !order || payableTotal <= 0 || order.paymentEnabled === false },
     );
     const gatewayName = defaultGateway?.gateway
         ? PAYMENT_GATEWAY_LABELS[defaultGateway.gateway]
         : 'your configured payment provider';
-
-    useEffect(() => {
-        if (!isAwaitingPayment || order?.paymentStatus !== 'paid' || hasCompletedPaymentRef.current) return;
-
-        hasCompletedPaymentRef.current = true;
-        setIsAwaitingPayment(false);
-        router.replace({ pathname: '/checkout/confirmation', params: { orderId } });
-        toast.success('Payment successful!', { description: 'Your gift is ready for dispatch.' });
-    }, [isAwaitingPayment, order?.paymentStatus, orderId, router]);
-
-    useEffect(() => {
-        if (!isAwaitingPayment) return;
-
-        const timeout = setTimeout(() => {
-            setIsAwaitingPayment(false);
-            toast.error('Payment confirmation is taking longer than expected. Check your orders again shortly.');
-        }, 120_000);
-
-        return () => clearTimeout(timeout);
-    }, [isAwaitingPayment]);
 
     const handleApplyCoupon = async () => {
         if (!couponCode.trim()) return;
         try {
             const result = await validateCoupon({
                 code: couponCode.trim(),
-                orderAmount: Number(order?.total) || 0,
+                orderAmount: outstandingAmount,
                 businessId: order?.businessId as string,
             }).unwrap();
             setAppliedCoupon(result);
@@ -111,13 +101,12 @@ export default function PaymentScreen() {
             setIsProcessing(true);
             const response = await handlePayment({
                 orderId: order?.id as string,
-                method: paymentMethod === 'coins' ? 'coins' : undefined,
-                couponCode: couponsEnabled ? appliedCoupon?.coupon.code : undefined,
+                method: paymentMethod === 'coins' ? 'coins' : defaultGateway?.gateway ?? 'paystack',
+                couponCode: canUseCoupons ? appliedCoupon?.coupon.code : undefined,
                 optimisticCoinAmount: paymentMethod === 'coins' ? coinQuote?.coins : undefined,
             }).unwrap();
 
             if (response.status === 'payment_initiated' && response.checkoutUrl) {
-                hasCompletedPaymentRef.current = false;
                 hasHandledCheckoutNavigationRef.current = false;
                 setPaymentUrl(response.checkoutUrl);
             } else if (response.status === 'paid') {
@@ -133,13 +122,19 @@ export default function PaymentScreen() {
         }
     };
 
-    const beginPaymentConfirmation = () => {
+    const finishSuccessfulPayment = () => {
         if (hasHandledCheckoutNavigationRef.current) return;
         hasHandledCheckoutNavigationRef.current = true;
         setPaymentUrl(null);
-        setIsAwaitingPayment(true);
         void refetchOrder();
-        toast('Confirming payment…');
+        if (giftRequestId) void refetchGiftRequest();
+        router.replace({ pathname: '/checkout/confirmation', params: { orderId } });
+        toast.success('Payment successful!', { description: 'Your order payment has been updated.' });
+    };
+
+    const closePaymentWebView = () => {
+        hasHandledCheckoutNavigationRef.current = true;
+        setPaymentUrl(null);
     };
 
     const handleWebViewStateChange = ({ url }: { url?: string }) => {
@@ -151,11 +146,11 @@ export default function PaymentScreen() {
             setPaymentUrl(null);
             toast.error('Payment was cancelled.');
         } else if (isPaymentCallbackUrl(url)) {
-            beginPaymentConfirmation();
+            finishSuccessfulPayment();
         }
     };
 
-    if (isOrderLoading) {
+    if ((isOrderLoading || (giftRequestId && isGiftRequestLoading)) && !paymentUrl) {
         return <CheckoutSkeleton step={3} onBack={() => router.back()} />;
     }
 
@@ -183,10 +178,12 @@ export default function PaymentScreen() {
                             <View style={[styles.productImage, { backgroundColor: colors.lavender }]} />
                         )}
                         <View style={styles.productCopy}>
-                            <Typography variant="h4" numberOfLines={2}>{product?.name || order?.item?.productName || 'Custom gift request'}</Typography>
+                            <Typography variant="h4" numberOfLines={2}>
+                                {product?.name || order?.item?.productName || (giftRequestId ? 'Custom gift request' : 'Gift order')}
+                            </Typography>
                             <Typography variant="caption" color={colors.textSecondary}>For {order?.recipientName || 'someone special'}</Typography>
                         </View>
-                        <Typography variant="bodyBold">{formatCurrency(order?.total ?? 0, currency)}</Typography>
+                        <Typography variant="bodyBold">{formatCurrency(outstandingAmount, currency)}</Typography>
                     </View>
                 </View>
 
@@ -213,11 +210,11 @@ export default function PaymentScreen() {
                     />
                 </View>
 
-                {couponsEnabled && <View style={styles.sectionHeading}>
+                {canUseCoupons && <View style={styles.sectionHeading}>
                     <Typography variant="label">Clip a coupon</Typography>
                     <Typography variant="caption" color={colors.textSecondary}>OPTIONAL</Typography>
                 </View>}
-                {couponsEnabled && (!appliedCoupon ? (
+                {canUseCoupons && (!appliedCoupon ? (
                     <View style={[styles.couponTicket, { backgroundColor: colors.peach, borderColor: colors.ink }]}>
                         <View style={[styles.couponIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                             <HugeiconsIcon icon={Tag01Icon} size={21} color={colors.ink} />
@@ -269,7 +266,20 @@ export default function PaymentScreen() {
                     <ReceiptRow label="Gift subtotal" value={formatCurrency(order?.subtotal ?? 0, currency)} />
                     <ReceiptRow label="Delivery" value={formatCurrency(order?.deliveryFee ?? 0, currency)} />
                     <ReceiptRow label="Gift wrapping" value={formatCurrency(order?.packagingFee ?? 0, currency)} />
-                    {couponsEnabled && appliedCoupon ? (
+                    {order?.additionalPayments?.map((payment) => (
+                        <ReceiptRow
+                            key={payment.id}
+                            label={payment.reason || 'Additional charge'}
+                            value={formatCurrency(payment.amount, currency)}
+                        />
+                    ))}
+                    {!order?.additionalPayments?.length && !!order?.additionalPaymentTotal && (
+                        <ReceiptRow label="Additional charges" value={formatCurrency(order.additionalPaymentTotal, currency)} />
+                    )}
+                    {!!order?.amountPaid && (
+                        <ReceiptRow label="Already paid" value={`-${formatCurrency(order.amountPaid, currency)}`} accent />
+                    )}
+                    {canUseCoupons && appliedCoupon ? (
                         <ReceiptRow
                             label={`Coupon · ${appliedCoupon.coupon.code}`}
                             value={`-${formatCurrency(appliedCoupon.discountAmount, currency)}`}
@@ -277,6 +287,11 @@ export default function PaymentScreen() {
                         />
                     ) : null}
                     <View style={[styles.dashedLine, { borderColor: colors.textMuted }]} />
+                    {order?.paymentEnabled === false && (
+                        <Typography variant="caption" color={colors.textSecondary}>
+                            Payment will be available once the sourcing team enables it.
+                        </Typography>
+                    )}
                     <View style={styles.totalRow}>
                         <View>
                             <Typography variant="caption" color={colors.textSecondary}>TOTAL DUE</Typography>
@@ -291,24 +306,26 @@ export default function PaymentScreen() {
 
             <View style={[styles.footer, { backgroundColor: colors.background, paddingBottom: insets.bottom + 16 }]}>
                 <Button
-                    title={paymentMethod === 'coins'
+                    title={order?.paymentEnabled === false
+                        ? 'Payment not enabled yet'
+                        : paymentMethod === 'coins'
                         ? `Send ${coinQuote?.coins?.toLocaleString() ?? '…'} coins  →`
                         : `Pay ${formatCurrency(payableTotal, currency)}  →`}
                     onPress={handlePay}
-                    isLoading={isProcessing || isAwaitingPayment || (paymentMethod === 'coins' && isQuoteLoading)}
-                    disabled={!order || isAwaitingPayment}
+                    isLoading={isProcessing || (paymentMethod === 'coins' && isQuoteLoading)}
+                    disabled={!order || order.paymentEnabled === false || payableTotal <= 0}
                     style={styles.submitButton}
                 />
             </View>
 
-            <Modal visible={!!paymentUrl} presentationStyle="pageSheet">
+            <Modal visible={!!paymentUrl} presentationStyle="pageSheet" onRequestClose={closePaymentWebView}>
                 <View style={[styles.webViewShell, { backgroundColor: colors.background, paddingTop: insets.top + 12 }]}>
                     <View style={[styles.webViewHeader, { borderColor: colors.ink }]}>
                         <View>
                             <Typography variant="caption" color={colors.textSecondary}>SECURE CHECKOUT</Typography>
                             <Typography variant="h3">Complete card payment</Typography>
                         </View>
-                        <Button title="Close" variant="outline" size="sm" onPress={beginPaymentConfirmation} />
+                        <Button title="Close" variant="outline" size="sm" onPress={closePaymentWebView} />
                     </View>
                     <View style={[styles.webViewFrame, { borderColor: colors.ink }]}>
                         <WebView

@@ -1,4 +1,5 @@
 import { Order, PaginationMeta, PaymentGateway, PaymentResponse } from '@/types';
+import { normalizeOrder } from '@/utils/normalizeOrder';
 import { adjustCoinBalance } from '../slices/authSlice';
 import { baseApi } from './baseApi';
 import { createOptimisticId, getCachedQueryArgs, OptimisticPatch, undoOptimisticPatches } from './optimistic';
@@ -60,6 +61,7 @@ export const orderApi = baseApi.injectEndpoints({
                 method: 'POST',
                 data,
             }),
+            transformResponse: (response: Order) => normalizeOrder(response),
             invalidatesTags: ['Orders'],
             async onQueryStarted(data, { dispatch, getState, queryFulfilled }) {
                 const tempId = createOptimisticId('order');
@@ -100,7 +102,6 @@ export const orderApi = baseApi.injectEndpoints({
                         const index = draft.items.findIndex((order) => order.id === tempId);
                         if (index !== -1) draft.items[index] = savedOrder;
                     });
-                    dispatch(orderApi.util.upsertQueryData('getOrderById', savedOrder.id, savedOrder));
                 } catch {
                     undoOptimisticPatches(patches);
                 }
@@ -111,6 +112,10 @@ export const orderApi = baseApi.injectEndpoints({
                 url: '/api/v1/orders',
                 method: 'GET',
                 params: params || {},
+            }),
+            transformResponse: (response: { items: Order[], meta: PaginationMeta }) => ({
+                ...response,
+                items: response.items.map(normalizeOrder),
             }),
             serializeQueryArgs: ({ endpointName, queryArgs }) => {
                 const { page, ...rest } = queryArgs || {};
@@ -146,6 +151,10 @@ export const orderApi = baseApi.injectEndpoints({
                 url: `/api/v1/orders/product/${productId}`,
                 method: 'GET',
             }),
+            transformResponse: (response: { items: Order[], meta: PaginationMeta }) => ({
+                ...response,
+                items: response.items.map(normalizeOrder),
+            }),
             providesTags: ['Orders'],
         }),
         getOrderById: builder.query<Order, string>({
@@ -153,6 +162,7 @@ export const orderApi = baseApi.injectEndpoints({
                 url: `/api/v1/orders/${id}`,
                 method: 'GET',
             }),
+            transformResponse: (response: Order) => normalizeOrder(response),
             providesTags: (result, error, id) => [{ type: 'Orders', id }],
         }),
         confirmDelivery: builder.mutation<Order, { orderId: string; deliveryCode: string }>({
@@ -161,6 +171,7 @@ export const orderApi = baseApi.injectEndpoints({
                 method: 'POST',
                 data: { code: deliveryCode },
             }),
+            transformResponse: (response: Order) => normalizeOrder(response),
             invalidatesTags: (result, error, { orderId }) => ['Orders', { type: 'Orders', id: orderId }],
             async onQueryStarted({ orderId }, { dispatch, getState, queryFulfilled }) {
                 const patches = patchOrderEverywhere(dispatch, getState, orderId, (order) => {
@@ -179,17 +190,17 @@ export const orderApi = baseApi.injectEndpoints({
                 }
             },
         }),
-        handlePayment: builder.mutation<PaymentResponse, { orderId: string; method?: PaymentGateway | 'coins'; couponCode?: string; optimisticCoinAmount?: number }>({
+        handlePayment: builder.mutation<PaymentResponse, { orderId: string; method: PaymentGateway | 'coins'; couponCode?: string; optimisticCoinAmount?: number }>({
             query: ({ orderId, method, couponCode }) => ({
                 url: `/api/v1/orders/${orderId}/pay`,
                 method: 'POST',
                 data: {
                     orderId,
-                    ...(method ? { method } : {}),
+                    method,
                     ...(couponCode ? { couponCode } : {}),
                 },
             }),
-            invalidatesTags: (result, error, { orderId }) => ['Orders', { type: 'Orders', id: orderId }, 'Wallet'],
+            invalidatesTags: (result, error, { orderId }) => ['Orders', { type: 'Orders', id: orderId }, 'GiftRequests', 'Wallet'],
             async onQueryStarted({ orderId, method, optimisticCoinAmount = 0 }, { dispatch, getState, queryFulfilled }) {
                 if (method !== 'coins') return;
                 const patches = patchOrderEverywhere(dispatch, getState, orderId, (order) => {

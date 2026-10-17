@@ -2,6 +2,7 @@ import NotificationListSkeleton from '@/components/skeletons/NotificationListSke
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { useDeleteNotificationMutation, useGetNotificationsQuery, useMarkAllAsReadMutation, useMarkAsReadMutation } from '@/store/api/notificationApi';
+import { Notification } from '@/types';
 import {
     ArrowLeft01Icon,
     Delete02Icon,
@@ -42,12 +43,34 @@ export default function NotificationsScreen() {
         }
     };
 
-    const handleNotificationPress = async (id: string, isRead: boolean) => {
-        if (isRead) return;
-        try {
-            await markAsRead(id).unwrap();
-        } catch {
-            toast.error('Could not mark as read');
+    const markNotificationRead = async (id: string, isRead: boolean) => {
+        if (!isRead) {
+            try {
+                await markAsRead(id).unwrap();
+            } catch {
+                toast.error('Could not mark as read');
+            }
+        }
+    };
+
+    const handleNotificationPress = (notification: Notification) => {
+        void markNotificationRead(notification.id, notification.isRead);
+
+        const action = String(notification.data?.action || '').toUpperCase();
+        const conversationId = notification.data?.conversationId;
+        const orderId = notification.data?.orderId;
+        const giftRequestId = notification.data?.giftRequestId;
+
+        if (action === 'OPEN_CONVERSATION' && conversationId) {
+            router.push(`/chat/${String(conversationId)}`);
+        } else if (action === 'PAY_ORDER' && orderId) {
+            router.push({
+                pathname: '/checkout/payment',
+                params: {
+                    orderId: String(orderId),
+                    ...(giftRequestId ? { giftRequestId: String(giftRequestId) } : {}),
+                },
+            });
         }
     };
 
@@ -137,10 +160,10 @@ export default function NotificationsScreen() {
                                 <Swipeable
                                     renderLeftActions={item.isRead ? undefined : leftAction}
                                     renderRightActions={rightAction}
-                                    onSwipeableOpen={(direction) => direction === 'left' ? handleNotificationPress(item.id, item.isRead) : handleDelete(item.id)}
+                                    onSwipeableOpen={(direction) => direction === 'left' ? markNotificationRead(item.id, item.isRead) : handleDelete(item.id)}
                                 >
                                     <Pressable
-                                        onPress={() => handleNotificationPress(item.id, item.isRead)}
+                                        onPress={() => handleNotificationPress(item)}
                                         style={({ pressed }) => [
                                             styles.note,
                                             {

@@ -21,6 +21,10 @@ export interface NotificationData {
   action?: string;
   url?: string;
   transactionId?: string;
+  giftRequestId?: string;
+  orderId?: string;
+  conversationId?: string;
+  amount?: number;
   [key: string]: any;
 }
 
@@ -361,7 +365,8 @@ class NotificationService {
   private navigateToScreen(screen: string, params?: string | object): void {
     try {
       let deepLinkPath: string;
-      const parsedParams = typeof params === 'string' ? JSON.parse(params || '{}') : (params || {});
+      let queryParams: Record<string, string> | undefined;
+      const parsedParams = (typeof params === 'string' ? JSON.parse(params || '{}') : (params || {})) as Record<string, unknown>;
 
       // Map screen names to deep link paths
       switch (screen) {
@@ -438,6 +443,11 @@ class NotificationService {
           break;
         case 'CheckoutPayment':
           deepLinkPath = 'checkout/payment';
+          queryParams = Object.fromEntries(
+            ['orderId', 'giftRequestId', 'currency', 'paymentUrl']
+              .filter((key) => parsedParams[key] != null)
+              .map((key) => [key, String(parsedParams[key])]),
+          );
           break;
         case 'CheckoutConfirmation':
           deepLinkPath = 'checkout/confirmation';
@@ -453,7 +463,7 @@ class NotificationService {
           deepLinkPath = screen.toLowerCase();
       }
 
-      const url = Linking.createURL(deepLinkPath);
+      const url = Linking.createURL(deepLinkPath, queryParams ? { queryParams } : undefined);
       console.log(`🔗 Navigating to: ${url}`);
       Linking.openURL(url);
     } catch (error) {
@@ -477,7 +487,22 @@ class NotificationService {
    * Handle custom actions with deep linking
    */
   private handleCustomAction(action: string, data: NotificationData): void {
-    switch (action) {
+    switch (action.toLowerCase()) {
+      case "open_conversation":
+        if (data.conversationId) {
+          this.navigateToScreen('ChatDetail', { id: data.conversationId });
+        } else {
+          this.navigateToScreen('Messages');
+        }
+        break;
+      case "pay_order":
+        if (data.orderId) {
+          this.navigateToScreen('CheckoutPayment', {
+            orderId: data.orderId,
+            giftRequestId: data.giftRequestId,
+          });
+        }
+        break;
       case "referral_reward":
         this.navigateToScreen('Referrals');
         break;

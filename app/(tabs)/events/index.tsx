@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
     featuredCopy: { flex: 1, justifyContent: 'center', gap: 3 },
     openPlan: { alignSelf: 'flex-start', minHeight: 33, borderRadius: 10, paddingHorizontal: 9, flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 8 },
     featuredIcon: { position: 'absolute', width: 42, height: 42, borderWidth: 1.25, borderRadius: 13, right: 12, top: -9, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '5deg' }] },
-    emptyFeature: { minHeight: 112, borderWidth: 1.5, borderRadius: 22, padding: 17, flexDirection: 'row', alignItems: 'center', gap: 13 },
+    emptyFeature: {borderWidth: 1.5, borderRadius: 22, padding: 17, flexDirection: 'row', alignItems: 'center', gap: 13 },
     sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingTop: 15, paddingBottom: 10 },
     sectionLine: { width: 28, height: 2 },
     mapRow: { minHeight: 90, borderWidth: 1.5, borderRadius: 20, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 14, },

@@ -289,7 +289,7 @@ export default function HomeScreen() {
                                     <Typography variant="bodyBold" numberOfLines={1}>{item.name}</Typography>
                                     <View style={styles.polaroidFooter}>
                                         <Typography variant="caption" color={colors.textSecondary} numberOfLines={1} style={{ flex: 1 }}>{item.business?.name || 'GiftSync pick'}</Typography>
-                                        <Typography variant="label" color={colors.primary}>{formatCurrency(item.price, item.currency)}</Typography>
+                                        <Typography variant="label" color={colors.primary}>{formatCurrency(Number(item.price) + Number(item.deliveryFee) + Number(item.packagingFee), item.currency)}</Typography>
                                     </View>
                                 </Pressable>
                             ))}
@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
     pageTitle: { fontSize: 34, lineHeight: 40 },
     notificationButton: { width: 48, height: 48, borderRadius: 15, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', },
     notificationDot: { position: 'absolute', width: 11, height: 11, borderRadius: 6, borderWidth: 1.5, top: 7, right: 7 },
-    momentCard: { minHeight: 270, borderWidth: 1.5, borderRadius: 28, overflow: 'hidden', },
+    momentCard: { borderWidth: 1.5, borderRadius: 28, overflow: 'hidden', },
     momentColorBlock: { position: 'absolute', width: '27%', height: '100%', left: 0, top: 0, borderRightWidth: 1.5 },
     momentContent: { flex: 1, padding: 22, paddingLeft: '32%' },
     momentKicker: { flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 18 },

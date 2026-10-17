@@ -270,7 +270,7 @@ export interface Notification {
   type: string;
   title: string;
   body: string;
-  data: Record<string, string>;
+  data: Record<string, string | number | boolean | null | undefined>;
   isRead: boolean;
   sentAt: string;
   createdAt: string;
@@ -291,7 +291,15 @@ export interface OrderItem {
 export type PaymentGateway = 'paystack' | 'flutterwave' | 'bachs';
 export type PaymentMethod = PaymentGateway | 'card' | 'cash' | 'coins';
 export type PaymentStatus = 'pending' | 'paid' | 'failed';
-export type OrderStatus = 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled' | 'Disputed';
+export type OrderStatus = 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled' | 'Disputed';
+
+export interface AdditionalPayment {
+  id: string;
+  amount: number;
+  reason: string;
+  status: 'PENDING' | 'PAID' | 'FAILED';
+  paidAt: string | null;
+}
 
 export interface Order {
   id: string;
@@ -311,6 +319,10 @@ export interface Order {
   deliveryAddress: Address
   discountAmount?: number;
   total: number;
+  amountPaid?: number;
+  additionalPaymentTotal?: number;
+  paymentEnabled?: boolean;
+  additionalPayments?: AdditionalPayment[];
   deliveryCode: string;
   anonymity: boolean;
   status: OrderStatus;

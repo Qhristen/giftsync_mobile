@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     headerButton: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
     dossier: { height: 36, borderRadius: 12, paddingHorizontal: 13, alignItems: 'center', justifyContent: 'center' },
-    cover: { minHeight: 292, overflow: 'hidden', flexDirection: 'row', padding: 22 },
+    cover: { overflow: 'hidden', flexDirection: 'row', padding: 22 },
     band: { position: 'absolute', left: 0, top: 0, bottom: 0, width: '29%', borderRightWidth: 1.5 },
     datePoster: { width: 88, height: 126, borderWidth: 1.5, borderRadius: 19, alignItems: 'center', justifyContent: 'center', gap: 5, marginTop: 8, transform: [{ rotate: '-4deg' }] },
     coverCopy: { flex: 1, justifyContent: 'center', gap: 8, marginLeft: 18 },

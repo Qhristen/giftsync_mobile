@@ -104,7 +104,7 @@ export default function EventDetailScreen() {
                     </View>
                 </View>
 
-                <View style={{ paddingHorizontal: spacing.xl, marginTop: 30 }}>
+                <View style={{ paddingHorizontal: spacing.xl, marginTop: 20 }}>
                     <View style={[styles.sectionLabel, {paddingTop: 10}]}>
                         <Typography variant="caption" color={colors.textSecondary} style={[styles.overline]}>THE PLAN TRAIL</Typography>
                         <View style={[styles.sectionRule, { backgroundColor: colors.ink }]} />
@@ -160,10 +160,6 @@ export default function EventDetailScreen() {
                             </View>
                             <HugeiconsIcon icon={ArrowRight01Icon} size={18} color={colors.ink} />
                         </Pressable>}
-                        <Pressable onPress={editSheet.open} style={[styles.editCard, { backgroundColor: colors.lemon, borderColor: colors.ink }]}>
-                            <HugeiconsIcon icon={Edit01Icon} size={22} color={colors.ink} />
-                            <Typography variant="caption" style={styles.overline}>EDIT PLAN</Typography>
-                        </Pressable>
                     </View>
                 </View>
 
@@ -196,7 +192,7 @@ export default function EventDetailScreen() {
                                     <View style={[styles.ideaTape, { backgroundColor: paperColors[index % paperColors.length], borderColor: colors.ink }]} />
                                     <Typography variant="bodyBold" numberOfLines={1}>{item.name}</Typography>
                                     <View style={styles.ideaFooter}>
-                                        <Typography variant="label" color={colors.primary}>{formatCurrency(item.price, item.currency)}</Typography>
+                                        <Typography variant="label" color={colors.primary}>{formatCurrency(Number(item.price) + Number(item.deliveryFee) + Number(item.packagingFee), item.currency)}</Typography>
                                         <View style={styles.deliveryTime}>
                                             <HugeiconsIcon icon={Time02Icon} size={14} color={colors.success} />
                                             <Typography variant="caption" color={colors.success}>{item.deliveryDays}d</Typography>
@@ -232,7 +228,7 @@ const styles = StyleSheet.create({
     headerButton: { width: 44, height: 44, borderWidth: 1.5, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
     dossierTab: { minHeight: 36, borderWidth: 1.5, borderRadius: 12, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-1deg' }] },
     overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.8 },
-    cover: { minHeight: 292, borderWidth: 1.5, borderRadius: 27, overflow: 'hidden', },
+    cover: { borderWidth: 1.5, borderRadius: 27, overflow: 'hidden', },
     coverBand: { position: 'absolute', left: 0, top: 0, bottom: 0, width: '29%', borderRightWidth: 1.5 },
     datePoster: { position: 'absolute', left: 14, top: 30, width: 88, height: 126, borderWidth: 1.5, borderRadius: 19, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-4deg' }] },
     posterDay: { fontSize: 44, lineHeight: 48 },
@@ -247,11 +243,11 @@ const styles = StyleSheet.create({
     trailRow: { minHeight: 76, flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 10 },
     trailDot: { width: 44, height: 44, borderWidth: 1.5, borderRadius: 14, alignItems: 'center', justifyContent: 'center', zIndex: 2 },
     trailCard: { flex: 1, minHeight: 68, borderWidth: 1.5, borderRadius: 17, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 8 },
-    missionDesk: { marginTop: 20, minHeight: 116, borderWidth: 1.5, borderRadius: 22, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, },
+    missionDesk: { marginTop: 20, borderWidth: 1.5, borderRadius: 22, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, },
     missionIcon: { width: 52, height: 52, borderWidth: 1.5, borderRadius: 17, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-4deg' }] },
     missionArrow: { width: 42, height: 42, borderWidth: 1.25, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
     conciergeRow: { flexDirection: 'row', gap: 11, marginTop: 14 },
-    conciergeCard: { flex: 1, minHeight: 84, borderWidth: 1.5, borderRadius: 18, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 9 },
+    conciergeCard: { flex: 1, borderWidth: 1.5, borderRadius: 18, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 9 },
     editCard: { width: 98, minHeight: 84, borderWidth: 1.5, borderRadius: 18, padding: 10, alignItems: 'center', justifyContent: 'center', gap: 5 },
     recommendationHeader: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 10 },
     ideaCard: { width: 192, borderWidth: 1.5, borderRadius: 9, padding: 9, paddingBottom: 13, marginRight: 17, },

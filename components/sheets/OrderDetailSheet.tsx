@@ -4,6 +4,7 @@ import { useCreateConversationMutation } from '@/store/api/chatApi';
 import { Order } from '@/types';
 import { formatDate } from '@/utils/dateUtils';
 import { formatCurrency } from '@/utils/formatCurrency';
+import { getOutstandingAmount } from '@/utils/normalizeOrder';
 import {
     Calendar01Icon,
     Comment01Icon,
@@ -42,6 +43,7 @@ const OrderDetailSheet = forwardRef<BottomSheetRef, OrderDetailSheetProps>(({ or
     const router = useRouter();
     const [createConversation, { isLoading: isOpeningChat }] = useCreateConversationMutation();
     const product = order?.item?.product;
+    const outstandingAmount = getOutstandingAmount(order);
     const currency = product?.currency || 'NGN';
     const vendorUserId = order?.business?.userId || product?.business?.userId;
 
@@ -131,12 +133,21 @@ const OrderDetailSheet = forwardRef<BottomSheetRef, OrderDetailSheetProps>(({ or
                         <ReceiptRow label="Item subtotal" value={formatCurrency(order.subtotal, currency)} />
                         <ReceiptRow label="Packaging" value={formatCurrency(order.packagingFee, currency)} />
                         <ReceiptRow label="Delivery" value={formatCurrency(order.deliveryFee, currency)} />
+                        {order.additionalPayments?.map((payment) => (
+                            <ReceiptRow key={payment.id} label={payment.reason || 'Additional charge'} value={formatCurrency(payment.amount, currency)} />
+                        ))}
                         {!!order.discountAmount && <ReceiptRow label="Discount" value={`−${formatCurrency(order.discountAmount, currency)}`} />}
                         <View style={[styles.receiptDivider, { borderColor: colors.ink }]} />
                         <View style={styles.totalRow}>
                             <Typography variant="h3">Total</Typography>
                             <Typography variant="h2" color={colors.primary}>{formatCurrency(order.total, currency)}</Typography>
                         </View>
+                        {!!order.amountPaid && (
+                            <>
+                                <ReceiptRow label="Already paid" value={`−${formatCurrency(order.amountPaid, currency)}`} />
+                                <ReceiptRow label="Amount due" value={formatCurrency(outstandingAmount, currency)} />
+                            </>
+                        )}
                     </View>
 
                     <View style={styles.infoGrid}>
@@ -154,7 +165,7 @@ const OrderDetailSheet = forwardRef<BottomSheetRef, OrderDetailSheetProps>(({ or
                     </View>
 
                     <View style={styles.actions}>
-                        {order.paymentStatus !== 'paid' && order.status !== 'Cancelled' && (
+                        {order.paymentStatus !== 'paid' && order.status !== 'Cancelled' && order.paymentEnabled !== false && outstandingAmount > 0 && (
                             <Button
                                 title="Complete payment"
                                 onPress={() => {
@@ -163,21 +174,23 @@ const OrderDetailSheet = forwardRef<BottomSheetRef, OrderDetailSheetProps>(({ or
                                 }}
                             />
                         )}
-                        {order.status !== 'Cancelled' && (
-                            <Pressable
-                                disabled={isOpeningChat}
-                                onPress={openChat}
-                                style={[styles.chatButton, { backgroundColor: colors.mint, borderColor: colors.ink }, isOpeningChat && styles.disabled]}
-                            >
-                                <HugeiconsIcon icon={Comment01Icon} size={18} color={colors.ink} />
-                                <Typography variant="label">
-                                    {isOpeningChat ? 'Opening chat…' : product ? 'Chat with vendor' : 'Chat with sourcing team'}
-                                </Typography>
-                            </Pressable>
-                        )}
+
                         <View style={styles.secondaryActions}>
                             {reviewsEnabled && order.status === 'Delivered' && <Button title="Leave a review" variant="secondary" onPress={() => onReview?.(order)} style={{ flex: 1 }} />}
                             {disputesEnabled && order.paymentStatus === 'paid' && order.status !== 'Cancelled' && <Button title="Report an issue" variant="outline" onPress={() => onDispute?.(order)} style={{ flex: 1 }} color={colors.error} />}
+
+                            {(order.status !== 'Cancelled' && order.paymentStatus === 'paid') && (
+                                <Pressable
+                                    disabled={isOpeningChat}
+                                    onPress={openChat}
+                                    style={[styles.chatButton, { backgroundColor: colors.mint, borderColor: colors.ink }, isOpeningChat && styles.disabled]}
+                                >
+                                    <HugeiconsIcon icon={Comment01Icon} size={18} color={colors.ink} />
+                                    <Typography variant="label">
+                                        {isOpeningChat ? 'Opening chat…' : product ? 'Chat with vendor' : 'Chat with sourcing team'}
+                                    </Typography>
+                                </Pressable>
+                            )}
                         </View>
                     </View>
                 </View>
@@ -224,9 +237,9 @@ const styles = StyleSheet.create({
     receiptDivider: { borderTopWidth: 1.5, borderStyle: 'dashed', marginVertical: 11 },
     totalRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     infoGrid: { flexDirection: 'row', gap: 11, marginTop: 18 },
-    infoCard: { width: '48.3%', minHeight: 145, borderWidth: 1.5, borderRadius: 19, padding: 13, gap: 5 },
+    infoCard: { width: '48.3%', borderWidth: 1.5, borderRadius: 19, padding: 13, gap: 5 },
     actions: { gap: 11, marginTop: 22 },
-    chatButton: { height: 48, borderWidth: 1.5, borderRadius: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+    chatButton: { borderWidth: 1.5, paddingHorizontal: 11, borderRadius: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
     disabled: { opacity: 0.6 },
     secondaryActions: { flexDirection: 'row', gap: 9 },
 });

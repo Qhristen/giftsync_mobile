@@ -9,6 +9,7 @@ import { useGetOrdersQuery } from '@/store/api/orderApi';
 import { Order } from '@/types';
 import { formatDate } from '@/utils/dateUtils';
 import { formatCurrency } from '@/utils/formatCurrency';
+import { getOutstandingAmount } from '@/utils/normalizeOrder';
 import {
     ArrowLeft01Icon,
     ArrowRight01Icon,
@@ -137,6 +138,7 @@ export default function OrdersScreen() {
                         const product = item.item?.product;
                         const step = statusStep(item.status);
                         const cancelled = item.status === 'Cancelled';
+                        const outstandingAmount = getOutstandingAmount(item);
                         const accent = paperColors[index % paperColors.length];
                         return (
                             <View>
@@ -187,10 +189,10 @@ export default function OrdersScreen() {
 
                                     <View style={[styles.orderFooter, { borderTopColor: colors.ink }]}>
                                         <View>
-                                            <Typography variant="caption" color={colors.textSecondary}>ORDER TOTAL</Typography>
-                                            <Typography variant="bodyBold">{formatCurrency(item.total, product?.currency || 'NGN')}</Typography>
+                                            <Typography variant="caption" color={colors.textSecondary}>{outstandingAmount < item.total ? 'AMOUNT DUE' : 'ORDER TOTAL'}</Typography>
+                                            <Typography variant="bodyBold">{formatCurrency(outstandingAmount || item.total, product?.currency || 'NGN')}</Typography>
                                         </View>
-                                        {item.paymentStatus !== 'paid' && item.status !== 'Cancelled' ? (
+                                        {item.paymentStatus !== 'paid' && item.status !== 'Cancelled' && item.paymentEnabled !== false && outstandingAmount > 0 ? (
                                             <Pressable
                                                 onPress={(event) => {
                                                     event.stopPropagation();
@@ -259,9 +261,9 @@ const styles = StyleSheet.create({
     headerButton: { width: 44, height: 44, borderRadius: 14, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
     overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.8 },
     summaryBoard: { flexDirection: 'row', gap: 12, marginTop: 20 },
-    summaryMain: { flex: 1.35, minHeight: 112, borderWidth: 1.5, borderRadius: 22, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, },
+    summaryMain: { flex: 1.35, borderWidth: 1.5, borderRadius: 22, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, },
     summaryIcon: { width: 46, height: 46, borderRadius: 15, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
-    summarySide: { flex: 0.65, minHeight: 112, borderWidth: 1.5, borderRadius: 22, padding: 14, justifyContent: 'center' },
+    summarySide: { flex: 0.65, borderWidth: 1.5, borderRadius: 22, padding: 14, justifyContent: 'center' },
     tabs: { flexDirection: 'row', gap: 4, marginTop: 18, padding: 4, borderWidth: 1.5, borderRadius: 16 },
     tab: { flex: 1, height: 42, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
     orderCard: { borderWidth: 1.5, borderRadius: 24, padding: 15, marginVertical: 10, },

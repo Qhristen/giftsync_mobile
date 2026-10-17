@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
     searchBar: { flex: 1, height: 52, borderWidth: 1.5, borderRadius: 16, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, gap: 10 },
     searchInput: { flex: 1, fontFamily: 'DMSans_400Regular', fontSize: moderateScale(15) },
     filterButton: { width: 52, height: 52, borderWidth: 1.5, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-    conciergeCard: { marginTop: 16, padding: 14, borderWidth: 1.5, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 12, },
+    conciergeCard: { marginTop: 16, padding: 10, borderWidth: 1.5, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 12, },
     conciergeIcon: { width: 46, height: 46, borderRadius: 14, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
     categories: { gap: 9, paddingTop: 18, paddingBottom: 8 },
     category: { paddingHorizontal: 16, paddingVertical: 9, borderRadius: 13, borderWidth: 1.5 },

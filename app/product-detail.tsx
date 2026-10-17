@@ -166,7 +166,7 @@ export default function ProductDetailScreen() {
                         </View>
                     </View>
 
-                    <Pressable
+                    {/* <Pressable
                         onPress={vendorSheet.open}
                         style={({ pressed }) => [styles.makerStrip, { backgroundColor: colors.mint, borderColor: colors.ink }, pressed && styles.pressed]}
                     >
@@ -177,7 +177,7 @@ export default function ProductDetailScreen() {
                             <Typography variant="caption" color={colors.textSecondary}>{product.ratingCount || 0} customer reviews</Typography>
                         </View>
                         <HugeiconsIcon icon={ArrowRight01Icon} size={21} color={colors.ink} />
-                    </Pressable>
+                    </Pressable> */}
 
                     {deliveryStatus && (
                         <View style={[styles.deliveryNote, { backgroundColor: deliveryStatus.canArriveOnTime ? colors.mint : colors.peach, borderColor: colors.ink }]}>
@@ -302,13 +302,13 @@ const styles = StyleSheet.create({
     activeDot: { width: 16 },
     titleBlock: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
     productTitle: { fontSize: 36, lineHeight: 41, marginTop: 2 },
-    priceTicket: { minWidth: 122, minHeight: 82, borderWidth: 1.5, borderRadius: 16, padding: 12, justifyContent: 'center', transform: [{ rotate: '3deg' }] },
+    priceTicket: { minWidth: 122, borderWidth: 1.5, borderRadius: 16, padding: 12, justifyContent: 'center', transform: [{ rotate: '3deg' }] },
     ticketHole: { position: 'absolute', width: 12, height: 12, borderRadius: 6, borderWidth: 1, left: -7, top: 34 },
     makerStrip: { marginTop: 22, borderWidth: 1.5, borderRadius: 20, padding: 13, flexDirection: 'row', alignItems: 'center', gap: 12 },
     deliveryNote: { marginTop: 18, borderWidth: 1.5, borderRadius: 19, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, },
     noteIcon: { width: 44, height: 44, borderWidth: 1.25, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
     factBento: { marginTop: 24, flexDirection: 'row', flexWrap: 'wrap', gap: 11 },
-    factTile: { width: '48.3%', minHeight: 118, borderWidth: 1.5, borderRadius: 20, padding: 13, justifyContent: 'space-between' },
+    factTile: { width: '48.3%', borderWidth: 1.5, borderRadius: 20, padding: 13, justifyContent: 'space-between' },
     factTileWide: { width: '100%', minHeight: 78, flexDirection: 'row', alignItems: 'center', gap: 11 },
     factIcon: { width: 38, height: 38, borderRadius: 12, borderWidth: 1.25, alignItems: 'center', justifyContent: 'center' },
     storyCard: { marginTop: 26, borderWidth: 1.5, borderRadius: 22, padding: 18, gap: 12, },

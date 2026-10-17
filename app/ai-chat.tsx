@@ -230,6 +230,25 @@ export default function AIChatScreen() {
                     { role: 'user', content: currentText },
                     { role: 'model', content: JSON.stringify(result.response) }
                 ]);
+
+                const uiData = result.response.uiData;
+                if (uiData?.type === 'gift_request') {
+                    const request = uiData.giftRequest || uiData.item?.data || uiData.details;
+                    const orderId = uiData.order?.id || request?.orderId;
+                    const paymentUrl = request?.paymentUrl;
+
+                    if (orderId && paymentUrl) {
+                        router.push({
+                            pathname: '/checkout/payment',
+                            params: {
+                                orderId,
+                                giftRequestId: request?.id,
+                                currency: uiData.order?.currency || request?.currency || user?.currency || 'NGN',
+                                paymentUrl,
+                            },
+                        });
+                    }
+                }
             }
         } catch (error: any) {
             console.error('Chat Error:', error);
@@ -607,7 +626,7 @@ export default function AIChatScreen() {
                                                 accessibilityLabel="Pay now"
                                                 onPress={() => router.push({
                                                     pathname: '/checkout/payment',
-                                                    params: { orderId, currency: requestCurrency, paymentUrl },
+                                                    params: { orderId, giftRequestId: request?.id, currency: requestCurrency, paymentUrl },
                                                 })}
                                                 style={[styles.payRequestButton, { backgroundColor: colors.accent, borderColor: colors.ink }]}
                                             >

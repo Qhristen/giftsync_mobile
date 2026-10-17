@@ -277,7 +277,12 @@ export default function GiftRequestScreen() {
                 toast.success('Request created', { description: 'Complete payment to send it to the sourcing team.' });
                 router.replace({
                     pathname: '/checkout/payment',
-                    params: { orderId: createdRequest.orderId, currency: createdRequest.currency || currency },
+                    params: {
+                        orderId: createdRequest.orderId,
+                        giftRequestId: createdRequest.id,
+                        currency: createdRequest.currency || currency,
+                        paymentUrl: createdRequest.paymentUrl,
+                    },
                 });
             } else {
                 toast.success('Request sent', { description: 'The sourcing team will review your brief and follow up.' });
