@@ -1,4 +1,5 @@
 import CreateEventSheet from '@/components/sheets/CreateEventSheet';
+import ConfirmDeleteSheet from '@/components/sheets/ConfirmDeleteSheet';
 import EventDetailSkeleton from '@/components/skeletons/EventDetailSkeleton';
 import Avatar from '@/components/ui/Avatar';
 import Button from '@/components/ui/Button';
@@ -6,7 +7,7 @@ import Typography from '@/components/ui/Typography';
 import { useBottomSheet } from '@/hooks/useBottomSheet';
 import { useTheme } from '@/hooks/useTheme';
 import { useFeatureFlag } from '@/hooks/useFeatureFlags';
-import { useGetEventDetailQuery } from '@/store/api/event';
+import { useDeleteEventMutation, useGetEventDetailQuery } from '@/store/api/event';
 import { useGetRecommendationsV2Query } from '@/store/api/productApi';
 import { getCountdown } from '@/utils/dateUtils';
 import { formatCurrency } from '@/utils/formatCurrency';
@@ -14,6 +15,7 @@ import {
     ArrowLeft01Icon,
     ArrowRight01Icon,
     Calendar01Icon,
+    Delete02Icon,
     Edit01Icon,
     GiftIcon,
     SparklesIcon,
@@ -25,6 +27,7 @@ import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { toast } from 'sonner-native';
 
 const dateParts = (date: string) => ({
     day: new Date(date).toLocaleDateString(undefined, { day: '2-digit' }),
@@ -42,11 +45,27 @@ export default function EventDetailScreen() {
     const { enabled: giftRequestsEnabled } = useFeatureFlag('gift_requests');
     const { enabled: recommendationsEnabled } = useFeatureFlag('gift_recommendations');
     const editSheet = useBottomSheet();
+    const deleteSheet = useBottomSheet();
     const { data: event, isLoading, isFetching, error, refetch } = useGetEventDetailQuery(id, { skip: !id });
+    const [deleteEvent, { isLoading: isDeleting }] = useDeleteEventMutation();
     const { data: recommendations = [], isLoading: recommendationsLoading } = useGetRecommendationsV2Query(
         { eventId: event?.id as string, limit: 10 },
         { skip: !event?.id || !recommendationsEnabled },
     );
+
+    const handleDelete = async () => {
+        if (!id || isDeleting) return;
+
+        try {
+            await deleteEvent(id).unwrap();
+            deleteSheet.close();
+            toast.success('Event deleted');
+            router.back();
+        } catch (error: unknown) {
+            const message = (error as { data?: { message?: string } })?.data?.message;
+            toast.error('Could not delete event', { description: message || 'Please try again.' });
+        }
+    };
 
     if (isLoading || isFetching) return <EventDetailSkeleton />;
 
@@ -204,17 +223,38 @@ export default function EventDetailScreen() {
                     ) : giftRequestsEnabled ? (
                         <Pressable
                             onPress={() => router.push({ pathname: '/gift-request', params: { recipient, occasion: event.title, eventId: event.id } })}
-                            style={[styles.noIdeas, { marginHorizontal: spacing.xl, backgroundColor: colors.lilac, borderColor: colors.ink }]}
+                            style={[styles.noIdeas, { marginHorizontal: spacing.xl, marginTop: spacing.xl, backgroundColor: colors.lilac, borderColor: colors.ink }]}
                         >
+                            <View>
+
                             <Typography variant="h4">No ordinary ideas found.</Typography>
                             <Typography variant="body" color={colors.textSecondary}>Ask the concierge to source something personal.</Typography>
+                            </View>
                             <HugeiconsIcon icon={ArrowRight01Icon} size={21} color={colors.ink} />
                         </Pressable>
                     ) : null}
                 </View>}
+
+                <View style={{ paddingHorizontal: spacing.xl, marginTop: 28 }}>
+                    <Button
+                        title="Delete event"
+                        variant="outline"
+                        color={colors.error}
+                        leftIcon={<HugeiconsIcon icon={Delete02Icon} size={19} color={colors.error} />}
+                        onPress={deleteSheet.open}
+                    />
+                </View>
             </ScrollView>
 
             <CreateEventSheet ref={editSheet.ref} isEditing occasionId={event.id} onSuccess={refetch} />
+            <ConfirmDeleteSheet
+                ref={deleteSheet.ref}
+                title="Delete this event?"
+                description={`“${event.title}” will be permanently removed from your plans.`}
+                confirmLabel="Delete event"
+                onConfirm={handleDelete}
+                isLoading={isDeleting}
+            />
         </View>
     );
 }
@@ -255,5 +295,6 @@ const styles = StyleSheet.create({
     ideaTape: { position: 'absolute', width: 50, height: 13, borderWidth: 1, top: 3, left: 69, transform: [{ rotate: '-4deg' }] },
     ideaFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 5 },
     deliveryTime: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-    noIdeas: { minHeight: 112, borderWidth: 1.5, borderRadius: 21, padding: 17, gap: 5 },
+    noIdeas: { flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1.5, borderRadius: 21, padding: 17,},
+    
 });

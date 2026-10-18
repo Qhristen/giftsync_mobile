@@ -11,6 +11,7 @@ import Typography from '../ui/Typography';
 
 import { useCreateContactMutation, useUpdateContactMutation } from '@/store/api/contactsApi';
 import { Contact } from '@/types';
+import { normalizeNigerianPhoneNumber } from '@/utils/phone';
 
 const RELATIONSHIP_TYPES = [
     'Partner',
@@ -86,13 +87,21 @@ const ContactForm: React.FC<ContactFormProps> = ({ onSuccess, initialData, isEdi
     };
 
     const handleSubmit = async () => {
+        const normalizedPhoneNumber = normalizeNigerianPhoneNumber(phoneNumber);
+        if (!normalizedPhoneNumber) {
+            toast.error('Invalid Phone Number', {
+                description: 'Enter a valid Nigerian number, for example 08031234567 or +2348031234567.',
+            });
+            return;
+        }
+
         try {
             if (isEditing && initialData?.id) {
                 const updatedContact = await updateContact({
                     id: initialData.id,
                     data: {
                         name: name.trim(),
-                        phoneNumber: phoneNumber.trim(),
+                        phoneNumber: normalizedPhoneNumber,
                         avatar,
                         relationship,
                         budget,
@@ -107,7 +116,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ onSuccess, initialData, isEdi
             } else {
                 const newContact = await createContact({
                     name: name.trim(),
-                    phoneNumber: phoneNumber.trim(),
+                    phoneNumber: normalizedPhoneNumber,
                     avatar,
                     relationship,
                     budget,

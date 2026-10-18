@@ -3,6 +3,7 @@ import BottomSheetWrapper, { BottomSheetRef } from '@/components/ui/BottomSheetW
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Typography from '@/components/ui/Typography';
+import { useDebounce } from '@/hooks/useDebounce';
 import { usePlatformConfig } from '@/hooks/usePlatformConfig';
 import { useTheme } from '@/hooks/useTheme';
 import { useCreateEventMutation } from '@/store/api/event';
@@ -10,6 +11,7 @@ import { walletApi } from '@/store/api/walletApi';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { adjustCoinBalance, setCoinBalance } from '@/store/slices/authSlice';
 import { EventTemplate } from '@/types';
+import { normalizeNigerianPhoneNumber } from '@/utils/phone';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import {
     Calendar01Icon,
@@ -20,7 +22,7 @@ import {
 import { BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import { format } from 'date-fns';
 import * as Contacts from "expo-contacts/legacy";
-import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
@@ -29,6 +31,17 @@ interface Props {
     holiday: EventTemplate | null;
 }
 
+type PhoneContact = Contacts.Contact & { id: string };
+
+const getContactPhoneNumber = (contact: Contacts.Contact) => {
+    for (const phoneNumber of contact.phoneNumbers || []) {
+        const normalized = normalizeNigerianPhoneNumber(phoneNumber.number);
+        if (normalized) return normalized;
+    }
+
+    return null;
+};
+
 const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, ref) => {
     const { colors, spacing } = useTheme();
     const dispatch = useAppDispatch();
@@ -36,92 +49,126 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
     const sheetRef = useRef<BottomSheetRef>(null);
     const { occasionCreationCost } = usePlatformConfig();
     const [createEvent] = useCreateEventMutation();
-    const [localContacts, setLocalContacts] = useState<(Contacts.Contact & { id: string })[]>([]);
+    const [localContacts, setLocalContacts] = useState<PhoneContact[]>([]);
     const [isLoadingContacts, setIsLoadingContacts] = useState(false);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [pageOffset, setPageOffset] = useState(0);
     const [hasMore, setHasMore] = useState(true);
     const insets = useSafeAreaInsets();
-    const [selectedContactsMap, setSelectedContactsMap] = useState<Map<string, Contacts.Contact & { id: string }>>(new Map());
+    const [selectedContactsMap, setSelectedContactsMap] = useState<Map<string, PhoneContact>>(new Map());
 
     const [searchQuery, setSearchQuery] = useState('');
+    const debouncedSearchQuery = useDebounce(searchQuery.trim(), 400);
+    const [isSheetPresented, setIsSheetPresented] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
 
     const latestQueryRef = useRef('');
-    const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+    const contactsPermissionGrantedRef = useRef(false);
+    const searchRequestIdRef = useRef(0);
 
     const fetchContacts = useCallback(async (query: string = '', offset: number = 0, append: boolean = false) => {
+        const requestId = append ? null : ++searchRequestIdRef.current;
         if (append) setIsLoadingMore(true);
         else setIsLoadingContacts(true);
 
         try {
-            const { status } = await Contacts.requestPermissionsAsync();
-            if (status === 'granted') {
-                const { data, hasNextPage } = await Contacts.getContactsAsync({
-                    fields: [Contacts.Fields.PhoneNumbers],
-                    sort: Contacts.SortTypes.FirstName,
-                    name: query || undefined,
-                    pageSize: 20,
-                    pageOffset: offset,
-                });
-
-                if (latestQueryRef.current === query) {
-                    const validContacts = data.filter(c => c.phoneNumbers && c.phoneNumbers.length > 0) as (Contacts.Contact & { id: string })[];
-
-                    setLocalContacts(prev => {
-                        if (!append) return validContacts;
-
-                        // Prevent duplicate keys by filtering out contacts already in the list
-                        const existingIds = new Set(prev.map(c => c.id));
-                        const uniqueNew = validContacts.filter(c => !existingIds.has(c.id));
-                        return [...prev, ...uniqueNew];
-                    });
-
-                    setHasMore(hasNextPage);
-                    setPageOffset(offset);
-                }
+            if (!contactsPermissionGrantedRef.current) {
+                const { status } = await Contacts.requestPermissionsAsync();
+                contactsPermissionGrantedRef.current = status === 'granted';
             }
+
+            if (!contactsPermissionGrantedRef.current) return;
+
+            const { data, hasNextPage } = await Contacts.getContactsAsync({
+                fields: [Contacts.Fields.PhoneNumbers],
+                sort: Contacts.SortTypes.FirstName,
+                name: query || undefined,
+                pageSize: 20,
+                pageOffset: offset,
+            });
+
+            if (latestQueryRef.current !== query) return;
+
+            const validContacts = data.filter(c => c.phoneNumbers && c.phoneNumbers.length > 0) as PhoneContact[];
+
+            setLocalContacts(prev => {
+                if (!append) return validContacts;
+
+                // Prevent duplicate keys by filtering out contacts already in the list
+                const existingIds = new Set(prev.map(c => c.id));
+                const uniqueNew = validContacts.filter(c => !existingIds.has(c.id));
+                return [...prev, ...uniqueNew];
+            });
+
+            setHasMore(hasNextPage);
+            setPageOffset(offset);
         } catch (e) {
             console.error(e);
         } finally {
             if (append) setIsLoadingMore(false);
-            else setIsLoadingContacts(false);
+            else if (requestId === searchRequestIdRef.current) setIsLoadingContacts(false);
         }
     }, []);
 
     const handleSearch = useCallback((text: string) => {
         setSearchQuery(text);
-        latestQueryRef.current = text;
+        latestQueryRef.current = text.trim();
+    }, []);
 
-        if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
-        searchTimeoutRef.current = setTimeout(() => {
-            fetchContacts(text, 0, false);
-        }, 300);
-    }, [fetchContacts]);
+    useEffect(() => {
+        if (!isSheetPresented || searchQuery.trim() !== debouncedSearchQuery) return;
+        void fetchContacts(debouncedSearchQuery, 0, false);
+    }, [debouncedSearchQuery, fetchContacts, isSheetPresented, searchQuery]);
+
+    const prepareSheet = useCallback(() => {
+        latestQueryRef.current = '';
+        setSearchQuery('');
+        setIsSheetPresented(true);
+    }, []);
+
+    const handleSheetClose = useCallback(() => {
+        setIsSheetPresented(false);
+    }, []);
 
     useImperativeHandle(ref, () => ({
         expand: () => {
-            handleSearch('');
+            prepareSheet();
             sheetRef.current?.expand();
         },
         close: () => sheetRef.current?.close(),
         snapToIndex: (index: number) => {
-            handleSearch('');
+            prepareSheet();
             sheetRef.current?.snapToIndex(index);
         },
         present: () => {
-            handleSearch('');
+            prepareSheet();
             sheetRef.current?.present();
         },
         dismiss: () => sheetRef.current?.dismiss(),
-    }), [handleSearch]);
+    }), [prepareSheet]);
 
-    const handleCreateEvents = async () => {
+    const handleCreateEvents = useCallback(async () => {
         if (!holiday || selectedContactsMap.size === 0 || isCreating) return;
 
         const selected = Array.from(selectedContactsMap.values());
+        const contactsToCreate = selected.map(contact => ({
+            contact,
+            phoneNumber: getContactPhoneNumber(contact),
+        }));
+        const invalidContacts = contactsToCreate.filter(({ phoneNumber }) => !phoneNumber);
+
+        if (invalidContacts.length > 0) {
+            const firstInvalidName = invalidContacts[0].contact.name || 'The selected contact';
+            toast.error('Invalid phone number', {
+                description: invalidContacts.length === 1
+                    ? `${firstInvalidName} needs a valid Nigerian phone number before an event can be added.`
+                    : `${invalidContacts.length} selected contacts need valid Nigerian phone numbers.`,
+            });
+            return;
+        }
+
         const costPerEvent = Number(occasionCreationCost || 0);
-        const optimisticCost = costPerEvent * selected.length;
+        const optimisticCost = costPerEvent * contactsToCreate.length;
         const balanceBeforeSubmit = user?.coinBalance ?? 0;
         if (balanceBeforeSubmit < optimisticCost) {
             toast.error('Insufficient Balance', {
@@ -142,12 +189,12 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
 
         try {
             const results = await Promise.allSettled(
-                selected.map((contact) => createEvent({
+                contactsToCreate.map(({ contact, phoneNumber }) => createEvent({
                     title: holiday.title,
                     date: format(eventDate, 'yyyy-MM-dd'),
                     recurrenceType: 'YEARLY',
                     name: contact.name || 'Contact',
-                    phoneNumber: contact.phoneNumbers?.[0]?.number?.trim(),
+                    phoneNumber: phoneNumber!,
                 }).unwrap()),
             );
 
@@ -166,8 +213,12 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
                 });
             } else {
                 setSelectedContactsMap(new Map(failedContacts.map(contact => [contact.id, contact])));
+                const firstFailure = results.find(result => result.status === 'rejected');
+                const failureMessage = firstFailure?.status === 'rejected'
+                    ? (firstFailure.reason as { data?: { message?: string } })?.data?.message
+                    : undefined;
                 toast.error('Some events could not be created', {
-                    description: `${successCount} added, ${failedContacts.length} still selected so you can retry.`,
+                    description: failureMessage || `${successCount} added, ${failedContacts.length} still selected so you can retry.`,
                 });
             }
         } catch (error: unknown) {
@@ -178,9 +229,9 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
         } finally {
             setIsCreating(false);
         }
-    };
+    }, [createEvent, dispatch, holiday, isCreating, occasionCreationCost, selectedContactsMap, user?.coinBalance]);
 
-    const toggleContact = useCallback((contact: Contacts.Contact & { id: string }) => {
+    const toggleContact = useCallback((contact: PhoneContact) => {
         setSelectedContactsMap(prev => {
             const next = new Map(prev);
             if (next.has(contact.id)) {
@@ -192,7 +243,7 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
         });
     }, []);
 
-    const renderItem = useCallback(({ item }: { item: Contacts.Contact & { id: string } }) => {
+    const renderItem = useCallback(({ item }: { item: PhoneContact }) => {
         const isSelected = selectedContactsMap.has(item.id);
         return (
             <TouchableOpacity
@@ -205,7 +256,7 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
                 <View style={{ flex: 1 }}>
                     <Typography variant="bodyBold">{item.name}</Typography>
                     <Typography variant="caption" color={colors.textSecondary}>
-                        {item.phoneNumbers?.[0]?.number}
+                        {getContactPhoneNumber(item) || item.phoneNumbers?.[0]?.number}
                     </Typography>
                 </View>
                 <View style={[
@@ -221,6 +272,24 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
         );
     }, [colors, selectedContactsMap, toggleContact]);
 
+    const renderFooter = useCallback(() => (
+        <View style={{ paddingHorizontal: spacing.md, paddingTop: spacing.md, paddingBottom: insets.bottom + 20, backgroundColor: colors.surface }}>
+            <Button
+                title={isCreating
+                    ? 'Adding events...'
+                    : `Add Events (${selectedContactsMap.size}) (${Number(occasionCreationCost || 0) * selectedContactsMap.size} coins)`}
+                variant="primary"
+                size="md"
+                leftIcon={isCreating ? <ActivityIndicator size="small" color="#FFF" /> : <HugeiconsIcon icon={Calendar01Icon} size={18} color="#FFF" />}
+                style={{ flex: 1 }}
+                onPress={handleCreateEvents}
+                disabled={selectedContactsMap.size === 0 || isCreating}
+            />
+        </View>
+    ), [colors.surface, handleCreateEvents, insets.bottom, isCreating, occasionCreationCost, selectedContactsMap.size, spacing.md]);
+
+    const isSearchPending = searchQuery.trim() !== debouncedSearchQuery;
+
     return (
         <BottomSheetWrapper
             ref={sheetRef}
@@ -228,21 +297,9 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
             scrollable={false}
             disablePadding
             enableFlex
-            renderFooter={() => (
-                <View style={[{ paddingHorizontal: spacing.md, paddingTop: spacing.md, paddingBottom: insets.bottom + 20, backgroundColor: colors.surface }]}>
-                    <Button
-                        title={isCreating
-                            ? 'Adding events...'
-                            : `Add Events (${selectedContactsMap.size}) (${Number(occasionCreationCost || 0) * selectedContactsMap.size} coins)`}
-                        variant="primary"
-                        size="md"
-                        leftIcon={isCreating ? <ActivityIndicator size="small" color="#FFF" /> : <HugeiconsIcon icon={Calendar01Icon} size={18} color="#FFF" />}
-                        style={{ flex: 1 }}
-                        onPress={handleCreateEvents}
-                        disabled={selectedContactsMap.size === 0 || isCreating}
-                    />
-                </View>
-            )}
+            keyboardBehavior="interactive"
+            onClose={handleSheetClose}
+            renderFooter={renderFooter}
         >
             {!holiday ? (
                 <View style={{ height: 100 }} />
@@ -252,8 +309,10 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
                         data={localContacts}
                         style={{ flex: 1 }}
                         renderItem={renderItem}
-                        keyExtractor={(item: Contacts.Contact & { id: string }) => item.id}
+                        keyExtractor={(item: PhoneContact) => item.id}
                         contentContainerStyle={{ paddingHorizontal: spacing.md, paddingBottom: 100 }}
+                        keyboardShouldPersistTaps="handled"
+                        keyboardDismissMode="on-drag"
                         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
                         ListHeaderComponent={
                             <View>
@@ -274,6 +333,7 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
                                         placeholder="Search contacts..."
                                         value={searchQuery}
                                         onChangeText={handleSearch}
+                                        autoCapitalize="none"
                                         isBottomSheet
                                         leftIcon={<HugeiconsIcon icon={Search01Icon} size={20} color={colors.textSecondary} />}
                                     />
@@ -295,8 +355,8 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
                             ) : null
                         }
                         onEndReached={() => {
-                            if (hasMore && !isLoadingMore && !isLoadingContacts) {
-                                fetchContacts(searchQuery, pageOffset + 20, true);
+                            if (hasMore && !isSearchPending && !isLoadingMore && !isLoadingContacts) {
+                                fetchContacts(debouncedSearchQuery, pageOffset + 20, true);
                             }
                         }}
                         onEndReachedThreshold={0.5}

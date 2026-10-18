@@ -1,5 +1,6 @@
 import { baseApi } from './baseApi';
 import { PaymentGateway } from '@/types';
+import { setConfigs } from '../slices/configSlice';
 
 export interface PlatformConfigItem {
     id?: string;
@@ -25,6 +26,14 @@ export const platformConfigApi = baseApi.injectEndpoints({
                 method: 'GET',
             }),
             providesTags: ['PlatformConfig'],
+            async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+                try {
+                    const { data } = await queryFulfilled;
+                    dispatch(setConfigs(data));
+                } catch {
+                    // The existing config remains available while offline.
+                }
+            },
         }),
         getDefaultPaymentGateway: builder.query<DefaultPaymentGatewayResponse, void>({
             query: () => ({

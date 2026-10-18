@@ -15,7 +15,7 @@ export const usePlatformConfig = () => {
         directSmsCost: getConfig('direct_sms_cost'),
         ngnUsdRate: getConfig('ngn_usd_rate'),
         usdPerCoin: getConfig('usd_per_coin'),
-        occasionCreationCost: getConfig('occasion_creation_cost'),
+        occasionCreationCost: getConfig('event_creation_cost'),
         productCreationCost: getConfig('product_creation_cost'),
         deliveryFeeNgn: getConfig('delivery_fee_ngn'),
         packagingFeeNgn: getConfig('packaging_fee_ngn'),

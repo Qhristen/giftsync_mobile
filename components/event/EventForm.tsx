@@ -24,6 +24,7 @@ import { walletApi } from '@/store/api/walletApi';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { adjustCoinBalance, setCoinBalance } from '@/store/slices/authSlice';
 import { Contact } from '@/types';
+import { normalizeNigerianPhoneNumber } from '@/utils/phone';
 import { toast } from 'sonner-native';
 
 interface EventFormProps {
@@ -185,6 +186,14 @@ const EventForm: React.FC<EventFormProps> = ({
             return;
         }
 
+        const normalizedPhone = normalizeNigerianPhoneNumber(phone);
+        if (!normalizedPhone) {
+            toast.error("Invalid Phone Number", {
+                description: "Enter a valid Nigerian number, for example 08031234567 or +2348031234567.",
+            });
+            return;
+        }
+
         if (selectedType === 'Custom' && !customTitle.trim()) {
             toast.error("Required Fields", { description: "Please enter a custom event title." });
             return;
@@ -237,7 +246,7 @@ const EventForm: React.FC<EventFormProps> = ({
                     date: date.toISOString(),
                     recurrenceType,
                     name,
-                    phoneNumber: phone.trim(),
+                    phoneNumber: normalizedPhone,
                     interests,
                     notes,
                     relationship: relationship === 'Other' ? customRelationship.trim() : relationship

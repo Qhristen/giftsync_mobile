@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { PlatformConfigItem } from '../api/platformConfigApi';
+import type { PlatformConfigItem } from '../api/platformConfigApi';
 
 interface ConfigState {
     configs: Record<string, any>;
@@ -11,7 +11,7 @@ const initialState: ConfigState = {
         ai_chat_cost: 0, // Fallback defaults
         ngn_usd_rate: 0,
         usd_per_coin: 0,
-        occasion_creation_cost: 0,
+        event_creation_cost: 0,
         product_creation_cost: 0,
         delivery_fee_ngn: 0,
         packaging_fee_ngn: 0,

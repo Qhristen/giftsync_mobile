@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
     leftNotch: { left: -11 },
     rightNotch: { right: -11 },
     detailsGrid: { flexDirection: 'row', gap: 11 },
-    factCard: { flex: 1, minHeight: 116, borderWidth: 1.5, borderRadius: 18, padding: 13, gap: 5, justifyContent: 'center' },
+    factCard: { flex: 1, borderWidth: 1.5, borderRadius: 18, padding: 13, gap: 5, justifyContent: 'center' },
     ticketFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
     processingStamp: { borderWidth: 1.5, borderRadius: 9, paddingHorizontal: 8, paddingVertical: 6, transform: [{ rotate: '-2deg' }] },
     nextNote: { borderWidth: 1.5, borderRadius: 19, padding: 15, gap: 4, transform: [{ rotate: '-0.4deg' }] },

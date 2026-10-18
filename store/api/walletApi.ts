@@ -43,7 +43,7 @@ export const walletApi = baseApi.injectEndpoints({
         }),
         getCoinPackages: builder.query<CoinPackage[], void>({
             query: () => ({ url: '/api/v1/coin-packages', method: 'GET' }),
-            providesTags: ['Wallet'],
+            providesTags: ['CoinPackages'],
         }),
         getTransactions: builder.query<PaginatedWalletTransactionResponse, { page?: number; limit?: number;[key: string]: unknown }>({
             query: (params) => ({

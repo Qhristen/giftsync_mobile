@@ -9,6 +9,7 @@ import { useCreateGiftRequestMutation } from '@/store/api/giftRequestApi';
 import { useUploadMutation } from '@/store/api/uploadApi';
 import { useAppSelector } from '@/store/hooks';
 import { formatCurrency, formatInputNumber, getCurrencySymbol, parseCurrencyInput } from '@/utils/formatCurrency';
+import { normalizeNigerianPhoneNumber } from '@/utils/phone';
 import {
     ArrowLeft01Icon,
     ArrowRight01Icon,
@@ -106,10 +107,11 @@ export default function GiftRequestScreen() {
 
     const selectEvent = (event: (typeof upcomingEvents)[number]) => {
         const eventContact = event.contact || event.contacts?.[0];
+        const phoneNumber = eventContact?.phoneNumber || '';
         setSelectedEventId(event.id);
         setSelectedContactId(eventContact?.id || '');
         setRecipient(eventContact?.name || '');
-        setRecipientPhone(eventContact?.phoneNumber || '');
+        setRecipientPhone(normalizeNigerianPhoneNumber(phoneNumber) || phoneNumber.replace(/\s/g, ''));
         setOccasion(event.title);
     };
 
@@ -130,7 +132,7 @@ export default function GiftRequestScreen() {
             setSelectedEventId('');
             setSelectedContactId('');
             setRecipient(contact.name || '');
-            setRecipientPhone(phoneNumber);
+            setRecipientPhone(normalizeNigerianPhoneNumber(phoneNumber) || phoneNumber.replace(/\s/g, ''));
 
             if (!phoneNumber) {
                 toast.error('No phone number found', { description: 'Please enter a number manually.' });
@@ -166,7 +168,8 @@ export default function GiftRequestScreen() {
         setSelectedPreferences((current) => current.includes(value) ? current.filter((item) => item !== value) : [...current, value]);
     };
 
-    const hasRecipientContact = recipient.trim().length > 1 && recipientPhone.trim().length >= 7;
+    const normalizedRecipientPhone = normalizeNigerianPhoneNumber(recipientPhone);
+    const hasRecipientContact = recipient.trim().length > 1 && Boolean(normalizedRecipientPhone);
     const hasNewEventDetails = hasRecipientContact && occasion.trim().length > 1 && Boolean(eventDate);
     const hasNewAddress = addressLine1.trim().length > 2
         && addressCity.trim().length > 1
@@ -188,7 +191,7 @@ export default function GiftRequestScreen() {
     const buildAiBrief = (uploadedReference?: string) => [
         'I would like help with a custom gift request that I could not find in the shop.',
         `Recipient: ${recipient.trim()}`,
-        recipientPhone.trim() ? `Recipient phone: ${recipientPhone.trim()}` : '',
+        normalizedRecipientPhone ? `Recipient phone: ${normalizedRecipientPhone}` : '',
         `Occasion: ${occasion.trim() || 'Just because'}`,
         !selectedEventId && eventDate ? `Event date: ${formatDate(eventDate)}` : '',
         !selectedEventId ? `Event frequency: ${recurrenceOptions.find((item) => item.value === recurrenceType)?.label}` : '',
@@ -232,6 +235,14 @@ export default function GiftRequestScreen() {
             return;
         }
 
+        if (!selectedEventId && !normalizedRecipientPhone) {
+            setStep(0);
+            toast.error('Invalid phone number', {
+                description: 'Enter a valid Nigerian number, for example 08031234567 or +2348031234567.',
+            });
+            return;
+        }
+
         setActiveAction('request');
         try {
             const uploadedReference = await uploadReference();
@@ -243,7 +254,7 @@ export default function GiftRequestScreen() {
                     date: eventDate.toISOString(),
                     recurrenceType,
                     name: recipient.trim(),
-                    phoneNumber: recipientPhone.trim(),
+                    phoneNumber: normalizedRecipientPhone!,
                     relationship: relationship.trim() || undefined,
                 } : undefined,
                 newAddress: !selectedEventId ? {
@@ -262,7 +273,7 @@ export default function GiftRequestScreen() {
                     quantity: 1,
                 },
                 recipientName: recipient.trim(),
-                recipientPhoneNumber: recipientPhone.trim() || undefined,
+                recipientPhoneNumber: normalizedRecipientPhone || undefined,
                 occasion: occasion.trim() || undefined,
                 description: description.trim(),
                 category,
