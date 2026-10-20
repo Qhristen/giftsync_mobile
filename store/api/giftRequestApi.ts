@@ -66,6 +66,7 @@ export interface GiftRequestOrder {
     total: number;
     status: OrderStatus;
     item?: GiftRequestOrderItem | null;
+    createdAt?: string;
 }
 
 export interface GiftRequest {

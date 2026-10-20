@@ -28,11 +28,10 @@ import {
     SentIcon,
     SparklesIcon
 } from '@hugeicons/core-free-icons';
-import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Clipboard from 'expo-clipboard';
 import { Image } from 'expo-image';
-import { Stack, useLocalSearchParams, useRouter, type Href } from 'expo-router';
+import { Stack, useFocusEffect, useLocalSearchParams, useRouter, type Href } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
     ActivityIndicator,
@@ -649,9 +648,24 @@ export default function AIChatScreen() {
                         }
 
                         if (item.uiData?.type === 'gift_request') {
-                            const request = item.uiData.giftRequest || item.uiData.item?.data || item.uiData.details;
+                            // Current responses put a successfully persisted request in
+                            // giftRequest. item.data supports older cached responses. Do not
+                            // fall back to details because that is only the confirmation draft.
+                            const request = item.uiData.giftRequest || item.uiData.item?.data;
+                            const requestId = typeof request?.id === 'string' ? request.id.trim() : '';
                             const total = item.uiData.order?.total ?? request?.order?.total;
                             const requestCurrency = item.uiData.order?.currency || request?.currency || user?.currency || 'NGN';
+
+                            if (!requestId) {
+                                return (
+                                    <MessageBubble
+                                        message={{ id: item.id, content: item.content, createdAt: item.createdAt, isOwnMessage: false } as any}
+                                        isOwnMessage={false}
+                                        renderMarkdown
+                                        onLongPress={handleMessageLongPress}
+                                    />
+                                );
+                            }
 
                             return (
                                 <View>
@@ -666,16 +680,14 @@ export default function AIChatScreen() {
                                         <Typography variant="h3">Your sourcing brief is in</Typography>
                                         <Typography variant="body" color={colors.textSecondary}>Pending review.</Typography>
                                         {total != null && <Typography variant="bodyBold" color={colors.primary}>{formatCurrency(Number(total), requestCurrency)}</Typography>}
-                                        {!!request?.id && (
-                                            <Pressable
-                                                accessibilityRole="button"
-                                                accessibilityLabel="View gift request"
-                                                onPress={() => router.push(`/gift-requests/${request.id}` as unknown as Href)}
-                                                style={[styles.payRequestButton, { backgroundColor: colors.accent, borderColor: colors.ink }]}
-                                            >
-                                                <Typography variant="label" color="#17151D">View request</Typography>
-                                            </Pressable>
-                                        )}
+                                        <Pressable
+                                            accessibilityRole="button"
+                                            accessibilityLabel="View gift request"
+                                            onPress={() => router.push(`/gift-requests/${requestId}` as unknown as Href)}
+                                            style={[styles.payRequestButton, { backgroundColor: colors.accent, borderColor: colors.ink }]}
+                                        >
+                                            <Typography variant="label" color="#17151D">View request</Typography>
+                                        </Pressable>
                                     </View>
                                 </View>
                             );

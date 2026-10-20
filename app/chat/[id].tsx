@@ -56,6 +56,10 @@ import { toast } from 'sonner-native';
 
 const EMPTY_MESSAGES: ChatMessage[] = [];
 
+type ChatListItem =
+    | { kind: 'message'; id: string; createdAt: string; message: ChatMessage }
+    | { kind: 'accepted-order'; id: string; createdAt: string };
+
 export default function ChatDetailScreen() {
     const { id: conversationId } = useLocalSearchParams<{ id: string }>();
     const router = useRouter();
@@ -97,7 +101,6 @@ export default function ChatDetailScreen() {
     const typingUsers = useSelector((state: RootState) => selectTypingUsers(state, conversationId));
 
     const messages = data?.items ?? EMPTY_MESSAGES;
-    const memoizedMessages = useMemo(() => [...messages].reverse(), [messages]);
     const isLoading = isMessagesLoading && messages.length === 0;
     const currentUserId = user?.id;
 
@@ -222,15 +225,6 @@ export default function ChatDetailScreen() {
         setViewerConfig({ images, index });
     }, []);
 
-    const renderMessage = useCallback(({ item }: { item: ChatMessage }) => (
-        <MessageBubble
-            message={item}
-            isOwnMessage={item.sender.id === currentUserId}
-            onLongPress={handleLongPress}
-            onImagePress={handleImagePress}
-        />
-    ), [currentUserId, handleImagePress, handleLongPress]);
-
     const messageListContentStyle = useMemo(
         () => [styles.messageList, { paddingBottom: spacing.lg }],
         [spacing.lg],
@@ -275,6 +269,44 @@ export default function ChatDetailScreen() {
             />
         );
     }, [conversation?.giftRequest, giftRequest, handleGiftRequestPayment]);
+
+    const chatListItems = useMemo<ChatListItem[]>(() => {
+        const items: ChatListItem[] = [...messages].reverse().map((message) => ({
+            kind: 'message',
+            id: message.id,
+            createdAt: message.createdAt,
+            message,
+        }));
+
+        if (!acceptedOrderCard || !giftRequest?.order) return items;
+
+        const cardCreatedAt = giftRequest.order.createdAt || giftRequest.createdAt;
+        const cardTimestamp = Date.parse(cardCreatedAt);
+        const insertionIndex = Number.isNaN(cardTimestamp)
+            ? 0
+            : items.findIndex((item) => Date.parse(item.createdAt) <= cardTimestamp);
+
+        items.splice(insertionIndex === -1 ? items.length : insertionIndex, 0, {
+            kind: 'accepted-order',
+            id: `accepted-order-${giftRequest.order.id}`,
+            createdAt: cardCreatedAt,
+        });
+
+        return items;
+    }, [acceptedOrderCard, giftRequest, messages]);
+
+    const renderChatItem = useCallback(({ item }: { item: ChatListItem }) => {
+        if (item.kind === 'accepted-order') return acceptedOrderCard;
+
+        return (
+            <MessageBubble
+                message={item.message}
+                isOwnMessage={item.message.sender.id === currentUserId}
+                onLongPress={handleLongPress}
+                onImagePress={handleImagePress}
+            />
+        );
+    }, [acceptedOrderCard, currentUserId, handleImagePress, handleLongPress]);
 
     const handleCopy = async () => {
         if (selectedMessage?.content) {
@@ -413,7 +445,7 @@ export default function ChatDetailScreen() {
                     <View style={styles.messageArea}>
                         <FlatList
                             ref={flatListRef}
-                            data={memoizedMessages}
+                            data={chatListItems}
                             inverted={true}
                             showsVerticalScrollIndicator={false}
                             keyExtractor={(item) => item.id}
@@ -421,13 +453,12 @@ export default function ChatDetailScreen() {
                             windowSize={10}
                             maxToRenderPerBatch={10}
                             removeClippedSubviews={true}
-                            renderItem={renderMessage}
+                            renderItem={renderChatItem}
                             style={{ flex: 1 }}
                             contentContainerStyle={messageListContentStyle}
                             keyboardShouldPersistTaps="handled"
                             keyboardDismissMode="on-drag"
                             maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
-                            ListHeaderComponent={acceptedOrderCard}
                             onScroll={handleMessageScroll}
                             scrollEventThrottle={16}
                         />

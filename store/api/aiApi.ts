@@ -53,6 +53,7 @@ export interface AiCreatedGiftRequest {
     id: string;
     status: GiftRequestStatus;
     orderId: string | null;
+    paymentUrl?: string | null;
     budget?: number | string;
     currency?: string;
     order?: GiftRequestOrder | null;

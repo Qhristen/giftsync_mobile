@@ -57,19 +57,16 @@ export function useNetworkStatus() {
             lastToastId.current = toast.error('You\'re offline', {
                 description: 'Check your internet connection and try again.',
                 duration: Infinity, // persist until connectivity is restored
-                icon: '📡',
             });
         } else if (newStatus === 'slow') {
             lastToastId.current = toast.warning('Slow connection', {
                 description: 'Your network is slow. Some features may take longer.',
                 duration: 6000,
-                icon: '🐢',
             });
         } else if (previousStatus.current !== 'online' && newStatus === 'online') {
             lastToastId.current = toast.success('Back online', {
                 description: 'Your connection has been restored.',
                 duration: 3000,
-                icon: '✅',
             });
         }
     }, []);
