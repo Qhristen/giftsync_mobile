@@ -116,7 +116,6 @@ export default function ShopScreen() {
                     </View>
                     <View style={styles.productContent}>
                         <Typography variant="bodyBold" numberOfLines={2} style={styles.productName}>{product.name}</Typography>
-                        <Typography variant="caption" color={colors.textSecondary} numberOfLines={1}>{product.business?.name || 'GiftSync pick'}</Typography>
                         <View style={styles.priceRow}>
                             <Typography variant="label">{formatCurrency(totalPrice, product.currency)}</Typography>
                             <Pressable
@@ -289,8 +288,8 @@ const styles = StyleSheet.create({
     productImage: { width: '100%', height: '100%', borderRadius: 13, borderWidth: 1, borderColor: '#17151D' },
     colorTab: { position: 'absolute', width: 38, height: 12, borderWidth: 1, top: -13, left: 14, transform: [{ rotate: '-5deg' }] },
     productContent: { padding: 12, gap: 3 },
-    productName: { minHeight: 46 },
-    priceRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, gap: 4 },
+    productName: { minHeight: 0, fontSize: moderateScale(15), lineHeight: moderateScale(18) },
+    priceRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 4 },
     sendButton: { width: 32, height: 32, borderRadius: 11, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
     centerState: { paddingHorizontal: 38, paddingTop: 50, alignItems: 'center', gap: 10 },
     emptyButton: { marginTop: 10, minHeight: 48, borderRadius: 15, borderWidth: 1.5, paddingHorizontal: 18, flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center' },

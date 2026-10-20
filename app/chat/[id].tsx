@@ -1,4 +1,6 @@
+import GiftRequestOrderCard from '@/components/chat/GiftRequestOrderCard';
 import MessageBubble from '@/components/chat/MessageBubble';
+import ScrollToBottomButton from '@/components/chat/ScrollToBottomButton';
 import ConversationOptionsSheet from '@/components/sheets/ConversationOptionsSheet';
 import DisputeSheet from '@/components/sheets/DisputeSheet';
 import OrderDetailSheet from '@/components/sheets/OrderDetailSheet';
@@ -11,11 +13,13 @@ import { useTheme } from '@/hooks/useTheme';
 import { useFeatureFlag } from '@/hooks/useFeatureFlags';
 import { RootState } from '@/store';
 import { useGetConversationQuery, useGetMessagesQuery } from '@/store/api/chatApi';
+import { useGetGiftRequestQuery } from '@/store/api/giftRequestApi';
 import { useBlockUserMutation } from '@/store/api/trustSafetyApi';
 import { useUploadMutation } from '@/store/api/uploadApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectTypingUsers } from '@/store/slices/chatSlice';
 import { ChatMessage } from '@/types';
+import { getConversationNames } from '@/utils/conversationNames';
 import { moderateScale } from '@/utils/scaling';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import {
@@ -40,6 +44,8 @@ import {
     Pressable,
     StyleSheet,
     TextInput,
+    type NativeScrollEvent,
+    type NativeSyntheticEvent,
     useWindowDimensions,
     View
 } from 'react-native';
@@ -59,6 +65,7 @@ export default function ChatDetailScreen() {
     const insets = useSafeAreaInsets();
     const [messageText, setMessageText] = useState('');
     const [selectedImages, setSelectedImages] = useState<string[]>([]);
+    const [showScrollToBottom, setShowScrollToBottom] = useState(false);
     const flatListRef = useRef<FlatList>(null);
     const convOptionsRef = useRef<BottomSheetRef>(null);
     const orderDetailsRef = useRef<BottomSheetRef>(null);
@@ -77,6 +84,13 @@ export default function ChatDetailScreen() {
         data,
         isLoading: isMessagesLoading,
     } = useGetMessagesQuery({ conversationId, limit: 50 });
+    const giftRequestId = conversation?.giftRequest?.id;
+    const { data: giftRequest } = useGetGiftRequestQuery(giftRequestId || '', {
+        skip: !giftRequestId,
+        pollingInterval: 15000,
+        refetchOnMountOrArgChange: true,
+        refetchOnReconnect: true,
+    });
 
     const [upload] = useUploadMutation();
     const [blockUser] = useBlockUserMutation();
@@ -93,6 +107,7 @@ export default function ChatDetailScreen() {
     );
 
     const displayName = conversation?.order?.item?.product?.name || 'Chat';
+    const conversationNames = conversation ? getConversationNames(conversation, currentUserId) : null;
     const avatarSize = 28;
     const overlap = 10;
     const groupWidth = participants.length > 0
@@ -126,6 +141,7 @@ export default function ChatDetailScreen() {
 
         setTimeout(() => {
             flatListRef.current?.scrollToOffset({ offset: 0, animated: false });
+            setShowScrollToBottom(false);
         }, 100);
 
         try {
@@ -219,6 +235,46 @@ export default function ChatDetailScreen() {
         () => [styles.messageList, { paddingBottom: spacing.lg }],
         [spacing.lg],
     );
+
+    const handleMessageScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        const shouldShow = event.nativeEvent.contentOffset.y > 120;
+        setShowScrollToBottom((current) => current === shouldShow ? current : shouldShow);
+    }, []);
+
+    const scrollToBottom = useCallback(() => {
+        flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+        setShowScrollToBottom(false);
+    }, []);
+
+    const handleGiftRequestPayment = useCallback(() => {
+        if (!giftRequest?.orderId) return;
+
+        router.push({
+            pathname: '/checkout/payment',
+            params: {
+                orderId: giftRequest.orderId,
+                giftRequestId: giftRequest.id,
+                currency: giftRequest.currency,
+            },
+        });
+    }, [giftRequest, router]);
+
+    const acceptedOrderCard = useMemo(() => {
+        if (
+            !giftRequest?.order
+            || (giftRequest.status !== 'SOURCING' && giftRequest.status !== 'FULFILLED')
+        ) return null;
+
+        return (
+            <GiftRequestOrderCard
+                order={giftRequest.order}
+                currency={giftRequest.currency}
+                recipientName={giftRequest.recipientName || conversation?.giftRequest?.recipientName}
+                category={giftRequest.category || conversation?.giftRequest?.category}
+                onPay={handleGiftRequestPayment}
+            />
+        );
+    }, [conversation?.giftRequest, giftRequest, handleGiftRequestPayment]);
 
     const handleCopy = async () => {
         if (selectedMessage?.content) {
@@ -326,8 +382,13 @@ export default function ChatDetailScreen() {
                             />
                         ))}
                     </View>
-                    <View>
-                        <Typography variant="bodyBold">{displayName}</Typography>
+                    <View style={styles.headerCopy}>
+                        <Typography variant="bodyBold" numberOfLines={1}>{displayName}</Typography>
+                        {conversationNames && (
+                            <Typography variant="caption" color={colors.textSecondary} numberOfLines={1}>
+                                Sender: {conversationNames.senderName} · Receiver: {conversationNames.receiverName}
+                            </Typography>
+                        )}
                         {typingUsers.length > 0 && (
                             <Typography variant="caption" color={colors.primary}>typing...</Typography>
                         )}
@@ -349,23 +410,29 @@ export default function ChatDetailScreen() {
                         <ActivityIndicator color={colors.primary} />
                     </View>
                 ) : (
-                    <FlatList
-                        ref={flatListRef}
-                        data={memoizedMessages}
-                        inverted={true}
-                        showsVerticalScrollIndicator={false}
-                        keyExtractor={(item) => item.id}
-                        initialNumToRender={15}
-                        windowSize={10}
-                        maxToRenderPerBatch={10}
-                        removeClippedSubviews={true}
-                        renderItem={renderMessage}
-                        style={{ flex: 1 }}
-                        contentContainerStyle={messageListContentStyle}
-                        keyboardShouldPersistTaps="handled"
-                        keyboardDismissMode="on-drag"
-                        maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
-                    />
+                    <View style={styles.messageArea}>
+                        <FlatList
+                            ref={flatListRef}
+                            data={memoizedMessages}
+                            inverted={true}
+                            showsVerticalScrollIndicator={false}
+                            keyExtractor={(item) => item.id}
+                            initialNumToRender={15}
+                            windowSize={10}
+                            maxToRenderPerBatch={10}
+                            removeClippedSubviews={true}
+                            renderItem={renderMessage}
+                            style={{ flex: 1 }}
+                            contentContainerStyle={messageListContentStyle}
+                            keyboardShouldPersistTaps="handled"
+                            keyboardDismissMode="on-drag"
+                            maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
+                            ListHeaderComponent={acceptedOrderCard}
+                            onScroll={handleMessageScroll}
+                            scrollEventThrottle={16}
+                        />
+                        <ScrollToBottomButton visible={showScrollToBottom} onPress={scrollToBottom} />
+                    </View>
                 )}
 
                 {selectedImages.length > 0 && (
@@ -589,11 +656,17 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
     },
+    headerCopy: {
+        flex: 1,
+    },
     headerRightBtn: {
         padding: 8,
     },
     messageList: {
         paddingVertical: 20,
+    },
+    messageArea: {
+        flex: 1,
     },
     inputContainer: {
         flexDirection: 'row',

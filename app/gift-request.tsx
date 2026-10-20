@@ -29,7 +29,7 @@ import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/dat
 import { Image } from 'expo-image';
 import * as Contacts from 'expo-contacts/legacy';
 import * as ImagePicker from 'expo-image-picker';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter, type Href } from 'expo-router';
 import React, { useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
@@ -284,21 +284,8 @@ export default function GiftRequestScreen() {
                 referenceLink: referenceLink.trim() || undefined,
                 referenceImageUrl: uploadedReference,
             }).unwrap();
-            if (createdRequest.orderId && createdRequest.paymentStatus !== 'paid') {
-                toast.success('Request created', { description: 'Complete payment to send it to the sourcing team.' });
-                router.replace({
-                    pathname: '/checkout/payment',
-                    params: {
-                        orderId: createdRequest.orderId,
-                        giftRequestId: createdRequest.id,
-                        currency: createdRequest.currency || currency,
-                        paymentUrl: createdRequest.paymentUrl,
-                    },
-                });
-            } else {
-                toast.success('Request sent', { description: 'The sourcing team will review your brief and follow up.' });
-                router.replace('/(tabs)/shop');
-            }
+            toast.success('Request sent', { description: 'Pending review.' });
+            router.replace(`/gift-requests/${createdRequest.id}` as unknown as Href);
         } catch (error: unknown) {
             toast.error('Request not sent', { description: errorMessage(error) });
         } finally {

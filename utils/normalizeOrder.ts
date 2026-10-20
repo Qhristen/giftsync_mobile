@@ -7,14 +7,15 @@ const numericValue = (value: unknown): number => {
 
 export const normalizeOrder = <T extends Partial<Order>>(order: T): T => ({
     ...order,
+    subtotal: numericValue(order.subtotal),
+    deliveryFee: numericValue(order.deliveryFee),
+    packagingFee: numericValue(order.packagingFee),
+    discountAmount: numericValue(order.discountAmount),
     total: numericValue(order.total),
-    amountPaid: numericValue(order.amountPaid),
-    additionalPaymentTotal: numericValue(order.additionalPaymentTotal),
-    additionalPayments: order.additionalPayments?.map((payment) => ({
-        ...payment,
-        amount: numericValue(payment.amount),
-    })),
+    item: order.item ? {
+        ...order.item,
+        unitPrice: numericValue(order.item.unitPrice),
+        lineTotal: order.item.lineTotal == null ? undefined : numericValue(order.item.lineTotal),
+        total: order.item.total == null ? undefined : numericValue(order.item.total),
+    } : order.item,
 });
-
-export const getOutstandingAmount = (order?: Pick<Order, 'total' | 'amountPaid'> | null): number =>
-    Math.max(0, numericValue(order?.total) - numericValue(order?.amountPaid));

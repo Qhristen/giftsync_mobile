@@ -12,7 +12,6 @@ import { useGetDefaultPaymentGatewayQuery } from '@/store/api/platformConfigApi'
 import { useGetCoinQuoteQuery, useGetWalletBalanceQuery } from '@/store/api/walletApi';
 import { ValidateCouponResponse } from '@/types';
 import { formatCurrency } from '@/utils/formatCurrency';
-import { getOutstandingAmount } from '@/utils/normalizeOrder';
 import { isPaymentCallbackUrl, isPaymentFailureUrl, PAYMENT_GATEWAY_LABELS } from '@/utils/payment';
 import { CreditCardIcon, Delete02Icon, Money01Icon, Tag01Icon, Tick01Icon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react-native';
@@ -34,9 +33,8 @@ export default function PaymentScreen() {
         orderId,
         giftRequestId,
         currency: requestCurrency,
-        paymentUrl: initialPaymentUrl,
-    } = useLocalSearchParams<{ orderId: string; giftRequestId?: string; currency?: string; paymentUrl?: string }>();
-    const [paymentUrl, setPaymentUrl] = useState<string | null>(initialPaymentUrl || null);
+    } = useLocalSearchParams<{ orderId: string; giftRequestId?: string; currency?: string }>();
+    const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
     const hasHandledCheckoutNavigationRef = useRef(false);
     const { data: fetchedOrder, isLoading: isOrderLoading, refetch: refetchOrder } = useGetOrderByIdQuery(
         orderId as string,
@@ -60,18 +58,25 @@ export default function PaymentScreen() {
     const [paymentMethod, setPaymentMethod] = useState<PaymentChoice>('coins');
     const [isProcessing, setIsProcessing] = useState(false);
 
-    const order = fetchedOrder && giftRequest?.order
-        ? { ...fetchedOrder, ...giftRequest.order }
-        : fetchedOrder;
-    const outstandingAmount = getOutstandingAmount(order);
-    const isAdditionalPayment = Number(order?.amountPaid ?? 0) > 0;
-    const canUseCoupons = couponsEnabled && !isAdditionalPayment;
-    const payableTotal = Math.max(0, outstandingAmount - (canUseCoupons ? appliedCoupon?.discountAmount ?? 0 : 0));
+    const order = fetchedOrder;
+    const orderTotal = Number(order?.total ?? 0);
+    const canPayGiftRequest = !giftRequestId || (
+        giftRequest?.orderId != null && giftRequest.order?.paymentStatus === 'pending'
+    );
+    const canPayOrder = Boolean(
+        order
+        && order.paymentStatus === 'pending'
+        && order.status !== 'Cancelled'
+        && canPayGiftRequest
+        && orderTotal > 0,
+    );
+    const canUseCoupons = couponsEnabled && canPayOrder;
+    const payableTotal = Math.max(0, orderTotal - (canUseCoupons ? appliedCoupon?.discountAmount ?? 0 : 0));
     const product = order?.item?.product;
     const currency = product?.currency || requestCurrency || 'NGN';
     const { data: coinQuote, isLoading: isQuoteLoading } = useGetCoinQuoteQuery(
         { amount: payableTotal, currency },
-        { skip: !order || payableTotal <= 0 || order.paymentEnabled === false },
+        { skip: !canPayOrder || payableTotal <= 0 },
     );
     const gatewayName = defaultGateway?.gateway
         ? PAYMENT_GATEWAY_LABELS[defaultGateway.gateway]
@@ -82,7 +87,7 @@ export default function PaymentScreen() {
         try {
             const result = await validateCoupon({
                 code: couponCode.trim(),
-                orderAmount: outstandingAmount,
+                orderAmount: orderTotal,
                 businessId: order?.businessId as string,
             }).unwrap();
             setAppliedCoupon(result);
@@ -97,6 +102,11 @@ export default function PaymentScreen() {
     };
 
     const handlePay = async () => {
+        if (!canPayOrder || !order) {
+            toast.error('This order is not ready for payment.');
+            return;
+        }
+
         try {
             setIsProcessing(true);
             const response = await handlePayment({
@@ -183,7 +193,7 @@ export default function PaymentScreen() {
                             </Typography>
                             <Typography variant="caption" color={colors.textSecondary}>For {order?.recipientName || 'someone special'}</Typography>
                         </View>
-                        <Typography variant="bodyBold">{formatCurrency(outstandingAmount, currency)}</Typography>
+                        <Typography variant="bodyBold">{formatCurrency(orderTotal, currency)}</Typography>
                     </View>
                 </View>
 
@@ -266,19 +276,6 @@ export default function PaymentScreen() {
                     <ReceiptRow label="Gift subtotal" value={formatCurrency(order?.subtotal ?? 0, currency)} />
                     <ReceiptRow label="Delivery" value={formatCurrency(order?.deliveryFee ?? 0, currency)} />
                     <ReceiptRow label="Gift wrapping" value={formatCurrency(order?.packagingFee ?? 0, currency)} />
-                    {order?.additionalPayments?.map((payment) => (
-                        <ReceiptRow
-                            key={payment.id}
-                            label={payment.reason || 'Additional charge'}
-                            value={formatCurrency(payment.amount, currency)}
-                        />
-                    ))}
-                    {!order?.additionalPayments?.length && !!order?.additionalPaymentTotal && (
-                        <ReceiptRow label="Additional charges" value={formatCurrency(order.additionalPaymentTotal, currency)} />
-                    )}
-                    {!!order?.amountPaid && (
-                        <ReceiptRow label="Already paid" value={`-${formatCurrency(order.amountPaid, currency)}`} accent />
-                    )}
                     {canUseCoupons && appliedCoupon ? (
                         <ReceiptRow
                             label={`Coupon · ${appliedCoupon.coupon.code}`}
@@ -287,9 +284,9 @@ export default function PaymentScreen() {
                         />
                     ) : null}
                     <View style={[styles.dashedLine, { borderColor: colors.textMuted }]} />
-                    {order?.paymentEnabled === false && (
+                    {!canPayGiftRequest && (
                         <Typography variant="caption" color={colors.textSecondary}>
-                            Payment will be available once the sourcing team enables it.
+                            Payment becomes available after the sourcing team approves this request.
                         </Typography>
                     )}
                     <View style={styles.totalRow}>
@@ -306,14 +303,14 @@ export default function PaymentScreen() {
 
             <View style={[styles.footer, { backgroundColor: colors.background, paddingBottom: insets.bottom + 16 }]}>
                 <Button
-                    title={order?.paymentEnabled === false
-                        ? 'Payment not enabled yet'
+                    title={!canPayOrder
+                        ? order?.paymentStatus === 'paid' ? 'Payment completed' : 'Payment not available'
                         : paymentMethod === 'coins'
                         ? `Send ${coinQuote?.coins?.toLocaleString() ?? '…'} coins  →`
                         : `Pay ${formatCurrency(payableTotal, currency)}  →`}
                     onPress={handlePay}
                     isLoading={isProcessing || (paymentMethod === 'coins' && isQuoteLoading)}
-                    disabled={!order || order.paymentEnabled === false || payableTotal <= 0}
+                    disabled={!canPayOrder || payableTotal <= 0}
                     style={styles.submitButton}
                 />
             </View>

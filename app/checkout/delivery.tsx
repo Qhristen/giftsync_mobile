@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
     ticketIcon: { width: 44, height: 44, borderRadius: 14, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
     destinationCopy: { flex: 1 },
     scheduleRow: { flexDirection: 'row', gap: 12 },
-    scheduleCard: { flex: 1, minHeight: 122, borderWidth: 1.5, borderRadius: 20, padding: 15, gap: 7, justifyContent: 'center' },
+    scheduleCard: { flex: 1, borderWidth: 1.5, borderRadius: 20, padding: 15, gap: 7, justifyContent: 'center' },
     capitalize: { textTransform: 'capitalize' },
     postcard: {
         borderWidth: 1.5,

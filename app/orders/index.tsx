@@ -9,7 +9,6 @@ import { useGetOrdersQuery } from '@/store/api/orderApi';
 import { Order } from '@/types';
 import { formatDate } from '@/utils/dateUtils';
 import { formatCurrency } from '@/utils/formatCurrency';
-import { getOutstandingAmount } from '@/utils/normalizeOrder';
 import {
     ArrowLeft01Icon,
     ArrowRight01Icon,
@@ -28,7 +27,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const statusStep = (status: Order['status']) => {
     if (status === 'Delivered') return 3;
-    if (status === 'Shipped') return 2;
+    if (status === 'Shipped' || status === 'Out_for_Delivery') return 2;
     if (status === 'Processing' || status === 'Disputed') return 1;
     return 0;
 };
@@ -138,7 +137,6 @@ export default function OrdersScreen() {
                         const product = item.item?.product;
                         const step = statusStep(item.status);
                         const cancelled = item.status === 'Cancelled';
-                        const outstandingAmount = getOutstandingAmount(item);
                         const accent = paperColors[index % paperColors.length];
                         return (
                             <View>
@@ -189,10 +187,10 @@ export default function OrdersScreen() {
 
                                     <View style={[styles.orderFooter, { borderTopColor: colors.ink }]}>
                                         <View>
-                                            <Typography variant="caption" color={colors.textSecondary}>{outstandingAmount < item.total ? 'AMOUNT DUE' : 'ORDER TOTAL'}</Typography>
-                                            <Typography variant="bodyBold">{formatCurrency(outstandingAmount || item.total, product?.currency || 'NGN')}</Typography>
+                                            <Typography variant="caption" color={colors.textSecondary}>ORDER TOTAL</Typography>
+                                            <Typography variant="bodyBold">{formatCurrency(item.total, product?.currency || 'NGN')}</Typography>
                                         </View>
-                                        {item.paymentStatus !== 'paid' && item.status !== 'Cancelled' && item.paymentEnabled !== false && outstandingAmount > 0 ? (
+                                        {item.paymentStatus === 'pending' && item.status !== 'Cancelled' && item.total > 0 ? (
                                             <Pressable
                                                 onPress={(event) => {
                                                     event.stopPropagation();

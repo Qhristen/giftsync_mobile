@@ -1,5 +1,4 @@
-import { Order } from '@/types';
-import { normalizeOrder } from '@/utils/normalizeOrder';
+import type { OrderStatus } from '@/types';
 import { baseApi } from './baseApi';
 
 type EventRecurrence = 'NONE' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
@@ -49,19 +48,42 @@ export interface CreateGiftRequestDto {
     referenceImageUrl?: string;
 }
 
+export type GiftRequestStatus = 'PENDING' | 'SOURCING' | 'FULFILLED' | 'CANCELLED';
+
+export interface GiftRequestOrderItem {
+    productId?: string | null;
+    unitPrice: number;
+    quantity: number;
+    total: number;
+}
+
+export interface GiftRequestOrder {
+    id: string;
+    paymentStatus: 'pending' | 'paid' | string;
+    subtotal: number;
+    deliveryFee: number;
+    packagingFee: number;
+    total: number;
+    status: OrderStatus;
+    item?: GiftRequestOrderItem | null;
+}
+
 export interface GiftRequest {
     id: string;
-    status: 'PENDING' | 'SOURCING' | 'FULFILLED' | 'CANCELLED';
-    eventId: string;
-    contactId: string | null;
-    addressId: string | null;
+    status: GiftRequestStatus;
+    eventId?: string | null;
+    contactId?: string | null;
+    addressId?: string | null;
+    productId?: string | null;
     orderId: string | null;
-    conversationId: string | null;
-    orderTotal: number;
-    paymentStatus: string;
+    conversationId?: string | null;
+    budget?: number;
     currency: string;
-    paymentUrl: string;
-    order?: (Partial<Order> & Pick<Order, 'id' | 'total' | 'paymentStatus' | 'status'>) | null;
+    recipientName?: string;
+    description?: string;
+    category?: string;
+    orderDetails?: GiftRequestOrderDetails;
+    order?: GiftRequestOrder | null;
     conversation?: {
         id: string;
         lastMessagePreview: string | null;
@@ -73,8 +95,19 @@ export interface GiftRequest {
 
 const normalizeGiftRequest = (request: GiftRequest): GiftRequest => ({
     ...request,
-    orderTotal: Number(request.orderTotal ?? 0),
-    order: request.order ? normalizeOrder(request.order) : request.order,
+    budget: request.budget == null ? undefined : Number(request.budget),
+    order: request.order ? {
+        ...request.order,
+        subtotal: Number(request.order.subtotal),
+        deliveryFee: Number(request.order.deliveryFee),
+        packagingFee: Number(request.order.packagingFee),
+        total: Number(request.order.total),
+        item: request.order.item ? {
+            ...request.order.item,
+            unitPrice: Number(request.order.item.unitPrice),
+            total: Number(request.order.item.total),
+        } : request.order.item,
+    } : request.order,
 });
 
 export const giftRequestApi = baseApi.injectEndpoints({
@@ -86,7 +119,15 @@ export const giftRequestApi = baseApi.injectEndpoints({
                 data,
             }),
             transformResponse: normalizeGiftRequest,
-            invalidatesTags: ['GiftRequests', 'Orders'],
+            invalidatesTags: ['GiftRequests'],
+            async onQueryStarted(_data, { dispatch, queryFulfilled }) {
+                try {
+                    const { data: request } = await queryFulfilled;
+                    dispatch(giftRequestApi.util.upsertQueryData('getGiftRequest', request.id, request));
+                } catch {
+                    // The mutation error is surfaced by the calling screen.
+                }
+            },
         }),
         getGiftRequest: builder.query<GiftRequest, string>({
             query: (giftRequestId) => ({

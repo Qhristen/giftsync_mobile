@@ -284,22 +284,15 @@ export interface OrderItem {
   businessName?: string;
   unitPrice: number;
   quantity: number;
-  lineTotal: number;
+  lineTotal?: number;
+  total?: number;
   product?: Product | null;
 }
 
 export type PaymentGateway = 'paystack' | 'flutterwave' | 'bachs';
 export type PaymentMethod = PaymentGateway | 'card' | 'cash' | 'coins';
 export type PaymentStatus = 'pending' | 'paid' | 'failed';
-export type OrderStatus = 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled' | 'Disputed';
-
-export interface AdditionalPayment {
-  id: string;
-  amount: number;
-  reason: string;
-  status: 'PENDING' | 'PAID' | 'FAILED';
-  paidAt: string | null;
-}
+export type OrderStatus = 'Pending' | 'Processing' | 'Shipped' | 'Out_for_Delivery' | 'Delivered' | 'Cancelled' | 'Disputed';
 
 export interface Order {
   id: string;
@@ -319,10 +312,6 @@ export interface Order {
   deliveryAddress: Address
   discountAmount?: number;
   total: number;
-  amountPaid?: number;
-  additionalPaymentTotal?: number;
-  paymentEnabled?: boolean;
-  additionalPayments?: AdditionalPayment[];
   deliveryCode: string;
   anonymity: boolean;
   status: OrderStatus;
@@ -381,6 +370,14 @@ export interface ChatMessage {
   updatedAt: string;
 }
 
+export interface ConversationGiftRequest {
+  id: string;
+  status: 'PENDING' | 'SOURCING' | 'FULFILLED' | 'CANCELLED';
+  recipientName: string;
+  occasion: string;
+  category: string;
+}
+
 export interface Conversation {
   id: string;
   orderId: string;
@@ -390,6 +387,7 @@ export interface Conversation {
   lastMessageSenderId: string;
   participants: User[];
   messages: ChatMessage[];
+  giftRequest?: ConversationGiftRequest | null;
   unreadCount?: number;
   createdAt: string;
   updatedAt: string;

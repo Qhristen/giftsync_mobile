@@ -2,6 +2,7 @@ import Avatar from '@/components/ui/Avatar';
 import Typography from '@/components/ui/Typography';
 import { useTheme } from '@/hooks/useTheme';
 import { Conversation } from '@/types';
+import { getConversationNames } from '@/utils/conversationNames';
 import { formatDateString, formatTime } from '@/utils/dateUtils';
 import { moderateScale } from '@/utils/scaling';
 import React from 'react';
@@ -18,6 +19,7 @@ const ConversationItem: React.FC<ConversationItemProps> = ({ conversation, curre
 
     const participants = conversation.participants.filter(p => p.id !== currentUserId);
     const displayName = conversation?.order?.item?.product?.name || participants.map((participant) => participant.name).join(', ') || 'Gift conversation';
+    const { senderName, receiverName } = getConversationNames(conversation, currentUserId);
 
     // Avatar group width: first avatar full-width + each additional offset by overlap
     const avatarSize = 55;
@@ -74,6 +76,14 @@ const ConversationItem: React.FC<ConversationItemProps> = ({ conversation, curre
                         {formatDateString(conversation.lastMessageAt)} • {formatTime(conversation.lastMessageAt)}
                     </Typography>
                 </View>
+                <Typography
+                    variant="caption"
+                    color={colors.textSecondary}
+                    numberOfLines={1}
+                    style={styles.participants}
+                >
+                    Sender: {senderName} · Receiver: {receiverName}
+                </Typography>
                 <View style={styles.footer}>
                     <Typography
                         variant="body"
@@ -84,7 +94,7 @@ const ConversationItem: React.FC<ConversationItemProps> = ({ conversation, curre
                             hasUnread && { fontWeight: '500' }
                         ]}
                     >
-                        {conversation.lastMessagePreview || 'No messages yet'}
+                       Last message: {conversation.lastMessagePreview || 'No messages yet'}
                     </Typography>
                     {hasUnread && (
                         <View style={[styles.badge, { backgroundColor: colors.accent, borderColor: colors.ink }]}>
@@ -114,7 +124,7 @@ const styles = StyleSheet.create({
     },
     content: {
         flex: 1,
-        gap: 0,
+        gap: 2,
     },
     header: {
         flexDirection: 'row',
@@ -124,6 +134,9 @@ const styles = StyleSheet.create({
     name: {
         flex: 1,
         marginRight: 8,
+    },
+    participants: {
+        fontSize: moderateScale(11),
     },
     footer: {
         flexDirection: 'row',

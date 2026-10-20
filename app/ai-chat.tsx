@@ -1,11 +1,18 @@
 import ConfirmActionCard from '@/components/chat/ConfirmActionCard';
 import MessageBubble from '@/components/chat/MessageBubble';
+import ScrollToBottomButton from '@/components/chat/ScrollToBottomButton';
 import Avatar from '@/components/ui/Avatar';
 import Typography from '@/components/ui/Typography';
 import { usePlatformConfig } from '@/hooks/usePlatformConfig';
 import { useTheme } from '@/hooks/useTheme';
 import { useFeatureFlag } from '@/hooks/useFeatureFlags';
-import { AiChatHistoryItem, AiProductSuggestion, AiUiData, useChatMutation } from '@/store/api/aiApi';
+import {
+    AiChatHistoryItem,
+    AiProductSuggestion,
+    AiUiData,
+    normalizeAiChatResponse,
+    useChatMutation,
+} from '@/store/api/aiApi';
 import { walletApi } from '@/store/api/walletApi';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { adjustCoinBalance } from '@/store/slices/authSlice';
@@ -21,11 +28,12 @@ import {
     SentIcon,
     SparklesIcon
 } from '@hugeicons/core-free-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Clipboard from 'expo-clipboard';
 import { Image } from 'expo-image';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { Stack, useLocalSearchParams, useRouter, type Href } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
     ActivityIndicator,
     FlatList,
@@ -33,6 +41,8 @@ import {
     Pressable,
     StyleSheet,
     TextInput,
+    type NativeScrollEvent,
+    type NativeSyntheticEvent,
     useWindowDimensions,
     View
 } from 'react-native';
@@ -85,6 +95,7 @@ export default function AIChatScreen() {
     const [isCacheLoaded, setIsCacheLoaded] = useState(false);
     const [isAITyping, setIsAITyping] = useState(false);
     const [selectedMessageText, setSelectedMessageText] = useState('');
+    const [showScrollToBottom, setShowScrollToBottom] = useState(false);
 
     const [chatMutation] = useChatMutation();
 
@@ -103,8 +114,37 @@ export default function AIChatScreen() {
                     const now = Date.now();
 
                     if (now - timestamp < CACHE_TTL) {
-                        setMessages(cachedMsgs);
-                        setChatHistory(cachedHistory);
+                        const normalizedMessages = Array.isArray(cachedMsgs)
+                            ? cachedMsgs.map((message: AIMessage) => {
+                                if (message.isOwnMessage) return message;
+
+                                const normalized = normalizeAiChatResponse({
+                                    response: {
+                                        message: message.content,
+                                        uiData: message.uiData,
+                                    },
+                                }).response;
+
+                                return {
+                                    ...message,
+                                    content: normalized.message,
+                                    uiData: normalized.uiData,
+                                };
+                            })
+                            : [];
+                        const normalizedHistory = Array.isArray(cachedHistory)
+                            ? cachedHistory.map((historyItem: AiChatHistoryItem) => {
+                                if (historyItem.role !== 'model') return historyItem;
+
+                                return {
+                                    ...historyItem,
+                                    content: JSON.stringify(normalizeAiChatResponse(historyItem.content).response),
+                                };
+                            })
+                            : [];
+
+                        setMessages(normalizedMessages);
+                        setChatHistory(normalizedHistory);
                     } else {
                         // Cache expired
                         await AsyncStorage.removeItem(cacheKey);
@@ -165,6 +205,32 @@ export default function AIChatScreen() {
         setSelectedMessageText('');
     };
 
+    const handleMessageScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        const shouldShow = event.nativeEvent.contentOffset.y > 120;
+        setShowScrollToBottom((current) => current === shouldShow ? current : shouldShow);
+    }, []);
+
+    const scrollToLatest = useCallback((animated = false) => {
+        flatListRef.current?.scrollToOffset({ offset: 0, animated });
+        setShowScrollToBottom(false);
+    }, []);
+
+    const scrollToBottom = useCallback(() => scrollToLatest(true), [scrollToLatest]);
+
+    useFocusEffect(useCallback(() => {
+        if (!isCacheLoaded) return;
+
+        const frame = requestAnimationFrame(() => scrollToLatest(false));
+        return () => cancelAnimationFrame(frame);
+    }, [isCacheLoaded, scrollToLatest]));
+
+    useEffect(() => {
+        if (!isCacheLoaded) return;
+
+        const frame = requestAnimationFrame(() => scrollToLatest(false));
+        return () => cancelAnimationFrame(frame);
+    }, [isCacheLoaded, messages.length, scrollToLatest]);
+
     const handleSend = async (customMessage?: string | any) => {
         if (isAITyping) return;
         const textToSend = typeof customMessage === 'string' ? customMessage : messageText;
@@ -203,10 +269,6 @@ export default function AIChatScreen() {
         }
         setIsAITyping(true);
 
-        setTimeout(() => {
-            flatListRef.current?.scrollToOffset({ offset: 0, animated: false });
-        }, 100);
-
         try {
             const result = await chatMutation({
                 message: currentText,
@@ -231,24 +293,6 @@ export default function AIChatScreen() {
                     { role: 'model', content: JSON.stringify(result.response) }
                 ]);
 
-                const uiData = result.response.uiData;
-                if (uiData?.type === 'gift_request') {
-                    const request = uiData.giftRequest || uiData.item?.data || uiData.details;
-                    const orderId = uiData.order?.id || request?.orderId;
-                    const paymentUrl = request?.paymentUrl;
-
-                    if (orderId && paymentUrl) {
-                        router.push({
-                            pathname: '/checkout/payment',
-                            params: {
-                                orderId,
-                                giftRequestId: request?.id,
-                                currency: uiData.order?.currency || request?.currency || user?.currency || 'NGN',
-                                paymentUrl,
-                            },
-                        });
-                    }
-                }
             }
         } catch (error: any) {
             console.error('Chat Error:', error);
@@ -326,6 +370,7 @@ export default function AIChatScreen() {
                             const resetMessages = [messages.find(m => m.id === '1') || messages[0]];
                             setMessages(resetMessages);
                             setChatHistory([]);
+                            setShowScrollToBottom(false);
                             if (cacheKey) {
                                 try {
                                     await AsyncStorage.removeItem(cacheKey);
@@ -349,7 +394,8 @@ export default function AIChatScreen() {
                 style={{ flex: 1 }}
             >
                 {/* Chat Area */}
-                <FlatList
+                <View style={styles.messageArea}>
+                    <FlatList
                     ref={flatListRef}
                     data={[...messages].reverse()}
                     inverted={true}
@@ -438,7 +484,8 @@ export default function AIChatScreen() {
                                                         )}
                                                         {suggestion.canRequest && giftRequestsEnabled && (
                                                             <Pressable
-                                                                onPress={() => router.push({ pathname: '/gift-request', params: { item: suggestion.name } })}
+                                                                onPress={() => handleSend(`Create a sourcing request for "${suggestion.name}".`)}
+                                                                disabled={isAITyping}
                                                                 style={[styles.requestSuggestionButton, { backgroundColor: colors.mint, borderColor: colors.ink }]}
                                                             >
                                                                 <Typography variant="label">Create a sourcing request</Typography>
@@ -603,10 +650,8 @@ export default function AIChatScreen() {
 
                         if (item.uiData?.type === 'gift_request') {
                             const request = item.uiData.giftRequest || item.uiData.item?.data || item.uiData.details;
-                            const orderId = item.uiData.order?.id || request?.orderId;
-                            const total = item.uiData.order?.total ?? request?.orderTotal;
+                            const total = item.uiData.order?.total ?? request?.order?.total;
                             const requestCurrency = item.uiData.order?.currency || request?.currency || user?.currency || 'NGN';
-                            const paymentUrl = request?.paymentUrl;
 
                             return (
                                 <View>
@@ -619,18 +664,16 @@ export default function AIChatScreen() {
                                     <View style={[styles.createdRequestCard, { backgroundColor: colors.mint, borderColor: colors.ink, marginLeft: spacing.xl, marginRight: spacing.md }]}>
                                         <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>REQUEST CREATED</Typography>
                                         <Typography variant="h3">Your sourcing brief is in</Typography>
+                                        <Typography variant="body" color={colors.textSecondary}>Pending review.</Typography>
                                         {total != null && <Typography variant="bodyBold" color={colors.primary}>{formatCurrency(Number(total), requestCurrency)}</Typography>}
-                                        {!!paymentUrl && !!orderId && (
+                                        {!!request?.id && (
                                             <Pressable
                                                 accessibilityRole="button"
-                                                accessibilityLabel="Pay now"
-                                                onPress={() => router.push({
-                                                    pathname: '/checkout/payment',
-                                                    params: { orderId, giftRequestId: request?.id, currency: requestCurrency, paymentUrl },
-                                                })}
+                                                accessibilityLabel="View gift request"
+                                                onPress={() => router.push(`/gift-requests/${request.id}` as unknown as Href)}
                                                 style={[styles.payRequestButton, { backgroundColor: colors.accent, borderColor: colors.ink }]}
                                             >
-                                                <Typography variant="label" color="#17151D">Pay now</Typography>
+                                                <Typography variant="label" color="#17151D">View request</Typography>
                                             </Pressable>
                                         )}
                                     </View>
@@ -655,7 +698,11 @@ export default function AIChatScreen() {
                     style={{ flex: 1 }}
                     contentContainerStyle={[styles.messageList, { paddingBottom: spacing.lg }]}
                     keyboardShouldPersistTaps="handled"
-                />
+                    onScroll={handleMessageScroll}
+                    scrollEventThrottle={16}
+                    />
+                    <ScrollToBottomButton visible={showScrollToBottom} onPress={scrollToBottom} />
+                </View>
 
                 {/* Input */}
                 <View style={[
@@ -820,6 +867,9 @@ const styles = StyleSheet.create({
     },
     messageList: {
         paddingVertical: 20,
+    },
+    messageArea: {
+        flex: 1,
     },
     inputContainer: {
         flexDirection: 'row',

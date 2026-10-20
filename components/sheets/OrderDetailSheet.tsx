@@ -4,7 +4,6 @@ import { useCreateConversationMutation } from '@/store/api/chatApi';
 import { Order } from '@/types';
 import { formatDate } from '@/utils/dateUtils';
 import { formatCurrency } from '@/utils/formatCurrency';
-import { getOutstandingAmount } from '@/utils/normalizeOrder';
 import {
     Calendar01Icon,
     Comment01Icon,
@@ -31,7 +30,7 @@ interface OrderDetailSheetProps {
 
 const stageFor = (status: Order['status']) => {
     if (status === 'Delivered') return 3;
-    if (status === 'Shipped') return 2;
+    if (status === 'Shipped' || status === 'Out_for_Delivery') return 2;
     if (status === 'Processing' || status === 'Disputed') return 1;
     return 0;
 };
@@ -43,7 +42,6 @@ const OrderDetailSheet = forwardRef<BottomSheetRef, OrderDetailSheetProps>(({ or
     const router = useRouter();
     const [createConversation, { isLoading: isOpeningChat }] = useCreateConversationMutation();
     const product = order?.item?.product;
-    const outstandingAmount = getOutstandingAmount(order);
     const currency = product?.currency || 'NGN';
     const vendorUserId = order?.business?.userId || product?.business?.userId;
 
@@ -133,21 +131,12 @@ const OrderDetailSheet = forwardRef<BottomSheetRef, OrderDetailSheetProps>(({ or
                         <ReceiptRow label="Item subtotal" value={formatCurrency(order.subtotal, currency)} />
                         <ReceiptRow label="Packaging" value={formatCurrency(order.packagingFee, currency)} />
                         <ReceiptRow label="Delivery" value={formatCurrency(order.deliveryFee, currency)} />
-                        {order.additionalPayments?.map((payment) => (
-                            <ReceiptRow key={payment.id} label={payment.reason || 'Additional charge'} value={formatCurrency(payment.amount, currency)} />
-                        ))}
                         {!!order.discountAmount && <ReceiptRow label="Discount" value={`−${formatCurrency(order.discountAmount, currency)}`} />}
                         <View style={[styles.receiptDivider, { borderColor: colors.ink }]} />
                         <View style={styles.totalRow}>
                             <Typography variant="h3">Total</Typography>
                             <Typography variant="h2" color={colors.primary}>{formatCurrency(order.total, currency)}</Typography>
                         </View>
-                        {!!order.amountPaid && (
-                            <>
-                                <ReceiptRow label="Already paid" value={`−${formatCurrency(order.amountPaid, currency)}`} />
-                                <ReceiptRow label="Amount due" value={formatCurrency(outstandingAmount, currency)} />
-                            </>
-                        )}
                     </View>
 
                     <View style={styles.infoGrid}>
@@ -165,7 +154,7 @@ const OrderDetailSheet = forwardRef<BottomSheetRef, OrderDetailSheetProps>(({ or
                     </View>
 
                     <View style={styles.actions}>
-                        {order.paymentStatus !== 'paid' && order.status !== 'Cancelled' && order.paymentEnabled !== false && outstandingAmount > 0 && (
+                        {order.paymentStatus === 'pending' && order.status !== 'Cancelled' && order.total > 0 && (
                             <Button
                                 title="Complete payment"
                                 onPress={() => {

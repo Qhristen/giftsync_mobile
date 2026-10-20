@@ -288,7 +288,6 @@ export default function HomeScreen() {
                                     <View style={[styles.polaroidTape, { backgroundColor: paperColors[index % paperColors.length], borderColor: colors.ink }]} />
                                     <Typography variant="bodyBold" numberOfLines={1}>{item.name}</Typography>
                                     <View style={styles.polaroidFooter}>
-                                        <Typography variant="caption" color={colors.textSecondary} numberOfLines={1} style={{ flex: 1 }}>{item.business?.name || 'GiftSync pick'}</Typography>
                                         <Typography variant="label" color={colors.primary}>{formatCurrency(Number(item.price) + Number(item.deliveryFee) + Number(item.packagingFee), item.currency)}</Typography>
                                     </View>
                                 </Pressable>
@@ -343,7 +342,7 @@ const styles = StyleSheet.create({
     momentBottom: { marginTop: 'auto', paddingTop: 28, gap: 14 },
     avatarLabel: { flexDirection: 'row', alignItems: 'center', gap: 10 },
     openMoment: { minHeight: 42, borderRadius: 13, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    emptyMoment: { minHeight: 140, padding: 20, flexDirection: 'row', alignItems: 'center', gap: 14, borderWidth: 1.5, borderRadius: 25, },
+    emptyMoment: {padding: 20, flexDirection: 'row', alignItems: 'center', gap: 14, borderWidth: 1.5, borderRadius: 25, },
     emptyMomentIcon: { width: 52, height: 52, borderRadius: 17, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
     sectionLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 11 },
     squiggle: { flex: 1, height: 1 },

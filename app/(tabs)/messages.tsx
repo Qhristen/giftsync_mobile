@@ -5,6 +5,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useGetConversationsQuery } from '@/store/api/chatApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectUnreadCount } from '@/store/slices/chatSlice';
+import { getConversationNames } from '@/utils/conversationNames';
 import {
     ArrowRight01Icon,
     BubbleChatIcon,
@@ -42,6 +43,7 @@ export default function MessagesScreen() {
         [conversations, filter],
     );
     const featured = filtered[0];
+    const featuredNames = featured ? getConversationNames(featured, currentUserId) : null;
     const threads = React.useMemo(
         () => featured ? filtered.slice(1) : [],
         [featured, filtered],
@@ -95,7 +97,12 @@ export default function MessagesScreen() {
                     <View style={styles.mailCopy}>
                         <Typography variant="caption" style={styles.overline}>{unreadCount ? `${unreadCount} NOTE${unreadCount === 1 ? '' : 'S'} WAITING` : 'ALL CAUGHT UP'}</Typography>
                         <Typography variant="h3" numberOfLines={1}>{featured?.order?.item?.product?.name || 'Your conversations'}</Typography>
-                        <Typography variant="caption" color={colors.textSecondary} numberOfLines={1}>{featured?.lastMessagePreview || 'Order conversations will arrive here.'}</Typography>
+                        {featuredNames && (
+                            <Typography variant="caption" color={colors.textPrimary} numberOfLines={1}>
+                                Sender: {featuredNames.senderName} · Receiver: {featuredNames.receiverName}
+                            </Typography>
+                        )}
+                        <Typography variant="caption" color={colors.textPrimary} numberOfLines={1}>Last message: {featured?.lastMessagePreview || 'Order conversations will arrive here.'}</Typography>
                     </View>
                     {featured && (
                         <View style={[styles.openLetter, { backgroundColor: colors.ink }]}>
