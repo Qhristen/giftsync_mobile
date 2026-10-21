@@ -85,14 +85,14 @@ const Button: React.FC<Props> = ({
 
 const styles = StyleSheet.create({
     base: {
-        minHeight: 48,
-        borderRadius: 16,
+        minHeight: moderateScale(48),
+        borderRadius: moderateScale(16),
         borderWidth: 1.5,
         borderColor: 'transparent',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 8,
+        gap: moderateScale(8),
     },
     text: {
         fontFamily: typography.fonts.bodyBold,

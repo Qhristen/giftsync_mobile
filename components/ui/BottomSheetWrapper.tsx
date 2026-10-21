@@ -11,6 +11,7 @@ import {
 import React, { forwardRef, useCallback, useImperativeHandle, useMemo, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { moderateScale } from '@/utils/scaling';
 
 export interface BottomSheetRef {
     expand: () => void;
@@ -88,11 +89,11 @@ const BottomSheetWrapper = forwardRef<BottomSheetRef, Props>(
                     borderColor: colors.ink,
                     borderWidth: 1.5,
                     borderBottomWidth: 0,
-                    borderTopLeftRadius: 30,
-                    borderTopRightRadius: 30,
+                    borderTopLeftRadius: moderateScale(30),
+                    borderTopRightRadius: moderateScale(30),
                 }}
                 handleStyle={[styles.handle, { backgroundColor: colors.lavender, borderColor: colors.ink }]}
-                handleIndicatorStyle={{ backgroundColor: colors.ink, width: 48, height: 4 }}
+                handleIndicatorStyle={{ backgroundColor: colors.ink, width: moderateScale(48), height: moderateScale(4) }}
                 keyboardBehavior={keyboardBehavior}
                 keyboardBlurBehavior={keyboardBlurBehavior}
                 android_keyboardInputMode={android_keyboardInputMode}
@@ -122,16 +123,16 @@ BottomSheetWrapper.displayName = 'BottomSheetWrapper';
 
 const styles = StyleSheet.create({
     handle: {
-        height: 28,
-        borderTopLeftRadius: 28,
-        borderTopRightRadius: 28,
+        height: moderateScale(28),
+        borderTopLeftRadius: moderateScale(28),
+        borderTopRightRadius: moderateScale(28),
         borderBottomWidth: 1,
-        paddingTop: 11,
+        paddingTop: moderateScale(11),
     },
     paperEdge: {
-        height: 15,
+        height: moderateScale(15),
         justifyContent: 'center',
-        marginBottom: 5,
+        marginBottom: moderateScale(5),
     },
     edgeDash: {
         borderTopWidth: 1,
@@ -140,9 +141,9 @@ const styles = StyleSheet.create({
     },
     sheetStamp: {
         position: 'absolute',
-        right: 10,
-        width: 24,
-        height: 10,
+        right: moderateScale(10),
+        width: moderateScale(24),
+        height: moderateScale(10),
         borderWidth: 1,
         transform: [{ rotate: '5deg' }],
     },

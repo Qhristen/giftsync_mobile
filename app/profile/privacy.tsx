@@ -5,7 +5,8 @@ import { HugeiconsIcon } from '@hugeicons/react-native';
 import { Shield01Icon } from '@hugeicons/core-free-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';export default function PrivacyPolicyScreen() {
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { moderateScale } from '@/utils/scaling';export default function PrivacyPolicyScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
 
@@ -49,13 +50,13 @@ import { ScrollView, StyleSheet, View } from 'react-native';export default funct
             <PaperScreenHeader eyebrow="Your private file" title="What stays between us" onBack={() => router.back()} accent={colors.lavender} />
 
             <ScrollView
-                contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: 100 }}
+                contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: moderateScale(100) }}
                 showsVerticalScrollIndicator={false}
             >
                 <View>
                     <View style={[styles.vaultCover, { backgroundColor: colors.lavender, borderColor: colors.ink }]}>
                         <View style={[styles.shieldSeal, { backgroundColor: colors.lime, borderColor: colors.ink }]}>
-                            <HugeiconsIcon icon={Shield01Icon} size={34} color={colors.ink} />
+                            <HugeiconsIcon icon={Shield01Icon} size={moderateScale(34)} color={colors.ink} />
                         </View>
                         <View style={{ flex: 1 }}>
                             <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>PRIVACY PROMISE · MAY 2026</Typography>
@@ -73,7 +74,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';export default funct
                                 <Typography variant="h3" style={{ flex: 1 }}>{section.title.replace(/^\d+\.\s*/, '')}</Typography>
                             </View>
                             <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                                <Typography variant="body" color={colors.textSecondary} style={{ lineHeight: 24 }}>
+                                <Typography variant="body" color={colors.textSecondary} style={{ lineHeight: moderateScale(24) }}>
                                     {section.content}
                                 </Typography>
                             </View>
@@ -95,33 +96,33 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
-    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.9 },
-    vaultCover: { minHeight: 156, padding: 19, borderWidth: 1.5, borderRadius: 25, flexDirection: 'row', alignItems: 'center', gap: 14, marginTop: 8, marginBottom: 30, transform: [{ rotate: '0.6deg' }] },
-    shieldSeal: { width: 68, height: 68, borderRadius: 22, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-4deg' }] },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: moderateScale(0.9) },
+    vaultCover: { minHeight: moderateScale(156), padding: moderateScale(19), borderWidth: 1.5, borderRadius: moderateScale(25), flexDirection: 'row', alignItems: 'center', gap: moderateScale(14), marginTop: moderateScale(8), marginBottom: moderateScale(30), transform: [{ rotate: '0.6deg' }] },
+    shieldSeal: { width: moderateScale(68), height: moderateScale(68), borderRadius: moderateScale(22), borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-4deg' }] },
     section: {
-        marginBottom: 24,
+        marginBottom: moderateScale(24),
     },
     sectionHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
-        marginBottom: 12,
+        gap: moderateScale(12),
+        marginBottom: moderateScale(12),
     },
     iconBox: {
-        width: 32,
-        height: 32,
-        borderRadius: 10,
+        width: moderateScale(32),
+        height: moderateScale(32),
+        borderRadius: moderateScale(10),
         borderWidth: 1.25,
         justifyContent: 'center',
         alignItems: 'center',
     },
     card: {
-        padding: 20,
-        borderRadius: 20,
+        padding: moderateScale(20),
+        borderRadius: moderateScale(20),
         borderWidth: 1.5,
     },
     footer: {
-        paddingVertical: 20,
+        paddingVertical: moderateScale(20),
         borderTopWidth: 1,
         borderTopColor: '#f0f0f033',
     }

@@ -35,6 +35,7 @@ import { Platform, Pressable, ScrollView, StyleSheet, Switch, View } from 'react
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
+import { moderateScale } from '@/utils/scaling';
 
 const categories = ['Something custom', 'Fashion', 'Tech', 'Home', 'Experience', 'Collectible'];
 const preferences = ['Personalised', 'Handmade', 'Local maker', 'Eco-friendly', 'Luxury', 'Fast delivery'];
@@ -309,7 +310,7 @@ export default function GiftRequestScreen() {
                             onPress={() => setShowSavedEvents(true)}
                             style={[styles.savedEventsButton, { backgroundColor: colors.surface, borderColor: colors.ink }]}
                         >
-                            <HugeiconsIcon icon={Calendar01Icon} size={16} color={colors.primary} />
+                            <HugeiconsIcon icon={Calendar01Icon} size={moderateScale(16)} color={colors.primary} />
                             <Typography variant="caption" color={colors.primary}>Choose a saved event</Typography>
                         </Pressable>
                     )}
@@ -357,7 +358,7 @@ export default function GiftRequestScreen() {
                             keyboardType="phone-pad"
                             rightIcon={(
                                 <Pressable accessibilityLabel="Choose from phone contacts" hitSlop={10} onPress={pickPhoneContact}>
-                                    <HugeiconsIcon icon={ContactBookIcon} size={22} color={colors.primary} />
+                                    <HugeiconsIcon icon={ContactBookIcon} size={moderateScale(22)} color={colors.primary} />
                                 </Pressable>
                             )}
                         />
@@ -373,9 +374,9 @@ export default function GiftRequestScreen() {
                         {!selectedEventId && (
                             <>
                                 <View>
-                                    <Typography variant="label" color={colors.textSecondary} style={{ marginBottom: 8 }}>Event date</Typography>
+                                    <Typography variant="label" color={colors.textSecondary} style={{ marginBottom: moderateScale(8) }}>Event date</Typography>
                                     <Pressable onPress={() => setShowEventDatePicker(true)} style={[styles.dateButton, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                                        <HugeiconsIcon icon={Calendar01Icon} size={21} color={colors.primary} />
+                                        <HugeiconsIcon icon={Calendar01Icon} size={moderateScale(21)} color={colors.primary} />
                                         <Typography variant="bodyMedium" color={eventDate ? colors.textPrimary : colors.textMuted} style={{ flex: 1 }}>
                                             {eventDate ? formatDate(eventDate) : 'Select the event date'}
                                         </Typography>
@@ -398,7 +399,7 @@ export default function GiftRequestScreen() {
                                     onChangeText={setRelationship}
                                 />
                                 <View>
-                                    <Typography variant="label" color={colors.textSecondary} style={{ marginBottom: 8 }}>How often does it repeat?</Typography>
+                                    <Typography variant="label" color={colors.textSecondary} style={{ marginBottom: moderateScale(8) }}>How often does it repeat?</Typography>
                                     <View style={styles.chipGrid}>
                                         {recurrenceOptions.map((item) => (
                                             <Pressable
@@ -437,7 +438,7 @@ export default function GiftRequestScreen() {
                         maxLength={600}
                     />
                     <View>
-                        <Typography variant="label" color={colors.textSecondary} style={{ marginBottom: 8 }}>Best category</Typography>
+                        <Typography variant="label" color={colors.textSecondary} style={{ marginBottom: moderateScale(8) }}>Best category</Typography>
                         <View style={styles.chipGrid}>
                             {categories.map((item) => (
                                 <Pressable
@@ -456,14 +457,14 @@ export default function GiftRequestScreen() {
                             <Image source={{ uri: referenceImage }} style={styles.referenceImage} contentFit="cover" />
                         ) : (
                             <View style={[styles.uploadIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                                <HugeiconsIcon icon={Camera01Icon} size={24} color={colors.ink} />
+                                <HugeiconsIcon icon={Camera01Icon} size={moderateScale(24)} color={colors.ink} />
                             </View>
                         )}
                         <View style={{ flex: 1 }}>
                             <Typography variant="bodyBold">{referenceImage ? 'Reference added' : 'Add a reference photo'}</Typography>
                             <Typography variant="caption" color={colors.textSecondary}>{referenceImage ? 'Tap to replace it' : 'A screenshot works perfectly'}</Typography>
                         </View>
-                        <HugeiconsIcon icon={ArrowRight01Icon} size={20} color={colors.ink} />
+                        <HugeiconsIcon icon={ArrowRight01Icon} size={moderateScale(20)} color={colors.ink} />
                     </Pressable>
                 </View>
             );
@@ -486,9 +487,9 @@ export default function GiftRequestScreen() {
                         leftIcon={<Typography variant="bodyBold" color={colors.textSecondary}>{getCurrencySymbol(currency)}</Typography>}
                     />
                     <View>
-                        <Typography variant="label" color={colors.textSecondary} style={{ marginBottom: 8 }}>Needed by</Typography>
+                        <Typography variant="label" color={colors.textSecondary} style={{ marginBottom: moderateScale(8) }}>Needed by</Typography>
                         <Pressable onPress={() => setShowDatePicker(true)} style={[styles.dateButton, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                            <HugeiconsIcon icon={Calendar01Icon} size={21} color={colors.primary} />
+                            <HugeiconsIcon icon={Calendar01Icon} size={moderateScale(21)} color={colors.primary} />
                             <Typography variant="bodyMedium" style={{ flex: 1 }}>{formatDate(deliveryDate)}</Typography>
                             <Typography variant="caption" color={colors.primary}>Change</Typography>
                         </Pressable>
@@ -523,7 +524,7 @@ export default function GiftRequestScreen() {
                                             },
                                         ]}
                                     >
-                                        <HugeiconsIcon icon={Time02Icon} size={18} color={colors.ink} />
+                                        <HugeiconsIcon icon={Time02Icon} size={moderateScale(18)} color={colors.ink} />
                                         <Typography variant="label">{item.label}</Typography>
                                         <Typography variant="caption" color={colors.textSecondary}>{item.detail}</Typography>
                                     </Pressable>
@@ -532,13 +533,13 @@ export default function GiftRequestScreen() {
                         </View>
                     </View>
                     <View>
-                        <Typography variant="label" color={colors.textSecondary} style={{ marginBottom: 8 }}>Nice-to-haves (optional)</Typography>
+                        <Typography variant="label" color={colors.textSecondary} style={{ marginBottom: moderateScale(8) }}>Nice-to-haves (optional)</Typography>
                         <View style={styles.chipGrid}>
                             {preferences.map((item) => {
                                 const selected = selectedPreferences.includes(item);
                                 return (
                                     <Pressable key={item} onPress={() => togglePreference(item)} style={[styles.chip, { backgroundColor: selected ? colors.lilac : colors.surface, borderColor: colors.ink }]}>
-                                        {selected && <HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} color={colors.ink} />}
+                                        {selected && <HugeiconsIcon icon={CheckmarkCircle02Icon} size={moderateScale(16)} color={colors.ink} />}
                                         <Typography variant="label">{item}</Typography>
                                     </Pressable>
                                 );
@@ -549,9 +550,9 @@ export default function GiftRequestScreen() {
                         <View style={styles.addressSection}>
                             <View style={styles.addressHeading}>
                                 <View style={[styles.addressIcon, { backgroundColor: colors.mint, borderColor: colors.ink }]}>
-                                    <HugeiconsIcon icon={Location01Icon} size={21} color={colors.ink} />
+                                    <HugeiconsIcon icon={Location01Icon} size={moderateScale(21)} color={colors.ink} />
                                 </View>
-                                <View style={{ flex: 1, gap: 2 }}>
+                                <View style={{ flex: 1, gap: moderateScale(2) }}>
                                     <Typography variant="h3">Where should it go?</Typography>
                                     <Typography variant="caption" color={colors.textSecondary}>We’ll add this address with the new event.</Typography>
                                 </View>
@@ -568,9 +569,9 @@ export default function GiftRequestScreen() {
                     <View style={[styles.giftMessageCard, { backgroundColor: colors.lilac, borderColor: colors.ink }]}>
                         <View style={styles.addressHeading}>
                             <View style={[styles.addressIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                                <HugeiconsIcon icon={GiftIcon} size={21} color={colors.ink} />
+                                <HugeiconsIcon icon={GiftIcon} size={moderateScale(21)} color={colors.ink} />
                             </View>
-                            <View style={{ flex: 1, gap: 2 }}>
+                            <View style={{ flex: 1, gap: moderateScale(2) }}>
                                 <Typography variant="bodyBold">Add a gift message</Typography>
                                 <Typography variant="caption" color={colors.textSecondary}>Optional — it will be included with the order.</Typography>
                             </View>
@@ -586,9 +587,9 @@ export default function GiftRequestScreen() {
                     </View>
                     <View style={[styles.anonymousCard, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                         <View style={[styles.addressIcon, { backgroundColor: colors.peach, borderColor: colors.ink }]}>
-                            <HugeiconsIcon icon={UserIcon} size={21} color={colors.ink} />
+                            <HugeiconsIcon icon={UserIcon} size={moderateScale(21)} color={colors.ink} />
                         </View>
-                        <View style={{ flex: 1, gap: 2 }}>
+                        <View style={{ flex: 1, gap: moderateScale(2) }}>
                             <Typography variant="bodyBold">Make it a mystery</Typography>
                             <Typography variant="caption" color={colors.textSecondary}>Keep your name off the gift card.</Typography>
                         </View>
@@ -612,7 +613,7 @@ export default function GiftRequestScreen() {
                 </View>
                 <View style={[styles.reviewCard, { backgroundColor: colors.lemon, borderColor: colors.ink }]}>
                     <View style={[styles.reviewIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                        <HugeiconsIcon icon={GiftIcon} size={30} color={colors.primary} />
+                        <HugeiconsIcon icon={GiftIcon} size={moderateScale(30)} color={colors.primary} />
                     </View>
                     <Typography variant="h2">For {recipient}</Typography>
                     <Typography variant="body" color={colors.textSecondary}>{occasion || 'Just because'}</Typography>
@@ -643,7 +644,7 @@ export default function GiftRequestScreen() {
                 </View>
                 {aiEnabled && (
                     <View style={[styles.noteCard, { backgroundColor: colors.mint, borderColor: colors.ink }]}>
-                        <HugeiconsIcon icon={SparklesIcon} size={21} color={colors.primary} />
+                        <HugeiconsIcon icon={SparklesIcon} size={moderateScale(21)} color={colors.primary} />
                         <Typography variant="caption" color={colors.textSecondary} style={{ flex: 1 }}>AI chat can help sharpen the idea first. Direct submission sends this exact brief to the GiftSync sourcing team.</Typography>
                     </View>
                 )}
@@ -662,9 +663,9 @@ export default function GiftRequestScreen() {
             style={[styles.container, { backgroundColor: colors.background }]}
         >
             <Stack.Screen options={{ headerShown: false }} />
-            <View style={[styles.header, { paddingTop: insets.top + 10, paddingHorizontal: spacing.xl }]}>
+            <View style={[styles.header, { paddingTop: insets.top + moderateScale(10), paddingHorizontal: spacing.xl }]}>
                 <Pressable onPress={() => step > 0 ? setStep(step - 1) : router.back()} style={[styles.backButton, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                    <HugeiconsIcon icon={ArrowLeft01Icon} size={22} color={colors.ink} />
+                    <HugeiconsIcon icon={ArrowLeft01Icon} size={moderateScale(22)} color={colors.ink} />
                 </Pressable>
                 <View style={styles.progressTrack}>
                     {[0, 1, 2, 3].map((item) => <View key={item} style={[styles.progressSegment, { backgroundColor: item <= step ? colors.primary : colors.surfaceRaised, borderColor: colors.ink }]} />)}
@@ -674,9 +675,9 @@ export default function GiftRequestScreen() {
             <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scrollContent, { paddingHorizontal: spacing.xl }]}>
                 {renderStep()}
             </ScrollView>
-            <View style={[styles.footer, { paddingHorizontal: spacing.xl, paddingBottom: Math.max(insets.bottom, 14), backgroundColor: colors.background, borderTopColor: colors.ink }]}>
+            <View style={[styles.footer, { paddingHorizontal: spacing.xl, paddingBottom: Math.max(insets.bottom, moderateScale(14)), backgroundColor: colors.background, borderTopColor: colors.ink }]}>
                 {step < 3 ? (
-                    <Button title="Continue" disabled={!canContinue} onPress={() => setStep(step + 1)} rightIcon={<HugeiconsIcon icon={ArrowRight01Icon} size={19} color="#17151D" />} style={styles.fullButton} />
+                    <Button title="Continue" disabled={!canContinue} onPress={() => setStep(step + 1)} rightIcon={<HugeiconsIcon icon={ArrowRight01Icon} size={moderateScale(19)} color="#17151D" />} style={styles.fullButton} />
                 ) : (
                     <View style={styles.finalActions}>
                         {aiEnabled && (
@@ -686,7 +687,7 @@ export default function GiftRequestScreen() {
                                 disabled={activeAction === 'request' || isSubmitting}
                                 isLoading={activeAction === 'ai' && isUploading}
                                 onPress={runThroughAi}
-                                leftIcon={<HugeiconsIcon icon={SparklesIcon} size={19} color={colors.primary} />}
+                                leftIcon={<HugeiconsIcon icon={SparklesIcon} size={moderateScale(19)} color={colors.primary} />}
                                 style={styles.fullButton}
                             />
                         )}
@@ -695,7 +696,7 @@ export default function GiftRequestScreen() {
                             disabled={activeAction === 'ai'}
                             isLoading={activeAction === 'request' && (isUploading || isSubmitting)}
                             onPress={submitRequest}
-                            rightIcon={<HugeiconsIcon icon={SentIcon} size={19} color="#17151D" />}
+                            rightIcon={<HugeiconsIcon icon={SentIcon} size={moderateScale(19)} color="#17151D" />}
                             style={styles.fullButton}
                         />
                     </View>
@@ -709,7 +710,7 @@ function ReviewRow({ label, value, onEdit }: { label: string; value: string; onE
     const { colors } = useTheme();
     return (
         <View style={styles.reviewRow}>
-            <View style={{ flex: 1, gap: 2 }}>
+            <View style={{ flex: 1, gap: moderateScale(2) }}>
                 <Typography variant="caption" color={colors.textSecondary}>{label.toUpperCase()}</Typography>
                 <Typography variant="bodyMedium">{value}</Typography>
             </View>
@@ -720,42 +721,42 @@ function ReviewRow({ label, value, onEdit }: { label: string; value: string; onE
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
-    header: { minHeight: 70, flexDirection: 'row', alignItems: 'center', gap: 12 },
-    backButton: { width: 42, height: 42, borderWidth: 1.5, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-    progressTrack: { flex: 1, flexDirection: 'row', gap: 5 },
-    progressSegment: { flex: 1, height: 8, borderWidth: 1, borderRadius: 5 },
-    stepCount: { width: 28, textAlign: 'right', fontFamily: 'DMSans_700Bold' },
-    scrollContent: { paddingTop: 14, paddingBottom: 30 },
-    stepContent: { gap: 22 },
-    titleBlock: { gap: 6 },
-    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.9 },
-    peopleRow: { gap: 10 },
-    savedEventsButton: { minHeight: 34, alignSelf: 'flex-start', borderWidth: 1.5, borderRadius: 12, paddingHorizontal: 11, flexDirection: 'row', alignItems: 'center', gap: 7 },
-    personCard: { width: 138, borderWidth: 1.5, borderRadius: 18, padding: 12, gap: 4 },
-    personInitial: { width: 42, height: 42, borderRadius: 14, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', marginBottom: 5 },
-    formStack: { gap: 16 },
-    chipGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },
-    chip: { minHeight: 40, paddingHorizontal: 13, borderWidth: 1.5, borderRadius: 13, flexDirection: 'row', alignItems: 'center', gap: 6 },
-    uploadCard: { borderWidth: 1.5, borderRadius: 18, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 12 },
-    uploadIcon: { width: 48, height: 48, borderWidth: 1.5, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-    referenceImage: { width: 58, height: 58, borderRadius: 13, borderWidth: 1.5, borderColor: '#17151D' },
-    dateButton: { minHeight: 56, borderWidth: 1.5, borderRadius: 16, paddingHorizontal: 15, flexDirection: 'row', alignItems: 'center', gap: 12 },
-    fieldHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
-    deliveryWindowGrid: { flexDirection: 'row', gap: 8 },
-    deliveryWindow: { flex: 1, minHeight: 96, borderWidth: 1.5, borderRadius: 15, padding: 10, gap: 4, justifyContent: 'center', },
-    addressSection: { gap: 14 },
-    addressHeading: { flexDirection: 'row', alignItems: 'center', gap: 11, marginTop: 2 },
-    addressIcon: { width: 44, height: 44, borderWidth: 1.5, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-    addressRow: { flexDirection: 'row', gap: 10 },
+    header: { minHeight: moderateScale(70), flexDirection: 'row', alignItems: 'center', gap: moderateScale(12) },
+    backButton: { width: moderateScale(42), height: moderateScale(42), borderWidth: 1.5, borderRadius: moderateScale(14), alignItems: 'center', justifyContent: 'center' },
+    progressTrack: { flex: 1, flexDirection: 'row', gap: moderateScale(5) },
+    progressSegment: { flex: 1, height: moderateScale(8), borderWidth: 1, borderRadius: moderateScale(5) },
+    stepCount: { width: moderateScale(28), textAlign: 'right', fontFamily: 'DMSans_700Bold' },
+    scrollContent: { paddingTop: moderateScale(14), paddingBottom: moderateScale(30) },
+    stepContent: { gap: moderateScale(22) },
+    titleBlock: { gap: moderateScale(6) },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: moderateScale(0.9) },
+    peopleRow: { gap: moderateScale(10) },
+    savedEventsButton: { minHeight: moderateScale(34), alignSelf: 'flex-start', borderWidth: 1.5, borderRadius: moderateScale(12), paddingHorizontal: moderateScale(11), flexDirection: 'row', alignItems: 'center', gap: moderateScale(7) },
+    personCard: { width: moderateScale(138), borderWidth: 1.5, borderRadius: moderateScale(18), padding: moderateScale(12), gap: moderateScale(4) },
+    personInitial: { width: moderateScale(42), height: moderateScale(42), borderRadius: moderateScale(14), borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', marginBottom: moderateScale(5) },
+    formStack: { gap: moderateScale(16) },
+    chipGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: moderateScale(9) },
+    chip: { minHeight: moderateScale(40), paddingHorizontal: moderateScale(13), borderWidth: 1.5, borderRadius: moderateScale(13), flexDirection: 'row', alignItems: 'center', gap: moderateScale(6) },
+    uploadCard: { borderWidth: 1.5, borderRadius: moderateScale(18), padding: moderateScale(12), flexDirection: 'row', alignItems: 'center', gap: moderateScale(12) },
+    uploadIcon: { width: moderateScale(48), height: moderateScale(48), borderWidth: 1.5, borderRadius: moderateScale(14), alignItems: 'center', justifyContent: 'center' },
+    referenceImage: { width: moderateScale(58), height: moderateScale(58), borderRadius: moderateScale(13), borderWidth: 1.5, borderColor: '#17151D' },
+    dateButton: { minHeight: moderateScale(56), borderWidth: 1.5, borderRadius: moderateScale(16), paddingHorizontal: moderateScale(15), flexDirection: 'row', alignItems: 'center', gap: moderateScale(12) },
+    fieldHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: moderateScale(8) },
+    deliveryWindowGrid: { flexDirection: 'row', gap: moderateScale(8) },
+    deliveryWindow: { flex: 1, minHeight: moderateScale(96), borderWidth: 1.5, borderRadius: moderateScale(15), padding: moderateScale(10), gap: moderateScale(4), justifyContent: 'center', },
+    addressSection: { gap: moderateScale(14) },
+    addressHeading: { flexDirection: 'row', alignItems: 'center', gap: moderateScale(11), marginTop: moderateScale(2) },
+    addressIcon: { width: moderateScale(44), height: moderateScale(44), borderWidth: 1.5, borderRadius: moderateScale(14), alignItems: 'center', justifyContent: 'center' },
+    addressRow: { flexDirection: 'row', gap: moderateScale(10) },
     addressField: { flex: 1 },
-    giftMessageCard: { borderWidth: 1.5, borderRadius: 20, padding: 14, gap: 13 },
-    anonymousCard: { borderWidth: 1.5, borderRadius: 18, padding: 13, flexDirection: 'row', alignItems: 'center', gap: 11 },
-    reviewCard: { borderWidth: 1.5, borderRadius: 24, padding: 20, },
-    reviewIcon: { width: 56, height: 56, borderWidth: 1.5, borderRadius: 18, alignItems: 'center', justifyContent: 'center', marginBottom: 14, transform: [{ rotate: '-4deg' }] },
-    reviewDivider: { height: 1, marginVertical: 17 },
-    reviewRow: { flexDirection: 'row', gap: 12, alignItems: 'flex-start', marginBottom: 14 },
-    noteCard: { borderWidth: 1.5, borderRadius: 16, padding: 13, flexDirection: 'row', alignItems: 'center', gap: 10 },
-    footer: { borderTopWidth: 1, paddingTop: 12 },
-    finalActions: { gap: 10 },
+    giftMessageCard: { borderWidth: 1.5, borderRadius: moderateScale(20), padding: moderateScale(14), gap: moderateScale(13) },
+    anonymousCard: { borderWidth: 1.5, borderRadius: moderateScale(18), padding: moderateScale(13), flexDirection: 'row', alignItems: 'center', gap: moderateScale(11) },
+    reviewCard: { borderWidth: 1.5, borderRadius: moderateScale(24), padding: moderateScale(20), },
+    reviewIcon: { width: moderateScale(56), height: moderateScale(56), borderWidth: 1.5, borderRadius: moderateScale(18), alignItems: 'center', justifyContent: 'center', marginBottom: moderateScale(14), transform: [{ rotate: '-4deg' }] },
+    reviewDivider: { height: moderateScale(1), marginVertical: moderateScale(17) },
+    reviewRow: { flexDirection: 'row', gap: moderateScale(12), alignItems: 'flex-start', marginBottom: moderateScale(14) },
+    noteCard: { borderWidth: 1.5, borderRadius: moderateScale(16), padding: moderateScale(13), flexDirection: 'row', alignItems: 'center', gap: moderateScale(10) },
+    footer: { borderTopWidth: 1, paddingTop: moderateScale(12) },
+    finalActions: { gap: moderateScale(10) },
     fullButton: { width: '100%' },
 });

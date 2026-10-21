@@ -22,6 +22,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
+import { moderateScale } from '@/utils/scaling';
 
 export default function NotificationsScreen() {
     const router = useRouter();
@@ -99,10 +100,10 @@ export default function NotificationsScreen() {
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <View style={[styles.header, { paddingTop: insets.top + 10, paddingHorizontal: spacing.xl }]}>
+            <View style={[styles.header, { paddingTop: insets.top + moderateScale(10), paddingHorizontal: spacing.xl }]}>
                 <View style={styles.headerTop}>
                     <Pressable onPress={() => router.back()} style={[styles.backButton, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                        <HugeiconsIcon icon={ArrowLeft01Icon} size={22} color={colors.ink} />
+                        <HugeiconsIcon icon={ArrowLeft01Icon} size={moderateScale(22)} color={colors.ink} />
                     </Pressable>
                     <View style={{ flex: 1 }}>
                         <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>YOUR GIFT PINBOARD</Typography>
@@ -112,7 +113,7 @@ export default function NotificationsScreen() {
 
                 <View style={[styles.mailbox, { backgroundColor: colors.lilac, borderColor: colors.ink }]}>
                     <View style={[styles.mailIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                        <HugeiconsIcon icon={Notification01Icon} size={27} color={colors.primary} />
+                        <HugeiconsIcon icon={Notification01Icon} size={moderateScale(27)} color={colors.primary} />
                     </View>
                     <View style={{ flex: 1 }}>
                         <Typography variant="h2">{unreadCount}</Typography>
@@ -123,7 +124,7 @@ export default function NotificationsScreen() {
                         disabled={unreadCount === 0}
                         style={[styles.clearButton, { backgroundColor: colors.accent, borderColor: colors.ink }, unreadCount === 0 && { opacity: 0.45 }]}
                     >
-                        <HugeiconsIcon icon={TickDouble02Icon} size={17} color="#17151D" />
+                        <HugeiconsIcon icon={TickDouble02Icon} size={moderateScale(17)} color="#17151D" />
                         <Typography variant="caption" color="#17151D" style={styles.overline}>CLEAR</Typography>
                     </Pressable>
                 </View>
@@ -135,7 +136,7 @@ export default function NotificationsScreen() {
                 <FlashList
                     data={notifications}
                     keyExtractor={(item) => item.id}
-                    contentContainerStyle={{ paddingTop: 12, paddingBottom: 40 }}
+                    contentContainerStyle={{ paddingTop: moderateScale(12), paddingBottom: moderateScale(40) }}
                     showsVerticalScrollIndicator={false}
                     onRefresh={refetch}
                     refreshing={isFetching}
@@ -144,19 +145,19 @@ export default function NotificationsScreen() {
                         const noteColor = paperColors[index % paperColors.length];
                         const leftAction = () => (
                             <View style={[styles.swipeAction, styles.leftAction, { backgroundColor: colors.primary }]}>
-                                <HugeiconsIcon icon={TickDouble02Icon} size={22} color="#FFFFFF" />
+                                <HugeiconsIcon icon={TickDouble02Icon} size={moderateScale(22)} color="#FFFFFF" />
                                 <Typography variant="caption" color="#FFFFFF">Read</Typography>
                             </View>
                         );
                         const rightAction = () => (
                             <View style={[styles.swipeAction, styles.rightAction, { backgroundColor: colors.error }]}>
-                                <HugeiconsIcon icon={Delete02Icon} size={22} color="#FFFFFF" />
+                                <HugeiconsIcon icon={Delete02Icon} size={moderateScale(22)} color="#FFFFFF" />
                                 <Typography variant="caption" color="#FFFFFF">Delete</Typography>
                             </View>
                         );
 
                         return (
-                            <View style={{ marginHorizontal: spacing.xl, marginBottom: 16 }}>
+                            <View style={{ marginHorizontal: spacing.xl, marginBottom: moderateScale(16) }}>
                                 <Swipeable
                                     renderLeftActions={item.isRead ? undefined : leftAction}
                                     renderRightActions={rightAction}
@@ -176,7 +177,7 @@ export default function NotificationsScreen() {
                                     >
                                         <View style={[styles.pin, { backgroundColor: item.isRead ? colors.surfaceRaised : colors.accent, borderColor: colors.ink }]} />
                                         <View style={[styles.noteIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                                            <HugeiconsIcon icon={config.icon} size={22} color={config.color} />
+                                            <HugeiconsIcon icon={config.icon} size={moderateScale(22)} color={config.color} />
                                         </View>
                                         <View style={{ flex: 1 }}>
                                             <View style={styles.noteMeta}>
@@ -184,7 +185,7 @@ export default function NotificationsScreen() {
                                                 {!item.isRead && <View style={[styles.unreadLabel, { backgroundColor: colors.ink }]}><Typography variant="caption" color={colors.surface}>NEW</Typography></View>}
                                             </View>
                                             <Typography variant="h4" numberOfLines={2}>{item.title}</Typography>
-                                            <Typography variant="body" color={colors.textSecondary} numberOfLines={3} style={{ marginTop: 4 }}>{item.body}</Typography>
+                                            <Typography variant="body" color={colors.textSecondary} numberOfLines={3} style={{ marginTop: moderateScale(4) }}>{item.body}</Typography>
                                             <View style={styles.timeRow}>
                                                 <Typography variant="caption" color={colors.textSecondary}>{format(new Date(item.createdAt), 'dd MMM yyyy')}</Typography>
                                                 <View style={[styles.timeDot, { backgroundColor: colors.textMuted }]} />
@@ -199,7 +200,7 @@ export default function NotificationsScreen() {
                     ListEmptyComponent={
                         <View style={[styles.emptyState, { marginHorizontal: spacing.xl, backgroundColor: colors.mint, borderColor: colors.ink }]}>
                             <View style={[styles.emptyIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                                <HugeiconsIcon icon={NotificationOff01Icon} size={32} color={colors.primary} />
+                                <HugeiconsIcon icon={NotificationOff01Icon} size={moderateScale(32)} color={colors.primary} />
                             </View>
                             <Typography variant="h3">The pinboard is clear.</Typography>
                             <Typography variant="body" color={colors.textSecondary} align="center">Order updates and thoughtful reminders will land here.</Typography>
@@ -213,24 +214,24 @@ export default function NotificationsScreen() {
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
-    header: { paddingBottom: 12 },
-    headerTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-    backButton: { width: 44, height: 44, borderRadius: 14, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
-    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.8 },
-    mailbox: { minHeight: 100, borderWidth: 1.5, borderRadius: 22, marginTop: 20, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, },
-    mailIcon: { width: 50, height: 50, borderWidth: 1.5, borderRadius: 16, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-4deg' }] },
-    clearButton: { height: 38, borderWidth: 1.25, borderRadius: 12, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', gap: 5 },
-    note: { minHeight: 144, borderWidth: 1.5, borderRadius: 20, padding: 16, paddingTop: 20, flexDirection: 'row', gap: 13, },
-    pin: { position: 'absolute', width: 16, height: 16, borderRadius: 8, borderWidth: 1.5, top: -7, left: '50%' },
-    noteIcon: { width: 44, height: 44, borderRadius: 14, borderWidth: 1.25, alignItems: 'center', justifyContent: 'center' },
-    noteMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
-    unreadLabel: { borderRadius: 7, paddingHorizontal: 6, paddingVertical: 2 },
-    timeRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10 },
-    timeDot: { width: 3, height: 3, borderRadius: 2 },
-    swipeAction: { width: 82, height: '100%', alignItems: 'center', justifyContent: 'center', gap: 4 },
-    leftAction: { borderTopLeftRadius: 20, borderBottomLeftRadius: 20 },
-    rightAction: { borderTopRightRadius: 20, borderBottomRightRadius: 20 },
-    emptyState: { marginTop: 24, borderWidth: 1.5, borderRadius: 24, padding: 30, alignItems: 'center', gap: 8 },
-    emptyIcon: { width: 62, height: 62, borderRadius: 20, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
-    pressed: { opacity: 0.85, transform: [{ translateY: 2 }] },
+    header: { paddingBottom: moderateScale(12) },
+    headerTop: { flexDirection: 'row', alignItems: 'center', gap: moderateScale(12) },
+    backButton: { width: moderateScale(44), height: moderateScale(44), borderRadius: moderateScale(14), borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: moderateScale(0.8) },
+    mailbox: { minHeight: moderateScale(100), borderWidth: 1.5, borderRadius: moderateScale(22), marginTop: moderateScale(20), padding: moderateScale(14), flexDirection: 'row', alignItems: 'center', gap: moderateScale(12), },
+    mailIcon: { width: moderateScale(50), height: moderateScale(50), borderWidth: 1.5, borderRadius: moderateScale(16), alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-4deg' }] },
+    clearButton: { height: moderateScale(38), borderWidth: 1.25, borderRadius: moderateScale(12), paddingHorizontal: moderateScale(10), flexDirection: 'row', alignItems: 'center', gap: moderateScale(5) },
+    note: { minHeight: moderateScale(144), borderWidth: 1.5, borderRadius: moderateScale(20), padding: moderateScale(16), paddingTop: moderateScale(20), flexDirection: 'row', gap: moderateScale(13), },
+    pin: { position: 'absolute', width: moderateScale(16), height: moderateScale(16), borderRadius: moderateScale(8), borderWidth: 1.5, top: moderateScale(-7), left: '50%' },
+    noteIcon: { width: moderateScale(44), height: moderateScale(44), borderRadius: moderateScale(14), borderWidth: 1.25, alignItems: 'center', justifyContent: 'center' },
+    noteMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: moderateScale(4) },
+    unreadLabel: { borderRadius: moderateScale(7), paddingHorizontal: moderateScale(6), paddingVertical: moderateScale(2) },
+    timeRow: { flexDirection: 'row', alignItems: 'center', gap: moderateScale(6), marginTop: moderateScale(10) },
+    timeDot: { width: moderateScale(3), height: moderateScale(3), borderRadius: moderateScale(2) },
+    swipeAction: { width: moderateScale(82), height: '100%', alignItems: 'center', justifyContent: 'center', gap: moderateScale(4) },
+    leftAction: { borderTopLeftRadius: moderateScale(20), borderBottomLeftRadius: moderateScale(20) },
+    rightAction: { borderTopRightRadius: moderateScale(20), borderBottomRightRadius: moderateScale(20) },
+    emptyState: { marginTop: moderateScale(24), borderWidth: 1.5, borderRadius: moderateScale(24), padding: moderateScale(30), alignItems: 'center', gap: moderateScale(8) },
+    emptyIcon: { width: moderateScale(62), height: moderateScale(62), borderRadius: moderateScale(20), borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', marginBottom: moderateScale(4) },
+    pressed: { opacity: 0.85, transform: [{ translateY: moderateScale(2) }] },
 });

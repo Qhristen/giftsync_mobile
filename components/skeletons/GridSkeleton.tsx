@@ -2,6 +2,7 @@ import { useTheme } from '@/hooks/useTheme';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import Skeleton, { SkeletonPaper } from './Skeleton';
+import { moderateScale } from '@/utils/scaling';
 
 export default function GridSkeleton() {
     const { colors } = useTheme();
@@ -11,9 +12,9 @@ export default function GridSkeleton() {
         <View style={styles.grid}>
             {palette.map((color, index) => (
                 <SkeletonPaper key={`${color}-${index}`} color={color} style={[styles.card, { transform: [{ rotate: index % 2 ? '1deg' : '-1deg' }] }]}>
-                    <Skeleton width={56} height={56} borderRadius={18} />
-                    <Skeleton width="78%" height={16} />
-                    <Skeleton width="48%" height={11} />
+                    <Skeleton width={moderateScale(56)} height={moderateScale(56)} borderRadius={18} />
+                    <Skeleton width="78%" height={moderateScale(16)} />
+                    <Skeleton width="48%" height={moderateScale(11)} />
                 </SkeletonPaper>
             ))}
         </View>
@@ -21,6 +22,6 @@ export default function GridSkeleton() {
 }
 
 const styles = StyleSheet.create({
-    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 14, padding: 20 },
-    card: { width: '47%', minHeight: 150, alignItems: 'center', justifyContent: 'center', padding: 16, gap: 11 },
+    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: moderateScale(14), padding: moderateScale(20) },
+    card: { width: '47%', minHeight: moderateScale(150), alignItems: 'center', justifyContent: 'center', padding: moderateScale(16), gap: moderateScale(11) },
 });

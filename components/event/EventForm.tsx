@@ -26,6 +26,7 @@ import { adjustCoinBalance, setCoinBalance } from '@/store/slices/authSlice';
 import { Contact } from '@/types';
 import { normalizeNigerianPhoneNumber } from '@/utils/phone';
 import { toast } from 'sonner-native';
+import { moderateScale } from '@/utils/scaling';
 
 interface EventFormProps {
     onSuccess?: () => void;
@@ -269,7 +270,7 @@ const EventForm: React.FC<EventFormProps> = ({
     };
 
     if (isEditing && isDetailLoading) {
-        return <ActivityIndicator style={{ padding: 40 }} color={colors.primary} />;
+        return <ActivityIndicator style={{ padding: moderateScale(40) }} color={colors.primary} />;
     }
 
     return (
@@ -304,11 +305,11 @@ const EventForm: React.FC<EventFormProps> = ({
                                     style={styles.dropdownItem}
                                 >
                                     <Avatar uri={contact.avatar} name={contact.name} size="sm" />
-                                    <View style={{ flex: 1, marginLeft: 10 }}>
+                                    <View style={{ flex: 1, marginLeft: moderateScale(10) }}>
                                         <Typography variant="bodyBold">{contact.name}</Typography>
                                         <Typography variant="caption" color={colors.textSecondary}>{contact.phoneNumber}</Typography>
                                     </View>
-                                    <HugeiconsIcon icon={PlusSignCircleIcon} size={20} color={colors.primary} />
+                                    <HugeiconsIcon icon={PlusSignCircleIcon} size={moderateScale(20)} color={colors.primary} />
                                 </Pressable>
                             ))}
                         </View>
@@ -365,7 +366,7 @@ const EventForm: React.FC<EventFormProps> = ({
                                         selectedType === type.value && { borderColor: colors.primary }
                                     ]}
                                 >
-                                    <HugeiconsIcon icon={type.icon} size={16} color={selectedType === type.value ? "#FFF" : colors.textPrimary} />
+                                    <HugeiconsIcon icon={type.icon} size={moderateScale(16)} color={selectedType === type.value ? "#FFF" : colors.textPrimary} />
                                     <Typography variant="caption" color={selectedType === type.value ? "#FFF" : colors.textPrimary}>{type.label}</Typography>
                                 </Pressable>
                             ))}
@@ -387,7 +388,7 @@ const EventForm: React.FC<EventFormProps> = ({
                             <Input
                                 label="Date"
                                 value={date.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
-                                leftIcon={<HugeiconsIcon icon={Calendar01Icon} size={20} color={colors.textMuted} />}
+                                leftIcon={<HugeiconsIcon icon={Calendar01Icon} size={moderateScale(20)} color={colors.textMuted} />}
                                 isBottomSheet
                             />
                         </View>
@@ -432,7 +433,7 @@ const EventForm: React.FC<EventFormProps> = ({
                     <Typography variant="bodyBold" color={colors.primary}>
                         {isExpanded ? "Hide extra details" : "Add more details (Interests, Notes)"}
                     </Typography>
-                    <HugeiconsIcon icon={isExpanded ? ArrowUp01Icon : ArrowDown01Icon} size={20} color={colors.primary} />
+                    <HugeiconsIcon icon={isExpanded ? ArrowUp01Icon : ArrowDown01Icon} size={moderateScale(20)} color={colors.primary} />
                 </Pressable>
 
                 {isExpanded && (
@@ -483,29 +484,29 @@ const EventForm: React.FC<EventFormProps> = ({
 
 const styles = StyleSheet.create({
     container: {
-        paddingHorizontal: 4,
+        paddingHorizontal: moderateScale(4),
     },
     section: {
-        gap: 16,
+        gap: moderateScale(16),
     },
     chipsContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: 8,
+        gap: moderateScale(8),
     },
     chip: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        borderRadius: 100,
-        gap: 6,
+        paddingHorizontal: moderateScale(16),
+        paddingVertical: moderateScale(10),
+        borderRadius: moderateScale(100),
+        gap: moderateScale(6),
         borderWidth: 1,
         borderColor: 'transparent',
     },
     dropdown: {
-        marginTop: -12,
-        borderRadius: 16,
+        marginTop: moderateScale(-12),
+        borderRadius: moderateScale(16),
         borderWidth: 1,
         overflow: 'hidden',
         zIndex: 10,
@@ -513,7 +514,7 @@ const styles = StyleSheet.create({
     dropdownItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 12,
+        padding: moderateScale(12),
         borderBottomWidth: 1,
         borderBottomColor: 'rgba(0,0,0,0.05)',
     },
@@ -521,12 +522,12 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 20,
-        gap: 8,
+        paddingVertical: moderateScale(20),
+        gap: moderateScale(8),
     },
     expandedContent: {
-        gap: 16,
-        paddingBottom: 10,
+        gap: moderateScale(16),
+        paddingBottom: moderateScale(10),
     }
 });
 

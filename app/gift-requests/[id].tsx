@@ -16,6 +16,7 @@ import { HugeiconsIcon } from '@hugeicons/react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { moderateScale } from '@/utils/scaling';
 
 const statusCopy: Record<GiftRequestStatus, { eyebrow: string; title: string; description: string }> = {
     PENDING: {
@@ -94,7 +95,7 @@ export default function GiftRequestStatusScreen() {
                 </View>
             ) : !giftRequest ? (
                 <View style={[styles.errorCard, { marginHorizontal: spacing.xl, backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                    <HugeiconsIcon icon={CancelCircleIcon} size={36} color={colors.error} />
+                    <HugeiconsIcon icon={CancelCircleIcon} size={moderateScale(36)} color={colors.error} />
                     <Typography variant="h3">Couldn’t load this request</Typography>
                     <Typography color={colors.textSecondary} align="center">
                         {errorMessage || 'Check your connection and try again.'}
@@ -103,12 +104,12 @@ export default function GiftRequestStatusScreen() {
                 </View>
             ) : (
                 <ScrollView
-                    contentContainerStyle={[styles.content, { paddingHorizontal: spacing.xl, paddingBottom: insets.bottom + 120 }]}
+                    contentContainerStyle={[styles.content, { paddingHorizontal: spacing.xl, paddingBottom: insets.bottom + moderateScale(120) }]}
                     showsVerticalScrollIndicator={false}
                 >
                     <View style={[styles.statusCard, { backgroundColor: accent, borderColor: colors.ink }]}>
                         <View style={[styles.statusIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                            <HugeiconsIcon icon={statusIcon} size={30} color={colors.ink} />
+                            <HugeiconsIcon icon={statusIcon} size={moderateScale(30)} color={colors.ink} />
                         </View>
                         <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>{copy?.eyebrow}</Typography>
                         <Typography variant="h1">{hasPaid && giftRequest.status === 'SOURCING' ? 'Payment received' : copy?.title}</Typography>
@@ -162,13 +163,13 @@ export default function GiftRequestStatusScreen() {
                         variant="outline"
                         disabled={isFetching}
                         onPress={() => refetch()}
-                        leftIcon={<HugeiconsIcon icon={RefreshIcon} size={18} color={colors.primary} />}
+                        leftIcon={<HugeiconsIcon icon={RefreshIcon} size={moderateScale(18)} color={colors.primary} />}
                     />
                 </ScrollView>
             )}
 
             {giftRequest && (
-                <View style={[styles.footer, { backgroundColor: colors.background, paddingBottom: insets.bottom + 16, paddingHorizontal: spacing.xl }]}>
+                <View style={[styles.footer, { backgroundColor: colors.background, paddingBottom: insets.bottom + moderateScale(16), paddingHorizontal: spacing.xl }]}>
                     {canPay ? (
                         <Button
                             title={`Pay ${formatCurrency(order.total, giftRequest.currency)}`}
@@ -180,7 +181,7 @@ export default function GiftRequestStatusScreen() {
                                     currency: giftRequest.currency,
                                 },
                             })}
-                            leftIcon={<HugeiconsIcon icon={CreditCardIcon} size={19} color="#17151D" />}
+                            leftIcon={<HugeiconsIcon icon={CreditCardIcon} size={moderateScale(19)} color="#17151D" />}
                         />
                     ) : (
                         <Button title="Back to shop" variant="outline" onPress={() => router.replace('/(tabs)/shop')} />
@@ -213,19 +214,19 @@ function PriceRow({ label, value, muted = false }: { label: string; value: strin
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
-    center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
-    content: { gap: 14, paddingTop: 4 },
-    errorCard: { borderWidth: 1.5, borderRadius: 22, padding: 22, alignItems: 'center', gap: 14 },
-    statusCard: { borderWidth: 1.5, borderRadius: 25, padding: 22, gap: 8 },
-    statusIcon: { width: 58, height: 58, borderWidth: 1.5, borderRadius: 18, alignItems: 'center', justifyContent: 'center', marginBottom: 4, transform: [{ rotate: '-3deg' }] },
-    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.9 },
-    sectionHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 },
-    detailsCard: { borderWidth: 1.5, borderRadius: 20, paddingHorizontal: 17 },
-    detailRow: { paddingVertical: 14, gap: 4 },
+    center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: moderateScale(12) },
+    content: { gap: moderateScale(14), paddingTop: moderateScale(4) },
+    errorCard: { borderWidth: 1.5, borderRadius: moderateScale(22), padding: moderateScale(22), alignItems: 'center', gap: moderateScale(14) },
+    statusCard: { borderWidth: 1.5, borderRadius: moderateScale(25), padding: moderateScale(22), gap: moderateScale(8) },
+    statusIcon: { width: moderateScale(58), height: moderateScale(58), borderWidth: 1.5, borderRadius: moderateScale(18), alignItems: 'center', justifyContent: 'center', marginBottom: moderateScale(4), transform: [{ rotate: '-3deg' }] },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: moderateScale(0.9) },
+    sectionHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: moderateScale(8) },
+    detailsCard: { borderWidth: 1.5, borderRadius: moderateScale(20), paddingHorizontal: moderateScale(17) },
+    detailRow: { paddingVertical: moderateScale(14), gap: moderateScale(4) },
     detailValue: { flexShrink: 1 },
-    receipt: { borderWidth: 1.5, borderRadius: 20, padding: 17, gap: 10 },
-    priceRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 14 },
-    divider: { borderTopWidth: 1.5, borderStyle: 'dashed', marginVertical: 3 },
-    totalRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 14 },
-    footer: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingTop: 12 },
+    receipt: { borderWidth: 1.5, borderRadius: moderateScale(20), padding: moderateScale(17), gap: moderateScale(10) },
+    priceRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: moderateScale(14) },
+    divider: { borderTopWidth: 1.5, borderStyle: 'dashed', marginVertical: moderateScale(3) },
+    totalRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: moderateScale(14) },
+    footer: { position: 'absolute', left: moderateScale(0), right: moderateScale(0), bottom: moderateScale(0), paddingTop: moderateScale(12) },
 });

@@ -73,7 +73,7 @@ const ReviewBusinessSheet = forwardRef<BottomSheetRef, Props>(
                         <Rating
                             rating={rating}
                             onRatingChange={setRating}
-                            size={40}
+                            size={moderateScale(40)}
                         />
                         <Typography variant="label" color={colors.textSecondary} style={{ marginTop: spacing.xs }}>
                             Tap to rate
@@ -110,12 +110,12 @@ const ReviewBusinessSheet = forwardRef<BottomSheetRef, Props>(
 
 const styles = StyleSheet.create({
     content: {
-        paddingVertical: 12,
-        paddingBottom: 40,
+        paddingVertical: moderateScale(12),
+        paddingBottom: moderateScale(40),
     },
     ratingContainer: {
         alignItems: 'center',
-        marginBottom: 24,
+        marginBottom: moderateScale(24),
     },
     inputContainer: {
         // borderRadius: 12,

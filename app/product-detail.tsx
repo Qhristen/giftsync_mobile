@@ -31,6 +31,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Dimensions, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { moderateScale } from '@/utils/scaling';
 
 const { width } = Dimensions.get('window');
 
@@ -107,16 +108,16 @@ export default function ProductDetailScreen() {
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <View style={[styles.fixedHeader, { paddingTop: insets.top + 10, paddingHorizontal: spacing.xl, backgroundColor: colors.background }]}>
+            <View style={[styles.fixedHeader, { paddingTop: insets.top + moderateScale(10), paddingHorizontal: spacing.xl, backgroundColor: colors.background }]}>
                 <Pressable onPress={() => router.back()} style={[styles.headerButton, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                    <HugeiconsIcon icon={ArrowLeft01Icon} size={22} color={colors.ink} />
+                    <HugeiconsIcon icon={ArrowLeft01Icon} size={moderateScale(22)} color={colors.ink} />
                 </Pressable>
                 <View style={[styles.catalogLabel, { backgroundColor: colors.accent, borderColor: colors.ink }]}>
                     <Typography variant="caption" color="#17151D" style={styles.overline}>GIFT CATALOGUE</Typography>
                 </View>
             </View>
 
-            <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 18, paddingBottom: 126 }}>
+            <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: moderateScale(18), paddingBottom: moderateScale(126) }}>
                 <View>
                     <View style={styles.galleryFrame}>
                         {product.imageUrls?.length ? (
@@ -139,7 +140,7 @@ export default function ProductDetailScreen() {
                         ) : (
                             <View style={{ paddingHorizontal: spacing.xl }}>
                                 <View style={[styles.imagePaper, styles.center, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                                    <HugeiconsIcon icon={Image01Icon} size={48} color={colors.textMuted} />
+                                    <HugeiconsIcon icon={Image01Icon} size={moderateScale(48)} color={colors.textMuted} />
                                 </View>
                             </View>
                         )}
@@ -153,7 +154,7 @@ export default function ProductDetailScreen() {
                     </View>
                 </View>
 
-                <View style={{ paddingHorizontal: spacing.xl, marginTop: 26 }}>
+                <View style={{ paddingHorizontal: spacing.xl, marginTop: moderateScale(26) }}>
                     <View style={styles.titleBlock}>
                         <View style={{ flex: 1 }}>
                             <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>{product.category?.name?.toUpperCase() || 'A SPECIAL FIND'}</Typography>
@@ -170,19 +171,19 @@ export default function ProductDetailScreen() {
                         onPress={vendorSheet.open}
                         style={({ pressed }) => [styles.makerStrip, { backgroundColor: colors.mint, borderColor: colors.ink }, pressed && styles.pressed]}
                     >
-                        <Avatar name={product.business?.name || 'Maker'} uri={product.business?.logoUrl} size={48} style={{ borderWidth: 1.5, borderColor: colors.ink }} />
+                        <Avatar name={product.business?.name || 'Maker'} uri={product.business?.logoUrl} size={moderateScale(48)} style={{ borderWidth: 1.5, borderColor: colors.ink }} />
                         <View style={{ flex: 1 }}>
                             <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>MEET THE MAKER</Typography>
                             <Typography variant="bodyBold">{product.business?.name || 'GiftSync maker'}</Typography>
                             <Typography variant="caption" color={colors.textSecondary}>{product.ratingCount || 0} customer reviews</Typography>
                         </View>
-                        <HugeiconsIcon icon={ArrowRight01Icon} size={21} color={colors.ink} />
+                        <HugeiconsIcon icon={ArrowRight01Icon} size={moderateScale(21)} color={colors.ink} />
                     </Pressable> */}
 
                     {deliveryStatus && (
                         <View style={[styles.deliveryNote, { backgroundColor: deliveryStatus.canArriveOnTime ? colors.mint : colors.peach, borderColor: colors.ink }]}>
                             <View style={[styles.noteIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                                <HugeiconsIcon icon={deliveryStatus.canArriveOnTime ? Time02Icon : Alert01Icon} size={22} color={deliveryStatus.canArriveOnTime ? colors.success : colors.error} />
+                                <HugeiconsIcon icon={deliveryStatus.canArriveOnTime ? Time02Icon : Alert01Icon} size={moderateScale(22)} color={deliveryStatus.canArriveOnTime ? colors.success : colors.error} />
                             </View>
                             <View style={{ flex: 1 }}>
                                 <Typography variant="bodyBold">{deliveryStatus.canArriveOnTime ? 'Perfect timing' : 'A close call'}</Typography>
@@ -210,7 +211,7 @@ export default function ProductDetailScreen() {
                     )}
 
                     {!!product.tags?.length && (
-                        <View style={{ marginTop: 26 }}>
+                        <View style={{ marginTop: moderateScale(26) }}>
                             <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>DETAIL TAGS</Typography>
                             <View style={styles.tags}>
                                 {product.tags.map((tag, index) => (
@@ -249,12 +250,12 @@ export default function ProductDetailScreen() {
                 </View>
             </ScrollView>
 
-            <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12), backgroundColor: colors.background, borderTopColor: colors.ink }]}>
+            <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, moderateScale(12)), backgroundColor: colors.background, borderTopColor: colors.ink }]}>
                 <View>
                     <Typography variant="caption" color={colors.textSecondary}>READY TO WRAP</Typography>
                     <Typography variant="bodyBold">{formatCurrency(totalPrice, product.currency)}</Typography>
                 </View>
-                <Button title="Send this gift" onPress={startCheckout} leftIcon={<HugeiconsIcon icon={GiftIcon} size={19} color="#17151D" />} style={styles.sendButton} />
+                <Button title="Send this gift" onPress={startCheckout} leftIcon={<HugeiconsIcon icon={GiftIcon} size={moderateScale(19)} color="#17151D" />} style={styles.sendButton} />
             </View>
 
             <EventPickerSheet
@@ -275,9 +276,9 @@ function FactTile({ icon, label, value, color, wide = false }: { icon: any; labe
     return (
         <View style={[styles.factTile, wide && styles.factTileWide, { backgroundColor: color, borderColor: colors.ink }]}>
             <View style={[styles.factIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                <HugeiconsIcon icon={icon} size={19} color={colors.ink} />
+                <HugeiconsIcon icon={icon} size={moderateScale(19)} color={colors.ink} />
             </View>
-            <View style={{ flex: 1, paddingTop: 10}}>
+            <View style={{ flex: 1, paddingTop: moderateScale(10)}}>
                 <Typography variant="caption" color={colors.textSecondary}>{label.toUpperCase()}</Typography>
                 <Typography variant="bodyBold" numberOfLines={1}>{value}</Typography>
             </View>
@@ -287,41 +288,41 @@ function FactTile({ icon, label, value, color, wide = false }: { icon: any; labe
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
-    center: { alignItems: 'center', justifyContent: 'center', gap: 12 },
+    center: { alignItems: 'center', justifyContent: 'center', gap: moderateScale(12) },
     scroll: { flex: 1 },
-    fixedHeader: { zIndex: 10, paddingBottom: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    headerButton: { width: 44, height: 44, borderRadius: 14, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', },
-    catalogLabel: { height: 36, borderRadius: 12, borderWidth: 1.5, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '2deg' }] },
-    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.8 },
-    galleryFrame: { minHeight: 398 },
-    imagePaper: { height: 380, borderRadius: 14, borderWidth: 1.5, padding: 9, },
-    heroImage: { width: '100%', height: '100%', borderRadius: 8, borderWidth: 1, borderColor: '#17151D' },
-    imageTape: { position: 'absolute', width: 58, height: 15, top: -8, left: '42%', borderWidth: 1, transform: [{ rotate: '-3deg' }] },
-    pagination: { position: 'absolute', bottom: 0, alignSelf: 'center', flexDirection: 'row', gap: 5, paddingHorizontal: 9, paddingVertical: 6, borderWidth: 1.25, borderRadius: 12 },
-    dot: { width: 6, height: 6, borderRadius: 3 },
-    activeDot: { width: 16 },
-    titleBlock: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
-    productTitle: { fontSize: 36, lineHeight: 41, marginTop: 2 },
-    priceTicket: { minWidth: 122, borderWidth: 1.5, borderRadius: 16, padding: 12, justifyContent: 'center', transform: [{ rotate: '3deg' }] },
-    ticketHole: { position: 'absolute', width: 12, height: 12, borderRadius: 6, borderWidth: 1, left: -7, top: 34 },
-    makerStrip: { marginTop: 22, borderWidth: 1.5, borderRadius: 20, padding: 13, flexDirection: 'row', alignItems: 'center', gap: 12 },
-    deliveryNote: { marginTop: 18, borderWidth: 1.5, borderRadius: 19, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, },
-    noteIcon: { width: 44, height: 44, borderWidth: 1.25, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-    factBento: { marginTop: 24, flexDirection: 'row', flexWrap: 'wrap', gap: 11 },
-    factTile: { width: '48.3%', borderWidth: 1.5, borderRadius: 20, padding: 13, justifyContent: 'space-between' },
-    factTileWide: { width: '100%', minHeight: 78, flexDirection: 'row', alignItems: 'center', gap: 11 },
-    factIcon: { width: 38, height: 38, borderRadius: 12, borderWidth: 1.25, alignItems: 'center', justifyContent: 'center' },
-    storyCard: { marginTop: 26, borderWidth: 1.5, borderRadius: 22, padding: 18, gap: 12, },
-    storyHeading: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-    storyLine: { flex: 1, height: 1 },
-    readButton: { alignSelf: 'flex-start', borderWidth: 1.25, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 7 },
-    tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 },
-    tag: { borderWidth: 1.25, borderRadius: 11, paddingHorizontal: 10, paddingVertical: 7 },
-    mapCard: { marginTop: 28, borderWidth: 1.5, borderRadius: 22, padding: 14, },
-    mapHeading: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-    distancePill: { backgroundColor: '#FFFEFB', overflow: 'hidden', borderRadius: 9, paddingHorizontal: 8, paddingVertical: 4 },
-    mapFrame: { height: 130, borderWidth: 1.5, borderRadius: 14, overflow: 'hidden' },
-    footer: { position: 'absolute', bottom: 0, width: '100%', minHeight: 86, paddingHorizontal: 20, paddingTop: 12, borderTopWidth: 1.5, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 14 },
-    sendButton: { minWidth: 190 },
-    pressed: { opacity: 0.85, transform: [{ translateY: 2 }] },
+    fixedHeader: { zIndex: 10, paddingBottom: moderateScale(8), flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    headerButton: { width: moderateScale(44), height: moderateScale(44), borderRadius: moderateScale(14), borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', },
+    catalogLabel: { height: moderateScale(36), borderRadius: moderateScale(12), borderWidth: 1.5, paddingHorizontal: moderateScale(12), alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '2deg' }] },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: moderateScale(0.8) },
+    galleryFrame: { minHeight: moderateScale(398) },
+    imagePaper: { height: moderateScale(380), borderRadius: moderateScale(14), borderWidth: 1.5, padding: moderateScale(9), },
+    heroImage: { width: '100%', height: '100%', borderRadius: moderateScale(8), borderWidth: 1, borderColor: '#17151D' },
+    imageTape: { position: 'absolute', width: moderateScale(58), height: moderateScale(15), top: moderateScale(-8), left: '42%', borderWidth: 1, transform: [{ rotate: '-3deg' }] },
+    pagination: { position: 'absolute', bottom: moderateScale(0), alignSelf: 'center', flexDirection: 'row', gap: moderateScale(5), paddingHorizontal: moderateScale(9), paddingVertical: moderateScale(6), borderWidth: 1.25, borderRadius: moderateScale(12) },
+    dot: { width: moderateScale(6), height: moderateScale(6), borderRadius: moderateScale(3) },
+    activeDot: { width: moderateScale(16) },
+    titleBlock: { flexDirection: 'row', alignItems: 'flex-start', gap: moderateScale(12) },
+    productTitle: { fontSize: moderateScale(36), lineHeight: moderateScale(41), marginTop: moderateScale(2) },
+    priceTicket: { minWidth: moderateScale(122), borderWidth: 1.5, borderRadius: moderateScale(16), padding: moderateScale(12), justifyContent: 'center', transform: [{ rotate: '3deg' }] },
+    ticketHole: { position: 'absolute', width: moderateScale(12), height: moderateScale(12), borderRadius: moderateScale(6), borderWidth: 1, left: moderateScale(-7), top: moderateScale(34) },
+    makerStrip: { marginTop: moderateScale(22), borderWidth: 1.5, borderRadius: moderateScale(20), padding: moderateScale(13), flexDirection: 'row', alignItems: 'center', gap: moderateScale(12) },
+    deliveryNote: { marginTop: moderateScale(18), borderWidth: 1.5, borderRadius: moderateScale(19), padding: moderateScale(14), flexDirection: 'row', alignItems: 'center', gap: moderateScale(12), },
+    noteIcon: { width: moderateScale(44), height: moderateScale(44), borderWidth: 1.25, borderRadius: moderateScale(14), alignItems: 'center', justifyContent: 'center' },
+    factBento: { marginTop: moderateScale(24), flexDirection: 'row', flexWrap: 'wrap', gap: moderateScale(11) },
+    factTile: { width: '48.3%', borderWidth: 1.5, borderRadius: moderateScale(20), padding: moderateScale(13), justifyContent: 'space-between' },
+    factTileWide: { width: '100%', minHeight: moderateScale(78), flexDirection: 'row', alignItems: 'center', gap: moderateScale(11) },
+    factIcon: { width: moderateScale(38), height: moderateScale(38), borderRadius: moderateScale(12), borderWidth: 1.25, alignItems: 'center', justifyContent: 'center' },
+    storyCard: { marginTop: moderateScale(26), borderWidth: 1.5, borderRadius: moderateScale(22), padding: moderateScale(18), gap: moderateScale(12), },
+    storyHeading: { flexDirection: 'row', alignItems: 'center', gap: moderateScale(10) },
+    storyLine: { flex: 1, height: moderateScale(1) },
+    readButton: { alignSelf: 'flex-start', borderWidth: 1.25, borderRadius: moderateScale(10), paddingHorizontal: moderateScale(10), paddingVertical: moderateScale(7) },
+    tags: { flexDirection: 'row', flexWrap: 'wrap', gap: moderateScale(8), marginTop: moderateScale(10) },
+    tag: { borderWidth: 1.25, borderRadius: moderateScale(11), paddingHorizontal: moderateScale(10), paddingVertical: moderateScale(7) },
+    mapCard: { marginTop: moderateScale(28), borderWidth: 1.5, borderRadius: moderateScale(22), padding: moderateScale(14), },
+    mapHeading: { flexDirection: 'row', alignItems: 'center', marginBottom: moderateScale(12) },
+    distancePill: { backgroundColor: '#FFFEFB', overflow: 'hidden', borderRadius: moderateScale(9), paddingHorizontal: moderateScale(8), paddingVertical: moderateScale(4) },
+    mapFrame: { height: moderateScale(130), borderWidth: 1.5, borderRadius: moderateScale(14), overflow: 'hidden' },
+    footer: { position: 'absolute', bottom: moderateScale(0), width: '100%', minHeight: moderateScale(86), paddingHorizontal: moderateScale(20), paddingTop: moderateScale(12), borderTopWidth: 1.5, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: moderateScale(14) },
+    sendButton: { minWidth: moderateScale(190) },
+    pressed: { opacity: 0.85, transform: [{ translateY: moderateScale(2) }] },
 });

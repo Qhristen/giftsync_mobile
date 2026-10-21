@@ -23,6 +23,7 @@ import React, { useMemo } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
+import { moderateScale } from '@/utils/scaling';
 
 export default function DeliveryScreen() {
     const router = useRouter();
@@ -112,7 +113,7 @@ export default function DeliveryScreen() {
                         </View>
                         <View style={styles.routeLine}>
                             <View style={[styles.routePoint, { backgroundColor: colors.lime, borderColor: colors.ink }]}>
-                                <HugeiconsIcon icon={GiftIcon} size={20} color={colors.ink} />
+                                <HugeiconsIcon icon={GiftIcon} size={moderateScale(20)} color={colors.ink} />
                             </View>
                             <View style={[styles.dottedRoute, { borderColor: colors.ink }]} />
                             <Avatar name={event?.contact?.name || 'Recipient'} uri={event?.contact?.avatar} size="lg" />
@@ -145,7 +146,7 @@ export default function DeliveryScreen() {
                         ]}
                     >
                         <View style={[styles.ticketIcon, { backgroundColor: colors.peach, borderColor: colors.ink }]}>
-                            <HugeiconsIcon icon={Location01Icon} size={23} color={colors.ink} />
+                            <HugeiconsIcon icon={Location01Icon} size={moderateScale(23)} color={colors.ink} />
                         </View>
                         <View style={styles.destinationCopy}>
                             <Typography variant="caption" color={colors.textSecondary}>DELIVER TO</Typography>
@@ -175,7 +176,7 @@ export default function DeliveryScreen() {
                                 { backgroundColor: colors.lemon, borderColor: colors.ink, opacity: pressed ? 0.72 : 1 },
                             ]}
                         >
-                            <HugeiconsIcon icon={Calendar01Icon} size={22} color={colors.ink} />
+                            <HugeiconsIcon icon={Calendar01Icon} size={moderateScale(22)} color={colors.ink} />
                             <Typography variant="caption" color={colors.textSecondary}>DROP DATE</Typography>
                             <Typography variant="bodyBold">
                                 {deliveryDate ? format(new Date(deliveryDate), 'MMM d, yyyy') : 'Choose date'}
@@ -188,7 +189,7 @@ export default function DeliveryScreen() {
                                 { backgroundColor: colors.sky, borderColor: colors.ink, opacity: pressed ? 0.72 : 1 },
                             ]}
                         >
-                            <HugeiconsIcon icon={Time02Icon} size={22} color={colors.ink} />
+                            <HugeiconsIcon icon={Time02Icon} size={moderateScale(22)} color={colors.ink} />
                             <Typography variant="caption" color={colors.textSecondary}>TIME SLOT</Typography>
                             <Typography variant="bodyBold" style={styles.capitalize}>{deliveryTimeWindow || 'Choose time'}</Typography>
                         </Pressable>
@@ -215,7 +216,7 @@ export default function DeliveryScreen() {
                     <View style={[styles.postcard, { backgroundColor: colors.lavender, borderColor: colors.ink }]}>
                         <View style={styles.postcardHeader}>
                             <View style={[styles.ticketIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                                <HugeiconsIcon icon={GiftIcon} size={22} color={colors.ink} />
+                                <HugeiconsIcon icon={GiftIcon} size={moderateScale(22)} color={colors.ink} />
                             </View>
                             <View style={styles.destinationCopy}>
                                 <Typography variant="bodyBold">Ribbon, tissue & a note</Typography>
@@ -237,7 +238,7 @@ export default function DeliveryScreen() {
 
                     <View style={[styles.anonymousCard, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                         <View style={[styles.ticketIcon, { backgroundColor: colors.peach, borderColor: colors.ink }]}>
-                            <HugeiconsIcon icon={UserIcon} size={21} color={colors.ink} />
+                            <HugeiconsIcon icon={UserIcon} size={moderateScale(21)} color={colors.ink} />
                         </View>
                         <View style={styles.destinationCopy}>
                             <Typography variant="bodyBold">Make it a mystery</Typography>
@@ -260,7 +261,7 @@ export default function DeliveryScreen() {
                     </View>
                 </ScrollView>
 
-                <View style={[styles.footer, { backgroundColor: colors.background, paddingBottom: insets.bottom + 16 }]}>
+                <View style={[styles.footer, { backgroundColor: colors.background, paddingBottom: insets.bottom + moderateScale(16) }]}>
                     <Button title="Save route & continue  →" onPress={handleNext} isLoading={isCreating} style={styles.submitButton} />
                 </View>
 
@@ -287,60 +288,60 @@ export default function DeliveryScreen() {
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
-    content: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 130, gap: 18 },
+    content: { paddingHorizontal: moderateScale(20), paddingTop: moderateScale(8), paddingBottom: moderateScale(130), gap: moderateScale(18) },
     routeCard: {
         borderWidth: 1.5,
-        borderRadius: 25,
-        padding: 18,
-        gap: 13,
+        borderRadius: moderateScale(25),
+        padding: moderateScale(18),
+        gap: moderateScale(13),
 
         transform: [{ rotate: '0.7deg' }],
     },
-    routeTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-    overline: { fontWeight: '700', letterSpacing: 1 },
-    routeBadge: { borderWidth: 1.5, borderRadius: 9, paddingHorizontal: 8, paddingVertical: 4 },
+    routeTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: moderateScale(8) },
+    overline: { fontWeight: '700', letterSpacing: moderateScale(1) },
+    routeBadge: { borderWidth: 1.5, borderRadius: moderateScale(9), paddingHorizontal: moderateScale(8), paddingVertical: moderateScale(4) },
     badgeCopy: { fontWeight: '800' },
     routeLine: { flexDirection: 'row', alignItems: 'center' },
-    routePoint: { width: 52, height: 52, borderRadius: 18, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
-    dottedRoute: { flex: 1, borderTopWidth: 2, borderStyle: 'dashed', marginHorizontal: 10 },
-    routeLabels: { flexDirection: 'row', justifyContent: 'space-between', gap: 16 },
+    routePoint: { width: moderateScale(52), height: moderateScale(52), borderRadius: moderateScale(18), borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+    dottedRoute: { flex: 1, borderTopWidth: 2, borderStyle: 'dashed', marginHorizontal: moderateScale(10) },
+    routeLabels: { flexDirection: 'row', justifyContent: 'space-between', gap: moderateScale(16) },
     routeRecipient: { flex: 1, alignItems: 'flex-end' },
-    sectionHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 2 },
+    sectionHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: moderateScale(2) },
     destinationTicket: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
+        gap: moderateScale(12),
         borderWidth: 1.5,
-        borderRadius: 20,
-        padding: 15,
+        borderRadius: moderateScale(20),
+        padding: moderateScale(15),
     },
-    ticketIcon: { width: 44, height: 44, borderRadius: 14, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+    ticketIcon: { width: moderateScale(44), height: moderateScale(44), borderRadius: moderateScale(14), borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
     destinationCopy: { flex: 1 },
-    scheduleRow: { flexDirection: 'row', gap: 12 },
-    scheduleCard: { flex: 1, borderWidth: 1.5, borderRadius: 20, padding: 15, gap: 7, justifyContent: 'center' },
+    scheduleRow: { flexDirection: 'row', gap: moderateScale(12) },
+    scheduleCard: { flex: 1, borderWidth: 1.5, borderRadius: moderateScale(20), padding: moderateScale(15), gap: moderateScale(7), justifyContent: 'center' },
     capitalize: { textTransform: 'capitalize' },
     postcard: {
         borderWidth: 1.5,
-        borderRadius: 23,
-        padding: 15,
-        gap: 14,
+        borderRadius: moderateScale(23),
+        padding: moderateScale(15),
+        gap: moderateScale(14),
 
         transform: [{ rotate: '-0.5deg' }],
     },
-    postcardHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-    includedBadge: { borderWidth: 1.5, borderRadius: 8, paddingHorizontal: 7, paddingVertical: 4, transform: [{ rotate: '3deg' }] },
-    messageInput: { minHeight: 116 },
-    anonymousCard: { flexDirection: 'row', alignItems: 'center', gap: 11, borderWidth: 1.5, borderRadius: 20, padding: 14 },
+    postcardHeader: { flexDirection: 'row', alignItems: 'center', gap: moderateScale(10) },
+    includedBadge: { borderWidth: 1.5, borderRadius: moderateScale(8), paddingHorizontal: moderateScale(7), paddingVertical: moderateScale(4), transform: [{ rotate: '3deg' }] },
+    messageInput: { minHeight: moderateScale(116) },
+    anonymousCard: { flexDirection: 'row', alignItems: 'center', gap: moderateScale(11), borderWidth: 1.5, borderRadius: moderateScale(20), padding: moderateScale(14) },
     totalTicket: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         borderWidth: 1.5,
-        borderRadius: 20,
-        padding: 17,
+        borderRadius: moderateScale(20),
+        padding: moderateScale(17),
 
         transform: [{ rotate: '0.5deg' }],
     },
-    footer: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 14 },
+    footer: { position: 'absolute', left: moderateScale(0), right: moderateScale(0), bottom: moderateScale(0), paddingHorizontal: moderateScale(20), paddingTop: moderateScale(14) },
     submitButton: { width: '100%' },
 });

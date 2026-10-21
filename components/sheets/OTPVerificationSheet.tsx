@@ -134,25 +134,25 @@ const OTPVerificationSheet = forwardRef<BottomSheetRef, Props>(
 
 const styles = StyleSheet.create({
     content: {
-        paddingVertical: 12,
+        paddingVertical: moderateScale(12),
     },
     otpGrid: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        gap: 8,
-        marginBottom: 32,
+        gap: moderateScale(8),
+        marginBottom: moderateScale(32),
     },
     otpInput: {
-        width: 50,
-        height: 60,
-        borderRadius: 12,
+        width: moderateScale(50),
+        height: moderateScale(60),
+        borderRadius: moderateScale(12),
         borderWidth: 1.5,
         textAlign: 'center',
         fontSize: moderateScale(24),
         fontFamily: typography.fonts.heading,
     },
     resendContainer: {
-        marginVertical: 12,
+        marginVertical: moderateScale(12),
     },
 });
 

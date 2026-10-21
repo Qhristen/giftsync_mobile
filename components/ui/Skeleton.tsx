@@ -1,4 +1,5 @@
 import { useTheme } from '@/hooks/useTheme';
+import { moderateScale } from '@/utils/scaling';
 import React from 'react';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 
@@ -11,7 +12,7 @@ interface Props {
 
 const SkeletonChildren: React.FC<Props> = ({
     width = '100%',
-    height = 20,
+    height = moderateScale(20),
     variant = 'rectangular',
     style,
 }) => {
@@ -23,7 +24,7 @@ const SkeletonChildren: React.FC<Props> = ({
             width: width,
             height: height,
             backgroundColor: colors.surfaceRaised,
-            borderRadius: variant === 'circle' ? 1000 : variant === 'text' ? 4 : 8,
+            borderRadius: variant === 'circle' ? moderateScale(1000) : variant === 'text' ? moderateScale(4) : moderateScale(8),
             opacity: 0.55,
         },
         style,

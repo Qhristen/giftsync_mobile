@@ -8,6 +8,7 @@ import { Image } from 'expo-image';
 import React from 'react';
 import { GestureResponderEvent, Pressable, StyleSheet, View } from 'react-native';
 import MarkdownMessage from './MarkdownMessage';
+import { moderateScale } from '@/utils/scaling';
 
 interface MessageBubbleProps {
     message: ChatMessage;
@@ -51,8 +52,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                         style={[
                             isGrid ? styles.gridAttachmentWrapper : styles.singleAttachmentWrapper,
                             {
-                                borderTopLeftRadius: index === 0 ? 12 : 4,
-                                borderTopRightRadius: (isGrid && index === 1) || (!isGrid && index === 0) ? 12 : 4,
+                                borderTopLeftRadius: index === 0 ? moderateScale(12) : moderateScale(4),
+                                borderTopRightRadius: (isGrid && index === 1) || (!isGrid && index === 0) ? moderateScale(12) : moderateScale(4),
                             }
                         ]}
                     >
@@ -87,8 +88,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                     styles.bubble,
                     {
                         backgroundColor: isOwnMessage ? colors.primary : colors.surfaceRaised,
-                        borderBottomRightRadius: isOwnMessage ? 4 : 16,
-                        borderBottomLeftRadius: isOwnMessage ? 16 : 4,
+                        borderBottomRightRadius: isOwnMessage ? moderateScale(4) : moderateScale(16),
+                        borderBottomLeftRadius: isOwnMessage ? moderateScale(16) : moderateScale(4),
                         opacity: pressed ? 0.9 : 1,
                         overflow: 'hidden',
                     },
@@ -99,7 +100,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                 {(message.content || true) && (
                     <View style={{
                         paddingHorizontal: spacing.md,
-                        paddingTop: message.attachments?.length && !message.content ? 0 : (message.attachments?.length ? spacing.sm : spacing.md),
+                        paddingTop: message.attachments?.length && !message.content ? moderateScale(0) : (message.attachments?.length ? spacing.sm : spacing.md),
                         paddingBottom: spacing.sm,
                     }}>
                         {message.content && renderMarkdown ? (
@@ -111,7 +112,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                             <Typography
                                 variant="body"
                                 color={isOwnMessage ? '#FFFFFF' : colors.textPrimary}
-                                style={{ marginBottom: 4 }}
+                                style={{ marginBottom: moderateScale(4) }}
                             >
                                 {message.content}
                             </Typography>
@@ -120,8 +121,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                         <View style={[
                             styles.footer,
                             {
-                                marginRight: 0,
-                                marginBottom: 0,
+                                marginRight: moderateScale(0),
+                                marginBottom: moderateScale(0),
                             }
                         ]}>
                             <Typography
@@ -133,12 +134,12 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                             {isOwnMessage && (
                                 <HugeiconsIcon
                                     icon={message.id.startsWith('temp-') ? Time02Icon : TickDouble02Icon}
-                                    size={14}
+                                    size={moderateScale(14)}
                                     color={message.id.startsWith('temp-')
                                         ? 'rgba(255, 255, 255, 0.7)'
                                         : (message.isRead ? '#40C4FF' : 'rgba(255, 255, 255, 0.7)')
                                     }
-                                    style={{ marginLeft: 4 }}
+                                    style={{ marginLeft: moderateScale(4) }}
                                 />
                             )}
                         </View>
@@ -155,7 +156,7 @@ const styles = StyleSheet.create({
     },
     bubble: {
         maxWidth: '80%',
-        borderRadius: 16,
+        borderRadius: moderateScale(16),
     },
     attachmentsContainer: {
         width: '100%',
@@ -163,11 +164,11 @@ const styles = StyleSheet.create({
     gridContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: 2,
+        gap: moderateScale(2),
     },
     singleAttachmentWrapper: {
-        width: 240,
-        height: 180,
+        width: moderateScale(240),
+        height: moderateScale(180),
     },
     gridAttachmentWrapper: {
         width: '49.5%',
@@ -178,14 +179,14 @@ const styles = StyleSheet.create({
         height: '100%',
     },
     time: {
-        marginTop: 4,
+        marginTop: moderateScale(4),
         alignSelf: 'flex-end',
     },
     footer: {
         flexDirection: 'row',
         alignItems: 'center',
         alignSelf: 'flex-end',
-        marginTop: 4,
+        marginTop: moderateScale(4),
     },
 });
 

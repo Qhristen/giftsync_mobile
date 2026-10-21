@@ -7,6 +7,7 @@ import Typography from '../ui/Typography';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Alert01Icon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react-native';
+import { moderateScale } from '@/utils/scaling';
 
 interface Props {
     title: string;
@@ -27,7 +28,7 @@ const ConfirmDeleteSheet = forwardRef<BottomSheetRef, Props>(
             <BottomSheetWrapper ref={ref} snapPoints={['46%']}>
                 <View style={styles.content}>
                     <View style={[styles.warningSeal, { backgroundColor: colors.peach, borderColor: colors.ink }]}>
-                        <HugeiconsIcon icon={Alert01Icon} size={30} color={colors.ink} />
+                        <HugeiconsIcon icon={Alert01Icon} size={moderateScale(30)} color={colors.ink} />
                     </View>
                     <Typography variant="caption" align="center" color={colors.textSecondary} style={styles.overline}>PLEASE CHECK THIS ACTION</Typography>
                     <Typography variant="h3" align="center" style={{ marginBottom: spacing.sm }}>
@@ -37,7 +38,7 @@ const ConfirmDeleteSheet = forwardRef<BottomSheetRef, Props>(
                         {description}
                     </Typography>
 
-                    <View style={[styles.actions, { marginBottom: insets.bottom + 20 }]}>
+                    <View style={[styles.actions, { marginBottom: insets.bottom + moderateScale(20) }]}>
                         <Button
                             title={cancelLabel}
                             variant="outline"
@@ -63,16 +64,16 @@ const ConfirmDeleteSheet = forwardRef<BottomSheetRef, Props>(
 
 const styles = StyleSheet.create({
     content: {
-        paddingVertical: 12,
+        paddingVertical: moderateScale(12),
         alignItems: 'center',
     },
-    warningSeal: { width: 62, height: 62, borderRadius: 20, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', marginBottom: 9, transform: [{ rotate: '-4deg' }] },
-    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.9, marginBottom: 3 },
+    warningSeal: { width: moderateScale(62), height: moderateScale(62), borderRadius: moderateScale(20), borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', marginBottom: moderateScale(9), transform: [{ rotate: '-4deg' }] },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: moderateScale(0.9), marginBottom: moderateScale(3) },
     actions: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 12,
+        gap: moderateScale(12),
         width: '100%',
     },
 });

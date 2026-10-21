@@ -94,7 +94,7 @@ export default function ShopScreen() {
         const isLeft = index % 2 === 0;
         return (
             <View
-                style={[styles.productWrapper, isLeft ? { paddingLeft: spacing.xl, paddingRight: 7 } : { paddingRight: spacing.xl, paddingLeft: 7 }]}
+                style={[styles.productWrapper, isLeft ? { paddingLeft: spacing.xl, paddingRight: moderateScale(7) } : { paddingRight: spacing.xl, paddingLeft: moderateScale(7) }]}
             >
                 <Pressable
                     onPress={() => router.push({ pathname: '/product-detail', params: { id: product.id } })}
@@ -127,7 +127,7 @@ export default function ShopScreen() {
                                 }}
                                 style={[styles.sendButton, { backgroundColor: colors.accent, borderColor: colors.ink }]}
                             >
-                                <HugeiconsIcon icon={SentIcon} size={15} color="#17151D" />
+                                <HugeiconsIcon icon={SentIcon} size={moderateScale(15)} color="#17151D" />
                             </Pressable>
                         </View>
                     </View>
@@ -138,20 +138,20 @@ export default function ShopScreen() {
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <View style={[styles.headerArea, { paddingTop: insets.top + 10, backgroundColor: colors.background }]}>
+            <View style={[styles.headerArea, { paddingTop: insets.top + moderateScale(10), backgroundColor: colors.background }]}>
                 <View style={[styles.header, { paddingHorizontal: spacing.xl }]}>
                     <View>
                         <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>THE GIFT SHOP</Typography>
                         <Typography variant="h1">Find their thing.</Typography>
                     </View>
                     <TouchableOpacity onPress={()=> router.push("/ai-chat")} style={[styles.sparkIcon, { backgroundColor: colors.accent, borderColor: colors.ink }]}>
-                        <HugeiconsIcon icon={SparklesIcon} size={22} color="#17151D" />
+                        <HugeiconsIcon icon={SparklesIcon} size={moderateScale(22)} color="#17151D" />
                     </TouchableOpacity>
                 </View>
 
                 <View style={[styles.searchRow, { paddingHorizontal: spacing.xl }]}>
                     <View style={[styles.searchBar, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                        <HugeiconsIcon icon={Search01Icon} size={20} color={colors.textSecondary} />
+                        <HugeiconsIcon icon={Search01Icon} size={moderateScale(20)} color={colors.textSecondary} />
                         <TextInput
                             placeholder="Search gifts, makers, ideas..."
                             placeholderTextColor={colors.textMuted}
@@ -162,12 +162,12 @@ export default function ShopScreen() {
                         />
                         {!!searchQuery && (
                             <Pressable onPress={() => setSearchQuery('')}>
-                                <HugeiconsIcon icon={CancelCircleIcon} size={20} color={colors.textSecondary} />
+                                <HugeiconsIcon icon={CancelCircleIcon} size={moderateScale(20)} color={colors.textSecondary} />
                             </Pressable>
                         )}
                     </View>
                     <Pressable onPress={filterSheet.open} style={[styles.filterButton, { backgroundColor: colors.primary, borderColor: colors.ink }]}>
-                        <HugeiconsIcon icon={FilterIcon} size={21} color="#FFFFFF" />
+                        <HugeiconsIcon icon={FilterIcon} size={moderateScale(21)} color="#FFFFFF" />
                     </Pressable>
                 </View>
 
@@ -180,13 +180,13 @@ export default function ShopScreen() {
                     ]}
                 >
                     <View style={[styles.conciergeIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                        <HugeiconsIcon icon={SparklesIcon} size={24} color={colors.primary} />
+                        <HugeiconsIcon icon={SparklesIcon} size={moderateScale(24)} color={colors.primary} />
                     </View>
                     <View style={{ flex: 1 }}>
                         <Typography variant="h4">Can’t find exactly right?</Typography>
                         <Typography variant="caption" color={colors.textSecondary}>Tell our gift concierge what you need.</Typography>
                     </View>
-                    <HugeiconsIcon icon={ArrowRight01Icon} size={22} color={colors.ink} />
+                    <HugeiconsIcon icon={ArrowRight01Icon} size={moderateScale(22)} color={colors.ink} />
                 </Pressable>}
 
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.categories, { paddingHorizontal: spacing.xl }]}>
@@ -226,7 +226,7 @@ export default function ShopScreen() {
                     numColumns={2}
                     keyExtractor={(item) => item.id}
                     showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ paddingTop: 12, paddingBottom: 120 }}
+                    contentContainerStyle={{ paddingTop: moderateScale(12), paddingBottom: moderateScale(120) }}
                     refreshing={(productsFetching || eventsFetching || categoriesFetching) && page === 1}
                     onRefresh={onRefresh}
                     onEndReached={loadMore}
@@ -238,12 +238,12 @@ export default function ShopScreen() {
                             {giftRequestsEnabled && (
                                 <Pressable onPress={() => router.push({ pathname: '/gift-request', params: { item: searchQuery } })} style={[styles.emptyButton, { backgroundColor: colors.accent, borderColor: colors.ink }]}>
                                     <Typography variant="bodyBold" color="#17151D">Request a gift</Typography>
-                                    <HugeiconsIcon icon={ArrowRight01Icon} size={18} color="#17151D" />
+                                    <HugeiconsIcon icon={ArrowRight01Icon} size={moderateScale(18)} color="#17151D" />
                                 </Pressable>
                             )}
                         </View>
                     }
-                    ListFooterComponent={productsFetching && page > 1 ? <ActivityIndicator color={colors.primary} style={{ padding: 20 }} /> : null}
+                    ListFooterComponent={productsFetching && page > 1 ? <ActivityIndicator color={colors.primary} style={{ padding: moderateScale(20) }} /> : null}
                 />
             )}
 
@@ -272,26 +272,26 @@ const styles = StyleSheet.create({
     headerArea: { zIndex: 2 },
     productList: { flex: 1 },
     header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 1 },
-    sparkIcon: { width: 48, height: 48, borderRadius: 15, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '4deg' }] },
-    searchRow: { flexDirection: 'row', gap: 10, marginTop: 18 },
-    searchBar: { flex: 1, height: 52, borderWidth: 1.5, borderRadius: 16, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, gap: 10 },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: moderateScale(1) },
+    sparkIcon: { width: moderateScale(48), height: moderateScale(48), borderRadius: moderateScale(15), borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '4deg' }] },
+    searchRow: { flexDirection: 'row', gap: moderateScale(10), marginTop: moderateScale(18) },
+    searchBar: { flex: 1, height: moderateScale(52), borderWidth: 1.5, borderRadius: moderateScale(16), flexDirection: 'row', alignItems: 'center', paddingHorizontal: moderateScale(14), gap: moderateScale(10) },
     searchInput: { flex: 1, fontFamily: 'DMSans_400Regular', fontSize: moderateScale(15) },
-    filterButton: { width: 52, height: 52, borderWidth: 1.5, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-    conciergeCard: { marginTop: 16, padding: 10, borderWidth: 1.5, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 12, },
-    conciergeIcon: { width: 46, height: 46, borderRadius: 14, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
-    categories: { gap: 9, paddingTop: 18, paddingBottom: 8 },
-    category: { paddingHorizontal: 16, paddingVertical: 9, borderRadius: 13, borderWidth: 1.5 },
-    productWrapper: { width: '100%', marginBottom: 18 },
-    productCard: { borderWidth: 1.5, borderRadius: 20, },
-    imageWrap: { height: 145, margin: 8, marginBottom: 0 },
-    productImage: { width: '100%', height: '100%', borderRadius: 13, borderWidth: 1, borderColor: '#17151D' },
-    colorTab: { position: 'absolute', width: 38, height: 12, borderWidth: 1, top: -13, left: 14, transform: [{ rotate: '-5deg' }] },
-    productContent: { padding: 12, gap: 3 },
-    productName: { minHeight: 0, fontSize: moderateScale(15), lineHeight: moderateScale(18) },
-    priceRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 4 },
-    sendButton: { width: 32, height: 32, borderRadius: 11, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
-    centerState: { paddingHorizontal: 38, paddingTop: 50, alignItems: 'center', gap: 10 },
-    emptyButton: { marginTop: 10, minHeight: 48, borderRadius: 15, borderWidth: 1.5, paddingHorizontal: 18, flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center' },
-    pressed: { opacity: 0.86, transform: [{ translateY: 2 }] },
+    filterButton: { width: moderateScale(52), height: moderateScale(52), borderWidth: 1.5, borderRadius: moderateScale(16), alignItems: 'center', justifyContent: 'center' },
+    conciergeCard: { marginTop: moderateScale(16), padding: moderateScale(10), borderWidth: 1.5, borderRadius: moderateScale(20), flexDirection: 'row', alignItems: 'center', gap: moderateScale(12), },
+    conciergeIcon: { width: moderateScale(46), height: moderateScale(46), borderRadius: moderateScale(14), borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+    categories: { gap: moderateScale(9), paddingTop: moderateScale(18), paddingBottom: moderateScale(8) },
+    category: { paddingHorizontal: moderateScale(16), paddingVertical: moderateScale(9), borderRadius: moderateScale(13), borderWidth: 1.5 },
+    productWrapper: { width: '100%', marginBottom: moderateScale(18) },
+    productCard: { borderWidth: 1.5, borderRadius: moderateScale(20), },
+    imageWrap: { height: moderateScale(145), margin: moderateScale(8), marginBottom: moderateScale(0) },
+    productImage: { width: '100%', height: '100%', borderRadius: moderateScale(13), borderWidth: 1, borderColor: '#17151D' },
+    colorTab: { position: 'absolute', width: moderateScale(38), height: moderateScale(12), borderWidth: 1, top: moderateScale(-13), left: moderateScale(14), transform: [{ rotate: '-5deg' }] },
+    productContent: { padding: moderateScale(12), gap: moderateScale(3) },
+    productName: { minHeight: moderateScale(0), fontSize: moderateScale(15), lineHeight: moderateScale(18) },
+    priceRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: moderateScale(4) },
+    sendButton: { width: moderateScale(32), height: moderateScale(32), borderRadius: moderateScale(11), borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+    centerState: { paddingHorizontal: moderateScale(38), paddingTop: moderateScale(50), alignItems: 'center', gap: moderateScale(10) },
+    emptyButton: { marginTop: moderateScale(10), minHeight: moderateScale(48), borderRadius: moderateScale(15), borderWidth: 1.5, paddingHorizontal: moderateScale(18), flexDirection: 'row', gap: moderateScale(8), alignItems: 'center', justifyContent: 'center' },
+    pressed: { opacity: 0.86, transform: [{ translateY: moderateScale(2) }] },
 });

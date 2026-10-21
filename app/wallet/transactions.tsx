@@ -115,7 +115,7 @@ export default function WalletTransactionsScreen() {
                     style={[styles.txCard, { backgroundColor: cardColor, borderColor: colors.ink, marginHorizontal: spacing.xl, transform: [{ rotate: index % 2 ? '0.4deg' : '-0.4deg' }] }]}
                 >
                     <View style={[styles.txIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                        <HugeiconsIcon icon={style.icon} size={22} color={colors.ink} />
+                        <HugeiconsIcon icon={style.icon} size={moderateScale(22)} color={colors.ink} />
                     </View>
                     <View style={{ flex: 1 }}>
                         <Typography variant="bodyBold" numberOfLines={1}>{item.description || item.type}</Typography>
@@ -145,9 +145,9 @@ export default function WalletTransactionsScreen() {
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             {/* Header */}
-            <View style={[styles.header, { paddingHorizontal: spacing.xl, paddingTop: insets.top + 10, paddingBottom: spacing.md }]}>
+            <View style={[styles.header, { paddingHorizontal: spacing.xl, paddingTop: insets.top + moderateScale(10), paddingBottom: spacing.md }]}>
                 <Pressable onPress={() => router.back()} style={[styles.backBtn, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                    <HugeiconsIcon icon={ArrowLeft01Icon} size={22} color={colors.ink} />
+                    <HugeiconsIcon icon={ArrowLeft01Icon} size={moderateScale(22)} color={colors.ink} />
                 </Pressable>
                 <View style={styles.headerCopy}>
                     <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>THE COIN LEDGER</Typography>
@@ -158,12 +158,12 @@ export default function WalletTransactionsScreen() {
             {/* Balance Summary */}
             <View style={{ paddingHorizontal: spacing.xl, marginBottom: spacing.lg }}>
                 <Card style={[styles.balanceCard, { backgroundColor: colors.lavender, borderColor: colors.ink }]}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: moderateScale(12) }}>
                         <View style={[styles.balanceIcon, { backgroundColor: colors.lime, borderColor: colors.ink }]}>
-                            <HugeiconsIcon icon={Coins02Icon} size={25} color={colors.ink} />
+                            <HugeiconsIcon icon={Coins02Icon} size={moderateScale(25)} color={colors.ink} />
                         </View>
                         <View>
-                            <Typography variant="caption" color={colors.textSecondary} style={{ textTransform: 'uppercase', letterSpacing: 1, fontSize: moderateScale(10) }}>
+                            <Typography variant="caption" color={colors.textSecondary} style={{ textTransform: 'uppercase', letterSpacing: moderateScale(1), fontSize: moderateScale(10) }}>
                                 COINS ON HAND
                             </Typography>
                             <Typography variant="h2">
@@ -172,7 +172,7 @@ export default function WalletTransactionsScreen() {
                         </View>
                     </View>
                     {meta && (
-                        <Typography variant="caption" color={colors.textSecondary} style={{ marginTop: 8 }}>
+                        <Typography variant="caption" color={colors.textSecondary} style={{ marginTop: moderateScale(8) }}>
                             {meta.total} transaction{meta.total !== 1 ? 's' : ''} total
                         </Typography>
                     )}
@@ -181,7 +181,7 @@ export default function WalletTransactionsScreen() {
 
             {/* Transactions List */}
             {isLoading ? (
-                <View style={{ flex: 1, paddingTop: 20 }}>
+                <View style={{ flex: 1, paddingTop: moderateScale(20) }}>
                     <TransactionListSkeleton />
                 </View>
             ) : (
@@ -195,7 +195,7 @@ export default function WalletTransactionsScreen() {
                         </View>
                     )}
                     showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ paddingBottom: 100 }}
+                    contentContainerStyle={{ paddingBottom: moderateScale(100) }}
                     onRefresh={() => { setPage(1); refetch(); refetchWallet(); }}
                     refreshing={(isFetching || isLoadingWallet) && page === 1}
                     onEndReached={() => {
@@ -205,8 +205,8 @@ export default function WalletTransactionsScreen() {
                     }}
                     onEndReachedThreshold={0.5}
                     ListEmptyComponent={
-                        <View style={{ alignItems: 'center', paddingTop: 60, gap: 12 }}>
-                            <HugeiconsIcon icon={Invoice01Icon} size={48} color={colors.textMuted} style={{ opacity: 0.5 }} />
+                        <View style={{ alignItems: 'center', paddingTop: moderateScale(60), gap: moderateScale(12) }}>
+                            <HugeiconsIcon icon={Invoice01Icon} size={moderateScale(48)} color={colors.textMuted} style={{ opacity: 0.5 }} />
                             <Typography variant="body" color={colors.textSecondary} align="center">
                                 No transactions yet.{'\n'}Your coin activity will appear here.
                             </Typography>
@@ -244,40 +244,40 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 13,
+        gap: moderateScale(13),
     },
     headerCopy: { flex: 1 },
-    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.9 },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: moderateScale(0.9) },
     backBtn: {
-        width: 44,
-        height: 44,
-        borderRadius: 14,
+        width: moderateScale(44),
+        height: moderateScale(44),
+        borderRadius: moderateScale(14),
         borderWidth: 1.5,
         justifyContent: 'center',
         alignItems: 'center',
         transform: [{ rotate: '-3deg' }],
     },
     balanceCard: {
-        padding: 20,
-        borderRadius: 24,
+        padding: moderateScale(20),
+        borderRadius: moderateScale(24),
         borderWidth: 1.5,
 
         transform: [{ rotate: '-0.6deg' }],
     },
-    balanceIcon: { width: 48, height: 48, borderWidth: 1.5, borderRadius: 15, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '4deg' }] },
+    balanceIcon: { width: moderateScale(48), height: moderateScale(48), borderWidth: 1.5, borderRadius: moderateScale(15), alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '4deg' }] },
     txCard: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 14,
-        gap: 12,
-        marginBottom: 10,
+        padding: moderateScale(14),
+        gap: moderateScale(12),
+        marginBottom: moderateScale(10),
         borderWidth: 1.5,
-        borderRadius: 19,
+        borderRadius: moderateScale(19),
     },
     txIcon: {
-        width: 44,
-        height: 44,
-        borderRadius: 14,
+        width: moderateScale(44),
+        height: moderateScale(44),
+        borderRadius: moderateScale(14),
         borderWidth: 1.5,
         justifyContent: 'center',
         alignItems: 'center',
@@ -285,8 +285,8 @@ const styles = StyleSheet.create({
     txMeta: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 6,
-        marginTop: 3,
+        gap: moderateScale(6),
+        marginTop: moderateScale(3),
         flexWrap: 'wrap',
     },
     sectionHeader: {

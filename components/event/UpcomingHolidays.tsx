@@ -8,6 +8,7 @@ import { useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import HolidaySubscribersSheet from '../sheets/HolidaySubscribersSheet';
 import { BottomSheetRef } from '../ui/BottomSheetWrapper';
+import { moderateScale } from '@/utils/scaling';
 
 interface UpcomingHolidaysProps {
     templates: EventTemplate[] | undefined;
@@ -54,7 +55,7 @@ export default function UpcomingHolidays({ templates }: UpcomingHolidaysProps) {
                     style={[styles.seeAllPill, { backgroundColor: colors.surface, borderColor: colors.ink }]}
                 >
                     <Typography variant="caption" style={styles.overline}>ALL</Typography>
-                    <HugeiconsIcon icon={ArrowRight01Icon} size={15} color={colors.ink} />
+                    <HugeiconsIcon icon={ArrowRight01Icon} size={moderateScale(15)} color={colors.ink} />
                 </Pressable>
             </View>
             <ScrollView
@@ -78,10 +79,10 @@ export default function UpcomingHolidays({ templates }: UpcomingHolidaysProps) {
                     >
                         <View style={styles.cardTop}>
                             <View style={[styles.iconBox, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                                <HugeiconsIcon icon={GiftIcon} size={23} color={colors.ink} />
+                                <HugeiconsIcon icon={GiftIcon} size={moderateScale(23)} color={colors.ink} />
                             </View>
                             <View style={[styles.datePill, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                                <HugeiconsIcon icon={Calendar01Icon} size={13} color={colors.ink} />
+                                <HugeiconsIcon icon={Calendar01Icon} size={moderateScale(13)} color={colors.ink} />
                                 <Typography variant="caption" style={styles.overline}>
                                     {nextOccurrence(holiday).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }).toUpperCase()}
                                 </Typography>
@@ -95,7 +96,7 @@ export default function UpcomingHolidays({ templates }: UpcomingHolidaysProps) {
                         </View>
                         <View style={styles.subscribeRow}>
                             <Typography variant="caption" style={styles.overline}>ADD PEOPLE</Typography>
-                            <HugeiconsIcon icon={ArrowRight01Icon} size={16} color={colors.ink} />
+                            <HugeiconsIcon icon={ArrowRight01Icon} size={moderateScale(16)} color={colors.ink} />
                         </View>
                     </Pressable>
                 ))}
@@ -110,16 +111,16 @@ export default function UpcomingHolidays({ templates }: UpcomingHolidaysProps) {
 }
 
 const styles = StyleSheet.create({
-    section: { marginTop: 38 },
-    heading: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12, marginBottom: 16 },
-    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.8 },
-    seeAllPill: { height: 34, borderWidth: 1.25, borderRadius: 12, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', gap: 4 },
-    tray: { gap: 14, paddingTop: 4, paddingBottom: 18 },
-    eventCard: { width: 210, minHeight: 190, borderWidth: 1.5, borderRadius: 22, padding: 14, justifyContent: 'space-between' },
-    cardTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-    iconBox: { width: 45, height: 45, borderRadius: 14, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
-    datePill: { flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1.25, borderRadius: 9, paddingHorizontal: 8, paddingVertical: 5 },
-    cardCopy: { gap: 4, marginVertical: 13 },
+    section: { marginTop: moderateScale(38) },
+    heading: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: moderateScale(12), marginBottom: moderateScale(16) },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: moderateScale(0.8) },
+    seeAllPill: { height: moderateScale(34), borderWidth: 1.25, borderRadius: moderateScale(12), paddingHorizontal: moderateScale(10), flexDirection: 'row', alignItems: 'center', gap: moderateScale(4) },
+    tray: { gap: moderateScale(14), paddingTop: moderateScale(4), paddingBottom: moderateScale(18) },
+    eventCard: { width: moderateScale(210), minHeight: moderateScale(190), borderWidth: 1.5, borderRadius: moderateScale(22), padding: moderateScale(14), justifyContent: 'space-between' },
+    cardTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: moderateScale(8) },
+    iconBox: { width: moderateScale(45), height: moderateScale(45), borderRadius: moderateScale(14), borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+    datePill: { flexDirection: 'row', alignItems: 'center', gap: moderateScale(5), borderWidth: 1.25, borderRadius: moderateScale(9), paddingHorizontal: moderateScale(8), paddingVertical: moderateScale(5) },
+    cardCopy: { gap: moderateScale(4), marginVertical: moderateScale(13) },
     subscribeRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    pressed: { opacity: 0.82, transform: [{ translateY: 2 }] },
+    pressed: { opacity: 0.82, transform: [{ translateY: moderateScale(2) }] },
 });

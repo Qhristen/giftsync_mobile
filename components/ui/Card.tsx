@@ -1,6 +1,7 @@
 import { useTheme } from '@/hooks/useTheme';
 import React from 'react';
 import { Pressable, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { moderateScale } from '@/utils/scaling';
 
 interface Props {
     children: React.ReactNode;
@@ -44,7 +45,7 @@ const Card: React.FC<Props> = ({
 
 const styles = StyleSheet.create({
     base: {
-        borderRadius: 22,
+        borderRadius: moderateScale(22),
         overflow: 'hidden',
     },
     shadow: {

@@ -2,6 +2,7 @@ import { useTheme } from '@/hooks/useTheme';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import Skeleton, { SkeletonPaper } from './Skeleton';
+import { moderateScale } from '@/utils/scaling';
 
 export default function OrderListSkeleton() {
     const { colors } = useTheme();
@@ -11,19 +12,19 @@ export default function OrderListSkeleton() {
         <View style={styles.list}>
             {tabs.map((tab, index) => (
                 <SkeletonPaper key={tab} color={colors.surface} style={[styles.card, { transform: [{ rotate: index % 2 ? '0.6deg' : '-0.6deg' }] }]}>
-                    <View style={[styles.statusTab, { backgroundColor: tab, borderColor: colors.ink }]}><Skeleton width={48} height={9} /></View>
+                    <View style={[styles.statusTab, { backgroundColor: tab, borderColor: colors.ink }]}><Skeleton width={moderateScale(48)} height={moderateScale(9)} /></View>
                     <View style={styles.topRow}>
-                        <Skeleton width={72} height={72} borderRadius={16} />
+                        <Skeleton width={moderateScale(72)} height={moderateScale(72)} borderRadius={16} />
                         <View style={styles.copy}>
-                            <Skeleton width="78%" height={18} />
-                            <Skeleton width="48%" height={12} />
-                            <Skeleton width="38%" height={15} />
+                            <Skeleton width="78%" height={moderateScale(18)} />
+                            <Skeleton width="48%" height={moderateScale(12)} />
+                            <Skeleton width="38%" height={moderateScale(15)} />
                         </View>
                     </View>
                     <View style={[styles.dash, { borderColor: colors.textMuted }]} />
                     <View style={styles.footer}>
-                        <View style={styles.copy}><Skeleton width={70} height={10} /><Skeleton width={92} height={15} /></View>
-                        <Skeleton width={108} height={38} borderRadius={13} />
+                        <View style={styles.copy}><Skeleton width={moderateScale(70)} height={moderateScale(10)} /><Skeleton width={moderateScale(92)} height={moderateScale(15)} /></View>
+                        <Skeleton width={moderateScale(108)} height={moderateScale(38)} borderRadius={13} />
                     </View>
                 </SkeletonPaper>
             ))}
@@ -32,11 +33,11 @@ export default function OrderListSkeleton() {
 }
 
 const styles = StyleSheet.create({
-    list: { paddingHorizontal: 20, gap: 17 },
-    card: { padding: 15, gap: 12 },
-    statusTab: { position: 'absolute', right: 13, top: -8, borderWidth: 1.5, borderRadius: 8, padding: 6 },
-    topRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-    copy: { flex: 1, gap: 7 },
+    list: { paddingHorizontal: moderateScale(20), gap: moderateScale(17) },
+    card: { padding: moderateScale(15), gap: moderateScale(12) },
+    statusTab: { position: 'absolute', right: moderateScale(13), top: moderateScale(-8), borderWidth: 1.5, borderRadius: moderateScale(8), padding: moderateScale(6) },
+    topRow: { flexDirection: 'row', alignItems: 'center', gap: moderateScale(12) },
+    copy: { flex: 1, gap: moderateScale(7) },
     dash: { borderTopWidth: 1, borderStyle: 'dashed' },
     footer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
 });

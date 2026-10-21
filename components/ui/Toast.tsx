@@ -44,12 +44,12 @@ const Toast: React.FC<Props> = ({ message, type = 'info', visible, onHide, durat
 
 const styles = StyleSheet.create({
     container: {
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        borderRadius: 12,
+        paddingHorizontal: moderateScale(16),
+        paddingVertical: moderateScale(12),
+        borderRadius: moderateScale(12),
         position: 'absolute',
-        left: 16,
-        right: 16,
+        left: moderateScale(16),
+        right: moderateScale(16),
         zIndex: 9999,
         flexDirection: 'row',
         alignItems: 'center',

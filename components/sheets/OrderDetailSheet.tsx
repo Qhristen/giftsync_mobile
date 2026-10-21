@@ -19,6 +19,7 @@ import { toast } from 'sonner-native';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Button from '../ui/Button';
 import Typography from '../ui/Typography';
+import { moderateScale } from '@/utils/scaling';
 
 interface OrderDetailSheetProps {
     order: Order | null;
@@ -96,7 +97,7 @@ const OrderDetailSheet = forwardRef<BottomSheetRef, OrderDetailSheetProps>(({ or
                             <Image source={{ uri: product.imageUrls[0] }} style={[styles.productImage, { borderColor: colors.ink }]} contentFit="cover" />
                         ) : (
                             <View style={[styles.productImage, styles.center, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                                <HugeiconsIcon icon={GiftIcon} size={28} color={colors.primary} />
+                                <HugeiconsIcon icon={GiftIcon} size={moderateScale(28)} color={colors.primary} />
                             </View>
                         )}
                         <View style={{ flex: 1 }}>
@@ -141,13 +142,13 @@ const OrderDetailSheet = forwardRef<BottomSheetRef, OrderDetailSheetProps>(({ or
 
                     <View style={styles.infoGrid}>
                         <View style={[styles.infoCard, { backgroundColor: colors.mint, borderColor: colors.ink }]}>
-                            <HugeiconsIcon icon={Location01Icon} size={21} color={colors.ink} />
+                            <HugeiconsIcon icon={Location01Icon} size={moderateScale(21)} color={colors.ink} />
                             <Typography variant="caption" color={colors.textSecondary}>DELIVERY TO</Typography>
                             <Typography variant="bodyBold" numberOfLines={2}>{order.deliveryAddress?.recipientName || order.recipientName}</Typography>
                             <Typography variant="caption" color={colors.textSecondary} numberOfLines={3}>{[order.deliveryAddress?.line1, order.deliveryAddress?.city, order.deliveryAddress?.state].filter(Boolean).join(', ')}</Typography>
                         </View>
                         <View style={[styles.infoCard, { backgroundColor: colors.lemon, borderColor: colors.ink }]}>
-                            <HugeiconsIcon icon={GiftIcon} size={21} color={colors.ink} />
+                            <HugeiconsIcon icon={GiftIcon} size={moderateScale(21)} color={colors.ink} />
                             <Typography variant="caption" color={colors.textSecondary}>GIFT NOTE</Typography>
                             <Typography variant="caption" numberOfLines={5}>{order.giftMessage || 'No message was added to this gift.'}</Typography>
                         </View>
@@ -174,7 +175,7 @@ const OrderDetailSheet = forwardRef<BottomSheetRef, OrderDetailSheetProps>(({ or
                                     onPress={openChat}
                                     style={[styles.chatButton, { backgroundColor: colors.mint, borderColor: colors.ink }, isOpeningChat && styles.disabled]}
                                 >
-                                    <HugeiconsIcon icon={Comment01Icon} size={18} color={colors.ink} />
+                                    <HugeiconsIcon icon={Comment01Icon} size={moderateScale(18)} color={colors.ink} />
                                     <Typography variant="label">
                                         {isOpeningChat ? 'Opening chat…' : product ? 'Chat with vendor' : 'Chat with sourcing team'}
                                     </Typography>
@@ -195,7 +196,7 @@ function ReceiptRow({ label, value, icon }: { label: string; value: string; icon
     return (
         <View style={styles.receiptRow}>
             <View style={styles.receiptLabel}>
-                {icon && <HugeiconsIcon icon={icon} size={16} color={colors.textSecondary} />}
+                {icon && <HugeiconsIcon icon={icon} size={moderateScale(16)} color={colors.textSecondary} />}
                 <Typography variant="body" color={colors.textSecondary}>{label}</Typography>
             </View>
             <Typography variant="bodyBold" style={{ textAlign: 'right' }}>{value}</Typography>
@@ -204,33 +205,33 @@ function ReceiptRow({ label, value, icon }: { label: string; value: string; icon
 }
 
 const styles = StyleSheet.create({
-    loading: { padding: 30, alignItems: 'center' },
-    content: { paddingTop: 6, paddingBottom: 30 },
-    headingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 20 },
-    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.8 },
-    statusStamp: { borderWidth: 1.5, borderRadius: 11, paddingHorizontal: 10, paddingVertical: 7, transform: [{ rotate: '3deg' }] },
-    productCard: { borderWidth: 1.5, borderRadius: 22, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 13, },
-    productImage: { width: 76, height: 76, borderWidth: 1.5, borderRadius: 16 },
+    loading: { padding: moderateScale(30), alignItems: 'center' },
+    content: { paddingTop: moderateScale(6), paddingBottom: moderateScale(30) },
+    headingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: moderateScale(12), marginBottom: moderateScale(20) },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: moderateScale(0.8) },
+    statusStamp: { borderWidth: 1.5, borderRadius: moderateScale(11), paddingHorizontal: moderateScale(10), paddingVertical: moderateScale(7), transform: [{ rotate: '3deg' }] },
+    productCard: { borderWidth: 1.5, borderRadius: moderateScale(22), padding: moderateScale(14), flexDirection: 'row', alignItems: 'center', gap: moderateScale(13), },
+    productImage: { width: moderateScale(76), height: moderateScale(76), borderWidth: 1.5, borderRadius: moderateScale(16) },
     center: { alignItems: 'center', justifyContent: 'center' },
-    routeSection: { marginTop: 25 },
-    routeTrack: { height: 54, marginTop: 14, flexDirection: 'row', justifyContent: 'space-between' },
-    routeLine: { position: 'absolute', left: 8, right: 8, top: 8, height: 3 },
-    routeProgress: { position: 'absolute', left: 8, top: 8, height: 3 },
-    routeStop: { width: 52, alignItems: 'center', gap: 6 },
-    routeDot: { width: 18, height: 18, borderRadius: 6, borderWidth: 1.5 },
-    receipt: { marginTop: 20, borderWidth: 1.5, borderRadius: 18, padding: 17, paddingTop: 25 },
-    perforation: { position: 'absolute', top: -6, left: 7, right: 7, flexDirection: 'row', justifyContent: 'space-between' },
-    perforationDot: { width: 11, height: 11, borderRadius: 6, borderWidth: 1 },
-    receiptRow: { minHeight: 35, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-    receiptLabel: { flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 },
-    receiptDivider: { borderTopWidth: 1.5, borderStyle: 'dashed', marginVertical: 11 },
+    routeSection: { marginTop: moderateScale(25) },
+    routeTrack: { height: moderateScale(54), marginTop: moderateScale(14), flexDirection: 'row', justifyContent: 'space-between' },
+    routeLine: { position: 'absolute', left: moderateScale(8), right: moderateScale(8), top: moderateScale(8), height: moderateScale(3) },
+    routeProgress: { position: 'absolute', left: moderateScale(8), top: moderateScale(8), height: moderateScale(3) },
+    routeStop: { width: moderateScale(52), alignItems: 'center', gap: moderateScale(6) },
+    routeDot: { width: moderateScale(18), height: moderateScale(18), borderRadius: moderateScale(6), borderWidth: 1.5 },
+    receipt: { marginTop: moderateScale(20), borderWidth: 1.5, borderRadius: moderateScale(18), padding: moderateScale(17), paddingTop: moderateScale(25) },
+    perforation: { position: 'absolute', top: moderateScale(-6), left: moderateScale(7), right: moderateScale(7), flexDirection: 'row', justifyContent: 'space-between' },
+    perforationDot: { width: moderateScale(11), height: moderateScale(11), borderRadius: moderateScale(6), borderWidth: 1 },
+    receiptRow: { minHeight: moderateScale(35), flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: moderateScale(12) },
+    receiptLabel: { flexDirection: 'row', alignItems: 'center', gap: moderateScale(6), flex: 1 },
+    receiptDivider: { borderTopWidth: 1.5, borderStyle: 'dashed', marginVertical: moderateScale(11) },
     totalRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    infoGrid: { flexDirection: 'row', gap: 11, marginTop: 18 },
-    infoCard: { width: '48.3%', borderWidth: 1.5, borderRadius: 19, padding: 13, gap: 5 },
-    actions: { gap: 11, marginTop: 22 },
-    chatButton: { borderWidth: 1.5, paddingHorizontal: 11, borderRadius: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
+    infoGrid: { flexDirection: 'row', gap: moderateScale(11), marginTop: moderateScale(18) },
+    infoCard: { width: '48.3%', borderWidth: 1.5, borderRadius: moderateScale(19), padding: moderateScale(13), gap: moderateScale(5) },
+    actions: { gap: moderateScale(11), marginTop: moderateScale(22) },
+    chatButton: { borderWidth: 1.5, paddingHorizontal: moderateScale(11), borderRadius: moderateScale(15), flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: moderateScale(6) },
     disabled: { opacity: 0.6 },
-    secondaryActions: { flexDirection: 'row', gap: 9 },
+    secondaryActions: { flexDirection: 'row', gap: moderateScale(9) },
 });
 
 export default OrderDetailSheet;

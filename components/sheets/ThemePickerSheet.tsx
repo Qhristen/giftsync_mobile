@@ -13,6 +13,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Typography from '../ui/Typography';
+import { moderateScale } from '@/utils/scaling';
 
 interface ThemePickerSheetProps {
     onSelect?: (preference: ThemePreference) => void;
@@ -58,7 +59,7 @@ const ThemePickerSheet = forwardRef<BottomSheetRef, ThemePickerSheetProps>(({ on
                         >
                             <HugeiconsIcon
                                 icon={option.icon}
-                                size={24}
+                                size={moderateScale(24)}
                                 color={colors.ink}
                             />
                             <Typography
@@ -68,7 +69,7 @@ const ThemePickerSheet = forwardRef<BottomSheetRef, ThemePickerSheetProps>(({ on
                                 {option.label}
                             </Typography>
                             {isSelected && (
-                                <HugeiconsIcon icon={CheckmarkCircle02Icon} size={24} color={colors.ink} style={styles.check} />
+                                <HugeiconsIcon icon={CheckmarkCircle02Icon} size={moderateScale(24)} color={colors.ink} style={styles.check} />
                             )}
                         </Pressable>
                     );
@@ -79,17 +80,17 @@ const ThemePickerSheet = forwardRef<BottomSheetRef, ThemePickerSheetProps>(({ on
 });
 
 const styles = StyleSheet.create({
-    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 1 },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: moderateScale(1) },
     list: {
-        gap: 12,
+        gap: moderateScale(12),
     },
     item: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 16,
-        borderRadius: 18,
+        padding: moderateScale(16),
+        borderRadius: moderateScale(18),
         borderWidth: 1.5,
-        gap: 16,
+        gap: moderateScale(16),
     },
     check: {
         marginLeft: 'auto',

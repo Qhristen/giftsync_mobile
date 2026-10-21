@@ -18,11 +18,11 @@ const Avatar: React.FC<Props> = ({ uri, name, size = 'md', style }) => {
     const getPxSize = () => {
         if (typeof size === 'number') return size;
         switch (size) {
-            case 'sm': return 32;
-            case 'md': return 48;
-            case 'lg': return 64;
-            case 'xl': return 80;
-            default: return 48;
+            case 'sm': return moderateScale(32);
+            case 'md': return moderateScale(48);
+            case 'lg': return moderateScale(64);
+            case 'xl': return moderateScale(80);
+            default: return moderateScale(48);
         }
     };
 
@@ -60,7 +60,7 @@ const Avatar: React.FC<Props> = ({ uri, name, size = 'md', style }) => {
                     recyclingKey={uri}
                 />
             ) : (
-                <Text style={[styles.initials, { fontSize: moderateScale(px / 2.5), color: colors.textSecondary }]}>
+                <Text style={[styles.initials, { fontSize: px / 2.5, color: colors.textSecondary }]}>
                     {initials}
                 </Text>
             )}

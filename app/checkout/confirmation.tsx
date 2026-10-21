@@ -10,6 +10,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { moderateScale } from '@/utils/scaling';
 
 export default function ConfirmationScreen() {
     const router = useRouter();
@@ -41,14 +42,14 @@ export default function ConfirmationScreen() {
                 >
                     <View style={[styles.tape, { backgroundColor: colors.lilac, borderColor: colors.ink }]} />
                     <View style={[styles.successSeal, { backgroundColor: colors.lime, borderColor: colors.ink }]}>
-                        <HugeiconsIcon icon={Tick01Icon} size={56} color={colors.ink} />
+                        <HugeiconsIcon icon={Tick01Icon} size={moderateScale(56)} color={colors.ink} />
                     </View>
                     <Typography variant="h1" align="center">It&apos;s officially on!</Typography>
                     <Typography variant="body" align="center" color={colors.textSecondary} style={styles.heroMessage}>
                         We&apos;re preparing {order?.item?.product?.name || 'your custom gift request'} for {order?.recipientName || 'someone special'} now.
                     </Typography>
                     <View style={[styles.sentBadge, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                        <HugeiconsIcon icon={GiftIcon} size={17} color={colors.ink} />
+                        <HugeiconsIcon icon={GiftIcon} size={moderateScale(17)} color={colors.ink} />
                         <Typography variant="caption" style={styles.badgeCopy}>ORDER ACCEPTED · #{order?.id?.slice(-6).toUpperCase()}</Typography>
                     </View>
                 </View>
@@ -64,7 +65,7 @@ export default function ConfirmationScreen() {
                 >
                     <View style={styles.ticketRow}>
                         <View style={[styles.ticketIcon, { backgroundColor: colors.lemon, borderColor: colors.ink }]}>
-                            <HugeiconsIcon icon={DeliveryTruck02Icon} size={24} color={colors.ink} />
+                            <HugeiconsIcon icon={DeliveryTruck02Icon} size={moderateScale(24)} color={colors.ink} />
                         </View>
                         <View style={styles.ticketCopy}>
                             <Typography variant="caption" color={colors.textSecondary}>DESTINATION</Typography>
@@ -110,7 +111,7 @@ export default function ConfirmationScreen() {
 
             <View
 
-                style={[styles.actions, { backgroundColor: colors.background, paddingBottom: insets.bottom + 16 }]}
+                style={[styles.actions, { backgroundColor: colors.background, paddingBottom: insets.bottom + moderateScale(16) }]}
             >
                 <Button title="Follow the gift  →" onPress={() => router.replace('/orders')} style={styles.actionButton} />
                 <Button title="Back to gift desk" variant="outline" onPress={() => router.replace('/(tabs)')} style={styles.actionButton} />
@@ -128,7 +129,7 @@ function TicketFact({ icon, label, value, color }: {
     const { colors } = useTheme();
     return (
         <View style={[styles.factCard, { backgroundColor: color, borderColor: colors.ink }]}>
-            <HugeiconsIcon icon={icon} size={20} color={colors.ink} />
+            <HugeiconsIcon icon={icon} size={moderateScale(20)} color={colors.ink} />
             <Typography variant="caption" color={colors.textSecondary}>{label}</Typography>
             <Typography variant="bodyBold" numberOfLines={2}>{value}</Typography>
         </View>
@@ -137,64 +138,64 @@ function TicketFact({ icon, label, value, color }: {
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
-    content: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 190, gap: 18 },
-    confetti: { position: 'absolute', width: 16, height: 38, borderWidth: 1.5, zIndex: 2 },
-    confettiOne: { top: 128, left: 13, transform: [{ rotate: '-24deg' }] },
-    confettiTwo: { top: 205, right: 12, width: 25, height: 15, transform: [{ rotate: '18deg' }] },
-    confettiThree: { top: 85, right: 54, width: 12, height: 28, transform: [{ rotate: '36deg' }] },
+    content: { paddingHorizontal: moderateScale(20), paddingTop: moderateScale(8), paddingBottom: moderateScale(190), gap: moderateScale(18) },
+    confetti: { position: 'absolute', width: moderateScale(16), height: moderateScale(38), borderWidth: 1.5, zIndex: 2 },
+    confettiOne: { top: moderateScale(128), left: moderateScale(13), transform: [{ rotate: '-24deg' }] },
+    confettiTwo: { top: moderateScale(205), right: moderateScale(12), width: moderateScale(25), height: moderateScale(15), transform: [{ rotate: '18deg' }] },
+    confettiThree: { top: moderateScale(85), right: moderateScale(54), width: moderateScale(12), height: moderateScale(28), transform: [{ rotate: '36deg' }] },
     launchCard: {
         alignItems: 'center',
         borderWidth: 1.5,
-        borderRadius: 28,
-        paddingHorizontal: 24,
-        paddingVertical: 27,
-        gap: 10,
+        borderRadius: moderateScale(28),
+        paddingHorizontal: moderateScale(24),
+        paddingVertical: moderateScale(27),
+        gap: moderateScale(10),
 
         transform: [{ rotate: '-0.6deg' }],
     },
     tape: {
         position: 'absolute',
-        top: -10,
-        width: 70,
-        height: 21,
+        top: moderateScale(-10),
+        width: moderateScale(70),
+        height: moderateScale(21),
         borderWidth: 1,
         opacity: 0.88,
         transform: [{ rotate: '3deg' }],
     },
     successSeal: {
-        width: 94,
-        height: 94,
-        borderRadius: 47,
+        width: moderateScale(94),
+        height: moderateScale(94),
+        borderRadius: moderateScale(47),
         borderWidth: 2,
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: 4,
+        marginBottom: moderateScale(4),
         transform: [{ rotate: '-5deg' }],
     },
-    heroMessage: { maxWidth: 310 },
-    sentBadge: { flexDirection: 'row', alignItems: 'center', gap: 7, borderWidth: 1.5, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 7, marginTop: 5 },
+    heroMessage: { maxWidth: moderateScale(310) },
+    sentBadge: { flexDirection: 'row', alignItems: 'center', gap: moderateScale(7), borderWidth: 1.5, borderRadius: moderateScale(12), paddingHorizontal: moderateScale(10), paddingVertical: moderateScale(7), marginTop: moderateScale(5) },
     badgeCopy: { fontWeight: '800' },
-    sectionHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 },
+    sectionHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: moderateScale(4) },
     dispatchTicket: {
         borderWidth: 1.5,
-        borderRadius: 23,
-        padding: 18,
-        gap: 16,
+        borderRadius: moderateScale(23),
+        padding: moderateScale(18),
+        gap: moderateScale(16),
 
         transform: [{ rotate: '0.5deg' }],
     },
-    ticketRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-    ticketIcon: { width: 50, height: 50, borderRadius: 16, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+    ticketRow: { flexDirection: 'row', alignItems: 'center', gap: moderateScale(12) },
+    ticketIcon: { width: moderateScale(50), height: moderateScale(50), borderRadius: moderateScale(16), borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
     ticketCopy: { flex: 1 },
-    perforation: { borderTopWidth: 1, borderStyle: 'dashed', marginHorizontal: -18 },
-    ticketNotch: { position: 'absolute', top: -11, width: 20, height: 20, borderRadius: 10, borderWidth: 1.5 },
-    leftNotch: { left: -11 },
-    rightNotch: { right: -11 },
-    detailsGrid: { flexDirection: 'row', gap: 11 },
-    factCard: { flex: 1, borderWidth: 1.5, borderRadius: 18, padding: 13, gap: 5, justifyContent: 'center' },
-    ticketFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
-    processingStamp: { borderWidth: 1.5, borderRadius: 9, paddingHorizontal: 8, paddingVertical: 6, transform: [{ rotate: '-2deg' }] },
-    nextNote: { borderWidth: 1.5, borderRadius: 19, padding: 15, gap: 4, transform: [{ rotate: '-0.4deg' }] },
-    actions: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 14, gap: 10 },
+    perforation: { borderTopWidth: 1, borderStyle: 'dashed', marginHorizontal: moderateScale(-18) },
+    ticketNotch: { position: 'absolute', top: moderateScale(-11), width: moderateScale(20), height: moderateScale(20), borderRadius: moderateScale(10), borderWidth: 1.5 },
+    leftNotch: { left: moderateScale(-11) },
+    rightNotch: { right: moderateScale(-11) },
+    detailsGrid: { flexDirection: 'row', gap: moderateScale(11) },
+    factCard: { flex: 1, borderWidth: 1.5, borderRadius: moderateScale(18), padding: moderateScale(13), gap: moderateScale(5), justifyContent: 'center' },
+    ticketFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: moderateScale(10) },
+    processingStamp: { borderWidth: 1.5, borderRadius: moderateScale(9), paddingHorizontal: moderateScale(8), paddingVertical: moderateScale(6), transform: [{ rotate: '-2deg' }] },
+    nextNote: { borderWidth: 1.5, borderRadius: moderateScale(19), padding: moderateScale(15), gap: moderateScale(4), transform: [{ rotate: '-0.4deg' }] },
+    actions: { position: 'absolute', left: moderateScale(0), right: moderateScale(0), bottom: moderateScale(0), paddingHorizontal: moderateScale(20), paddingTop: moderateScale(14), gap: moderateScale(10) },
     actionButton: { width: '100%' },
 });

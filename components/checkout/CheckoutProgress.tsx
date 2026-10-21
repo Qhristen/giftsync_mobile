@@ -5,6 +5,7 @@ import { HugeiconsIcon } from '@hugeicons/react-native';
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { moderateScale } from '@/utils/scaling';
 
 type CheckoutStep = 1 | 2 | 3 | 4;
 
@@ -22,7 +23,7 @@ export default function CheckoutProgress({ step, eyebrow, title, onBack }: Check
     const insets = useSafeAreaInsets();
 
     return (
-        <View style={[styles.wrap, { paddingTop: insets.top + 10 }]}>
+        <View style={[styles.wrap, { paddingTop: insets.top + moderateScale(10) }]}>
             <View style={styles.titleRow}>
                 {onBack ? (
                     <Pressable
@@ -38,7 +39,7 @@ export default function CheckoutProgress({ step, eyebrow, title, onBack }: Check
                             },
                         ]}
                     >
-                        <HugeiconsIcon icon={ArrowLeft01Icon} size={21} color={colors.ink} />
+                        <HugeiconsIcon icon={ArrowLeft01Icon} size={moderateScale(21)} color={colors.ink} />
                     </Pressable>
                 ) : (
                     <View style={[styles.sentMark, { backgroundColor: colors.lime, borderColor: colors.ink }]}>
@@ -102,29 +103,29 @@ export default function CheckoutProgress({ step, eyebrow, title, onBack }: Check
 
 const styles = StyleSheet.create({
     wrap: {
-        paddingHorizontal: 20,
-        paddingBottom: 14,
-        gap: 16,
+        paddingHorizontal: moderateScale(20),
+        paddingBottom: moderateScale(14),
+        gap: moderateScale(16),
     },
     titleRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
+        gap: moderateScale(12),
     },
     backButton: {
-        width: 44,
-        height: 44,
+        width: moderateScale(44),
+        height: moderateScale(44),
         borderWidth: 1.5,
-        borderRadius: 15,
+        borderRadius: moderateScale(15),
         alignItems: 'center',
         justifyContent: 'center',
         transform: [{ rotate: '-3deg' }],
     },
     sentMark: {
-        width: 44,
-        height: 44,
+        width: moderateScale(44),
+        height: moderateScale(44),
         borderWidth: 1.5,
-        borderRadius: 22,
+        borderRadius: moderateScale(22),
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -133,14 +134,14 @@ const styles = StyleSheet.create({
     },
     eyebrow: {
         textTransform: 'uppercase',
-        letterSpacing: 1.4,
-        marginBottom: 1,
+        letterSpacing: moderateScale(1.4),
+        marginBottom: moderateScale(1),
     },
     stepStamp: {
         borderWidth: 1.5,
-        borderRadius: 10,
-        paddingHorizontal: 9,
-        paddingVertical: 7,
+        borderRadius: moderateScale(10),
+        paddingHorizontal: moderateScale(9),
+        paddingVertical: moderateScale(7),
         transform: [{ rotate: '4deg' }],
     },
     stepStampCopy: {
@@ -152,19 +153,19 @@ const styles = StyleSheet.create({
     },
     progressItem: {
         alignItems: 'center',
-        gap: 4,
+        gap: moderateScale(4),
     },
     dot: {
-        width: 12,
-        height: 12,
-        borderRadius: 6,
+        width: moderateScale(12),
+        height: moderateScale(12),
+        borderRadius: moderateScale(6),
         borderWidth: 1.5,
     },
     connector: {
         flex: 1,
-        height: 1.5,
-        marginTop: 5,
-        marginHorizontal: 5,
+        height: moderateScale(1.5),
+        marginTop: moderateScale(5),
+        marginHorizontal: moderateScale(5),
         opacity: 0.85,
     },
     currentLabel: {

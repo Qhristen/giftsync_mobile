@@ -3,7 +3,8 @@ import PaperScreenHeader from '@/components/ui/PaperScreenHeader';
 import { useTheme } from '@/hooks/useTheme';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';export default function TermsAndConditionsScreen() {
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { moderateScale } from '@/utils/scaling';export default function TermsAndConditionsScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
 
@@ -51,7 +52,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';export default funct
             <PaperScreenHeader eyebrow="The agreement folio" title="Terms, in plain sight" onBack={() => router.back()} accent={colors.lemon} />
 
             <ScrollView
-                contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: 100 }}
+                contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: moderateScale(100) }}
                 showsVerticalScrollIndicator={false}
             >
                 <View>
@@ -74,7 +75,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';export default funct
                                 <Typography variant="h3" style={{ flex: 1 }}>{section.title.replace(/^\d+\.\s*/, '')}</Typography>
                             </View>
                             <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                                <Typography variant="body" color={colors.textSecondary} style={{ lineHeight: 24 }}>
+                                <Typography variant="body" color={colors.textSecondary} style={{ lineHeight: moderateScale(24) }}>
                                     {section.content}
                                 </Typography>
                             </View>
@@ -96,22 +97,22 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
-    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.9 },
-    cover: { padding: 22, borderWidth: 1.5, borderRadius: 25, gap: 7, marginTop: 8, marginBottom: 30, transform: [{ rotate: '-0.6deg' }] },
-    binding: { position: 'absolute', left: 13, top: -8, width: 72, height: 17, borderWidth: 1, transform: [{ rotate: '-3deg' }] },
-    updatedStamp: { alignSelf: 'flex-start', borderWidth: 1.25, borderRadius: 9, paddingHorizontal: 9, paddingVertical: 6, marginTop: 8, transform: [{ rotate: '2deg' }] },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: moderateScale(0.9) },
+    cover: { padding: moderateScale(22), borderWidth: 1.5, borderRadius: moderateScale(25), gap: moderateScale(7), marginTop: moderateScale(8), marginBottom: moderateScale(30), transform: [{ rotate: '-0.6deg' }] },
+    binding: { position: 'absolute', left: moderateScale(13), top: moderateScale(-8), width: moderateScale(72), height: moderateScale(17), borderWidth: 1, transform: [{ rotate: '-3deg' }] },
+    updatedStamp: { alignSelf: 'flex-start', borderWidth: 1.25, borderRadius: moderateScale(9), paddingHorizontal: moderateScale(9), paddingVertical: moderateScale(6), marginTop: moderateScale(8), transform: [{ rotate: '2deg' }] },
     section: {
-        marginBottom: 24,
+        marginBottom: moderateScale(24),
     },
-    sectionHeading: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
-    numberTab: { width: 42, height: 34, borderWidth: 1.25, borderRadius: 11, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-3deg' }] },
+    sectionHeading: { flexDirection: 'row', alignItems: 'center', gap: moderateScale(10), marginBottom: moderateScale(10) },
+    numberTab: { width: moderateScale(42), height: moderateScale(34), borderWidth: 1.25, borderRadius: moderateScale(11), alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-3deg' }] },
     card: {
-        padding: 20,
-        borderRadius: 20,
+        padding: moderateScale(20),
+        borderRadius: moderateScale(20),
         borderWidth: 1.5,
     },
     footer: {
-        paddingVertical: 20,
+        paddingVertical: moderateScale(20),
         borderTopWidth: 1,
         borderTopColor: '#f0f0f033',
     }

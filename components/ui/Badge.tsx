@@ -40,8 +40,8 @@ const Badge: React.FC<Props> = ({
             backgroundColor: outline ? 'transparent' : bg,
             borderColor: outline ? text : 'transparent',
             borderWidth: outline ? 1 : 0,
-            paddingHorizontal: size === 'xs' ? 6 : size === 'sm' ? 8 : 12,
-            paddingVertical: size === 'xs' ? 2 : size === 'sm' ? 4 : 6,
+            paddingHorizontal: size === 'xs' ? moderateScale(6) : size === 'sm' ? moderateScale(8) : moderateScale(12),
+            paddingVertical: size === 'xs' ? moderateScale(2) : size === 'sm' ? moderateScale(4) : moderateScale(6),
         },
     ] as ViewStyle[];
 
@@ -62,7 +62,7 @@ const Badge: React.FC<Props> = ({
 
 const styles = StyleSheet.create({
     container: {
-        borderRadius: 100,
+        borderRadius: moderateScale(100),
         alignSelf: 'flex-start',
         justifyContent: 'center',
         alignItems: 'center',

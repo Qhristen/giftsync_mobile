@@ -38,7 +38,7 @@ const ConfirmActionCard: React.FC<ConfirmActionCardProps> = ({
                 return (
                     <View style={styles.detailsContainer}>
                         <View style={styles.detailRow}>
-                            <HugeiconsIcon icon={UserIcon} size={16} color={colors.textSecondary} />
+                            <HugeiconsIcon icon={UserIcon} size={moderateScale(16)} color={colors.textSecondary} />
                             <Typography variant="bodyBold" color={colors.textPrimary} style={styles.detailText}>
                                 {actionType === 'send_occasion_message' ? details.contactName : details.recipients?.join(', ')}
                             </Typography>
@@ -54,13 +54,13 @@ const ConfirmActionCard: React.FC<ConfirmActionCardProps> = ({
                 return (
                     <View style={styles.detailsContainer}>
                         <View style={styles.detailRow}>
-                            <HugeiconsIcon icon={ShoppingCart01Icon} size={16} color={colors.textSecondary} />
+                            <HugeiconsIcon icon={ShoppingCart01Icon} size={moderateScale(16)} color={colors.textSecondary} />
                             <Typography variant="bodyBold" color={colors.textPrimary} style={styles.detailText}>
                                 {details.productName}
                             </Typography>
                         </View>
                         <View style={styles.detailRow}>
-                            <HugeiconsIcon icon={Tag01Icon} size={16} color={colors.textSecondary} />
+                            <HugeiconsIcon icon={Tag01Icon} size={moderateScale(16)} color={colors.textSecondary} />
                             <Typography variant="bodyBold" color={colors.primary} style={styles.detailText}>
                                 {formatCurrency(Number(details.price || 0), currency)}
                             </Typography>
@@ -124,7 +124,7 @@ const ConfirmActionCard: React.FC<ConfirmActionCardProps> = ({
                 <Typography variant="bodyBold" style={{ fontSize: moderateScale(14) }}>{getTitle()}</Typography>
                 <HugeiconsIcon
                     icon={actionType === 'purchase_product' || actionType === 'create_gift_request' ? ShoppingCart01Icon : Mail01Icon}
-                    size={18}
+                    size={moderateScale(18)}
                     color={colors.primary}
                 />
             </View>
@@ -175,44 +175,44 @@ function Detail({ label, value }: { label: string; value?: string }) {
 
 const styles = StyleSheet.create({
     container: {
-        borderRadius: 20,
-        padding: 16,
+        borderRadius: moderateScale(20),
+        padding: moderateScale(16),
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 12,
+        marginBottom: moderateScale(12),
     },
     detailsContainer: {
-        gap: 8,
-        marginBottom: 16,
+        gap: moderateScale(8),
+        marginBottom: moderateScale(16),
     },
     detailRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 8,
+        gap: moderateScale(8),
     },
     detailText: {
         fontSize: moderateScale(14),
     },
     summaryRow: {
-        gap: 2,
+        gap: moderateScale(2),
     },
     messagePreview: {
-        padding: 12,
-        borderRadius: 12,
+        padding: moderateScale(12),
+        borderRadius: moderateScale(12),
         borderWidth: 1,
-        marginTop: 4,
+        marginTop: moderateScale(4),
     },
     actions: {
         flexDirection: 'row',
-        gap: 8,
+        gap: moderateScale(8),
     },
     actionButton: {
         flex: 1,
-        height: 36,
-        borderRadius: 18,
+        height: moderateScale(36),
+        borderRadius: moderateScale(18),
     },
 });
 

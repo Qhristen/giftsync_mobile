@@ -22,6 +22,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { moderateScale } from '@/utils/scaling';
 
 export default function ProductOrdersScreen() {
     const router = useRouter();
@@ -74,15 +75,15 @@ export default function ProductOrdersScreen() {
 
             <View style={styles.orderDetail}>
                 <View style={styles.detailRow}>
-                    <HugeiconsIcon icon={UserIcon} size={16} color={colors.textSecondary} />
+                    <HugeiconsIcon icon={UserIcon} size={moderateScale(16)} color={colors.textSecondary} />
                     <Typography variant="body" color={colors.textSecondary}>{item?.event?.contact?.name ?? ""}</Typography>
                 </View>
                 <View style={styles.detailRow}>
-                    <HugeiconsIcon icon={Calendar01Icon} size={16} color={colors.textSecondary} />
+                    <HugeiconsIcon icon={Calendar01Icon} size={moderateScale(16)} color={colors.textSecondary} />
                     <Typography variant="body" color={colors.textSecondary}>{formatDate(item.deliveryDate)}</Typography>
                 </View>
                 <View style={styles.detailRow}>
-                    <HugeiconsIcon icon={Location01Icon} size={16} color={colors.textSecondary} />
+                    <HugeiconsIcon icon={Location01Icon} size={moderateScale(16)} color={colors.textSecondary} />
                     <Typography variant="body" color={colors.textSecondary} numberOfLines={1}>{item?.deliveryAddress?.line1 ?? ""}</Typography>
                 </View>
             </View>
@@ -93,7 +94,7 @@ export default function ProductOrdersScreen() {
             </View>
 
             {item.status !== 'Delivered' && item.status !== 'Cancelled' && item.status !== 'Disputed' && (
-                <View style={{ marginTop: 12 }}>
+                <View style={{ marginTop: moderateScale(12) }}>
                     <Button
                         disabled={item.status.toLowerCase() === 'disputed'}
                         title="Mark as Delivered"
@@ -107,11 +108,11 @@ export default function ProductOrdersScreen() {
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+            <View style={[styles.header, { paddingTop: insets.top + moderateScale(10) }]}>
                 <Pressable onPress={() => router.back()} style={[styles.backButton, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                    <HugeiconsIcon icon={ArrowLeft01Icon} size={22} color={colors.ink} />
+                    <HugeiconsIcon icon={ArrowLeft01Icon} size={moderateScale(22)} color={colors.ink} />
                 </Pressable>
-                <View style={{ flex: 1, marginLeft: 12 }}>
+                <View style={{ flex: 1, marginLeft: moderateScale(12) }}>
                     <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>MAKER DISPATCH DESK</Typography>
                     <Typography variant="h2" numberOfLines={1}>Orders in motion</Typography>
                     <Typography variant="caption" color={colors.textSecondary} numberOfLines={1}>{productName}</Typography>
@@ -119,7 +120,7 @@ export default function ProductOrdersScreen() {
             </View>
 
             {isLoading ? (
-                <View style={{ flex: 1, paddingTop: 20 }}>
+                <View style={{ flex: 1, paddingTop: moderateScale(20) }}>
                     <OrderListSkeleton />
                 </View>
             ) : (
@@ -127,11 +128,11 @@ export default function ProductOrdersScreen() {
                     data={orders}
                     renderItem={renderOrderItem}
                     keyExtractor={(item) => item.id}
-                    contentContainerStyle={{ padding: spacing.xl, paddingBottom: 100 }}
+                    contentContainerStyle={{ padding: spacing.xl, paddingBottom: moderateScale(100) }}
                     showsVerticalScrollIndicator={false}
                     ListEmptyComponent={
                         <View style={[styles.emptyContainer, { backgroundColor: colors.lemon, borderColor: colors.ink }]}>
-                            <HugeiconsIcon icon={LegalDocument01Icon} size={48} color={colors.ink} />
+                            <HugeiconsIcon icon={LegalDocument01Icon} size={moderateScale(48)} color={colors.ink} />
                             <Typography variant="h3">No dispatch slips yet.</Typography>
                             <Typography variant="body" color={colors.textSecondary}>Orders for this gift will land here.</Typography>
                         </View>
@@ -156,59 +157,59 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingBottom: 16,
-        paddingHorizontal: 20,
+        paddingBottom: moderateScale(16),
+        paddingHorizontal: moderateScale(20),
     },
     backButton: {
-        width: 44,
-        height: 44,
-        borderRadius: 14,
+        width: moderateScale(44),
+        height: moderateScale(44),
+        borderRadius: moderateScale(14),
         borderWidth: 1.5,
         alignItems: 'center',
         justifyContent: 'center',
         transform: [{ rotate: '-3deg' }],
     },
-    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.9 },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: moderateScale(0.9) },
     orderCard: {
-        marginBottom: 16,
-        padding: 16,
+        marginBottom: moderateScale(16),
+        padding: moderateScale(16),
         borderWidth: 1.5,
-        borderRadius: 22,
+        borderRadius: moderateScale(22),
     },
-    statusTab: { position: 'absolute', right: 14, top: -9, borderWidth: 1.25, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4, transform: [{ rotate: '2deg' }], zIndex: 2 },
+    statusTab: { position: 'absolute', right: moderateScale(14), top: moderateScale(-9), borderWidth: 1.25, borderRadius: moderateScale(8), paddingHorizontal: moderateScale(8), paddingVertical: moderateScale(4), transform: [{ rotate: '2deg' }], zIndex: 2 },
     orderHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 12,
+        marginBottom: moderateScale(12),
     },
     divider: {
         borderTopWidth: 1,
         borderStyle: 'dashed',
-        marginBottom: 12,
+        marginBottom: moderateScale(12),
     },
     orderDetail: {
-        gap: 8,
+        gap: moderateScale(8),
     },
     detailRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 8,
+        gap: moderateScale(8),
     },
     footer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginTop: 16,
-        paddingTop: 12,
+        marginTop: moderateScale(16),
+        paddingTop: moderateScale(12),
         borderTopWidth: 1,
     },
     emptyContainer: {
         alignItems: 'center',
-        marginTop: 60,
-        padding: 24,
+        marginTop: moderateScale(60),
+        padding: moderateScale(24),
         borderWidth: 1.5,
-        borderRadius: 22,
-        gap: 6,
+        borderRadius: moderateScale(22),
+        gap: moderateScale(6),
     }
 });

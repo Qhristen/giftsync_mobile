@@ -9,6 +9,7 @@ import Avatar from '../ui/Avatar';
 import Badge from '../ui/Badge';
 import Button from '../ui/Button';
 import Typography from '../ui/Typography';
+import { moderateScale } from '@/utils/scaling';
 
 interface ContactDetailsProps {
     contact: Contact;
@@ -26,9 +27,9 @@ const ContactDetails: React.FC<ContactDetailsProps> = ({ contact, onAddEvent, on
         <View style={{ paddingBottom: spacing.xl * 2 }}>
             <View style={styles.header}>
                 <Avatar uri={contact.avatar} name={contact.name} size="xl" />
-                <View style={{ flex: 1, marginLeft: 16 }}>
+                <View style={{ flex: 1, marginLeft: moderateScale(16) }}>
                     <Typography variant="h2">{contact.name}</Typography>
-                    <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
+                    <View style={{ flexDirection: 'row', gap: moderateScale(8), marginTop: moderateScale(4) }}>
                         <Badge label={contact.relationship || 'Other'} variant="primary" size="xs" />
                         <Badge label={`${contact.budget || 'MID'} Budget`} variant="secondary" size="xs" />
                     </View>
@@ -36,8 +37,8 @@ const ContactDetails: React.FC<ContactDetailsProps> = ({ contact, onAddEvent, on
             </View>
 
             <View style={styles.interestsContainer}>
-                <Typography variant="label" style={{ marginBottom: 8 }}>Interests</Typography>
-                <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+                <Typography variant="label" style={{ marginBottom: moderateScale(8) }}>Interests</Typography>
+                <View style={{ flexDirection: 'row', gap: moderateScale(8), flexWrap: 'wrap' }}>
                     {contact.interests?.map((interest) => (
                         <Badge key={interest} label={interest} outline size="xs" />
                     ))}
@@ -56,7 +57,7 @@ const ContactDetails: React.FC<ContactDetailsProps> = ({ contact, onAddEvent, on
                     size="sm"
                     variant="primary"
                     onPress={() => onAddEvent?.(contact)}
-                    leftIcon={<HugeiconsIcon icon={Add01Icon} size={16} color="#FFF" />}
+                    leftIcon={<HugeiconsIcon icon={Add01Icon} size={moderateScale(16)} color="#FFF" />}
                 />
             </View>
 
@@ -80,7 +81,7 @@ const ContactDetails: React.FC<ContactDetailsProps> = ({ contact, onAddEvent, on
                                     {new Date(item.date).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
                                 </Typography>
                             </View>
-                            <HugeiconsIcon icon={ArrowRight01Icon} size={20} color={colors.textMuted} />
+                            <HugeiconsIcon icon={ArrowRight01Icon} size={moderateScale(20)} color={colors.textMuted} />
                         </Pressable>
                     )}
                 />
@@ -97,38 +98,38 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 24,
+        marginBottom: moderateScale(24),
     },
     interestsContainer: {
-        marginBottom: 24,
+        marginBottom: moderateScale(24),
     },
     divider: {
-        height: 1,
-        marginBottom: 24,
+        height: moderateScale(1),
+        marginBottom: moderateScale(24),
     },
     occasionsHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 16,
+        marginBottom: moderateScale(16),
     },
     occasionItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 12,
-        paddingHorizontal: 8,
-        borderRadius: 12,
-        gap: 12,
+        paddingVertical: moderateScale(12),
+        paddingHorizontal: moderateScale(8),
+        borderRadius: moderateScale(12),
+        gap: moderateScale(12),
     },
     dot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
+        width: moderateScale(8),
+        height: moderateScale(8),
+        borderRadius: moderateScale(4),
     },
     emptyState: {
-        padding: 24,
+        padding: moderateScale(24),
         alignItems: 'center',
-        borderRadius: 16,
+        borderRadius: moderateScale(16),
         backgroundColor: 'rgba(0,0,0,0.02)',
     }
 });

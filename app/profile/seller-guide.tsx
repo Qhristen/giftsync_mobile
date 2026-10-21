@@ -10,7 +10,8 @@ import {
 } from '@hugeicons/core-free-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';export default function SellerGuideScreen() {
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { moderateScale } from '@/utils/scaling';export default function SellerGuideScreen() {
     const router = useRouter();
     const { colors, spacing } = useTheme();
 
@@ -47,13 +48,13 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';export de
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             <View style={[styles.header, { paddingHorizontal: spacing.xl, paddingBottom: spacing.md }]}>
                 <Pressable onPress={() => router.back()} style={styles.backBtn}>
-                    <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
+                    <HugeiconsIcon icon={ArrowLeft01Icon} size={moderateScale(24)} color={colors.textPrimary} />
                 </Pressable>
             </View>
 
-            <ScrollView contentContainerStyle={{ padding: spacing.xl, paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
+            <ScrollView contentContainerStyle={{ padding: spacing.xl, paddingBottom: moderateScale(100) }} showsVerticalScrollIndicator={false}>
                 <View>
-                    <Typography variant="h1" style={{ marginBottom: 8 }}>Seller Guide</Typography>
+                    <Typography variant="h1" style={{ marginBottom: moderateScale(8) }}>Seller Guide</Typography>
                     <Typography variant="body" color={colors.textSecondaryForeground} style={{ marginBottom: spacing.xl }}>
                         Follow these guidelines to maximize your sales and provide a great experience for your customers.
                     </Typography>
@@ -72,7 +73,7 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';export de
                         >
                             <View style={styles.sectionHeader}>
                                 <View style={[styles.iconBox, { backgroundColor: colors.primary + '15' }]}>
-                                    <HugeiconsIcon icon={section.icon} size={22} color={colors.primary} />
+                                    <HugeiconsIcon icon={section.icon} size={moderateScale(22)} color={colors.primary} />
                                 </View>
                                 <Typography variant="h3">{section.title}</Typography>
                             </View>
@@ -81,13 +82,13 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';export de
                                 <View style={styles.stepsContainer}>
                                     {section.steps.map((step, sIdx) => (
                                         <View key={sIdx} style={styles.stepRow}>
-                                            <Typography variant="bodyBold" color={colors.primary} style={{ width: 24 }}>{sIdx + 1}.</Typography>
+                                            <Typography variant="bodyBold" color={colors.primary} style={{ width: moderateScale(24) }}>{sIdx + 1}.</Typography>
                                             <Typography variant="body" color={colors.textSecondaryForeground} style={{ flex: 1 }}>{step}</Typography>
                                         </View>
                                     ))}
                                 </View>
                             ) : (
-                                <Typography variant="body" color={colors.textSecondaryForeground} style={{ lineHeight: 24 }}>
+                                <Typography variant="body" color={colors.textSecondaryForeground} style={{ lineHeight: moderateScale(24) }}>
                                     {section.content}
                                 </Typography>
                             )}
@@ -102,41 +103,41 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';export de
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingTop: 50,
+        paddingTop: moderateScale(50),
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
     },
     backBtn: {
-        width: 40,
-        height: 40,
+        width: moderateScale(40),
+        height: moderateScale(40),
         justifyContent: 'center',
         alignItems: 'flex-start',
     },
     sectionCard: {
-        padding: 20,
-        borderRadius: 24,
+        padding: moderateScale(20),
+        borderRadius: moderateScale(24),
         // borderWidth: 1,
     },
     sectionHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
-        marginBottom: 16,
+        gap: moderateScale(12),
+        marginBottom: moderateScale(16),
     },
     iconBox: {
-        width: 40,
-        height: 40,
-        borderRadius: 12,
+        width: moderateScale(40),
+        height: moderateScale(40),
+        borderRadius: moderateScale(12),
         justifyContent: 'center',
         alignItems: 'center',
     },
     stepsContainer: {
-        gap: 12,
+        gap: moderateScale(12),
     },
     stepRow: {
         flexDirection: 'row',
-        gap: 4,
+        gap: moderateScale(4),
     }
 });

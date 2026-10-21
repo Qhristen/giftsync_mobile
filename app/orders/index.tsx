@@ -24,6 +24,7 @@ import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { moderateScale } from '@/utils/scaling';
 
 const statusStep = (status: Order['status']) => {
     if (status === 'Delivered') return 3;
@@ -77,10 +78,10 @@ export default function OrdersScreen() {
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <View style={[styles.header, { paddingTop: insets.top + 10, paddingHorizontal: spacing.xl }]}>
+            <View style={[styles.header, { paddingTop: insets.top + moderateScale(10), paddingHorizontal: spacing.xl }]}>
                 <View style={styles.headerTop}>
                     <Pressable onPress={() => router.back()} style={[styles.headerButton, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                        <HugeiconsIcon icon={ArrowLeft01Icon} size={22} color={colors.ink} />
+                        <HugeiconsIcon icon={ArrowLeft01Icon} size={moderateScale(22)} color={colors.ink} />
                     </Pressable>
                     <View style={{ flex: 1 }}>
                         <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>FROM CART TO HEART</Typography>
@@ -90,14 +91,14 @@ export default function OrdersScreen() {
                         onPress={() => { setPage(1); refetch(); }}
                         style={[styles.headerButton, { backgroundColor: colors.accent, borderColor: colors.ink }]}
                     >
-                        <HugeiconsIcon icon={RefreshIcon} size={20} color="#17151D" />
+                        <HugeiconsIcon icon={RefreshIcon} size={moderateScale(20)} color="#17151D" />
                     </Pressable>
                 </View>
 
                 <View style={styles.summaryBoard}>
                     <View style={[styles.summaryMain, { backgroundColor: colors.lilac, borderColor: colors.ink }]}>
                         <View style={[styles.summaryIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                            <HugeiconsIcon icon={GiftIcon} size={25} color={colors.primary} />
+                            <HugeiconsIcon icon={GiftIcon} size={moderateScale(25)} color={colors.primary} />
                         </View>
                         <Typography variant="h1">{activeCount}</Typography>
                         <Typography variant="caption" color={colors.textSecondary}>GIFTS ON THE MOVE</Typography>
@@ -132,7 +133,7 @@ export default function OrdersScreen() {
                     onEndReached={loadMore}
                     onEndReachedThreshold={0.5}
                     showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ paddingBottom: 50 }}
+                    contentContainerStyle={{ paddingBottom: moderateScale(50) }}
                     renderItem={({ item, index }) => {
                         const product = item.item?.product;
                         const step = statusStep(item.status);
@@ -163,15 +164,15 @@ export default function OrdersScreen() {
                                             <Image source={{ uri: product.imageUrls[0] }} style={[styles.productImage, { borderColor: colors.ink }]} contentFit="cover" />
                                         ) : (
                                             <View style={[styles.productImage, styles.center, { backgroundColor: accent, borderColor: colors.ink }]}>
-                                                <HugeiconsIcon icon={GiftIcon} size={24} color={colors.ink} />
+                                                <HugeiconsIcon icon={GiftIcon} size={moderateScale(24)} color={colors.ink} />
                                             </View>
                                         )}
-                                        <View style={{ flex: 1, gap: 3 }}>
+                                        <View style={{ flex: 1, gap: moderateScale(3) }}>
                                             <Typography variant="h4" numberOfLines={2}>{product?.name || item.item?.productName || 'Gift order'}</Typography>
                                             <Typography variant="caption" color={colors.textSecondary}>For {item.event?.contact?.name || item.recipientName || 'someone special'}</Typography>
                                             <Typography variant="caption" color={colors.textSecondary}>{formatDate(item.createdAt)}</Typography>
                                         </View>
-                                        <HugeiconsIcon icon={ArrowRight01Icon} size={20} color={colors.ink} />
+                                        <HugeiconsIcon icon={ArrowRight01Icon} size={moderateScale(20)} color={colors.ink} />
                                     </View>
 
                                     <View style={styles.journeyWrap}>
@@ -198,7 +199,7 @@ export default function OrdersScreen() {
                                                 }}
                                                 style={[styles.actionButton, { backgroundColor: colors.accent, borderColor: colors.ink }]}
                                             >
-                                                <HugeiconsIcon icon={CreditCardIcon} size={16} color="#17151D" />
+                                                <HugeiconsIcon icon={CreditCardIcon} size={moderateScale(16)} color="#17151D" />
                                                 <Typography variant="caption" color="#17151D" style={styles.overline}>PAY NOW</Typography>
                                             </Pressable>
                                         ) : item.conversationId ? (
@@ -209,7 +210,7 @@ export default function OrdersScreen() {
                                                 }}
                                                 style={[styles.actionButton, { backgroundColor: colors.mint, borderColor: colors.ink }]}
                                             >
-                                                <HugeiconsIcon icon={BubbleChatIcon} size={16} color={colors.ink} />
+                                                <HugeiconsIcon icon={BubbleChatIcon} size={moderateScale(16)} color={colors.ink} />
                                                 <Typography variant="caption" style={styles.overline}>CHAT</Typography>
                                             </Pressable>
                                         ) : null}
@@ -221,13 +222,13 @@ export default function OrdersScreen() {
                     ListEmptyComponent={
                         <View style={[styles.emptyState, { marginHorizontal: spacing.xl, backgroundColor: colors.lemon, borderColor: colors.ink }]}>
                             <View style={[styles.emptyIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                                <HugeiconsIcon icon={GiftIcon} size={30} color={colors.primary} />
+                                <HugeiconsIcon icon={GiftIcon} size={moderateScale(30)} color={colors.primary} />
                             </View>
                             <Typography variant="h3">This lane is quiet.</Typography>
                             <Typography variant="body" color={colors.textSecondary} align="center">{activeTab === 'Active' ? 'Your next gift journey will appear here.' : 'Delivered and cancelled gifts become part of the archive.'}</Typography>
                         </View>
                     }
-                    ListFooterComponent={isFetching && page > 1 ? <ActivityIndicator color={colors.primary} style={{ padding: 20 }} /> : null}
+                    ListFooterComponent={isFetching && page > 1 ? <ActivityIndicator color={colors.primary} style={{ padding: moderateScale(20) }} /> : null}
                 />
             )}
 
@@ -254,31 +255,31 @@ export default function OrdersScreen() {
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
-    header: { paddingBottom: 12 },
-    headerTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-    headerButton: { width: 44, height: 44, borderRadius: 14, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
-    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.8 },
-    summaryBoard: { flexDirection: 'row', gap: 12, marginTop: 20 },
-    summaryMain: { flex: 1.35, borderWidth: 1.5, borderRadius: 22, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, },
-    summaryIcon: { width: 46, height: 46, borderRadius: 15, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
-    summarySide: { flex: 0.65, borderWidth: 1.5, borderRadius: 22, padding: 14, justifyContent: 'center' },
-    tabs: { flexDirection: 'row', gap: 4, marginTop: 18, padding: 4, borderWidth: 1.5, borderRadius: 16 },
-    tab: { flex: 1, height: 42, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-    orderCard: { borderWidth: 1.5, borderRadius: 24, padding: 15, marginVertical: 10, },
-    orderMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 13 },
-    statusStamp: { borderWidth: 1.25, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 5, transform: [{ rotate: '2deg' }] },
-    productRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-    productImage: { width: 70, height: 70, borderWidth: 1.5, borderRadius: 16 },
+    header: { paddingBottom: moderateScale(12) },
+    headerTop: { flexDirection: 'row', alignItems: 'center', gap: moderateScale(12) },
+    headerButton: { width: moderateScale(44), height: moderateScale(44), borderRadius: moderateScale(14), borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: moderateScale(0.8) },
+    summaryBoard: { flexDirection: 'row', gap: moderateScale(12), marginTop: moderateScale(20) },
+    summaryMain: { flex: 1.35, borderWidth: 1.5, borderRadius: moderateScale(22), padding: moderateScale(14), flexDirection: 'row', alignItems: 'center', gap: moderateScale(12), },
+    summaryIcon: { width: moderateScale(46), height: moderateScale(46), borderRadius: moderateScale(15), borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+    summarySide: { flex: 0.65, borderWidth: 1.5, borderRadius: moderateScale(22), padding: moderateScale(14), justifyContent: 'center' },
+    tabs: { flexDirection: 'row', gap: moderateScale(4), marginTop: moderateScale(18), padding: moderateScale(4), borderWidth: 1.5, borderRadius: moderateScale(16) },
+    tab: { flex: 1, height: moderateScale(42), borderRadius: moderateScale(12), alignItems: 'center', justifyContent: 'center' },
+    orderCard: { borderWidth: 1.5, borderRadius: moderateScale(24), padding: moderateScale(15), marginVertical: moderateScale(10), },
+    orderMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: moderateScale(13) },
+    statusStamp: { borderWidth: 1.25, borderRadius: moderateScale(10), paddingHorizontal: moderateScale(8), paddingVertical: moderateScale(5), transform: [{ rotate: '2deg' }] },
+    productRow: { flexDirection: 'row', alignItems: 'center', gap: moderateScale(12) },
+    productImage: { width: moderateScale(70), height: moderateScale(70), borderWidth: 1.5, borderRadius: moderateScale(16) },
     center: { alignItems: 'center', justifyContent: 'center' },
-    journeyWrap: { height: 47, marginTop: 18, flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
-    journeyLine: { position: 'absolute', height: 3, left: 7, right: 7, top: 7 },
-    journeyProgress: { position: 'absolute', height: 3, left: 7, top: 7 },
-    journeyStop: { alignItems: 'center', width: 48, gap: 5 },
-    stopDot: { width: 16, height: 16, borderRadius: 6, borderWidth: 1.5 },
-    stopLabel: { fontSize: 10 },
-    orderFooter: { borderTopWidth: 1, marginTop: 8, paddingTop: 13, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    actionButton: { minHeight: 38, borderWidth: 1.25, borderRadius: 12, paddingHorizontal: 11, flexDirection: 'row', alignItems: 'center', gap: 6 },
-    emptyState: { marginTop: 30, borderWidth: 1.5, borderRadius: 24, padding: 28, alignItems: 'center', gap: 8 },
-    emptyIcon: { width: 58, height: 58, borderWidth: 1.5, borderRadius: 18, alignItems: 'center', justifyContent: 'center', marginBottom: 5 },
-    pressed: { opacity: 0.85, transform: [{ translateY: 2 }] },
+    journeyWrap: { height: moderateScale(47), marginTop: moderateScale(18), flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
+    journeyLine: { position: 'absolute', height: moderateScale(3), left: moderateScale(7), right: moderateScale(7), top: moderateScale(7) },
+    journeyProgress: { position: 'absolute', height: moderateScale(3), left: moderateScale(7), top: moderateScale(7) },
+    journeyStop: { alignItems: 'center', width: moderateScale(48), gap: moderateScale(5) },
+    stopDot: { width: moderateScale(16), height: moderateScale(16), borderRadius: moderateScale(6), borderWidth: 1.5 },
+    stopLabel: { fontSize: moderateScale(10) },
+    orderFooter: { borderTopWidth: 1, marginTop: moderateScale(8), paddingTop: moderateScale(13), flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    actionButton: { minHeight: moderateScale(38), borderWidth: 1.25, borderRadius: moderateScale(12), paddingHorizontal: moderateScale(11), flexDirection: 'row', alignItems: 'center', gap: moderateScale(6) },
+    emptyState: { marginTop: moderateScale(30), borderWidth: 1.5, borderRadius: moderateScale(24), padding: moderateScale(28), alignItems: 'center', gap: moderateScale(8) },
+    emptyIcon: { width: moderateScale(58), height: moderateScale(58), borderWidth: 1.5, borderRadius: moderateScale(18), alignItems: 'center', justifyContent: 'center', marginBottom: moderateScale(5) },
+    pressed: { opacity: 0.85, transform: [{ translateY: moderateScale(2) }] },
 });

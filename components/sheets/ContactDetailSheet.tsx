@@ -17,6 +17,7 @@ import Badge from '../ui/Badge';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Button from '../ui/Button';
 import Typography from '../ui/Typography';
+import { moderateScale } from '@/utils/scaling';
 
 interface Props {
     contact?: Contact | null;
@@ -69,7 +70,7 @@ const ContactDetailSheet = forwardRef<BottomSheetRef, Props>(
                         {/* Header */}
                         <View style={styles.header}>
                             <Avatar uri={contact.avatar} name={contact.name} size="xl" />
-                            <View style={{ flex: 1, marginLeft: 16 }}>
+                            <View style={{ flex: 1, marginLeft: moderateScale(16) }}>
                                 <Typography variant="h2">{contact.name}</Typography>
                                 <Typography variant="body" color={colors.textSecondary}>{contact.phoneNumber}</Typography>
                             </View>
@@ -77,7 +78,7 @@ const ContactDetailSheet = forwardRef<BottomSheetRef, Props>(
 
                         {/* Interests */}
                         <View style={styles.section}>
-                            <Typography variant="label" style={{ marginBottom: 12 }}>Gift Interests</Typography>
+                            <Typography variant="label" style={{ marginBottom: moderateScale(12) }}>Gift Interests</Typography>
                             <View style={styles.chipsContainer}>
                                 {contact.interests?.map((interest) => (
                                     <Badge key={interest} label={interest} outline variant="primary" />
@@ -92,8 +93,8 @@ const ContactDetailSheet = forwardRef<BottomSheetRef, Props>(
 
                         {/* Subscribed Holidays */}
                         <View style={styles.section}>
-                            <Typography variant="label" style={{ marginBottom: 12 }}>Holiday Subscriptions</Typography>
-                            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
+                            <Typography variant="label" style={{ marginBottom: moderateScale(12) }}>Holiday Subscriptions</Typography>
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: moderateScale(12) }}>
                                 {templates.slice(0, 5).map((tmpl) => {
                                     const isSubscribed = subscribedTemplateIds.includes(tmpl.id);
                                     return (
@@ -107,7 +108,7 @@ const ContactDetailSheet = forwardRef<BottomSheetRef, Props>(
                                         >
                                             <HugeiconsIcon
                                                 icon={isSubscribed ? CheckmarkCircle02Icon : PlusSignCircleIcon}
-                                                size={20}
+                                                size={moderateScale(20)}
                                                 color={isSubscribed ? colors.primary : colors.textMuted}
                                             />
                                             <Typography variant="caption" color={isSubscribed ? colors.primary : colors.textPrimary}>{tmpl.title}</Typography>
@@ -127,7 +128,7 @@ const ContactDetailSheet = forwardRef<BottomSheetRef, Props>(
                                 size="sm"
                                 variant="outline"
                                 onPress={() => onAddEvent(contact)}
-                                leftIcon={<HugeiconsIcon icon={Add01Icon} size={16} color={colors.primary} />}
+                                leftIcon={<HugeiconsIcon icon={Add01Icon} size={moderateScale(16)} color={colors.primary} />}
                             />
                         </View>
 
@@ -143,7 +144,7 @@ const ContactDetailSheet = forwardRef<BottomSheetRef, Props>(
                                         ]}
                                     >
                                         <View style={[styles.iconBox, { backgroundColor: colors.primary + '10' }]}>
-                                            <HugeiconsIcon icon={Calendar01Icon} size={18} color={colors.primary} />
+                                            <HugeiconsIcon icon={Calendar01Icon} size={moderateScale(18)} color={colors.primary} />
                                         </View>
                                         <View style={{ flex: 1 }}>
                                             <Typography variant="bodyBold">{item.title}</Typography>
@@ -151,7 +152,7 @@ const ContactDetailSheet = forwardRef<BottomSheetRef, Props>(
                                                 {new Date(item.date).toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}
                                             </Typography>
                                         </View>
-                                        <HugeiconsIcon icon={ArrowRight01Icon} size={18} color={colors.textMuted} />
+                                        <HugeiconsIcon icon={ArrowRight01Icon} size={moderateScale(18)} color={colors.textMuted} />
                                     </Pressable>
                                 ))}
                             </View>
@@ -171,57 +172,57 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 24,
+        marginBottom: moderateScale(24),
     },
     section: {
-        marginBottom: 24,
+        marginBottom: moderateScale(24),
     },
     chipsContainer: {
         flexDirection: 'row',
-        gap: 8,
+        gap: moderateScale(8),
         flexWrap: 'wrap',
     },
     holidayCard: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        borderRadius: 100,
-        gap: 8,
+        paddingHorizontal: moderateScale(16),
+        paddingVertical: moderateScale(10),
+        borderRadius: moderateScale(100),
+        gap: moderateScale(8),
     },
     divider: {
-        height: 1,
-        marginBottom: 24,
+        height: moderateScale(1),
+        marginBottom: moderateScale(24),
         opacity: 0.5,
     },
     occasionsHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 16,
+        marginBottom: moderateScale(16),
     },
     listContainer: {
-        gap: 4,
+        gap: moderateScale(4),
     },
     occasionItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 12,
-        paddingHorizontal: 12,
-        borderRadius: 16,
-        gap: 16,
+        paddingVertical: moderateScale(12),
+        paddingHorizontal: moderateScale(12),
+        borderRadius: moderateScale(16),
+        gap: moderateScale(16),
     },
     iconBox: {
-        width: 40,
-        height: 40,
-        borderRadius: 12,
+        width: moderateScale(40),
+        height: moderateScale(40),
+        borderRadius: moderateScale(12),
         justifyContent: 'center',
         alignItems: 'center',
     },
     emptyState: {
-        padding: 32,
+        padding: moderateScale(32),
         alignItems: 'center',
-        borderRadius: 20,
+        borderRadius: moderateScale(20),
         backgroundColor: 'rgba(0,0,0,0.02)',
     }
 });

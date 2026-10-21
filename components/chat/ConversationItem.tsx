@@ -22,8 +22,8 @@ const ConversationItem: React.FC<ConversationItemProps> = ({ conversation, curre
     const { senderName, receiverName } = getConversationNames(conversation, currentUserId);
 
     // Avatar group width: first avatar full-width + each additional offset by overlap
-    const avatarSize = 55;
-    const overlap = 14;
+    const avatarSize = moderateScale(55);
+    const overlap = moderateScale(14);
     const groupWidth = participants.length > 0
         ? avatarSize + (participants.length - 1) * (avatarSize - overlap)
         : avatarSize;
@@ -113,10 +113,10 @@ const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
+        gap: moderateScale(12),
         borderWidth: 1.5,
-        borderRadius: 19,
-        marginBottom: 12,
+        borderRadius: moderateScale(19),
+        marginBottom: moderateScale(12),
     },
     avatarGroup: {
         flexDirection: 'row',
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
     },
     content: {
         flex: 1,
-        gap: 2,
+        gap: moderateScale(2),
     },
     header: {
         flexDirection: 'row',
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
     },
     name: {
         flex: 1,
-        marginRight: 8,
+        marginRight: moderateScale(8),
     },
     participants: {
         fontSize: moderateScale(11),
@@ -145,16 +145,16 @@ const styles = StyleSheet.create({
     },
     preview: {
         flex: 1,
-        marginRight: 8,
+        marginRight: moderateScale(8),
         fontSize: moderateScale(12)
     },
     badge: {
-        minWidth: 20,
-        height: 20,
-        borderRadius: 10,
+        minWidth: moderateScale(20),
+        height: moderateScale(20),
+        borderRadius: moderateScale(10),
         justifyContent: 'center',
         alignItems: 'center',
-        paddingHorizontal: 4,
+        paddingHorizontal: moderateScale(4),
         borderWidth: 1,
     },
 });

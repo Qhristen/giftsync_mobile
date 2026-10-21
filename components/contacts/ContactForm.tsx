@@ -12,6 +12,7 @@ import Typography from '../ui/Typography';
 import { useCreateContactMutation, useUpdateContactMutation } from '@/store/api/contactsApi';
 import { Contact } from '@/types';
 import { normalizeNigerianPhoneNumber } from '@/utils/phone';
+import { moderateScale } from '@/utils/scaling';
 
 const RELATIONSHIP_TYPES = [
     'Partner',
@@ -160,7 +161,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ onSuccess, initialData, isEdi
                     title="Pick from Phone"
                     variant="outline"
                     onPress={handlePickContact}
-                    leftIcon={<HugeiconsIcon icon={UserAdd01Icon} size={20} color={colors.primary} />}
+                    leftIcon={<HugeiconsIcon icon={UserAdd01Icon} size={moderateScale(20)} color={colors.primary} />}
                 />
 
                 <Input
@@ -181,8 +182,8 @@ const ContactForm: React.FC<ContactFormProps> = ({ onSuccess, initialData, isEdi
                 />
 
                 <View>
-                    <Typography variant="label" style={{ marginBottom: 8, marginLeft: 4 }}>Relationship</Typography>
-                    <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+                    <Typography variant="label" style={{ marginBottom: moderateScale(8), marginLeft: moderateScale(4) }}>Relationship</Typography>
+                    <View style={{ flexDirection: 'row', gap: moderateScale(8), flexWrap: 'wrap' }}>
                         {RELATIONSHIP_TYPES.map((r) => (
                             <Pressable
                                 key={r}
@@ -205,8 +206,8 @@ const ContactForm: React.FC<ContactFormProps> = ({ onSuccess, initialData, isEdi
                 </View>
 
                 <View>
-                    <Typography variant="label" style={{ marginBottom: 8, marginLeft: 4 }}>Preferred Budget</Typography>
-                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                    <Typography variant="label" style={{ marginBottom: moderateScale(8), marginLeft: moderateScale(4) }}>Preferred Budget</Typography>
+                    <View style={{ flexDirection: 'row', gap: moderateScale(8) }}>
                         {BUDGET_OPTIONS.map((b) => (
                             <Pressable
                                 key={b.value}
@@ -231,8 +232,8 @@ const ContactForm: React.FC<ContactFormProps> = ({ onSuccess, initialData, isEdi
                 </View>
 
                 <View>
-                    <Typography variant="label" style={{ marginBottom: 8, marginLeft: 4 }}>Interests</Typography>
-                    <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+                    <Typography variant="label" style={{ marginBottom: moderateScale(8), marginLeft: moderateScale(4) }}>Interests</Typography>
+                    <View style={{ flexDirection: 'row', gap: moderateScale(8), flexWrap: 'wrap' }}>
                         {INTEREST_OPTIONS.map((i) => {
                             const isSelected = interests.includes(i);
                             return (
@@ -287,12 +288,12 @@ const ContactForm: React.FC<ContactFormProps> = ({ onSuccess, initialData, isEdi
 
 const styles = StyleSheet.create({
     form: {
-        gap: 20,
+        gap: moderateScale(20),
     },
     typeBtn: {
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        borderRadius: 12,
+        paddingHorizontal: moderateScale(16),
+        paddingVertical: moderateScale(10),
+        borderRadius: moderateScale(12),
     },
 });
 

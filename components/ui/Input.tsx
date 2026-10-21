@@ -59,7 +59,7 @@ const Input: React.FC<Props> = ({
         {
             backgroundColor: colors.surface,
             borderColor: error ? colors.error : isFocused ? colors.primary : colors.border,
-            minHeight: multiline ? 100 : 56,
+            minHeight: multiline ? moderateScale(100) : moderateScale(56),
             paddingTop: multiline ? spacing.md : 0,
         },
     ];
@@ -124,7 +124,7 @@ const Input: React.FC<Props> = ({
                 )}
                 {secureTextEntry ? (
                     <Pressable onPress={() => setShowPassword(!showPassword)} style={styles.rightIcon}>
-                        <HugeiconsIcon icon={showPassword ? ViewOffIcon : ViewIcon} size={20} color={colors.textMuted} />
+                        <HugeiconsIcon icon={showPassword ? ViewOffIcon : ViewIcon} size={moderateScale(20)} color={colors.textMuted} />
                     </Pressable>
                 ) : rightIcon ? (
                     <View style={styles.rightIcon}>{rightIcon}</View>
@@ -150,9 +150,9 @@ const styles = StyleSheet.create({
     inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        borderRadius: 16,
+        borderRadius: moderateScale(16),
         borderWidth: 1.5,
-        paddingHorizontal: 16,
+        paddingHorizontal: moderateScale(16),
     },
     input: {
         flex: 1,
@@ -161,10 +161,10 @@ const styles = StyleSheet.create({
         fontSize: moderateScale(16),
     },
     leftIcon: {
-        marginRight: 10,
+        marginRight: moderateScale(10),
     },
     rightIcon: {
-        marginLeft: 10,
+        marginLeft: moderateScale(10),
     },
     error: {
         fontFamily: typography.fonts.body,

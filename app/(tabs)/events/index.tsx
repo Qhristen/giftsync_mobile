@@ -20,6 +20,7 @@ import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, SectionList, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { moderateScale } from '@/utils/scaling';
 
 const eventIcon = (title?: string) => {
     const value = title?.toLowerCase() || '';
@@ -107,7 +108,7 @@ export default function PlansScreen() {
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+            <View style={[styles.header, { paddingTop: insets.top + moderateScale(10) }]}>
                 <View style={{ paddingHorizontal: spacing.xl }}>
                     <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>THE DATE MAP</Typography>
                     <Typography variant="h1">Plans for your people</Typography>
@@ -119,7 +120,7 @@ export default function PlansScreen() {
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     onLayout={(event) => setScrollWidth(event.nativeEvent.layout.width)}
-                    contentContainerStyle={{ paddingHorizontal: spacing.xl, gap: 9, paddingVertical: 16 }}
+                    contentContainerStyle={{ paddingHorizontal: spacing.xl, gap: moderateScale(9), paddingVertical: moderateScale(16) }}
                 >
                     {visibleMonths.map(({ name, index }) => {
                         const active = index === selectedMonthIndex;
@@ -157,17 +158,17 @@ export default function PlansScreen() {
                                 <Typography variant="body" color={colors.textSecondary} numberOfLines={1}>{featured.title}</Typography>
                                 <View style={[styles.openPlan, { backgroundColor: colors.ink }]}>
                                     <Typography variant="caption" color={colors.surface} style={styles.overline}>OPEN PLAN</Typography>
-                                    <HugeiconsIcon icon={ArrowRight01Icon} size={16} color={colors.surface} />
+                                    <HugeiconsIcon icon={ArrowRight01Icon} size={moderateScale(16)} color={colors.surface} />
                                 </View>
                             </View>
                             <View style={[styles.featuredIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                                <HugeiconsIcon icon={eventIcon(featured.title)} size={25} color={colors.primary} />
+                                <HugeiconsIcon icon={eventIcon(featured.title)} size={moderateScale(25)} color={colors.primary} />
                             </View>
                         </Pressable>
                     </View>
                 ) : (
                     <Pressable onPress={addPlan} style={[styles.emptyFeature, { marginHorizontal: spacing.xl, backgroundColor: colors.mint, borderColor: colors.ink }]}>
-                        <HugeiconsIcon icon={Add01Icon} size={28} color={colors.ink} />
+                        <HugeiconsIcon icon={Add01Icon} size={moderateScale(28)} color={colors.ink} />
                         <View style={{ flex: 1 }}>
                             <Typography variant="h3">Map the first moment.</Typography>
                             <Typography variant="caption" color={colors.textSecondary}>Choose someone from your contacts to begin.</Typography>
@@ -184,7 +185,7 @@ export default function PlansScreen() {
                     keyExtractor={(item) => item.id}
                     showsVerticalScrollIndicator={false}
                     refreshControl={<RefreshControl refreshing={monthlyFetching || upcomingFetching} onRefresh={onRefresh} tintColor={colors.primary} />}
-                    contentContainerStyle={{ paddingTop: 12, paddingBottom: 120 }}
+                    contentContainerStyle={{ paddingTop: moderateScale(12), paddingBottom: moderateScale(120) }}
                     renderSectionHeader={({ section }) => (
                         <View style={[styles.sectionHeader, { backgroundColor: colors.background, paddingHorizontal: spacing.xl }]}>
                             <View style={[styles.sectionLine, { backgroundColor: colors.ink }]} />
@@ -209,7 +210,7 @@ export default function PlansScreen() {
                                         <Typography variant="h4" numberOfLines={1}>{item.contact?.name || item.title}</Typography>
                                     </View>
                                     <View style={[styles.rowIcon, { backgroundColor: palette[colorIndex], borderColor: colors.ink }]}>
-                                        <HugeiconsIcon icon={eventIcon(item.title)} size={19} color={colors.ink} />
+                                        <HugeiconsIcon icon={eventIcon(item.title)} size={moderateScale(19)} color={colors.ink} />
                                     </View>
                                 </Pressable>
                             </View>
@@ -225,9 +226,9 @@ export default function PlansScreen() {
 
             <Pressable
                 onPress={addPlan}
-                style={({ pressed }) => [styles.fab, { bottom: Math.max(insets.bottom, 10), right: spacing.xl, backgroundColor: colors.accent, borderColor: colors.ink }, pressed && styles.pressed]}
+                style={({ pressed }) => [styles.fab, { bottom: Math.max(insets.bottom, moderateScale(10)), right: spacing.xl, backgroundColor: colors.accent, borderColor: colors.ink }, pressed && styles.pressed]}
             >
-                <HugeiconsIcon icon={Add01Icon} size={21} color="#17151D" />
+                <HugeiconsIcon icon={Add01Icon} size={moderateScale(21)} color="#17151D" />
                 <Typography variant="label" color="#17151D">Add a stop</Typography>
             </Pressable>
 
@@ -243,22 +244,22 @@ export default function PlansScreen() {
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
-    header: { paddingBottom: 8 },
-    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.8 },
-    monthTicket: { width: 62, height: 63, borderWidth: 1.5, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-    featuredPlan: { minHeight: 156, borderWidth: 1.5, borderRadius: 24, padding: 15, flexDirection: 'row', alignItems: 'stretch', gap: 13, },
-    featuredDate: { width: 78, borderWidth: 1.5, borderRadius: 18, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-3deg' }] },
-    featuredDay: { fontSize: 38, lineHeight: 42 },
-    featuredCopy: { flex: 1, justifyContent: 'center', gap: 3 },
-    openPlan: { alignSelf: 'flex-start', minHeight: 33, borderRadius: 10, paddingHorizontal: 9, flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 8 },
-    featuredIcon: { position: 'absolute', width: 42, height: 42, borderWidth: 1.25, borderRadius: 13, right: 12, top: -9, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '5deg' }] },
-    emptyFeature: {borderWidth: 1.5, borderRadius: 22, padding: 17, flexDirection: 'row', alignItems: 'center', gap: 13 },
-    sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingTop: 15, paddingBottom: 10 },
-    sectionLine: { width: 28, height: 2 },
-    mapRow: { minHeight: 90, borderWidth: 1.5, borderRadius: 20, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 14, },
-    mapDate: { width: 58, height: 62, borderWidth: 1.25, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-    rowIcon: { width: 38, height: 38, borderWidth: 1.25, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-    onlyPlan: { paddingVertical: 16, alignItems: 'center' },
-    fab: { position: 'absolute', minWidth: 126, height: 50, borderWidth: 1.5, borderRadius: 16, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, },
-    pressed: { opacity: 0.85, transform: [{ translateY: 2 }] },
+    header: { paddingBottom: moderateScale(8) },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: moderateScale(0.8) },
+    monthTicket: { width: moderateScale(62), height: moderateScale(63), borderWidth: 1.5, borderRadius: moderateScale(14), alignItems: 'center', justifyContent: 'center' },
+    featuredPlan: { minHeight: moderateScale(156), borderWidth: 1.5, borderRadius: moderateScale(24), padding: moderateScale(15), flexDirection: 'row', alignItems: 'stretch', gap: moderateScale(13), },
+    featuredDate: { width: moderateScale(78), borderWidth: 1.5, borderRadius: moderateScale(18), alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-3deg' }] },
+    featuredDay: { fontSize: moderateScale(38), lineHeight: moderateScale(42) },
+    featuredCopy: { flex: 1, justifyContent: 'center', gap: moderateScale(3) },
+    openPlan: { alignSelf: 'flex-start', minHeight: moderateScale(33), borderRadius: moderateScale(10), paddingHorizontal: moderateScale(9), flexDirection: 'row', alignItems: 'center', gap: moderateScale(5), marginTop: moderateScale(8) },
+    featuredIcon: { position: 'absolute', width: moderateScale(42), height: moderateScale(42), borderWidth: 1.25, borderRadius: moderateScale(13), right: moderateScale(12), top: moderateScale(-9), alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '5deg' }] },
+    emptyFeature: {borderWidth: 1.5, borderRadius: moderateScale(22), padding: moderateScale(17), flexDirection: 'row', alignItems: 'center', gap: moderateScale(13) },
+    sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: moderateScale(10), paddingTop: moderateScale(15), paddingBottom: moderateScale(10) },
+    sectionLine: { width: moderateScale(28), height: moderateScale(2) },
+    mapRow: { minHeight: moderateScale(90), borderWidth: 1.5, borderRadius: moderateScale(20), padding: moderateScale(12), flexDirection: 'row', alignItems: 'center', gap: moderateScale(12), marginBottom: moderateScale(14), },
+    mapDate: { width: moderateScale(58), height: moderateScale(62), borderWidth: 1.25, borderRadius: moderateScale(14), alignItems: 'center', justifyContent: 'center' },
+    rowIcon: { width: moderateScale(38), height: moderateScale(38), borderWidth: 1.25, borderRadius: moderateScale(12), alignItems: 'center', justifyContent: 'center' },
+    onlyPlan: { paddingVertical: moderateScale(16), alignItems: 'center' },
+    fab: { position: 'absolute', minWidth: moderateScale(126), height: moderateScale(50), borderWidth: 1.5, borderRadius: moderateScale(16), paddingHorizontal: moderateScale(14), flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: moderateScale(7), },
+    pressed: { opacity: 0.85, transform: [{ translateY: moderateScale(2) }] },
 });

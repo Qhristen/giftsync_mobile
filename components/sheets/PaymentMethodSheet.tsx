@@ -12,6 +12,7 @@ import Button from '../ui/Button';
 import Card from '../ui/Card';
 import Typography from '../ui/Typography';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { moderateScale } from '@/utils/scaling';
 
 export const PAYMENT_METHODS = [
     { id: 'bachs', name: 'Bachs', icon: CreditCardIcon, color: '#6D5DFB' },
@@ -56,18 +57,18 @@ const PaymentMethodSheet = forwardRef<BottomSheetRef, PaymentMethodSheetProps>((
                                         borderWidth: 1.5,
                                         backgroundColor: isSelected ? colors.mint : colors.sky,
                                         marginBottom: spacing.lg,
-                                        padding: 12
+                                        padding: moderateScale(12)
                                     }
                                 ]}
                             >
-                                <View style={[styles.iconBox, { backgroundColor: colors.surface, borderColor: colors.ink, width: 44, height: 44, borderRadius: 14 }]}>
-                                    <HugeiconsIcon icon={method.icon} size={21} color={colors.ink} />
+                                <View style={[styles.iconBox, { backgroundColor: colors.surface, borderColor: colors.ink, width: moderateScale(44), height: moderateScale(44), borderRadius: moderateScale(14) }]}>
+                                    <HugeiconsIcon icon={method.icon} size={moderateScale(21)} color={colors.ink} />
                                 </View>
-                                <View style={{ flex: 1, marginLeft: 16 }}>
+                                <View style={{ flex: 1, marginLeft: moderateScale(16) }}>
                                     <Typography variant="bodyBold">{method.name}</Typography>
                                 </View>
                                 {isSelected && (
-                                    <HugeiconsIcon icon={CheckmarkCircle02Icon} size={24} color={colors.ink} />
+                                    <HugeiconsIcon icon={CheckmarkCircle02Icon} size={moderateScale(24)} color={colors.ink} />
                                 )}
                             </Card>
                         </Pressable>
@@ -89,7 +90,7 @@ const PaymentMethodSheet = forwardRef<BottomSheetRef, PaymentMethodSheetProps>((
 });
 
 const styles = StyleSheet.create({
-    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 1 },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: moderateScale(1) },
     modalHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -98,7 +99,7 @@ const styles = StyleSheet.create({
     packageCard: {
         flexDirection: 'row',
         alignItems: 'center',
-        borderRadius: 19,
+        borderRadius: moderateScale(19),
     },
     iconBox: {
         justifyContent: 'center',

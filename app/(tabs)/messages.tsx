@@ -16,6 +16,7 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { moderateScale } from '@/utils/scaling';
 
 export default function MessagesScreen() {
     const router = useRouter();
@@ -65,7 +66,7 @@ export default function MessagesScreen() {
 
     if (isLoading && !data) {
         return (
-            <View style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top + 10 }]}>
+            <View style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top + moderateScale(10) }]}>
                 <ConversationListSkeleton />
             </View>
         );
@@ -73,14 +74,14 @@ export default function MessagesScreen() {
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <View style={[styles.header, { paddingTop: insets.top + 10, paddingHorizontal: spacing.xl }]}>
+            <View style={[styles.header, { paddingTop: insets.top + moderateScale(10), paddingHorizontal: spacing.xl }]}>
                 <View style={styles.headerTop}>
                     <View style={{ flex: 1 }}>
                         <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>THE CORRESPONDENCE DESK</Typography>
                         <Typography variant="h1">Gift talk</Typography>
                     </View>
                     <Pressable onPress={refetch} style={[styles.refreshButton, { backgroundColor: colors.accent, borderColor: colors.ink }]}>
-                        <HugeiconsIcon icon={RefreshIcon} size={20} color="#17151D" />
+                        <HugeiconsIcon icon={RefreshIcon} size={moderateScale(20)} color="#17151D" />
                     </Pressable>
                 </View>
 
@@ -92,7 +93,7 @@ export default function MessagesScreen() {
                     <View style={[styles.letterBack, styles.letterOne, { backgroundColor: colors.peach, borderColor: colors.ink }]} />
                     <View style={[styles.letterBack, styles.letterTwo, { backgroundColor: colors.mint, borderColor: colors.ink }]} />
                     <View style={[styles.mailIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                        <HugeiconsIcon icon={BubbleChatIcon} size={27} color={colors.primary} />
+                        <HugeiconsIcon icon={BubbleChatIcon} size={moderateScale(27)} color={colors.primary} />
                     </View>
                     <View style={styles.mailCopy}>
                         <Typography variant="caption" style={styles.overline}>{unreadCount ? `${unreadCount} NOTE${unreadCount === 1 ? '' : 'S'} WAITING` : 'ALL CAUGHT UP'}</Typography>
@@ -106,7 +107,7 @@ export default function MessagesScreen() {
                     </View>
                     {featured && (
                         <View style={[styles.openLetter, { backgroundColor: colors.ink }]}>
-                            <HugeiconsIcon icon={ArrowRight01Icon} size={19} color={colors.surface} />
+                            <HugeiconsIcon icon={ArrowRight01Icon} size={moderateScale(19)} color={colors.surface} />
                         </View>
                     )}
                 </Pressable>
@@ -130,13 +131,13 @@ export default function MessagesScreen() {
                 data={threads}
                 keyExtractor={(item) => item.id}
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingTop: 4, paddingBottom: 120, flexGrow: 1 }}
+                contentContainerStyle={{ paddingTop: moderateScale(4), paddingBottom: moderateScale(120), flexGrow: 1 }}
                 refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} tintColor={colors.primary} />}
                 renderItem={renderConversation}
                 ListEmptyComponent={
                     <View style={[styles.emptyTray, { marginHorizontal: spacing.xl, backgroundColor: colors.mint, borderColor: colors.ink }]}>
                         <View style={[styles.emptyIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                            <HugeiconsIcon icon={BubbleChatIcon} size={27} color={colors.primary} />
+                            <HugeiconsIcon icon={BubbleChatIcon} size={moderateScale(27)} color={colors.primary} />
                         </View>
                         <Typography variant="h4">{filter === 'Unread' ? 'No unopened notes.' : featured ? 'That’s the only thread for now.' : 'The desk is quiet.'}</Typography>
                         <Typography variant="body" color={colors.textSecondary} align="center">Messages about gifts and orders will be filed here.</Typography>
@@ -149,21 +150,21 @@ export default function MessagesScreen() {
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
-    header: { paddingBottom: 12 },
-    headerTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.8 },
-    refreshButton: { width: 44, height: 44, borderWidth: 1.5, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-    mailDesk: { minHeight: 134, marginTop: 18, borderWidth: 1.5, borderRadius: 23, padding: 15, flexDirection: 'row', alignItems: 'center', gap: 13, overflow: 'hidden', },
-    letterBack: { position: 'absolute', width: 72, height: 50, borderWidth: 1.25, borderRadius: 8, right: -16 },
-    letterOne: { top: -8, transform: [{ rotate: '13deg' }] },
-    letterTwo: { bottom: -14, transform: [{ rotate: '-10deg' }] },
-    mailIcon: { width: 54, height: 54, borderWidth: 1.5, borderRadius: 17, alignItems: 'center', justifyContent: 'center', zIndex: 2, transform: [{ rotate: '-4deg' }] },
-    mailCopy: { flex: 1, gap: 2, zIndex: 2 },
-    openLetter: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center', zIndex: 2 },
-    deskToolbar: { marginTop: 24, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 10 },
-    filters: { flexDirection: 'row', borderWidth: 1.25, borderRadius: 12, padding: 3 },
-    filter: { minWidth: 49, height: 31, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
-    emptyTray: { marginTop: 12, borderWidth: 1.5, borderRadius: 21, padding: 24, alignItems: 'center', gap: 7 },
-    emptyIcon: { width: 54, height: 54, borderWidth: 1.5, borderRadius: 17, alignItems: 'center', justifyContent: 'center', marginBottom: 3 },
-    pressed: { opacity: 0.85, transform: [{ translateY: 2 }] },
+    header: { paddingBottom: moderateScale(12) },
+    headerTop: { flexDirection: 'row', alignItems: 'center', gap: moderateScale(12) },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: moderateScale(0.8) },
+    refreshButton: { width: moderateScale(44), height: moderateScale(44), borderWidth: 1.5, borderRadius: moderateScale(14), alignItems: 'center', justifyContent: 'center' },
+    mailDesk: { minHeight: moderateScale(134), marginTop: moderateScale(18), borderWidth: 1.5, borderRadius: moderateScale(23), padding: moderateScale(15), flexDirection: 'row', alignItems: 'center', gap: moderateScale(13), overflow: 'hidden', },
+    letterBack: { position: 'absolute', width: moderateScale(72), height: moderateScale(50), borderWidth: 1.25, borderRadius: moderateScale(8), right: moderateScale(-16) },
+    letterOne: { top: moderateScale(-8), transform: [{ rotate: '13deg' }] },
+    letterTwo: { bottom: moderateScale(-14), transform: [{ rotate: '-10deg' }] },
+    mailIcon: { width: moderateScale(54), height: moderateScale(54), borderWidth: 1.5, borderRadius: moderateScale(17), alignItems: 'center', justifyContent: 'center', zIndex: 2, transform: [{ rotate: '-4deg' }] },
+    mailCopy: { flex: 1, gap: moderateScale(2), zIndex: 2 },
+    openLetter: { width: moderateScale(38), height: moderateScale(38), borderRadius: moderateScale(12), alignItems: 'center', justifyContent: 'center', zIndex: 2 },
+    deskToolbar: { marginTop: moderateScale(24), flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: moderateScale(10) },
+    filters: { flexDirection: 'row', borderWidth: 1.25, borderRadius: moderateScale(12), padding: moderateScale(3) },
+    filter: { minWidth: moderateScale(49), height: moderateScale(31), borderRadius: moderateScale(9), alignItems: 'center', justifyContent: 'center' },
+    emptyTray: { marginTop: moderateScale(12), borderWidth: 1.5, borderRadius: moderateScale(21), padding: moderateScale(24), alignItems: 'center', gap: moderateScale(7) },
+    emptyIcon: { width: moderateScale(54), height: moderateScale(54), borderWidth: 1.5, borderRadius: moderateScale(17), alignItems: 'center', justifyContent: 'center', marginBottom: moderateScale(3) },
+    pressed: { opacity: 0.85, transform: [{ translateY: moderateScale(2) }] },
 });

@@ -111,8 +111,8 @@ export default function ChatDetailScreen() {
 
     const displayName = conversation?.order?.item?.product?.name || 'Chat';
     const conversationNames = conversation ? getConversationNames(conversation, currentUserId) : null;
-    const avatarSize = 28;
-    const overlap = 10;
+    const avatarSize = moderateScale(28);
+    const overlap = moderateScale(10);
     const groupWidth = participants.length > 0
         ? avatarSize + (participants.length - 1) * (avatarSize - overlap)
         : avatarSize;
@@ -393,7 +393,7 @@ export default function ChatDetailScreen() {
                 }
             ]}>
                 <Pressable onPress={() => router.back()} style={styles.backBtn}>
-                    <HugeiconsIcon icon={ArrowLeft01Icon} size={28} color={colors.textPrimary} />
+                    <HugeiconsIcon icon={ArrowLeft01Icon} size={moderateScale(28)} color={colors.textPrimary} />
                 </Pressable>
 
                 <View style={styles.headerTitle}>
@@ -428,7 +428,7 @@ export default function ChatDetailScreen() {
                 </View>
 
                 <Pressable onPress={handleHeaderOptions} style={styles.headerRightBtn}>
-                    <HugeiconsIcon icon={MoreHorizontalIcon} size={24} color={colors.textPrimary} />
+                    <HugeiconsIcon icon={MoreHorizontalIcon} size={moderateScale(24)} color={colors.textPrimary} />
                 </Pressable>
             </View>
 
@@ -473,7 +473,7 @@ export default function ChatDetailScreen() {
                             horizontal
                             showsHorizontalScrollIndicator={false}
                             keyExtractor={(uri, index) => `${uri}-${index}`}
-                            contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 12, gap: 12 }}
+                            contentContainerStyle={{ paddingHorizontal: moderateScale(16), paddingVertical: moderateScale(12), gap: moderateScale(12) }}
                             renderItem={({ item: uri, index }) => (
                                 <View style={styles.previewWrapper}>
                                     <Image source={{ uri }} style={styles.imagePreview} />
@@ -481,7 +481,7 @@ export default function ChatDetailScreen() {
                                         onPress={() => setSelectedImages(prev => prev.filter((_, i) => i !== index))}
                                         style={[styles.removeBtn, { backgroundColor: colors.surfaceRaised, borderColor: colors.border }]}
                                     >
-                                        <HugeiconsIcon icon={Cancel01Icon} size={12} color={colors.textPrimary} />
+                                        <HugeiconsIcon icon={Cancel01Icon} size={moderateScale(12)} color={colors.textPrimary} />
                                     </Pressable>
                                 </View>
                             )}
@@ -494,14 +494,14 @@ export default function ChatDetailScreen() {
                     {
                         borderTopColor: colors.border,
                         backgroundColor: colors.surface,
-                        paddingBottom: insets.bottom + 12,
+                        paddingBottom: insets.bottom + moderateScale(12),
                     }
                 ]}>
                     <Pressable
                         onPress={handlePickImage}
                         style={styles.attachBtn}
                     >
-                        <HugeiconsIcon icon={PlusSignCircleIcon} size={28} color={colors.textSecondary} />
+                        <HugeiconsIcon icon={PlusSignCircleIcon} size={moderateScale(28)} color={colors.textSecondary} />
                     </Pressable>
                     <View style={styles.inputWrapper}>
                         <TextInput
@@ -530,7 +530,7 @@ export default function ChatDetailScreen() {
                     >
                         <HugeiconsIcon
                             icon={SentIcon}
-                            size={20}
+                            size={moderateScale(20)}
                             color={(messageText.trim() || selectedImages.length > 0) ? '#FFFFFF' : colors.textMuted}
                         />
                     </Pressable>
@@ -552,10 +552,10 @@ export default function ChatDetailScreen() {
                                 styles.floatingMenu,
                                 {
                                     backgroundColor: colors.surface,
-                                    top: Math.min(Math.max(insets.top + 60, menuPosition.y - 120), screenHeight - 200),
+                                    top: Math.min(Math.max(insets.top + moderateScale(60), menuPosition.y - moderateScale(120)), screenHeight - moderateScale(200)),
                                     left: selectedMessage?.sender?.id === currentUserId
-                                        ? Math.max(20, menuPosition.x - 190)
-                                        : Math.min(screenWidth - 210, menuPosition.x + 10),
+                                        ? Math.max(moderateScale(20), menuPosition.x - moderateScale(190))
+                                        : Math.min(screenWidth - moderateScale(210), menuPosition.x + moderateScale(10)),
                                 }
                             ]}
                         >
@@ -566,7 +566,7 @@ export default function ChatDetailScreen() {
                                 ]}
                                 onPress={handleCopy}
                             >
-                                <HugeiconsIcon icon={Copy01Icon} size={18} color={colors.textPrimary} />
+                                <HugeiconsIcon icon={Copy01Icon} size={moderateScale(18)} color={colors.textPrimary} />
                                 <Typography variant="body">Copy Text</Typography>
                             </Pressable>
 
@@ -579,7 +579,7 @@ export default function ChatDetailScreen() {
                                 ]}
                                 onPress={() => setIsOptionsVisible(false)}
                             >
-                                <HugeiconsIcon icon={Cancel01Icon} size={18} color={colors.error} />
+                                <HugeiconsIcon icon={Cancel01Icon} size={moderateScale(18)} color={colors.error} />
                                 <Typography variant="body" color={colors.error}>Cancel</Typography>
                             </Pressable>
                         </View>
@@ -627,10 +627,10 @@ export default function ChatDetailScreen() {
             >
                 <View style={[styles.viewerContainer, { backgroundColor: 'rgba(0,0,0,0.95)' }]}>
                     <Pressable
-                        style={[styles.viewerCloseBtn, { top: insets.top + 10 }]}
+                        style={[styles.viewerCloseBtn, { top: insets.top + moderateScale(10) }]}
                         onPress={() => setViewerConfig(null)}
                     >
-                        <HugeiconsIcon icon={Cancel01Icon} size={32} color="#FFFFFF" />
+                        <HugeiconsIcon icon={Cancel01Icon} size={moderateScale(32)} color="#FFFFFF" />
                     </Pressable>
                     {viewerConfig && (
                         <FlatList
@@ -670,18 +670,18 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 8,
-        paddingBottom: 10,
+        paddingHorizontal: moderateScale(8),
+        paddingBottom: moderateScale(10),
     },
     backBtn: {
-        padding: 8,
+        padding: moderateScale(8),
     },
     headerTitle: {
         flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 10,
-        marginLeft: 4,
+        gap: moderateScale(10),
+        marginLeft: moderateScale(4),
     },
     headerAvatarGroup: {
         flexDirection: 'row',
@@ -691,10 +691,10 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     headerRightBtn: {
-        padding: 8,
+        padding: moderateScale(8),
     },
     messageList: {
-        paddingVertical: 20,
+        paddingVertical: moderateScale(20),
     },
     messageArea: {
         flex: 1,
@@ -702,27 +702,27 @@ const styles = StyleSheet.create({
     inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 12,
-        paddingVertical: 12,
+        paddingHorizontal: moderateScale(12),
+        paddingVertical: moderateScale(12),
         // borderTopWidth: 1,
     },
     attachBtn: {
-        padding: 4,
+        padding: moderateScale(4),
     },
     inputWrapper: {
         flex: 1,
-        marginHorizontal: 8,
+        marginHorizontal: moderateScale(8),
     },
     input: {
-        height: 44,
-        borderRadius: 22,
-        paddingHorizontal: 16,
+        height: moderateScale(44),
+        borderRadius: moderateScale(22),
+        paddingHorizontal: moderateScale(16),
         fontSize: moderateScale(16),
     },
     sendBtn: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
+        width: moderateScale(44),
+        height: moderateScale(44),
+        borderRadius: moderateScale(22),
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -732,19 +732,19 @@ const styles = StyleSheet.create({
     menuOption: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 12,
-        borderRadius: 12,
-        gap: 12,
+        padding: moderateScale(12),
+        borderRadius: moderateScale(12),
+        gap: moderateScale(12),
     },
     floatingMenu: {
         position: 'absolute',
-        width: 170,
-        borderRadius: 16,
-        padding: 4,
+        width: moderateScale(170),
+        borderRadius: moderateScale(16),
+        padding: moderateScale(4),
     },
     menuSeparator: {
-        height: 1,
-        marginHorizontal: 12,
+        height: moderateScale(1),
+        marginHorizontal: moderateScale(12),
     },
     imagePreviewContainer: {
         borderTopWidth: 1,
@@ -753,17 +753,17 @@ const styles = StyleSheet.create({
         position: 'relative',
     },
     imagePreview: {
-        width: 80,
-        height: 80,
-        borderRadius: 12,
+        width: moderateScale(80),
+        height: moderateScale(80),
+        borderRadius: moderateScale(12),
     },
     removeBtn: {
         position: 'absolute',
-        top: -6,
-        right: -6,
-        width: 20,
-        height: 20,
-        borderRadius: 10,
+        top: moderateScale(-6),
+        right: moderateScale(-6),
+        width: moderateScale(20),
+        height: moderateScale(20),
+        borderRadius: moderateScale(10),
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 1,
@@ -779,8 +779,8 @@ const styles = StyleSheet.create({
     },
     viewerCloseBtn: {
         position: 'absolute',
-        right: 20,
+        right: moderateScale(20),
         zIndex: 10,
-        padding: 8,
+        padding: moderateScale(8),
     },
 });

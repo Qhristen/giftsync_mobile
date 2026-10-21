@@ -27,6 +27,7 @@ import React, { useState } from 'react';
 import { ActivityIndicator, Image, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
+import { moderateScale } from '@/utils/scaling';
 
 export default function AddProductScreen() {
     const router = useRouter();
@@ -190,7 +191,7 @@ export default function AddProductScreen() {
             <KeyboardAvoidingView behavior='padding' style={{ flex: 1 }}>
                 <View style={[styles.header, { borderBottomColor: colors.border + '33' }]}>
                     <Pressable onPress={() => router.back()} style={styles.backButton}>
-                        <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
+                        <HugeiconsIcon icon={ArrowLeft01Icon} size={moderateScale(24)} color={colors.textPrimary} />
                     </Pressable>
                     <Typography variant="h3">{isEditing ? 'Edit Product' : 'Add Product'}</Typography>
                     <Pressable onPress={handleSave} disabled={isSubmitting || isUploading}>
@@ -205,7 +206,7 @@ export default function AddProductScreen() {
                 </View>
 
                 <ScrollView
-                    contentContainerStyle={{ padding: spacing.xl, paddingBottom: 100 }}
+                    contentContainerStyle={{ padding: spacing.xl, paddingBottom: moderateScale(100) }}
                     showsVerticalScrollIndicator={false}
                 >
                     <Typography variant="label" style={{ marginBottom: spacing.md }}>Product Images</Typography>
@@ -220,12 +221,12 @@ export default function AddProductScreen() {
                                     }))}
                                     style={styles.removeImageBtn}
                                 >
-                                    <HugeiconsIcon icon={Cancel01Icon} size={24} color={colors.error} />
+                                    <HugeiconsIcon icon={Cancel01Icon} size={moderateScale(24)} color={colors.error} />
                                 </Pressable>
                             </View>
                         ))}
                         <Pressable onPress={addImage} style={[styles.addImageBtn, { borderColor: colors.border, backgroundColor: colors.surfaceRaised }]}>
-                            <HugeiconsIcon icon={Camera01Icon} size={32} color={colors.textSecondary} />
+                            <HugeiconsIcon icon={Camera01Icon} size={moderateScale(32)} color={colors.textSecondary} />
                             <Typography variant="caption" color={colors.textSecondary}>Add Image</Typography>
                         </Pressable>
                     </ScrollView>
@@ -252,7 +253,7 @@ export default function AddProductScreen() {
                                     placeholder="Select a category"
                                     value={params.categoryName as string || ""}
                                     editable={false}
-                                    rightIcon={<HugeiconsIcon icon={ArrowDown01Icon} size={20} color={colors.textSecondary} />}
+                                    rightIcon={<HugeiconsIcon icon={ArrowDown01Icon} size={moderateScale(20)} color={colors.textSecondary} />}
                                 />
                             </View>
                         </Pressable>
@@ -262,7 +263,7 @@ export default function AddProductScreen() {
                                     label="Currency"
                                     value={formData.currency ?? ""}
                                     editable={false}
-                                    rightIcon={<HugeiconsIcon icon={ArrowDown01Icon} size={20} color={colors.textSecondary} />}
+                                    rightIcon={<HugeiconsIcon icon={ArrowDown01Icon} size={moderateScale(20)} color={colors.textSecondary} />}
                                 />
                             </View>
                         </Pressable>
@@ -327,7 +328,7 @@ export default function AddProductScreen() {
                                 // blurOnSubmit={false}
                                 rightIcon={
                                     <Pressable onPress={() => addTag()} hitSlop={10}>
-                                        <HugeiconsIcon icon={Add01Icon} size={24} color={colors.primary} />
+                                        <HugeiconsIcon icon={Add01Icon} size={moderateScale(24)} color={colors.primary} />
                                     </Pressable>
                                 }
                             />
@@ -336,7 +337,7 @@ export default function AddProductScreen() {
                                     <View key={idx} style={[styles.tagChip, { backgroundColor: colors.primary + '10' }]}>
                                         <Typography variant="caption" color={colors.primary} style={{ textTransform: 'lowercase' }}>{tag}</Typography>
                                         <Pressable onPress={() => removeTag(tag)} hitSlop={5}>
-                                            <HugeiconsIcon icon={Cancel01Icon} size={16} color={colors.primary} />
+                                            <HugeiconsIcon icon={Cancel01Icon} size={moderateScale(16)} color={colors.primary} />
                                         </Pressable>
                                     </View>
                                 ))}
@@ -350,7 +351,7 @@ export default function AddProductScreen() {
                             >
                                 <HugeiconsIcon
                                     icon={formData.isAvailable ? ToggleOnIcon : ToggleOffIcon}
-                                    size={40}
+                                    size={moderateScale(40)}
                                     color={formData.isAvailable ? colors.primary : colors.textMuted}
                                 />
                             </Pressable>
@@ -359,7 +360,7 @@ export default function AddProductScreen() {
 
                 </ScrollView>
             </KeyboardAvoidingView>
-            <View style={[styles.footer, { backgroundColor: colors.surface, paddingBottom: insets.bottom + 20 }]}>
+            <View style={[styles.footer, { backgroundColor: colors.surface, paddingBottom: insets.bottom + moderateScale(20) }]}>
 
                 <Button
                     title={(isSubmitting || isUploading) ? 'Saving...' : (isEditing ? 'Update Product' : `Create Product (${productCreationCost} coins)`)}
@@ -399,24 +400,24 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingTop: 60,
-        paddingBottom: 16,
-        paddingHorizontal: 20,
+        paddingTop: moderateScale(60),
+        paddingBottom: moderateScale(16),
+        paddingHorizontal: moderateScale(20),
         borderBottomWidth: 1,
     },
     backButton: {
-        padding: 4,
+        padding: moderateScale(4),
     },
     imageThumb: {
-        width: 100,
-        height: 100,
-        borderRadius: 12,
-        marginRight: 12,
+        width: moderateScale(100),
+        height: moderateScale(100),
+        borderRadius: moderateScale(12),
+        marginRight: moderateScale(12),
     },
     addImageBtn: {
-        width: 100,
-        height: 100,
-        borderRadius: 12,
+        width: moderateScale(100),
+        height: moderateScale(100),
+        borderRadius: moderateScale(12),
         borderWidth: 2,
         borderStyle: 'dashed',
         justifyContent: 'center',
@@ -424,38 +425,38 @@ const styles = StyleSheet.create({
     },
     removeImageBtn: {
         position: 'absolute',
-        top: -3,
-        right: 4,
+        top: moderateScale(-3),
+        right: moderateScale(4),
         zIndex: 10,
     },
     form: {
-        gap: 16,
+        gap: moderateScale(16),
     },
     switchRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginTop: 16,
-        padding: 12,
-        borderRadius: 12,
+        marginTop: moderateScale(16),
+        padding: moderateScale(12),
+        borderRadius: moderateScale(12),
         backgroundColor: 'rgba(0,0,0,0.03)',
     },
     tagContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: 8,
-        marginTop: 8,
+        gap: moderateScale(8),
+        marginTop: moderateScale(8),
     },
     tagChip: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 6,
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 20,
+        gap: moderateScale(6),
+        paddingHorizontal: moderateScale(12),
+        paddingVertical: moderateScale(6),
+        borderRadius: moderateScale(20),
     },
     footer: {
         width: '100%',
-        paddingHorizontal: 24,
+        paddingHorizontal: moderateScale(24),
     },
 });

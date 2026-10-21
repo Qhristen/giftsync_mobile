@@ -11,6 +11,7 @@ import React, { useEffect } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
+import { moderateScale } from '@/utils/scaling';
 
 export default function WelcomeScreen() {
     const router = useRouter();
@@ -53,7 +54,7 @@ export default function WelcomeScreen() {
             <View style={[styles.orb, styles.orbTwo, { backgroundColor: colors.lilac, borderColor: colors.ink }]} />
 
             <ScrollView
-                contentContainerStyle={[styles.content, { paddingTop: insets.top + 16}]}
+                contentContainerStyle={[styles.content, { paddingTop: insets.top + moderateScale(16)}]}
                 showsVerticalScrollIndicator={false}
             >
 
@@ -62,7 +63,7 @@ export default function WelcomeScreen() {
                     <View style={styles.inviteTop}>
                         <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>AN INVITATION TO REMEMBER WELL</Typography>
                         <View style={[styles.postage, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                            <HugeiconsIcon icon={FavouriteIcon} size={19} color={colors.ink} />
+                            <HugeiconsIcon icon={FavouriteIcon} size={moderateScale(19)} color={colors.ink} />
                         </View>
                     </View>
                     <Typography variant="h1" style={styles.heroTitle}>Remember the people. Nail the gift.</Typography>
@@ -77,7 +78,7 @@ export default function WelcomeScreen() {
                             <Typography variant="caption">APR · SHELLY</Typography>
                         </View>
                         <View style={[styles.giftCard, { backgroundColor: colors.mint, borderColor: colors.ink }]}>
-                            <HugeiconsIcon icon={GiftIcon} size={33} color={colors.ink} />
+                            <HugeiconsIcon icon={GiftIcon} size={moderateScale(33)} color={colors.ink} />
                             <View>
                                 <Typography variant="caption" color={colors.textSecondary}>GIFT FOUND</Typography>
                                 <Typography variant="bodyBold">Something very them</Typography>
@@ -90,7 +91,7 @@ export default function WelcomeScreen() {
                     <WelcomeTile icon={Calendar01Icon} title="Dates kept" detail="A quiet memory for every big moment." color={colors.sky} />
                     <WelcomeTile icon={SparklesIcon} title="Ideas found" detail="The shop and concierge work together." color={colors.lavender} />
                     <View style={[styles.wideTile, { backgroundColor: colors.peach, borderColor: colors.ink }]}>
-                        <HugeiconsIcon icon={FavouriteIcon} size={24} color={colors.ink} />
+                        <HugeiconsIcon icon={FavouriteIcon} size={moderateScale(24)} color={colors.ink} />
                         <View style={{ flex: 1 }}>
                             <Typography variant="bodyBold">Love, delivered</Typography>
                             <Typography variant="caption" color={colors.textSecondary}>Plan the note, route, payment, and doorstep in one flow.</Typography>
@@ -99,7 +100,7 @@ export default function WelcomeScreen() {
                 </View>
             </ScrollView>
 
-            <View style={[styles.footer, { backgroundColor: colors.background, paddingBottom: insets.bottom + 16 }]}>
+            <View style={[styles.footer, { backgroundColor: colors.background, paddingBottom: insets.bottom + moderateScale(16) }]}>
                 <Button title="Continue with Google  →" onPress={handleGoogleLogin} isLoading={isSigningIn} size="lg" style={styles.mainButton} />
                 <Typography variant="caption" color={colors.textSecondary} align="center">
                     By continuing, you agree to our{' '}
@@ -117,7 +118,7 @@ function WelcomeTile({ icon, title, detail, color }: { icon: any; title: string;
     return (
         <View style={[styles.tile, { backgroundColor: color, borderColor: colors.ink }]}>
             <View style={[styles.tileIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                <HugeiconsIcon icon={icon} size={22} color={colors.ink} />
+                <HugeiconsIcon icon={icon} size={moderateScale(22)} color={colors.ink} />
             </View>
             <Typography variant="bodyBold">{title}</Typography>
             <Typography variant="caption" color={colors.textSecondary}>{detail}</Typography>
@@ -127,27 +128,27 @@ function WelcomeTile({ icon, title, detail, color }: { icon: any; title: string;
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
-    content: { paddingHorizontal: 20, gap: 22 },
+    content: { paddingHorizontal: moderateScale(20), gap: moderateScale(22) },
     orb: { position: 'absolute', borderWidth: 1.5, opacity: 0.8 },
-    orbOne: { width: 130, height: 130, borderRadius: 65, top: -54, right: -42 },
-    orbTwo: { width: 82, height: 82, borderRadius: 28, bottom: 130, left: -38, transform: [{ rotate: '22deg' }] },
-    brandRow: { flexDirection: 'row', alignItems: 'center', gap: 11 },
-    brandMark: { width: 48, height: 48, borderWidth: 1.5, borderRadius: 15, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-4deg' }] },
-    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 1 },
-    invitation: { borderWidth: 1.5, borderRadius: 28, padding: 21, gap: 10, transform: [{ rotate: '-0.5deg' }] },
-    inviteTape: { position: 'absolute', top: -10, left: '42%', width: 68, height: 21, borderWidth: 1, transform: [{ rotate: '3deg' }] },
-    inviteTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
-    postage: { width: 42, height: 42, borderWidth: 1.5, borderRadius: 8, alignItems: 'center', justifyContent: 'center', borderStyle: 'dashed', transform: [{ rotate: '4deg' }] },
-    heroTitle: { fontSize: 40, lineHeight: 44, marginTop: 5 },
-    heroCopy: { maxWidth: 330 },
-    cardScene: { minHeight: 142, marginTop: 15 },
-    dateCard: { position: 'absolute', left: 4, top: 7, width: 132, height: 126, borderWidth: 1.5, borderRadius: 17, padding: 14, transform: [{ rotate: '-5deg' }] },
-    giftCard: { position: 'absolute', right: 0, top: 27, width: 205, minHeight: 104, borderWidth: 1.5, borderRadius: 18, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 10, transform: [{ rotate: '3deg' }] },
-    bento: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-    tile: { width: '48.2%', borderWidth: 1.5, borderRadius: 21, padding: 14, gap: 6 },
-    tileIcon: { width: 42, height: 42, borderWidth: 1.25, borderRadius: 13, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
-    wideTile: { width: '100%', borderWidth: 1.5, borderRadius: 20, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12 },
-    footer: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 14, gap: 12 },
-    mainButton: { width: '100%', minHeight: 58 },
+    orbOne: { width: moderateScale(130), height: moderateScale(130), borderRadius: moderateScale(65), top: moderateScale(-54), right: moderateScale(-42) },
+    orbTwo: { width: moderateScale(82), height: moderateScale(82), borderRadius: moderateScale(28), bottom: moderateScale(130), left: moderateScale(-38), transform: [{ rotate: '22deg' }] },
+    brandRow: { flexDirection: 'row', alignItems: 'center', gap: moderateScale(11) },
+    brandMark: { width: moderateScale(48), height: moderateScale(48), borderWidth: 1.5, borderRadius: moderateScale(15), alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-4deg' }] },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: moderateScale(1) },
+    invitation: { borderWidth: 1.5, borderRadius: moderateScale(28), padding: moderateScale(21), gap: moderateScale(10), transform: [{ rotate: '-0.5deg' }] },
+    inviteTape: { position: 'absolute', top: moderateScale(-10), left: '42%', width: moderateScale(68), height: moderateScale(21), borderWidth: 1, transform: [{ rotate: '3deg' }] },
+    inviteTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: moderateScale(10) },
+    postage: { width: moderateScale(42), height: moderateScale(42), borderWidth: 1.5, borderRadius: moderateScale(8), alignItems: 'center', justifyContent: 'center', borderStyle: 'dashed', transform: [{ rotate: '4deg' }] },
+    heroTitle: { fontSize: moderateScale(40), lineHeight: moderateScale(44), marginTop: moderateScale(5) },
+    heroCopy: { maxWidth: moderateScale(330) },
+    cardScene: { minHeight: moderateScale(142), marginTop: moderateScale(15) },
+    dateCard: { position: 'absolute', left: moderateScale(4), top: moderateScale(7), width: moderateScale(132), height: moderateScale(126), borderWidth: 1.5, borderRadius: moderateScale(17), padding: moderateScale(14), transform: [{ rotate: '-5deg' }] },
+    giftCard: { position: 'absolute', right: moderateScale(0), top: moderateScale(27), width: moderateScale(205), minHeight: moderateScale(104), borderWidth: 1.5, borderRadius: moderateScale(18), padding: moderateScale(14), flexDirection: 'row', alignItems: 'center', gap: moderateScale(10), transform: [{ rotate: '3deg' }] },
+    bento: { flexDirection: 'row', flexWrap: 'wrap', gap: moderateScale(12) },
+    tile: { width: '48.2%', borderWidth: 1.5, borderRadius: moderateScale(21), padding: moderateScale(14), gap: moderateScale(6) },
+    tileIcon: { width: moderateScale(42), height: moderateScale(42), borderWidth: 1.25, borderRadius: moderateScale(13), alignItems: 'center', justifyContent: 'center', marginBottom: moderateScale(4) },
+    wideTile: { width: '100%', borderWidth: 1.5, borderRadius: moderateScale(20), padding: moderateScale(14), flexDirection: 'row', alignItems: 'center', gap: moderateScale(12) },
+    footer: { position: 'absolute', left: moderateScale(0), right: moderateScale(0), bottom: moderateScale(0), paddingHorizontal: moderateScale(20), paddingTop: moderateScale(14), gap: moderateScale(12) },
+    mainButton: { width: '100%', minHeight: moderateScale(58) },
     legalLink: { fontWeight: '800', textDecorationLine: 'underline' },
 });

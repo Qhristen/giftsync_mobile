@@ -22,6 +22,7 @@ import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import { toast } from 'sonner-native';
+import { moderateScale } from '@/utils/scaling';
 
 type PaymentChoice = 'coins' | 'card';
 
@@ -205,7 +206,7 @@ export default function PaymentScreen() {
                     <PaymentPass
                         active={paymentMethod === 'coins'}
                         color={colors.lavender}
-                        icon={<HugeiconsIcon icon={Money01Icon} size={25} color={colors.ink} />}
+                        icon={<HugeiconsIcon icon={Money01Icon} size={moderateScale(25)} color={colors.ink} />}
                         title="GiftSync coins"
                         detail={`${wallet?.balance?.toLocaleString() ?? '0'} coins available`}
                         onPress={() => setPaymentMethod('coins')}
@@ -213,7 +214,7 @@ export default function PaymentScreen() {
                     <PaymentPass
                         active={paymentMethod === 'card'}
                         color={colors.sky}
-                        icon={<HugeiconsIcon icon={CreditCardIcon} size={25} color={colors.ink} />}
+                        icon={<HugeiconsIcon icon={CreditCardIcon} size={moderateScale(25)} color={colors.ink} />}
                         title="Bank card"
                         detail={`Secure checkout powered by ${gatewayName}`}
                         onPress={() => setPaymentMethod('card')}
@@ -227,7 +228,7 @@ export default function PaymentScreen() {
                 {canUseCoupons && (!appliedCoupon ? (
                     <View style={[styles.couponTicket, { backgroundColor: colors.peach, borderColor: colors.ink }]}>
                         <View style={[styles.couponIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                            <HugeiconsIcon icon={Tag01Icon} size={21} color={colors.ink} />
+                            <HugeiconsIcon icon={Tag01Icon} size={moderateScale(21)} color={colors.ink} />
                         </View>
                         <Input
                             placeholder="COUPON CODE"
@@ -248,7 +249,7 @@ export default function PaymentScreen() {
                 ) : (
                     <View style={[styles.appliedCoupon, { backgroundColor: colors.mint, borderColor: colors.ink }]}>
                         <View style={[styles.couponIcon, { backgroundColor: colors.lime, borderColor: colors.ink }]}>
-                            <HugeiconsIcon icon={Tick01Icon} size={20} color={colors.ink} />
+                            <HugeiconsIcon icon={Tick01Icon} size={moderateScale(20)} color={colors.ink} />
                         </View>
                         <View style={styles.productCopy}>
                             <Typography variant="bodyBold">{appliedCoupon.coupon.code}</Typography>
@@ -262,7 +263,7 @@ export default function PaymentScreen() {
                             onPress={() => { setAppliedCoupon(null); setCouponCode(''); }}
                             style={({ pressed }) => [styles.removeCoupon, { opacity: pressed ? 0.55 : 1 }]}
                         >
-                            <HugeiconsIcon icon={Delete02Icon} size={21} color={colors.error} />
+                            <HugeiconsIcon icon={Delete02Icon} size={moderateScale(21)} color={colors.error} />
                         </Pressable>
                     </View>
                 ))}
@@ -301,7 +302,7 @@ export default function PaymentScreen() {
                 </View>
             </ScrollView>
 
-            <View style={[styles.footer, { backgroundColor: colors.background, paddingBottom: insets.bottom + 16 }]}>
+            <View style={[styles.footer, { backgroundColor: colors.background, paddingBottom: insets.bottom + moderateScale(16) }]}>
                 <Button
                     title={!canPayOrder
                         ? order?.paymentStatus === 'paid' ? 'Payment completed' : 'Payment not available'
@@ -316,7 +317,7 @@ export default function PaymentScreen() {
             </View>
 
             <Modal visible={!!paymentUrl} presentationStyle="pageSheet" onRequestClose={closePaymentWebView}>
-                <View style={[styles.webViewShell, { backgroundColor: colors.background, paddingTop: insets.top + 12 }]}>
+                <View style={[styles.webViewShell, { backgroundColor: colors.background, paddingTop: insets.top + moderateScale(12) }]}>
                     <View style={[styles.webViewHeader, { borderColor: colors.ink }]}>
                         <View>
                             <Typography variant="caption" color={colors.textSecondary}>SECURE CHECKOUT</Typography>
@@ -393,55 +394,55 @@ function ReceiptRow({ label, value, accent = false }: { label: string; value: st
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
-    content: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 136, gap: 18 },
+    content: { paddingHorizontal: moderateScale(20), paddingTop: moderateScale(8), paddingBottom: moderateScale(136), gap: moderateScale(18) },
     orderTicket: {
         borderWidth: 1.5,
-        borderRadius: 24,
-        padding: 17,
-        gap: 15,
+        borderRadius: moderateScale(24),
+        padding: moderateScale(17),
+        gap: moderateScale(15),
 
         transform: [{ rotate: '0.5deg' }],
     },
-    orderTopLine: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
-    overline: { flex: 1, fontWeight: '700', letterSpacing: 1 },
-    orderStamp: { borderWidth: 1.5, borderRadius: 9, paddingHorizontal: 8, paddingVertical: 5, transform: [{ rotate: '3deg' }] },
+    orderTopLine: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: moderateScale(10) },
+    overline: { flex: 1, fontWeight: '700', letterSpacing: moderateScale(1) },
+    orderStamp: { borderWidth: 1.5, borderRadius: moderateScale(9), paddingHorizontal: moderateScale(8), paddingVertical: moderateScale(5), transform: [{ rotate: '3deg' }] },
     stampCopy: { fontWeight: '800' },
-    productRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-    productImage: { width: 68, height: 68, borderRadius: 15 },
+    productRow: { flexDirection: 'row', alignItems: 'center', gap: moderateScale(12) },
+    productImage: { width: moderateScale(68), height: moderateScale(68), borderRadius: moderateScale(15) },
     productCopy: { flex: 1 },
-    sectionHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 3 },
-    methodStack: { gap: 12 },
+    sectionHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: moderateScale(3) },
+    methodStack: { gap: moderateScale(12) },
     paymentPass: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
+        gap: moderateScale(12),
         borderWidth: 1.5,
-        borderRadius: 21,
-        padding: 15,
+        borderRadius: moderateScale(21),
+        padding: moderateScale(15),
     },
-    methodIcon: { width: 48, height: 48, borderRadius: 15, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
-    choiceDot: { width: 28, height: 28, borderRadius: 14, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
-    couponTicket: { flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1.5, borderRadius: 20, padding: 10, borderStyle: 'dashed' },
-    couponIcon: { width: 42, height: 42, borderRadius: 13, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+    methodIcon: { width: moderateScale(48), height: moderateScale(48), borderRadius: moderateScale(15), borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+    choiceDot: { width: moderateScale(28), height: moderateScale(28), borderRadius: moderateScale(14), borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+    couponTicket: { flexDirection: 'row', alignItems: 'center', gap: moderateScale(10), borderWidth: 1.5, borderRadius: moderateScale(20), padding: moderateScale(10), borderStyle: 'dashed' },
+    couponIcon: { width: moderateScale(42), height: moderateScale(42), borderRadius: moderateScale(13), borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
     couponInput: { flex: 1 },
-    clipButton: { minHeight: 56, paddingHorizontal: 16 },
-    appliedCoupon: { flexDirection: 'row', alignItems: 'center', gap: 11, borderWidth: 1.5, borderRadius: 20, padding: 13, borderStyle: 'dashed' },
-    removeCoupon: { padding: 7 },
+    clipButton: { minHeight: moderateScale(56), paddingHorizontal: moderateScale(16) },
+    appliedCoupon: { flexDirection: 'row', alignItems: 'center', gap: moderateScale(11), borderWidth: 1.5, borderRadius: moderateScale(20), padding: moderateScale(13), borderStyle: 'dashed' },
+    removeCoupon: { padding: moderateScale(7) },
     receipt: {
         borderWidth: 1.5,
-        borderRadius: 22,
-        padding: 18,
-        gap: 11,
+        borderRadius: moderateScale(22),
+        padding: moderateScale(18),
+        gap: moderateScale(11),
 
         transform: [{ rotate: '-0.4deg' }],
     },
     receiptHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    dashedLine: { borderTopWidth: 1, borderStyle: 'dashed', marginVertical: 3 },
-    receiptRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 16 },
-    totalRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12 },
-    footer: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 14 },
+    dashedLine: { borderTopWidth: 1, borderStyle: 'dashed', marginVertical: moderateScale(3) },
+    receiptRow: { flexDirection: 'row', justifyContent: 'space-between', gap: moderateScale(16) },
+    totalRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: moderateScale(12) },
+    footer: { position: 'absolute', left: moderateScale(0), right: moderateScale(0), bottom: moderateScale(0), paddingHorizontal: moderateScale(20), paddingTop: moderateScale(14) },
     submitButton: { width: '100%' },
-    webViewShell: { flex: 1, paddingHorizontal: 14, paddingBottom: 14, gap: 14 },
-    webViewHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: 12, borderBottomWidth: 1.5 },
-    webViewFrame: { flex: 1, overflow: 'hidden', borderWidth: 1.5, borderRadius: 22 },
+    webViewShell: { flex: 1, paddingHorizontal: moderateScale(14), paddingBottom: moderateScale(14), gap: moderateScale(14) },
+    webViewHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: moderateScale(12), padding: moderateScale(12), borderBottomWidth: 1.5 },
+    webViewFrame: { flex: 1, overflow: 'hidden', borderWidth: 1.5, borderRadius: moderateScale(22) },
 });

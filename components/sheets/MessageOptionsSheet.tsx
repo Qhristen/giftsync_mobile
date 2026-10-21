@@ -7,6 +7,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { toast } from 'sonner-native';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Typography from '../ui/Typography';
+import { moderateScale } from '@/utils/scaling';
 
 interface Props {
     textToCopy: string;
@@ -38,12 +39,12 @@ const MessageOptionsSheet = forwardRef<BottomSheetRef, Props>(
                     <Pressable
                         style={({ pressed }) => [
                             styles.option,
-                            { backgroundColor: pressed ? colors.surfaceRaised : 'transparent', borderRadius: 12 }
+                            { backgroundColor: pressed ? colors.surfaceRaised : 'transparent', borderRadius: moderateScale(12) }
                         ]}
                         onPress={handleCopy}
                     >
                         <View style={[styles.iconContainer, { backgroundColor: colors.surfaceRaised }]}>
-                            <HugeiconsIcon icon={Copy01Icon} size={20} color={colors.textPrimary} />
+                            <HugeiconsIcon icon={Copy01Icon} size={moderateScale(20)} color={colors.textPrimary} />
                         </View>
                         <Typography variant="bodyBold">Copy Text</Typography>
                     </Pressable>
@@ -60,13 +61,13 @@ const styles = StyleSheet.create({
     option: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 12,
-        gap: 16,
+        padding: moderateScale(12),
+        gap: moderateScale(16),
     },
     iconContainer: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+        width: moderateScale(40),
+        height: moderateScale(40),
+        borderRadius: moderateScale(20),
         justifyContent: 'center',
         alignItems: 'center',
     },

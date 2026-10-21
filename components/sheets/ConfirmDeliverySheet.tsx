@@ -8,6 +8,7 @@ import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Typography from '../ui/Typography';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { moderateScale } from '@/utils/scaling';
 
 interface Props {
     order: Order | null;
@@ -72,7 +73,7 @@ const ConfirmDeliverySheet = forwardRef<BottomSheetRef, Props>(
                             style={{ marginTop: spacing.xl, marginBottom: insets.bottom + spacing['2xl'] }}
                         />
                     </View>
-                ) : <View style={{ height: 100 }} />}
+                ) : <View style={{ height: moderateScale(100) }} />}
             </BottomSheetWrapper>
         );
     }
@@ -80,7 +81,7 @@ const ConfirmDeliverySheet = forwardRef<BottomSheetRef, Props>(
 
 const styles = StyleSheet.create({
     content: {
-        paddingVertical: 12,
+        paddingVertical: moderateScale(12),
     },
 });
 

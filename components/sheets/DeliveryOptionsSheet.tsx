@@ -5,6 +5,7 @@ import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Button from '../ui/Button';
 import Typography from '../ui/Typography';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { moderateScale } from '@/utils/scaling';
 
 interface Props {
     initialTimeWindow: 'morning' | 'afternoon' | 'evening' | null;
@@ -65,34 +66,34 @@ const DeliveryOptionsSheet = forwardRef<BottomSheetRef, Props>(
                     ))}
                 </View>
 
-                <Button style={{ marginBottom: insets.bottom + 50, }} title="Save Selection" onPress={handleSave} />
+                <Button style={{ marginBottom: insets.bottom + moderateScale(50), }} title="Save Selection" onPress={handleSave} />
             </BottomSheetWrapper>
         );
     }
 );
 
 const styles = StyleSheet.create({
-    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 1 },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: moderateScale(1) },
     option: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: 16,
-        borderRadius: 18,
+        padding: moderateScale(16),
+        borderRadius: moderateScale(18),
         borderWidth: 1.5,
     },
     radio: {
-        width: 20,
-        height: 20,
-        borderRadius: 10,
+        width: moderateScale(20),
+        height: moderateScale(20),
+        borderRadius: moderateScale(10),
         borderWidth: 2,
         justifyContent: 'center',
         alignItems: 'center',
     },
     radioInner: {
-        width: 10,
-        height: 10,
-        borderRadius: 5,
+        width: moderateScale(10),
+        height: moderateScale(10),
+        borderRadius: moderateScale(5),
     },
 });
 

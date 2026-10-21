@@ -14,6 +14,7 @@ import { Tabs } from 'expo-router';
 import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { moderateScale } from '@/utils/scaling';
 
 export default function TabLayout() {
   const { colors, spacing } = useTheme();
@@ -63,7 +64,7 @@ export default function TabLayout() {
           title: 'Home',
           tabBarIcon: ({ color, focused }) => (
             <View style={[styles.tabIcon, focused && { backgroundColor: colors.ink }]}>
-              <HugeiconsIcon icon={Home01Icon} size={23} color={focused ? colors.surface : color} />
+              <HugeiconsIcon icon={Home01Icon} size={moderateScale(23)} color={focused ? colors.surface : color} />
             </View>
           ),
         }}
@@ -75,7 +76,7 @@ export default function TabLayout() {
           title: 'Shop',
           tabBarIcon: ({ color, focused }) => (
             <View style={[styles.tabIcon, focused && { backgroundColor: colors.ink }]}>
-              <HugeiconsIcon icon={GiftIcon} size={23} color={focused ? colors.surface : color} />
+              <HugeiconsIcon icon={GiftIcon} size={moderateScale(23)} color={focused ? colors.surface : color} />
             </View>
           ),
         }}
@@ -86,7 +87,7 @@ export default function TabLayout() {
           title: 'Moments',
           tabBarIcon: ({ color, focused }) => (
             <View style={[styles.tabIcon, focused && { backgroundColor: colors.ink }]}>
-              <HugeiconsIcon icon={Calendar01Icon} size={23} color={focused ? colors.surface : color} />
+              <HugeiconsIcon icon={Calendar01Icon} size={moderateScale(23)} color={focused ? colors.surface : color} />
             </View>
           ),
         }}
@@ -97,7 +98,7 @@ export default function TabLayout() {
           title: 'Messages',
           tabBarIcon: ({ color, focused }) => (
             <View style={[styles.tabIcon, focused && { backgroundColor: colors.ink }]}>
-              <HugeiconsIcon icon={Comment01Icon} size={23} color={focused ? colors.surface : color} />
+              <HugeiconsIcon icon={Comment01Icon} size={moderateScale(23)} color={focused ? colors.surface : color} />
               {hasUnreadMessages && (
                 <View
                   style={[
@@ -116,7 +117,7 @@ export default function TabLayout() {
           title: 'Me',
           tabBarIcon: ({ color, focused }) => (
             <View style={[styles.tabIcon, focused && { backgroundColor: colors.ink }]}>
-              <HugeiconsIcon icon={UserIcon} size={23} color={focused ? colors.surface : color} />
+              <HugeiconsIcon icon={UserIcon} size={moderateScale(23)} color={focused ? colors.surface : color} />
             </View>
           ),
         }}
@@ -127,19 +128,19 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   tabIcon: {
-    width: 48,
-    height: 38,
-    borderRadius: 14,
+    width: moderateScale(48),
+    height: moderateScale(38),
+    borderRadius: moderateScale(14),
     justifyContent: 'center',
     alignItems: 'center',
   },
   notificationDot: {
     position: 'absolute',
-    right: -2,
-    top: -2,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    right: moderateScale(-2),
+    top: moderateScale(-2),
+    width: moderateScale(10),
+    height: moderateScale(10),
+    borderRadius: moderateScale(5),
     borderWidth: 2,
   },
 });

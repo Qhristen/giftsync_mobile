@@ -26,6 +26,7 @@ import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useSta
 import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
+import { moderateScale } from '@/utils/scaling';
 
 interface Props {
     holiday: EventTemplate | null;
@@ -266,21 +267,21 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
                         backgroundColor: isSelected ? colors.primary : 'transparent'
                     }
                 ]}>
-                    {isSelected && <HugeiconsIcon icon={Tick01Icon} size={14} color="#FFF" />}
+                    {isSelected && <HugeiconsIcon icon={Tick01Icon} size={moderateScale(14)} color="#FFF" />}
                 </View>
             </TouchableOpacity>
         );
     }, [colors, selectedContactsMap, toggleContact]);
 
     const renderFooter = useCallback(() => (
-        <View style={{ paddingHorizontal: spacing.md, paddingTop: spacing.md, paddingBottom: insets.bottom + 20, backgroundColor: colors.surface }}>
+        <View style={{ paddingHorizontal: spacing.md, paddingTop: spacing.md, paddingBottom: insets.bottom + moderateScale(20), backgroundColor: colors.surface }}>
             <Button
                 title={isCreating
                     ? 'Adding events...'
                     : `Add Events (${selectedContactsMap.size}) (${Number(occasionCreationCost || 0) * selectedContactsMap.size} coins)`}
                 variant="primary"
                 size="md"
-                leftIcon={isCreating ? <ActivityIndicator size="small" color="#FFF" /> : <HugeiconsIcon icon={Calendar01Icon} size={18} color="#FFF" />}
+                leftIcon={isCreating ? <ActivityIndicator size="small" color="#FFF" /> : <HugeiconsIcon icon={Calendar01Icon} size={moderateScale(18)} color="#FFF" />}
                 style={{ flex: 1 }}
                 onPress={handleCreateEvents}
                 disabled={selectedContactsMap.size === 0 || isCreating}
@@ -302,7 +303,7 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
             renderFooter={renderFooter}
         >
             {!holiday ? (
-                <View style={{ height: 100 }} />
+                <View style={{ height: moderateScale(100) }} />
             ) : (
                 <View style={[styles.container, { paddingHorizontal: spacing.none, }]}>
                     <BottomSheetFlatList
@@ -310,15 +311,15 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
                         style={{ flex: 1 }}
                         renderItem={renderItem}
                         keyExtractor={(item: PhoneContact) => item.id}
-                        contentContainerStyle={{ paddingHorizontal: spacing.md, paddingBottom: 100 }}
+                        contentContainerStyle={{ paddingHorizontal: spacing.md, paddingBottom: moderateScale(100) }}
                         keyboardShouldPersistTaps="handled"
                         keyboardDismissMode="on-drag"
-                        ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+                        ItemSeparatorComponent={() => <View style={{ height: moderateScale(12) }} />}
                         ListHeaderComponent={
                             <View>
                                 <View style={[styles.header, { paddingHorizontal: spacing.none, marginTop: spacing.md }]}>
                                     <View style={[styles.iconContainer, { backgroundColor: colors.primary + '15' }]}>
-                                        <HugeiconsIcon icon={GiftIcon} size={32} color={colors.primary} />
+                                        <HugeiconsIcon icon={GiftIcon} size={moderateScale(32)} color={colors.primary} />
                                     </View>
                                     <View style={{ flex: 1 }}>
                                         <Typography variant="h2">{holiday.title}</Typography>
@@ -335,7 +336,7 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
                                         onChangeText={handleSearch}
                                         autoCapitalize="none"
                                         isBottomSheet
-                                        leftIcon={<HugeiconsIcon icon={Search01Icon} size={20} color={colors.textSecondary} />}
+                                        leftIcon={<HugeiconsIcon icon={Search01Icon} size={moderateScale(20)} color={colors.textSecondary} />}
                                     />
                                 </View>
 
@@ -347,7 +348,7 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
                         ListEmptyComponent={
                             !isLoadingContacts ? (
                                 <View style={styles.emptyState}>
-                                    <HugeiconsIcon icon={Search01Icon} size={48} color={colors.textSecondary} style={{ opacity: 0.3 }} />
+                                    <HugeiconsIcon icon={Search01Icon} size={moderateScale(48)} color={colors.textSecondary} style={{ opacity: 0.3 }} />
                                     <Typography variant="body" color={colors.textSecondary} align="center">
                                         {searchQuery ? `No contacts found matching "${searchQuery}".` : 'No contacts found.'}
                                     </Typography>
@@ -360,7 +361,7 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
                             }
                         }}
                         onEndReachedThreshold={0.5}
-                        ListFooterComponent={isLoadingMore ? <ActivityIndicator size="small" color={colors.primary} style={{ marginVertical: 12 }} /> : null}
+                        ListFooterComponent={isLoadingMore ? <ActivityIndicator size="small" color={colors.primary} style={{ marginVertical: moderateScale(12) }} /> : null}
                         extraData={selectedContactsMap}
                     />
                 </View>
@@ -372,37 +373,37 @@ const HolidaySubscribersSheet = forwardRef<BottomSheetRef, Props>(({ holiday }, 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingBottom: 20,
+        paddingBottom: moderateScale(20),
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 16,
-        marginBottom: 20,
+        gap: moderateScale(16),
+        marginBottom: moderateScale(20),
     },
     iconContainer: {
-        width: 64,
-        height: 64,
-        borderRadius: 20,
+        width: moderateScale(64),
+        height: moderateScale(64),
+        borderRadius: moderateScale(20),
         justifyContent: 'center',
         alignItems: 'center',
     },
     actionRow: {
         flexDirection: 'row',
-        gap: 12,
-        marginBottom: 8,
+        gap: moderateScale(12),
+        marginBottom: moderateScale(8),
     },
     subscriberItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 12,
-        borderRadius: 16,
-        gap: 12,
+        padding: moderateScale(12),
+        borderRadius: moderateScale(16),
+        gap: moderateScale(12),
     },
     checkbox: {
-        width: 24,
-        height: 24,
-        borderRadius: 12,
+        width: moderateScale(24),
+        height: moderateScale(24),
+        borderRadius: moderateScale(12),
         borderWidth: 2,
         justifyContent: 'center',
         alignItems: 'center',
@@ -411,8 +412,8 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 40,
-        gap: 12,
+        paddingVertical: moderateScale(40),
+        gap: moderateScale(12),
     }
 });
 

@@ -3,6 +3,7 @@ import { HugeiconsIcon } from '@hugeicons/react-native';
 import { StarIcon } from '@hugeicons/core-free-icons';
 import React from 'react';
 import { Pressable, StyleSheet, View, ViewStyle } from 'react-native';
+import { moderateScale } from '@/utils/scaling';
 
 interface RatingProps {
     rating: number;
@@ -17,7 +18,7 @@ const Rating: React.FC<RatingProps> = ({
     rating,
     maxRating = 5,
     onRatingChange,
-    size = 24,
+    size = moderateScale(24),
     style,
     readonly = false,
 }) => {
@@ -30,7 +31,7 @@ const Rating: React.FC<RatingProps> = ({
                 key={i}
                 onPress={() => !readonly && onRatingChange?.(i)}
                 disabled={readonly}
-                style={{ padding: 4 }}
+                style={{ padding: moderateScale(4) }}
             >
                 <HugeiconsIcon
                     icon={StarIcon}

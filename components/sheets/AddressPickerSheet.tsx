@@ -19,6 +19,7 @@ import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Typography from '../ui/Typography';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { moderateScale } from '@/utils/scaling';
 
 interface Props {
     selectedAddressId?: string;
@@ -134,7 +135,7 @@ const AddressPickerSheet = forwardRef<BottomSheetRef, Props>(
                         </Typography>
 
                         {isLoading ? (
-                            <View style={{ marginTop: spacing.md, paddingHorizontal: 0 }}>
+                            <View style={{ marginTop: spacing.md, paddingHorizontal: moderateScale(0) }}>
                                 <AddressListSkeleton />
                             </View>
                         ) : (
@@ -142,14 +143,14 @@ const AddressPickerSheet = forwardRef<BottomSheetRef, Props>(
                                 {addresses.map((addr) => {
                                     const renderLeftActions = () => (
                                         <View style={[styles.swipeAction, { backgroundColor: colors.primary }]}>
-                                            <HugeiconsIcon icon={Edit01Icon} size={24} color="#FFF" />
+                                            <HugeiconsIcon icon={Edit01Icon} size={moderateScale(24)} color="#FFF" />
                                             <Typography variant="caption" color="#FFF">Edit</Typography>
                                         </View>
                                     );
 
                                     const renderRightActions = () => (
                                         <View style={[styles.swipeAction, { backgroundColor: colors.error }]}>
-                                            <HugeiconsIcon icon={Delete01Icon} size={24} color="#FFF" />
+                                            <HugeiconsIcon icon={Delete01Icon} size={moderateScale(24)} color="#FFF" />
                                             <Typography variant="caption" color="#FFF">Delete</Typography>
                                         </View>
                                     );
@@ -187,7 +188,7 @@ const AddressPickerSheet = forwardRef<BottomSheetRef, Props>(
                                                     </Typography>
                                                 </View>
                                                 {selectedAddressId === addr.id && (
-                                                    <HugeiconsIcon icon={CheckmarkCircle02Icon} size={24} color={colors.primary} />
+                                                    <HugeiconsIcon icon={CheckmarkCircle02Icon} size={moderateScale(24)} color={colors.primary} />
                                                 )}
                                             </Pressable>
                                         </Swipeable>
@@ -205,7 +206,7 @@ const AddressPickerSheet = forwardRef<BottomSheetRef, Props>(
                     <View style={{ flex: 1, paddingBottom: spacing.xl }}>
                         <View style={styles.header}>
                             <Pressable onPress={() => { resetForm(); setMode('list'); }}>
-                                <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
+                                <HugeiconsIcon icon={ArrowLeft01Icon} size={moderateScale(24)} color={colors.textPrimary} />
                             </Pressable>
                             <Typography variant="h2">{mode === 'edit' ? 'Edit Address' : 'New Address'}</Typography>
                         </View>
@@ -215,7 +216,7 @@ const AddressPickerSheet = forwardRef<BottomSheetRef, Props>(
                                 title="Pick from Contacts"
                                 variant="outline"
                                 onPress={handlePickContact}
-                                leftIcon={<HugeiconsIcon icon={UserAdd01Icon} size={18} color={colors.primary} style={{ marginRight: 8 }} />}
+                                leftIcon={<HugeiconsIcon icon={UserAdd01Icon} size={moderateScale(18)} color={colors.primary} style={{ marginRight: moderateScale(8) }} />}
                             />
 
                             <Input label="Recipient Name" value={recipientName} onChangeText={setRecipientName} placeholder="Alex Johnson" isBottomSheet />
@@ -247,32 +248,32 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        marginBottom: 8,
+        marginBottom: moderateScale(8),
     },
     list: {
-        gap: 16,
+        gap: moderateScale(16),
     },
     item: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 16,
+        padding: moderateScale(16),
         borderWidth: 1,
-        borderRadius: 12,
-        gap: 12,
+        borderRadius: moderateScale(12),
+        gap: moderateScale(12),
     },
     itemContent: {
         flex: 1,
     },
     swipeContainer: {
-        borderRadius: 12,
+        borderRadius: moderateScale(12),
         overflow: 'hidden',
     },
     swipeAction: {
-        width: 80,
+        width: moderateScale(80),
         height: '100%',
         justifyContent: 'center',
         alignItems: 'center',
-        gap: 4,
+        gap: moderateScale(4),
     },
 });
 

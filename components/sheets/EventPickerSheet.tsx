@@ -7,6 +7,7 @@ import Avatar from '../ui/Avatar';
 import Badge from '../ui/Badge';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Typography from '../ui/Typography';
+import { moderateScale } from '@/utils/scaling';
 
 interface Props {
     events: Event[];
@@ -58,26 +59,26 @@ const EventPickerSheet = forwardRef<BottomSheetRef, Props>(
 );
 
 const styles = StyleSheet.create({
-    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 1 },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: moderateScale(1) },
     list: {
-        gap: 12,
+        gap: moderateScale(12),
     },
     item: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 16,
-        borderRadius: 19,
+        padding: moderateScale(16),
+        borderRadius: moderateScale(19),
         borderWidth: 1.5,
-        gap: 12,
+        gap: moderateScale(12),
     },
     justBecause: {
         borderWidth: 1,
         borderColor: 'transparent',
     },
     iconContainer: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
+        width: moderateScale(48),
+        height: moderateScale(48),
+        borderRadius: moderateScale(24),
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 1.25,

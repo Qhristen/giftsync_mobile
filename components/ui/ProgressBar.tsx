@@ -1,6 +1,7 @@
 import { useTheme } from '@/hooks/useTheme';
 import React from 'react';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { moderateScale } from '@/utils/scaling';
 
 interface Props {
     progress: number; // 0 to 1
@@ -12,7 +13,7 @@ interface Props {
 
 const ProgressBar: React.FC<Props> = ({
     progress,
-    height = 8,
+    height = moderateScale(8),
     color,
     backgroundColor,
     style,
@@ -54,8 +55,8 @@ const styles = StyleSheet.create({
     },
     fill: {
         position: 'absolute',
-        left: 0,
-        top: 0,
+        left: moderateScale(0),
+        top: moderateScale(0),
     },
 });
 

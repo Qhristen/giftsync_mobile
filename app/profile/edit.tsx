@@ -24,6 +24,7 @@ import React, { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
+import { moderateScale } from '@/utils/scaling';
 
 export default function EditProfileScreen() {
     const router = useRouter();
@@ -88,19 +89,19 @@ export default function EditProfileScreen() {
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={[styles.container, { backgroundColor: colors.background }]}>
             <PaperScreenHeader eyebrow="Identity card" title="Make it feel like you" onBack={() => router.back()} accent={colors.peach} />
 
-            <ScrollView contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+            <ScrollView contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: moderateScale(120) }} showsVerticalScrollIndicator={false}>
                 <View style={[styles.avatarSection, { backgroundColor: colors.lavender, borderColor: colors.ink }]}>
                     <View style={[styles.photoTape, { backgroundColor: colors.lemon, borderColor: colors.ink }]} />
                     <View>
                         <View style={{ opacity: isUploadingImage ? 0.5 : 1 }}>
-                            <Avatar name={name} uri={avatarUrl} size={112} style={{ borderWidth: 1.5, borderColor: colors.ink }} />
+                            <Avatar name={name} uri={avatarUrl} size={moderateScale(112)} style={{ borderWidth: 1.5, borderColor: colors.ink }} />
                         </View>
                         <Pressable
                             style={[styles.cameraBtn, { backgroundColor: colors.lime, borderColor: colors.ink }]}
                             onPress={handlePickImage}
                             disabled={isUploadingImage}
                         >
-                            <HugeiconsIcon icon={Camera01Icon} size={20} color={colors.ink} />
+                            <HugeiconsIcon icon={Camera01Icon} size={moderateScale(20)} color={colors.ink} />
                         </Pressable>
                     </View>
                     <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>PROFILE PORTRAIT</Typography>
@@ -117,7 +118,7 @@ export default function EditProfileScreen() {
                         placeholder="Enter your name"
                         value={name}
                         onChangeText={setName}
-                        leftIcon={<HugeiconsIcon icon={UserIcon} size={20} color={colors.textMuted} />}
+                        leftIcon={<HugeiconsIcon icon={UserIcon} size={moderateScale(20)} color={colors.textMuted} />}
                     />
 
                     <Input
@@ -125,7 +126,7 @@ export default function EditProfileScreen() {
                         placeholder="Enter your country"
                         value={country}
                         onChangeText={setCountry}
-                        leftIcon={<HugeiconsIcon icon={GlobeIcon} size={20} color={colors.textMuted} />}
+                        leftIcon={<HugeiconsIcon icon={GlobeIcon} size={moderateScale(20)} color={colors.textMuted} />}
                     />
 
                     <Pressable onPress={() => currencySheet.open()}>
@@ -134,8 +135,8 @@ export default function EditProfileScreen() {
                                 label="Currency"
                                 placeholder="Select currency"
                                 value={currency}
-                                leftIcon={<HugeiconsIcon icon={Money01Icon} size={20} color={colors.textMuted} />}
-                                rightIcon={<HugeiconsIcon icon={ArrowDown01Icon} size={20} color={colors.textMuted} />}
+                                leftIcon={<HugeiconsIcon icon={Money01Icon} size={moderateScale(20)} color={colors.textMuted} />}
+                                rightIcon={<HugeiconsIcon icon={ArrowDown01Icon} size={moderateScale(20)} color={colors.textMuted} />}
                                 editable={false}
                             />
                         </View>
@@ -147,8 +148,8 @@ export default function EditProfileScreen() {
                                 label="App Theme"
                                 placeholder="Select theme"
                                 value={theme.charAt(0).toUpperCase() + theme.slice(1)}
-                                leftIcon={<HugeiconsIcon icon={PaintBoardIcon} size={20} color={colors.textMuted} />}
-                                rightIcon={<HugeiconsIcon icon={ArrowDown01Icon} size={20} color={colors.textMuted} />}
+                                leftIcon={<HugeiconsIcon icon={PaintBoardIcon} size={moderateScale(20)} color={colors.textMuted} />}
+                                rightIcon={<HugeiconsIcon icon={ArrowDown01Icon} size={moderateScale(20)} color={colors.textMuted} />}
                                 editable={false}
                             />
                         </View>
@@ -170,7 +171,7 @@ export default function EditProfileScreen() {
                 onSelect={(val) => setTheme(val)}
             />
 
-            <View style={[styles.footer, { backgroundColor: colors.background, paddingBottom: insets.bottom + 16 }]}>
+            <View style={[styles.footer, { backgroundColor: colors.background, paddingBottom: insets.bottom + moderateScale(16) }]}>
                 <Button
                     title="Stamp my changes  →"
                     variant="primary"
@@ -189,33 +190,33 @@ const styles = StyleSheet.create({
     },
     avatarSection: {
         alignItems: 'center',
-        padding: 20,
-        marginVertical: 12,
+        padding: moderateScale(20),
+        marginVertical: moderateScale(12),
         borderWidth: 1.5,
-        borderRadius: 25,
+        borderRadius: moderateScale(25),
 
         transform: [{ rotate: '-0.6deg' }],
     },
-    photoTape: { position: 'absolute', top: -9, width: 64, height: 19, borderWidth: 1, transform: [{ rotate: '4deg' }] },
-    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 1 },
+    photoTape: { position: 'absolute', top: moderateScale(-9), width: moderateScale(64), height: moderateScale(19), borderWidth: 1, transform: [{ rotate: '4deg' }] },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: moderateScale(1) },
     cameraBtn: {
         position: 'absolute',
-        bottom: 0,
-        right: 0,
-        width: 40,
-        height: 40,
-        borderRadius: 13,
+        bottom: moderateScale(0),
+        right: moderateScale(0),
+        width: moderateScale(40),
+        height: moderateScale(40),
+        borderRadius: moderateScale(13),
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 1.5,
     },
-    formPaper: { marginTop: 12, padding: 17, borderWidth: 1.5, borderRadius: 23, gap: 18, },
+    formPaper: { marginTop: moderateScale(12), padding: moderateScale(17), borderWidth: 1.5, borderRadius: moderateScale(23), gap: moderateScale(18), },
     formHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     footer: {
         position: 'absolute',
-        bottom: 0,
+        bottom: moderateScale(0),
         width: '100%',
-        paddingHorizontal: 20,
-        paddingTop: 14,
+        paddingHorizontal: moderateScale(20),
+        paddingTop: moderateScale(14),
     },
 });

@@ -28,6 +28,7 @@ import { toast } from 'sonner-native';
 import { useListBanksQuery, useVerifyAccountMutation } from '@/store/api/paymentApi';
 import { useGetDefaultPaymentGatewayQuery } from '@/store/api/platformConfigApi';
 import BottomSheetWrapper, { BottomSheetRef } from '@/components/ui/BottomSheetWrapper';
+import { moderateScale } from '@/utils/scaling';
 
 export default function BusinessInfoScreen() {
     const router = useRouter();
@@ -210,7 +211,7 @@ export default function BusinessInfoScreen() {
         return (
             <View style={[styles.section, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                 <View style={styles.sectionHeader}>
-                    {icon && <View style={[styles.sectionIcon, { backgroundColor: paperColor, borderColor: colors.ink }]}><HugeiconsIcon icon={icon} size={20} color={colors.ink} /></View>}
+                    {icon && <View style={[styles.sectionIcon, { backgroundColor: paperColor, borderColor: colors.ink }]}><HugeiconsIcon icon={icon} size={moderateScale(20)} color={colors.ink} /></View>}
                     <Typography variant="h4" style={{ fontWeight: '700' }}>{title}</Typography>
                 </View>
                 <View style={styles.sectionContent}>{children}</View>
@@ -220,8 +221,8 @@ export default function BusinessInfoScreen() {
 
     const DetailItem = ({ label, value, icon }: { label: string, value: string | boolean | undefined, icon?: any }) => (
         <View style={[styles.detailItem, { borderColor: colors.textMuted }]}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                {icon && <HugeiconsIcon icon={icon} size={14} color={colors.textSecondary} />}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: moderateScale(8), marginBottom: moderateScale(4) }}>
+                {icon && <HugeiconsIcon icon={icon} size={moderateScale(14)} color={colors.textSecondary} />}
                 <Typography variant="label" color={colors.textSecondary}>{label}</Typography>
             </View>
             <Typography variant="body" style={{ fontWeight: '500' }}>
@@ -260,17 +261,17 @@ export default function BusinessInfoScreen() {
                     </View>
                 )}
 
-                <ScrollView contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+                <ScrollView contentContainerStyle={{ paddingBottom: moderateScale(120) }} showsVerticalScrollIndicator={false}>
                     {business && (formData.isVerified ? (
                         <View style={[styles.banner, { backgroundColor: colors.mint, borderColor: colors.ink }]}>
-                            <HugeiconsIcon icon={CheckmarkCircle01Icon} size={20} color={colors.ink} />
+                            <HugeiconsIcon icon={CheckmarkCircle01Icon} size={moderateScale(20)} color={colors.ink} />
                             <Typography variant="body" style={{ flex: 1, fontWeight: '600' }}>
                                 Verified maker · ready for the shop
                             </Typography>
                         </View>
                     ) : (
                         <View style={[styles.banner, { backgroundColor: colors.lemon, borderColor: colors.ink }]}>
-                            <HugeiconsIcon icon={Alert01Icon} size={20} color={colors.ink} />
+                            <HugeiconsIcon icon={Alert01Icon} size={moderateScale(20)} color={colors.ink} />
                             <Typography variant="body" style={{ flex: 1 }}>
                                 Your business is not verified yet. Get verified to reach more customers.
                             </Typography>
@@ -282,7 +283,7 @@ export default function BusinessInfoScreen() {
                         <Avatar
                             name={formData.name}
                             uri={formData.logoUrl}
-                            size={96}
+                            size={moderateScale(96)}
                             style={{ borderWidth: 1.5, borderColor: colors.ink }}
                         />
                         {showForm && (
@@ -361,12 +362,12 @@ export default function BusinessInfoScreen() {
                                             onPress={() => setFormData({ ...formData, isRegistered: !formData.isRegistered })}
                                             style={[styles.toggle, { backgroundColor: formData.isRegistered ? colors.primary : colors.surfaceRaised }]}
                                         >
-                                            <View style={[styles.toggleThumb, { transform: [{ translateX: formData.isRegistered ? 20 : 0 }] }]} />
+                                            <View style={[styles.toggleThumb, { transform: [{ translateX: formData.isRegistered ? moderateScale(20) : moderateScale(0) }] }]} />
                                         </Pressable>
                                     </View>
 
                                     {formData.isRegistered && (
-                                        <View style={{ gap: 16, marginTop: 8 }}>
+                                        <View style={{ gap: moderateScale(16), marginTop: moderateScale(8) }}>
                                             <Input
                                                 label="CAC Number"
                                                 value={formData.cacNumber}
@@ -405,7 +406,7 @@ export default function BusinessInfoScreen() {
                                                 value={formData.bankName}
                                                 placeholder="Select your bank"
                                                 editable={false}
-                                                rightIcon={<HugeiconsIcon icon={ArrowDown01Icon} size={20} color={colors.textSecondary} />}
+                                                rightIcon={<HugeiconsIcon icon={ArrowDown01Icon} size={moderateScale(20)} color={colors.textSecondary} />}
                                             />
                                         </View>
                                     </Pressable>
@@ -434,8 +435,8 @@ export default function BusinessInfoScreen() {
                                         style={{ backgroundColor: colors.surfaceRaised + '50' }}
                                     />
                                     {isAccountVerified && (
-                                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: -8 }}>
-                                            <HugeiconsIcon icon={CheckmarkCircle01Icon} size={16} color={colors.success} />
+                                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: moderateScale(4), marginTop: moderateScale(-8) }}>
+                                            <HugeiconsIcon icon={CheckmarkCircle01Icon} size={moderateScale(16)} color={colors.success} />
                                             <Typography variant="label" color={colors.success}>Account verified</Typography>
                                         </View>
                                     )}
@@ -470,19 +471,19 @@ export default function BusinessInfoScreen() {
             >
                 <View style={styles.bankSheetContent}>
                     <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>PAYOUT DIRECTORY</Typography>
-                    <Typography variant="h2" style={{ marginBottom: 20 }}>Choose your bank</Typography>
+                    <Typography variant="h2" style={{ marginBottom: moderateScale(20) }}>Choose your bank</Typography>
                     <Input
                         placeholder="Search banks..."
                         value={bankSearch}
                         onChangeText={setBankSearch}
                         isBottomSheet={true}
-                        leftIcon={<HugeiconsIcon icon={Search01Icon} size={20} color={colors.textSecondary} />}
+                        leftIcon={<HugeiconsIcon icon={Search01Icon} size={moderateScale(20)} color={colors.textSecondary} />}
                     />
 
                     {isLoadingBanks ? (
-                        <ActivityIndicator style={{ marginTop: 20 }} color={colors.primary} />
+                        <ActivityIndicator style={{ marginTop: moderateScale(20) }} color={colors.primary} />
                     ) : (
-                        <View style={{ gap: 4, paddingBottom: 40 }}>
+                        <View style={{ gap: moderateScale(4), paddingBottom: moderateScale(40) }}>
                             {filteredBanks?.map((bank, i) => (
                                 <Pressable
                                     key={i}
@@ -501,7 +502,7 @@ export default function BusinessInfoScreen() {
                                 >
                                     <Typography variant="body">{bank.name}</Typography>
                                     {formData.bankName === bank.name && (
-                                        <HugeiconsIcon icon={Tick01Icon} size={20} color={colors.primary} />
+                                        <HugeiconsIcon icon={Tick01Icon} size={moderateScale(20)} color={colors.primary} />
                                     )}
                                 </Pressable>
                             ))}
@@ -518,59 +519,59 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     editButton: {
-        minWidth: 48,
-        height: 38,
-        paddingHorizontal: 10,
+        minWidth: moderateScale(48),
+        height: moderateScale(38),
+        paddingHorizontal: moderateScale(10),
         borderWidth: 1.5,
-        borderRadius: 12,
+        borderRadius: moderateScale(12),
         alignItems: 'center',
         justifyContent: 'center',
         transform: [{ rotate: '3deg' }],
     },
-    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.9 },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: moderateScale(0.9) },
     banner: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 12,
-        marginBottom: 16,
-        marginHorizontal: 20,
-        marginTop: 16,
-        borderRadius: 18,
+        padding: moderateScale(12),
+        marginBottom: moderateScale(16),
+        marginHorizontal: moderateScale(20),
+        marginTop: moderateScale(16),
+        borderRadius: moderateScale(18),
         borderWidth: 1.5,
-        gap: 12,
+        gap: moderateScale(12),
         transform: [{ rotate: '-0.4deg' }],
     },
     logoSection: {
         alignItems: 'center',
-        marginBottom: 24,
-        marginTop: 6,
-        marginHorizontal: 20,
-        padding: 18,
+        marginBottom: moderateScale(24),
+        marginTop: moderateScale(6),
+        marginHorizontal: moderateScale(20),
+        padding: moderateScale(18),
         borderWidth: 1.5,
-        borderRadius: 24,
-        gap: 7,
+        borderRadius: moderateScale(24),
+        gap: moderateScale(7),
 
         transform: [{ rotate: '0.5deg' }],
     },
     section: {
-        marginBottom: 22,
-        padding: 17,
+        marginBottom: moderateScale(22),
+        padding: moderateScale(17),
         borderWidth: 1.5,
-        borderRadius: 23,
+        borderRadius: moderateScale(23),
     },
     sectionHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 10,
-        marginBottom: 16,
-        paddingBottom: 8,
+        gap: moderateScale(10),
+        marginBottom: moderateScale(16),
+        paddingBottom: moderateScale(8),
     },
-    sectionIcon: { width: 40, height: 40, borderWidth: 1.25, borderRadius: 13, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-3deg' }] },
+    sectionIcon: { width: moderateScale(40), height: moderateScale(40), borderWidth: 1.25, borderRadius: moderateScale(13), alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-3deg' }] },
     sectionContent: {
-        gap: 12,
+        gap: moderateScale(12),
     },
     detailItem: {
-        paddingVertical: 10,
+        paddingVertical: moderateScale(10),
         borderBottomWidth: 1,
         borderStyle: 'dashed',
     },
@@ -578,46 +579,46 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingVertical: 12,
-        paddingHorizontal: 16,
-        borderRadius: 16,
+        paddingVertical: moderateScale(12),
+        paddingHorizontal: moderateScale(16),
+        borderRadius: moderateScale(16),
         borderWidth: 1.5,
-        marginBottom: 8,
+        marginBottom: moderateScale(8),
     },
     toggle: {
-        width: 48,
-        height: 28,
-        borderRadius: 14,
-        padding: 4,
+        width: moderateScale(48),
+        height: moderateScale(28),
+        borderRadius: moderateScale(14),
+        padding: moderateScale(4),
         justifyContent: 'center',
     },
     toggleThumb: {
-        width: 20,
-        height: 20,
-        borderRadius: 10,
+        width: moderateScale(20),
+        height: moderateScale(20),
+        borderRadius: moderateScale(10),
         backgroundColor: '#FFF',
     },
     loadingOverlay: {
         position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
+        top: moderateScale(0),
+        left: moderateScale(0),
+        right: moderateScale(0),
+        bottom: moderateScale(0),
         justifyContent: 'center',
         alignItems: 'center',
         zIndex: 1000,
     },
     bankSheetContent: {
-        paddingTop: 8,
+        paddingTop: moderateScale(8),
     },
     bankItem: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingVertical: 14,
-        paddingHorizontal: 13,
+        paddingVertical: moderateScale(14),
+        paddingHorizontal: moderateScale(13),
         borderWidth: 1.25,
-        borderRadius: 15,
-        marginBottom: 8,
+        borderRadius: moderateScale(15),
+        marginBottom: moderateScale(8),
     },
 });

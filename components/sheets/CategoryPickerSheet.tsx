@@ -19,6 +19,7 @@ import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Input from '../ui/Input';
 import Typography from '../ui/Typography';
+import { moderateScale } from '@/utils/scaling';
 
 interface CategoryPickerSheetProps {
     currentCategoryId: string;
@@ -68,7 +69,7 @@ const CategoryPickerSheet = forwardRef<BottomSheetRef, CategoryPickerSheetProps>
                 value={searchQuery}
                 onChangeText={setSearchQuery}
                 isBottomSheet
-                leftIcon={<HugeiconsIcon icon={Search01Icon} size={20} color={colors.textSecondary} />}
+                leftIcon={<HugeiconsIcon icon={Search01Icon} size={moderateScale(20)} color={colors.textSecondary} />}
                 style={{ marginBottom: spacing.lg }}
             />
 
@@ -101,7 +102,7 @@ const CategoryPickerSheet = forwardRef<BottomSheetRef, CategoryPickerSheetProps>
                                 <View style={[styles.iconContainer, { backgroundColor: isSelected ? colors.lime : colors.surface, borderColor: colors.ink }]}>
                                     <HugeiconsIcon
                                         icon={getIcon(category.name)}
-                                        size={24}
+                                        size={moderateScale(24)}
                                         color={colors.ink}
                                     />
                                 </View>
@@ -112,14 +113,14 @@ const CategoryPickerSheet = forwardRef<BottomSheetRef, CategoryPickerSheetProps>
                                     {category.name}
                                 </Typography>
                                 {isSelected && (
-                                    <HugeiconsIcon icon={CheckmarkCircle02Icon} size={24} color={colors.ink} style={styles.check} />
+                                    <HugeiconsIcon icon={CheckmarkCircle02Icon} size={moderateScale(24)} color={colors.ink} style={styles.check} />
                                 )}
                             </Pressable>
                         );
                     })
                 ) : (
                     <View style={styles.empty}>
-                        <HugeiconsIcon icon={Search01Icon} size={48} color={colors.textSecondary} style={{ opacity: 0.3, marginBottom: 16 }} />
+                        <HugeiconsIcon icon={Search01Icon} size={moderateScale(48)} color={colors.textSecondary} style={{ opacity: 0.3, marginBottom: moderateScale(16) }} />
                         <Typography variant="bodyMedium" color={colors.textSecondary} style={{ textAlign: 'center' }}>
                             No categories found for &quot;{searchQuery}&quot;
                         </Typography>
@@ -131,23 +132,23 @@ const CategoryPickerSheet = forwardRef<BottomSheetRef, CategoryPickerSheetProps>
 });
 
 const styles = StyleSheet.create({
-    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 1 },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: moderateScale(1) },
     list: {
-        gap: 8,
+        gap: moderateScale(8),
     },
     item: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 12,
-        marginVertical: 2,
-        borderRadius: 16,
+        padding: moderateScale(12),
+        marginVertical: moderateScale(2),
+        borderRadius: moderateScale(16),
         borderWidth: 1.5,
-        gap: 16,
+        gap: moderateScale(16),
     },
     iconContainer: {
-        width: 44,
-        height: 44,
-        borderRadius: 12,
+        width: moderateScale(44),
+        height: moderateScale(44),
+        borderRadius: moderateScale(12),
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 1.25,
@@ -156,12 +157,12 @@ const styles = StyleSheet.create({
         marginLeft: 'auto',
     },
     empty: {
-        paddingVertical: 48,
+        paddingVertical: moderateScale(48),
         alignItems: 'center',
         justifyContent: 'center',
     },
     loadingContainer: {
-        paddingVertical: 32,
+        paddingVertical: moderateScale(32),
         alignItems: 'center',
     }
 });

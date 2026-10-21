@@ -145,9 +145,9 @@ export default function WalletTopUpScreen() {
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <View style={[styles.header, { paddingHorizontal: spacing.xl, paddingTop: insets.top + 10 }]}>
+            <View style={[styles.header, { paddingHorizontal: spacing.xl, paddingTop: insets.top + moderateScale(10) }]}>
                 <Pressable onPress={() => router.back()} style={[styles.backBtn, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                    <HugeiconsIcon icon={ArrowLeft01Icon} size={22} color={colors.ink} />
+                    <HugeiconsIcon icon={ArrowLeft01Icon} size={moderateScale(22)} color={colors.ink} />
                 </Pressable>
                 <View style={styles.headerCopy}>
                     <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>THE COIN VAULT</Typography>
@@ -159,12 +159,12 @@ export default function WalletTopUpScreen() {
             <View style={[styles.balanceSection, { paddingHorizontal: spacing.xl }]}>
                 <Card style={[styles.balanceCard, { backgroundColor: colors.lavender, borderColor: colors.ink }]}>
                     <View style={[styles.coinSeal, { backgroundColor: colors.lime, borderColor: colors.ink }]}>
-                        <HugeiconsIcon icon={Coins02Icon} size={27} color={colors.ink} />
+                        <HugeiconsIcon icon={Coins02Icon} size={moderateScale(27)} color={colors.ink} />
                     </View>
                     <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>
                         COINS READY TO GIFT
                     </Typography>
-                    <Typography variant="h1" style={{ marginTop: 4 }}>
+                    <Typography variant="h1" style={{ marginTop: moderateScale(4) }}>
                         {wallet?.balance.toLocaleString() ?? '0'} <Typography variant="h3">coins</Typography>
                     </Typography>
                 </Card>
@@ -175,14 +175,14 @@ export default function WalletTopUpScreen() {
                 onPress={() => router.push('/wallet/transactions' as any)}
                 style={[styles.historyLink, { backgroundColor: colors.surface, borderColor: colors.ink }]}
             >
-                <HugeiconsIcon icon={Time02Icon} size={16} color={colors.ink} />
+                <HugeiconsIcon icon={Time02Icon} size={moderateScale(16)} color={colors.ink} />
                 <Typography variant="label">Open the coin ledger →</Typography>
             </Pressable>
 
             {/* Packages */}
             <View style={{ flex: 1 }}>
                 {isLoading ? (
-                    <View style={{ flex: 1, paddingTop: 20 }}>
+                    <View style={{ flex: 1, paddingTop: moderateScale(20) }}>
                         <PackageListSkeleton />
                     </View>
                 ) : (
@@ -192,7 +192,7 @@ export default function WalletTopUpScreen() {
                         showsVerticalScrollIndicator={false}
                         onRefresh={handleRefresh}
                         refreshing={isRefreshing}
-                        contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: 150 }}
+                        contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: moderateScale(150) }}
                         ListHeaderComponent={
                             <View style={styles.listHeading}>
                                 <Typography variant="h3">Choose a coin pouch</Typography>
@@ -222,9 +222,9 @@ export default function WalletTopUpScreen() {
                                         ]}
                                     >
                                         <View style={[styles.iconBox, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                                            <HugeiconsIcon icon={style.icon} size={24} color={colors.ink} />
+                                            <HugeiconsIcon icon={style.icon} size={moderateScale(24)} color={colors.ink} />
                                         </View>
-                                        <View style={{ flex: 1, marginLeft: 16 }}>
+                                        <View style={{ flex: 1, marginLeft: moderateScale(16) }}>
                                             <Typography variant="bodyBold">{item.coinAmount} Coins</Typography>
                                             <Typography variant="caption" color={colors.textSecondary}>{item.label}</Typography>
                                         </View>
@@ -274,7 +274,7 @@ export default function WalletTopUpScreen() {
                     <View style={styles.webviewHeader}>
                         <Button title="Cancel" variant="ghost" onPress={handleCancelPayment} />
                         <Typography variant="label">Complete Payment</Typography>
-                        <View style={{ width: 80 }} />
+                        <View style={{ width: moderateScale(80) }} />
                     </View>
                     <WebView
                         source={{ uri: paymentUrl || '' }}
@@ -305,14 +305,14 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 13,
+        gap: moderateScale(13),
     },
     headerCopy: { flex: 1 },
-    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 1 },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: moderateScale(1) },
     backBtn: {
-        width: 44,
-        height: 44,
-        borderRadius: 14,
+        width: moderateScale(44),
+        height: moderateScale(44),
+        borderRadius: moderateScale(14),
         borderWidth: 1.5,
         justifyContent: 'center',
         alignItems: 'center',
@@ -320,65 +320,65 @@ const styles = StyleSheet.create({
     },
     balanceSection: {
         alignItems: 'center',
-        marginTop: 18,
+        marginTop: moderateScale(18),
     },
     balanceCard: {
         width: '100%',
-        padding: 22,
-        borderRadius: 24,
+        padding: moderateScale(22),
+        borderRadius: moderateScale(24),
         borderWidth: 1.5,
 
         transform: [{ rotate: '-0.7deg' }],
     },
-    coinSeal: { width: 54, height: 54, borderRadius: 18, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', alignSelf: 'flex-end', marginBottom: -32, transform: [{ rotate: '5deg' }] },
-    historyLink: { alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginVertical: 16, paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1.25, borderRadius: 11 },
-    listHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
+    coinSeal: { width: moderateScale(54), height: moderateScale(54), borderRadius: moderateScale(18), borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', alignSelf: 'flex-end', marginBottom: moderateScale(-32), transform: [{ rotate: '5deg' }] },
+    historyLink: { alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: moderateScale(6), marginVertical: moderateScale(16), paddingHorizontal: moderateScale(12), paddingVertical: moderateScale(8), borderWidth: 1.25, borderRadius: moderateScale(11) },
+    listHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: moderateScale(14) },
     packageCard: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 16,
-        borderRadius: 21,
+        padding: moderateScale(16),
+        borderRadius: moderateScale(21),
     },
     iconBox: {
-        width: 48,
-        height: 48,
-        borderRadius: 15,
+        width: moderateScale(48),
+        height: moderateScale(48),
+        borderRadius: moderateScale(15),
         borderWidth: 1.5,
         justifyContent: 'center',
         alignItems: 'center',
     },
     popularBadge: {
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 8,
+        paddingHorizontal: moderateScale(8),
+        paddingVertical: moderateScale(4),
+        borderRadius: moderateScale(8),
         borderWidth: 1.25,
-        marginTop: 4,
+        marginTop: moderateScale(4),
     },
     selectedBadge: {
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 8,
-        marginTop: 4,
+        paddingHorizontal: moderateScale(8),
+        paddingVertical: moderateScale(4),
+        borderRadius: moderateScale(8),
+        marginTop: moderateScale(4),
     },
     selectedBadgeText: {
         fontFamily: 'DMSans_700Bold',
-        letterSpacing: 0.5,
+        letterSpacing: moderateScale(0.5),
     },
     footer: {
         position: 'absolute',
-        bottom: 0,
+        bottom: moderateScale(0),
         width: '100%',
-        padding: 24,
+        padding: moderateScale(24),
     },
     webviewContainer: {
         flex: 1,
-        paddingTop: 50,
+        paddingTop: moderateScale(50),
     },
     webviewHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 8,
+        paddingHorizontal: moderateScale(16),
+        paddingVertical: moderateScale(8),
     },
 });

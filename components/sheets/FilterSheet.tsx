@@ -6,6 +6,7 @@ import { Pressable, View } from 'react-native';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Button from '../ui/Button';
 import Typography from '../ui/Typography';
+import { moderateScale } from '@/utils/scaling';
 
 export interface FilterOptions {
     priceRange: string;
@@ -27,11 +28,11 @@ const FilterSheet = forwardRef<BottomSheetRef, FilterSheetProps>(({ initialFilte
     return (
         <BottomSheetWrapper ref={ref} snapPoints={['60%']}>
             <View style={{ marginBottom: spacing.xl, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <View><Typography variant="caption" color={colors.textSecondary} style={{ fontFamily: 'DMSans_700Bold', letterSpacing: 1 }}>SHOP LENS</Typography><Typography variant="h2">Sort the shelves</Typography></View>
+                <View><Typography variant="caption" color={colors.textSecondary} style={{ fontFamily: 'DMSans_700Bold', letterSpacing: moderateScale(1) }}>SHOP LENS</Typography><Typography variant="h2">Sort the shelves</Typography></View>
                 <Pressable onPress={() => {
                     setPriceRange('All');
                     setSortBy('Trending');
-                }} style={{ backgroundColor: colors.lemon, borderColor: colors.ink, borderWidth: 1.25, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 7 }}>
+                }} style={{ backgroundColor: colors.lemon, borderColor: colors.ink, borderWidth: 1.25, borderRadius: moderateScale(10), paddingHorizontal: moderateScale(10), paddingVertical: moderateScale(7) }}>
                     <Typography variant="caption" style={{ fontWeight: '800' }}>RESET</Typography>
                 </Pressable>
             </View>
@@ -59,17 +60,17 @@ const FilterSheet = forwardRef<BottomSheetRef, FilterSheetProps>(({ initialFilte
             </View> */}
 
             <Typography variant="h4" style={{ marginBottom: spacing.md }}>Sort By</Typography>
-            <View style={{ gap: 12, marginBottom: spacing.xl }}>
+            <View style={{ gap: moderateScale(12), marginBottom: spacing.xl }}>
                 {sorts.map((s, index) => {
                     const isSelected = sortBy === s;
                     return (
                         <Pressable
                             key={s}
                             onPress={() => setSortBy(s)}
-                            style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 14, backgroundColor: [colors.lemon, colors.lavender, colors.mint, colors.peach][index], borderColor: colors.ink, borderWidth: 1.25, borderRadius: 16, }}
+                            style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: moderateScale(14), backgroundColor: [colors.lemon, colors.lavender, colors.mint, colors.peach][index], borderColor: colors.ink, borderWidth: 1.25, borderRadius: moderateScale(16), }}
                         >
                             <Typography variant="body" color={colors.textPrimary}>{s}</Typography>
-                            {isSelected && <HugeiconsIcon icon={Tick01Icon} size={20} color={colors.ink} />}
+                            {isSelected && <HugeiconsIcon icon={Tick01Icon} size={moderateScale(20)} color={colors.ink} />}
                         </Pressable>
                     );
                 })}

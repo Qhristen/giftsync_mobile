@@ -8,6 +8,7 @@ import Badge from '../ui/Badge';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Input from '../ui/Input';
 import Typography from '../ui/Typography';
+import { moderateScale } from '@/utils/scaling';
 
 interface Contact {
     id: string;
@@ -54,7 +55,7 @@ const ContactPickerSheet = forwardRef<BottomSheetRef, Props>(
                     placeholder="Search contacts..."
                     value={searchQuery}
                     onChangeText={setSearchQuery}
-                    leftIcon={<HugeiconsIcon icon={Search01Icon} size={20} color={colors.textMuted} />}
+                    leftIcon={<HugeiconsIcon icon={Search01Icon} size={moderateScale(20)} color={colors.textMuted} />}
                     style={{ marginBottom: spacing.lg }}
                 />
 
@@ -98,21 +99,21 @@ const ContactPickerSheet = forwardRef<BottomSheetRef, Props>(
 );
 
 const styles = StyleSheet.create({
-    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 1 },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: moderateScale(1) },
     item: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 12,
-        gap: 12,
+        padding: moderateScale(12),
+        gap: moderateScale(12),
         borderWidth: 1.25,
-        borderRadius: 17,
-        marginBottom: 9,
+        borderRadius: moderateScale(17),
+        marginBottom: moderateScale(9),
     },
     itemContent: {
         flex: 1,
     },
     sectionHeader: {
-        paddingVertical: 4,
+        paddingVertical: moderateScale(4),
     },
 });
 

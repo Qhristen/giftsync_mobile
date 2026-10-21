@@ -25,6 +25,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, RefreshControl, ScrollView, Share, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toast } from 'sonner-native';
+import { moderateScale } from '@/utils/scaling';
 
 export default function ReferralsScreen() {
     const { colors, spacing } = useTheme();
@@ -89,12 +90,12 @@ export default function ReferralsScreen() {
                 <ScrollView
                     showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="handled"
-                    contentContainerStyle={{ paddingTop: insets.top + 10, paddingBottom: Math.max(insets.bottom, 20) + 30 }}
+                    contentContainerStyle={{ paddingTop: insets.top + moderateScale(10), paddingBottom: Math.max(insets.bottom, moderateScale(20)) + moderateScale(30) }}
                     refreshControl={<RefreshControl refreshing={isFetchingInfo || isFetchingList} onRefresh={onRefresh} tintColor={colors.primary} />}
                 >
                     <View style={[styles.header, { paddingHorizontal: spacing.xl }]}>
                         <Pressable onPress={() => router.back()} style={[styles.backButton, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                            <HugeiconsIcon icon={ArrowLeft01Icon} size={22} color={colors.ink} />
+                            <HugeiconsIcon icon={ArrowLeft01Icon} size={moderateScale(22)} color={colors.ink} />
                         </Pressable>
                         <View style={{ flex: 1 }}>
                             <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>INVITE · DELIGHT · EARN</Typography>
@@ -107,7 +108,7 @@ export default function ReferralsScreen() {
                         <View style={[styles.passNotch, styles.rightNotch, { backgroundColor: colors.background, borderColor: colors.ink }]} />
                         <View style={styles.passTop}>
                             <View style={[styles.clubMark, { backgroundColor: colors.accent, borderColor: colors.ink }]}>
-                                <HugeiconsIcon icon={GiftIcon} size={24} color="#17151D" />
+                                <HugeiconsIcon icon={GiftIcon} size={moderateScale(24)} color="#17151D" />
                             </View>
                             <View style={{ flex: 1 }}>
                                 <Typography variant="caption" style={styles.overline}>GIFTSYNC GIFT CLUB</Typography>
@@ -120,26 +121,26 @@ export default function ReferralsScreen() {
                         <Pressable onPress={handleCopy} style={[styles.codeBox, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                             <Typography variant="h1" style={styles.code}>{info?.referralCode || '------'}</Typography>
                             <View style={[styles.copyButton, { backgroundColor: colors.mint, borderColor: colors.ink }]}>
-                                <HugeiconsIcon icon={CopyIcon} size={20} color={colors.ink} />
+                                <HugeiconsIcon icon={CopyIcon} size={moderateScale(20)} color={colors.ink} />
                             </View>
                         </Pressable>
-                        <Button title="Send an invite" onPress={handleShare} leftIcon={<HugeiconsIcon icon={Share01Icon} size={19} color="#17151D" />} />
+                        <Button title="Send an invite" onPress={handleShare} leftIcon={<HugeiconsIcon icon={Share01Icon} size={moderateScale(19)} color="#17151D" />} />
                     </View>
 
                     <View style={[styles.stickerRow, { paddingHorizontal: spacing.xl }]}>
                         <View style={[styles.statSticker, { backgroundColor: colors.lemon, borderColor: colors.ink, transform: [{ rotate: '-3deg' }] }]}>
-                            <HugeiconsIcon icon={Wallet01Icon} size={22} color={colors.ink} />
+                            <HugeiconsIcon icon={Wallet01Icon} size={moderateScale(22)} color={colors.ink} />
                             <Typography variant="h1">{totalCoinsEarned}</Typography>
                             <Typography variant="caption" color={colors.textSecondary}>COINS EARNED</Typography>
                         </View>
                         <View style={[styles.statSticker, { backgroundColor: colors.mint, borderColor: colors.ink, transform: [{ rotate: '3deg' }] }]}>
-                            <HugeiconsIcon icon={UserGroup02Icon} size={22} color={colors.ink} />
+                            <HugeiconsIcon icon={UserGroup02Icon} size={moderateScale(22)} color={colors.ink} />
                             <Typography variant="h1">{info?.referralCount || 0}</Typography>
                             <Typography variant="caption" color={colors.textSecondary}>FRIENDS JOINED</Typography>
                         </View>
                     </View>
 
-                    <View style={{ paddingHorizontal: spacing.xl, marginTop: 34 }}>
+                    <View style={{ paddingHorizontal: spacing.xl, marginTop: moderateScale(34) }}>
                         <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>THE THREE-STAMP ROUTE</Typography>
                         <Typography variant="h2">Pass on the good stuff</Typography>
                         <View style={styles.stepsRow}>
@@ -153,7 +154,7 @@ export default function ReferralsScreen() {
                         <View style={[styles.secretPass, { marginHorizontal: spacing.xl, backgroundColor: colors.lemon, borderColor: colors.ink }]}>
                             <View style={styles.secretHeading}>
                                 <View style={[styles.secretIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                                    <HugeiconsIcon icon={UserAdd01Icon} size={22} color={colors.primary} />
+                                    <HugeiconsIcon icon={UserAdd01Icon} size={moderateScale(22)} color={colors.primary} />
                                 </View>
                                 <View style={{ flex: 1 }}>
                                     <Typography variant="h4">Someone invited you?</Typography>
@@ -165,7 +166,7 @@ export default function ReferralsScreen() {
                         </View>
                     )}
 
-                    <View style={{ paddingHorizontal: spacing.xl, marginTop: 34 }}>
+                    <View style={{ paddingHorizontal: spacing.xl, marginTop: moderateScale(34) }}>
                         <View style={styles.friendsHeading}>
                             <View>
                                 <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>YOUR CLUB TABLE</Typography>
@@ -174,12 +175,12 @@ export default function ReferralsScreen() {
                             {!!referrals?.length && <View style={[styles.countBadge, { backgroundColor: colors.ink }]}><Typography variant="caption" color={colors.surface}>{referrals.length}</Typography></View>}
                         </View>
                         {isLoadingList ? (
-                            <ActivityIndicator color={colors.primary} style={{ margin: 28 }} />
+                            <ActivityIndicator color={colors.primary} style={{ margin: moderateScale(28) }} />
                         ) : referrals?.length ? (
                             <View style={styles.friendList}>
                                 {referrals.map((item, index) => (
                                     <View key={item.id} style={[styles.friendCard, { backgroundColor: paperColors[index % paperColors.length], borderColor: colors.ink }]}>
-                                        <Avatar name={item.name} uri={item.avatarUrl} size={48} style={{ borderWidth: 1.5, borderColor: colors.ink }} />
+                                        <Avatar name={item.name} uri={item.avatarUrl} size={moderateScale(48)} style={{ borderWidth: 1.5, borderColor: colors.ink }} />
                                         <View style={{ flex: 1 }}>
                                             <Typography variant="bodyBold">{item.name}</Typography>
                                             <Typography variant="caption" color={colors.textSecondary}>Joined {format(new Date(item.createdAt), 'MMM d, yyyy')}</Typography>
@@ -192,7 +193,7 @@ export default function ReferralsScreen() {
                             </View>
                         ) : (
                             <View style={[styles.emptyTable, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                                <HugeiconsIcon icon={UserGroup02Icon} size={34} color={colors.primary} />
+                                <HugeiconsIcon icon={UserGroup02Icon} size={moderateScale(34)} color={colors.primary} />
                                 <Typography variant="h4">Your table has open seats.</Typography>
                                 <Typography variant="body" color={colors.textSecondary} align="center">Share your pass to welcome the first friend.</Typography>
                             </View>
@@ -210,7 +211,7 @@ function StepStamp({ number, icon, title, description, color }: { number: string
         <View style={[styles.stepStamp, { backgroundColor: color, borderColor: colors.ink }]}>
             <Typography variant="caption" style={styles.overline}>{number}</Typography>
             <View style={[styles.stepIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                <HugeiconsIcon icon={icon} size={20} color={colors.ink} />
+                <HugeiconsIcon icon={icon} size={moderateScale(20)} color={colors.ink} />
             </View>
             <Typography variant="bodyBold">{title}</Typography>
             <Typography variant="caption" color={colors.textSecondary}>{description}</Typography>
@@ -220,31 +221,31 @@ function StepStamp({ number, icon, title, description, color }: { number: string
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
-    header: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-    backButton: { width: 44, height: 44, borderWidth: 1.5, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.8 },
-    pass: { marginTop: 22, borderWidth: 1.5, borderRadius: 26, padding: 20, gap: 14, },
-    passNotch: { position: 'absolute', width: 22, height: 22, borderRadius: 11, borderWidth: 1.5, top: 99 },
-    leftNotch: { left: -12 },
-    rightNotch: { right: -12 },
-    passTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-    clubMark: { width: 50, height: 50, borderWidth: 1.5, borderRadius: 16, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-4deg' }] },
-    tearLine: { borderTopWidth: 1.5, borderStyle: 'dashed', marginHorizontal: -4 },
-    codeBox: { minHeight: 72, borderWidth: 1.5, borderRadius: 17, borderStyle: 'dashed', paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    code: { letterSpacing: 4 },
-    copyButton: { width: 40, height: 40, borderWidth: 1.25, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-    stickerRow: { flexDirection: 'row', gap: 16, marginTop: 28 },
-    statSticker: { flex: 1, minHeight: 138, borderWidth: 1.5, borderRadius: 20, padding: 15, justifyContent: 'center', alignItems: 'center', },
-    stepsRow: { flexDirection: 'row', gap: 9, marginTop: 15 },
-    stepStamp: { flex: 1, minHeight: 154, borderWidth: 1.5, borderRadius: 17, padding: 11, gap: 4 },
-    stepIcon: { width: 38, height: 38, borderWidth: 1.25, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginVertical: 4 },
-    secretPass: { marginTop: 32, borderWidth: 1.5, borderRadius: 22, padding: 16, gap: 13, },
-    secretHeading: { flexDirection: 'row', alignItems: 'center', gap: 11 },
-    secretIcon: { width: 46, height: 46, borderWidth: 1.25, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-    friendsHeading: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 14 },
-    countBadge: { minWidth: 30, height: 30, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-    friendList: { gap: 10 },
-    friendCard: { minHeight: 74, borderWidth: 1.5, borderRadius: 18, padding: 11, flexDirection: 'row', alignItems: 'center', gap: 11 },
-    coinBadge: { borderWidth: 1.25, borderRadius: 10, paddingHorizontal: 9, paddingVertical: 6 },
-    emptyTable: { borderWidth: 1.5, borderRadius: 22, padding: 28, alignItems: 'center', gap: 7 },
+    header: { flexDirection: 'row', alignItems: 'center', gap: moderateScale(12) },
+    backButton: { width: moderateScale(44), height: moderateScale(44), borderWidth: 1.5, borderRadius: moderateScale(14), alignItems: 'center', justifyContent: 'center' },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: moderateScale(0.8) },
+    pass: { marginTop: moderateScale(22), borderWidth: 1.5, borderRadius: moderateScale(26), padding: moderateScale(20), gap: moderateScale(14), },
+    passNotch: { position: 'absolute', width: moderateScale(22), height: moderateScale(22), borderRadius: moderateScale(11), borderWidth: 1.5, top: moderateScale(99) },
+    leftNotch: { left: moderateScale(-12) },
+    rightNotch: { right: moderateScale(-12) },
+    passTop: { flexDirection: 'row', alignItems: 'center', gap: moderateScale(12) },
+    clubMark: { width: moderateScale(50), height: moderateScale(50), borderWidth: 1.5, borderRadius: moderateScale(16), alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-4deg' }] },
+    tearLine: { borderTopWidth: 1.5, borderStyle: 'dashed', marginHorizontal: moderateScale(-4) },
+    codeBox: { minHeight: moderateScale(72), borderWidth: 1.5, borderRadius: moderateScale(17), borderStyle: 'dashed', paddingHorizontal: moderateScale(16), flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    code: { letterSpacing: moderateScale(4) },
+    copyButton: { width: moderateScale(40), height: moderateScale(40), borderWidth: 1.25, borderRadius: moderateScale(12), alignItems: 'center', justifyContent: 'center' },
+    stickerRow: { flexDirection: 'row', gap: moderateScale(16), marginTop: moderateScale(28) },
+    statSticker: { flex: 1, minHeight: moderateScale(138), borderWidth: 1.5, borderRadius: moderateScale(20), padding: moderateScale(15), justifyContent: 'center', alignItems: 'center', },
+    stepsRow: { flexDirection: 'row', gap: moderateScale(9), marginTop: moderateScale(15) },
+    stepStamp: { flex: 1, minHeight: moderateScale(154), borderWidth: 1.5, borderRadius: moderateScale(17), padding: moderateScale(11), gap: moderateScale(4) },
+    stepIcon: { width: moderateScale(38), height: moderateScale(38), borderWidth: 1.25, borderRadius: moderateScale(12), alignItems: 'center', justifyContent: 'center', marginVertical: moderateScale(4) },
+    secretPass: { marginTop: moderateScale(32), borderWidth: 1.5, borderRadius: moderateScale(22), padding: moderateScale(16), gap: moderateScale(13), },
+    secretHeading: { flexDirection: 'row', alignItems: 'center', gap: moderateScale(11) },
+    secretIcon: { width: moderateScale(46), height: moderateScale(46), borderWidth: 1.25, borderRadius: moderateScale(14), alignItems: 'center', justifyContent: 'center' },
+    friendsHeading: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: moderateScale(14) },
+    countBadge: { minWidth: moderateScale(30), height: moderateScale(30), borderRadius: moderateScale(10), alignItems: 'center', justifyContent: 'center' },
+    friendList: { gap: moderateScale(10) },
+    friendCard: { minHeight: moderateScale(74), borderWidth: 1.5, borderRadius: moderateScale(18), padding: moderateScale(11), flexDirection: 'row', alignItems: 'center', gap: moderateScale(11) },
+    coinBadge: { borderWidth: 1.25, borderRadius: moderateScale(10), paddingHorizontal: moderateScale(9), paddingVertical: moderateScale(6) },
+    emptyTable: { borderWidth: 1.5, borderRadius: moderateScale(22), padding: moderateScale(28), alignItems: 'center', gap: moderateScale(7) },
 });

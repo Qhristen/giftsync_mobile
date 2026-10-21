@@ -10,6 +10,7 @@ import {
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { moderateScale } from '@/utils/scaling';
 
 const FAQS = [
     {
@@ -52,13 +53,13 @@ export default function SellerFaqsScreen() {
             {/* Header */}
             <View style={[styles.header, { borderBottomColor: colors.border + '33' }]}>
                 <Pressable onPress={() => router.back()} style={styles.backButton}>
-                    <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color={colors.textPrimary} />
+                    <HugeiconsIcon icon={ArrowLeft01Icon} size={moderateScale(24)} color={colors.textPrimary} />
                 </Pressable>
                 <Typography variant="h3">Seller FAQs</Typography>
-                <View style={{ width: 24 }} />
+                <View style={{ width: moderateScale(24) }} />
             </View>
 
-            <ScrollView contentContainerStyle={{ padding: spacing.xl, paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
+            <ScrollView contentContainerStyle={{ padding: spacing.xl, paddingBottom: moderateScale(100) }} showsVerticalScrollIndicator={false}>
                 <Typography variant="body" color={colors.textSecondary} style={{ marginBottom: spacing.xl }}>
                     Everything you need to know about selling on GiftSync.
                 </Typography>
@@ -81,7 +82,7 @@ export default function SellerFaqsScreen() {
                                 <Typography variant="bodyBold" style={{ flex: 1 }}>{faq.question}</Typography>
                                 <HugeiconsIcon
                                     icon={isExpanded ? ArrowUp01Icon : ArrowDown01Icon}
-                                    size={20}
+                                    size={moderateScale(20)}
                                     color={isExpanded ? colors.primary : colors.textMuted}
                                 />
                             </View>
@@ -95,8 +96,8 @@ export default function SellerFaqsScreen() {
                 })}
 
                 <View style={[styles.infoBox, { backgroundColor: colors.primary + '10' }]}>
-                    <HugeiconsIcon icon={InformationCircleIcon} size={24} color={colors.primary} />
-                    <View style={{ flex: 1, marginLeft: 12 }}>
+                    <HugeiconsIcon icon={InformationCircleIcon} size={moderateScale(24)} color={colors.primary} />
+                    <View style={{ flex: 1, marginLeft: moderateScale(12) }}>
                         <Typography variant="bodyBold" color={colors.primary}>Weekly Payouts</Typography>
                         <Typography variant="caption" color={colors.primary}>
                             Remember: Earnings are settled every Monday for all orders successfully delivered in the previous week.
@@ -116,18 +117,18 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingTop: 60,
-        paddingBottom: 16,
-        paddingHorizontal: 20,
+        paddingTop: moderateScale(60),
+        paddingBottom: moderateScale(16),
+        paddingHorizontal: moderateScale(20),
         borderBottomWidth: 1,
     },
     backButton: {
-        padding: 4,
+        padding: moderateScale(4),
     },
     faqItem: {
-        padding: 16,
-        borderRadius: 10,
-        marginBottom: 12,
+        padding: moderateScale(16),
+        borderRadius: moderateScale(10),
+        marginBottom: moderateScale(12),
         borderWidth: 1,
     },
     questionRow: {
@@ -136,14 +137,14 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
     },
     answer: {
-        marginTop: 12,
-        lineHeight: 20,
+        marginTop: moderateScale(12),
+        lineHeight: moderateScale(20),
     },
     infoBox: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 16,
-        borderRadius: 16,
-        marginTop: 20,
+        padding: moderateScale(16),
+        borderRadius: moderateScale(16),
+        marginTop: moderateScale(20),
     }
 });

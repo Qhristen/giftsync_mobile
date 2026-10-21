@@ -10,6 +10,7 @@ import {
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { StyleSheet, View } from 'react-native';
+import { moderateScale } from '@/utils/scaling';
 
 interface GiftRequestOrderCardProps {
     order: GiftRequestOrder;
@@ -37,7 +38,7 @@ export default function GiftRequestOrderCard({
                     <View style={[styles.iconBox, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                         <HugeiconsIcon
                             icon={hasPaid ? CheckmarkCircle02Icon : GiftIcon}
-                            size={24}
+                            size={moderateScale(24)}
                             color={colors.ink}
                         />
                     </View>
@@ -85,7 +86,7 @@ export default function GiftRequestOrderCard({
                         <Button
                             title={`Make payment · ${formatCurrency(order.total, currency)}`}
                             onPress={onPay}
-                            leftIcon={<HugeiconsIcon icon={CreditCardIcon} size={19} color="#17151D" />}
+                            leftIcon={<HugeiconsIcon icon={CreditCardIcon} size={moderateScale(19)} color="#17151D" />}
                         />
                     ) : (
                         <View style={[styles.paymentState, { backgroundColor: hasPaid ? colors.mint : colors.surfaceRaised }]}>
@@ -118,22 +119,22 @@ const styles = StyleSheet.create({
     },
     card: {
         width: '100%',
-        maxWidth: 520,
+        maxWidth: moderateScale(520),
         borderWidth: 1.5,
-        borderRadius: 22,
+        borderRadius: moderateScale(22),
         overflow: 'hidden',
     },
     banner: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
-        padding: 14,
+        gap: moderateScale(12),
+        padding: moderateScale(14),
     },
     iconBox: {
-        width: 44,
-        height: 44,
+        width: moderateScale(44),
+        height: moderateScale(44),
         borderWidth: 1.5,
-        borderRadius: 14,
+        borderRadius: moderateScale(14),
         alignItems: 'center',
         justifyContent: 'center',
         transform: [{ rotate: '-3deg' }],
@@ -143,46 +144,46 @@ const styles = StyleSheet.create({
     },
     overline: {
         fontFamily: 'DMSans_700Bold',
-        letterSpacing: 0.7,
+        letterSpacing: moderateScale(0.7),
     },
     body: {
-        gap: 15,
-        padding: 16,
+        gap: moderateScale(15),
+        padding: moderateScale(16),
     },
     summaryRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'flex-start',
-        gap: 12,
+        gap: moderateScale(12),
     },
     summaryCopy: {
         flex: 1,
     },
     priceList: {
-        gap: 8,
+        gap: moderateScale(8),
     },
     priceRow: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        gap: 12,
+        gap: moderateScale(12),
     },
     divider: {
         borderTopWidth: 1.5,
         borderStyle: 'dashed',
-        marginVertical: 2,
+        marginVertical: moderateScale(2),
     },
     totalRow: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        gap: 12,
+        gap: moderateScale(12),
     },
     paymentState: {
-        minHeight: 48,
-        borderRadius: 16,
+        minHeight: moderateScale(48),
+        borderRadius: moderateScale(16),
         alignItems: 'center',
         justifyContent: 'center',
-        paddingHorizontal: 16,
+        paddingHorizontal: moderateScale(16),
     },
 });

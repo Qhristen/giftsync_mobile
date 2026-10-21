@@ -316,7 +316,7 @@ export default function AIChatScreen() {
             <View style={[styles.unavailable, { backgroundColor: colors.background, paddingHorizontal: spacing.xl }]}>
                 <Stack.Screen options={{ headerShown: false }} />
                 <View style={[styles.unavailableIcon, { backgroundColor: colors.lavender, borderColor: colors.ink }]}>
-                    <HugeiconsIcon icon={SparklesIcon} size={30} color={colors.ink} />
+                    <HugeiconsIcon icon={SparklesIcon} size={moderateScale(30)} color={colors.ink} />
                 </View>
                 <Typography variant="h2" align="center">Gift concierge is unavailable</Typography>
                 <Typography variant="body" color={colors.textSecondary} align="center">Please check back shortly.</Typography>
@@ -337,23 +337,23 @@ export default function AIChatScreen() {
             <View style={[
                 styles.header,
                 {
-                    paddingTop: insets.top + 10,
-                    paddingBottom: 12,
+                    paddingTop: insets.top + moderateScale(10),
+                    paddingBottom: moderateScale(12),
                 }
             ]}>
                 <View style={[styles.conciergeHeader, { backgroundColor: colors.lavender, borderColor: colors.ink }]}>
                     <Pressable onPress={() => router.back()} style={[styles.backBtn, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                        <HugeiconsIcon icon={ArrowLeft01Icon} size={21} color={colors.ink} />
+                        <HugeiconsIcon icon={ArrowLeft01Icon} size={moderateScale(21)} color={colors.ink} />
                     </Pressable>
 
                     <View style={styles.aiBranding}>
                         <View style={[styles.aiAvatar, { backgroundColor: colors.lime, borderColor: colors.ink }]}>
-                            <HugeiconsIcon icon={SparklesIcon} size={18} color={colors.ink} />
+                            <HugeiconsIcon icon={SparklesIcon} size={moderateScale(18)} color={colors.ink} />
                         </View>
                         <View>
                             <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>GIFT CONCIERGE</Typography>
                             <Typography variant="bodyBold" style={{ fontSize: moderateScale(16) }}>The idea workbench</Typography>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: moderateScale(4) }}>
                                 <View style={[styles.statusDot, { backgroundColor: isAITyping ? colors.peach : colors.success, borderColor: colors.ink }]} />
                                 <Typography variant="caption" color={colors.textSecondary}>
                                     {isAITyping ? 'Sketching an idea…' : `${aiChatCost} coins per note`}
@@ -380,7 +380,7 @@ export default function AIChatScreen() {
                         }}
                         style={({ pressed }) => [styles.headerAction, { backgroundColor: colors.surface, borderColor: colors.ink, opacity: pressed ? 0.65 : 1 }]}
                     >
-                        <HugeiconsIcon icon={Delete02Icon} size={17} color={colors.ink} />
+                        <HugeiconsIcon icon={Delete02Icon} size={moderateScale(17)} color={colors.ink} />
                     </Pressable>
                     <View style={[styles.headerTape, { backgroundColor: colors.lemon, borderColor: colors.ink }]} />
                 </View>
@@ -438,7 +438,7 @@ export default function AIChatScreen() {
                                                 <View
                                                     key={rec.id}
 
-                                                    style={{ width: '48%', marginBottom: 12 }}
+                                                    style={{ width: '48%', marginBottom: moderateScale(12) }}
                                                 >
                                                     <Pressable
                                                         onPress={() => router.push({ pathname: '/product-detail', params: { id: rec.id } })}
@@ -452,11 +452,11 @@ export default function AIChatScreen() {
                                                             <Image source={{ uri: rec.imageUrls[0] }} style={styles.gridProductImage} />
                                                         ) : (
                                                             <View style={[styles.gridProductImage, styles.productPlaceholder, { backgroundColor: colors.surface }]}>
-                                                                <HugeiconsIcon icon={SparklesIcon} size={24} color={colors.primary} />
+                                                                <HugeiconsIcon icon={SparklesIcon} size={moderateScale(24)} color={colors.primary} />
                                                             </View>
                                                         )}
                                                         <View style={styles.gridCardContent}>
-                                                            <Typography variant="bodyBold" numberOfLines={1} style={{ textAlign: 'center', fontSize: moderateScale(13), marginTop: 4 }}>{rec.name}</Typography>
+                                                            <Typography variant="bodyBold" numberOfLines={1} style={{ textAlign: 'center', fontSize: moderateScale(13), marginTop: moderateScale(4) }}>{rec.name}</Typography>
                                                             {rec.price != null && <Typography variant="label" color={colors.primary} style={{ textAlign: 'center', fontSize: moderateScale(12) }}>{formatCurrency(Number(rec.price), rec.currency || 'NGN')}</Typography>}
                                                         </View>
                                                     </Pressable>
@@ -488,7 +488,7 @@ export default function AIChatScreen() {
                                                                 style={[styles.requestSuggestionButton, { backgroundColor: colors.mint, borderColor: colors.ink }]}
                                                             >
                                                                 <Typography variant="label">Create a sourcing request</Typography>
-                                                                <HugeiconsIcon icon={ArrowLeft01Icon} size={16} color={colors.ink} style={{ transform: [{ rotate: '180deg' }] }} />
+                                                                <HugeiconsIcon icon={ArrowLeft01Icon} size={moderateScale(16)} color={colors.ink} style={{ transform: [{ rotate: '180deg' }] }} />
                                                             </Pressable>
                                                         )}
                                                     </View>
@@ -520,7 +520,7 @@ export default function AIChatScreen() {
                                                 <View
                                                     key={rec.id}
 
-                                                    style={{ width: '48%', marginBottom: 12 }}
+                                                    style={{ width: '48%', marginBottom: moderateScale(12) }}
                                                 >
                                                     <Pressable
                                                         onPress={() => router.push({ pathname: '/event-detail', params: { id: rec.id } })}
@@ -533,8 +533,8 @@ export default function AIChatScreen() {
                                                         {rec.contact ? (
                                                             <Avatar uri={rec.contact?.avatar} name={rec.contact?.name} size="md" />
                                                         ) : (
-                                                            <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary + '20', justifyContent: 'center', alignItems: 'center' }}>
-                                                                <HugeiconsIcon icon={Calendar01Icon} size={20} color={colors.primary} />
+                                                            <View style={{ width: moderateScale(40), height: moderateScale(40), borderRadius: moderateScale(20), backgroundColor: colors.primary + '20', justifyContent: 'center', alignItems: 'center' }}>
+                                                                <HugeiconsIcon icon={Calendar01Icon} size={moderateScale(20)} color={colors.primary} />
                                                             </View>
                                                         )}
                                                         <View style={styles.gridCardContent}>
@@ -546,7 +546,7 @@ export default function AIChatScreen() {
                                                             <Typography variant="caption" color={rec.contact ? colors.textSecondary : colors.textPrimary} numberOfLines={1} style={{ textAlign: 'center', fontSize: moderateScale(10) }}>
                                                                 {rec.title}
                                                             </Typography>
-                                                            <Typography variant="caption" color={colors.primary} style={{ textAlign: 'center', fontSize: moderateScale(10), marginTop: 2 }}>
+                                                            <Typography variant="caption" color={colors.primary} style={{ textAlign: 'center', fontSize: moderateScale(10), marginTop: moderateScale(2) }}>
                                                                 {new Date(rec.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                                                             </Typography>
                                                         </View>
@@ -580,7 +580,7 @@ export default function AIChatScreen() {
                                                 <View
                                                     key={rec.id}
 
-                                                    style={{ width: '48%', marginBottom: 12 }}
+                                                    style={{ width: '48%', marginBottom: moderateScale(12) }}
                                                 >
                                                     <Pressable
                                                         style={({ pressed }) => [
@@ -598,7 +598,7 @@ export default function AIChatScreen() {
                                                                 </Typography>
                                                             )}
                                                             {rec.phoneNumber && (
-                                                                <Typography variant="caption" color={colors.textSecondary} numberOfLines={1} style={{ textAlign: 'center', fontSize: moderateScale(10), marginTop: 2 }}>
+                                                                <Typography variant="caption" color={colors.textSecondary} numberOfLines={1} style={{ textAlign: 'center', fontSize: moderateScale(10), marginTop: moderateScale(2) }}>
                                                                     {rec.phoneNumber}
                                                                 </Typography>
                                                             )}
@@ -721,7 +721,7 @@ export default function AIChatScreen() {
                     styles.inputContainer,
                     {
                         backgroundColor: colors.background,
-                        paddingBottom: insets.bottom + 12,
+                        paddingBottom: insets.bottom + moderateScale(12),
                     }
                 ]}>
                     <View style={styles.inputWrapper}>
@@ -759,7 +759,7 @@ export default function AIChatScreen() {
                     >
                         <HugeiconsIcon
                             icon={SentIcon}
-                            size={20}
+                            size={moderateScale(20)}
                             color={messageText.trim() ? colors.ink : colors.textMuted}
                         />
                     </Pressable>
@@ -782,10 +782,10 @@ export default function AIChatScreen() {
                                 {
                                     backgroundColor: colors.surface,
                                     borderColor: colors.ink,
-                                    top: Math.min(Math.max(insets.top + 60, menuPosition.y - 120), screenHeight - 200),
+                                    top: Math.min(Math.max(insets.top + moderateScale(60), menuPosition.y - moderateScale(120)), screenHeight - moderateScale(200)),
                                     left: selectedMessageIsOwn
-                                        ? Math.max(20, menuPosition.x - 190)
-                                        : Math.min(screenWidth - 210, menuPosition.x + 10),
+                                        ? Math.max(moderateScale(20), menuPosition.x - moderateScale(190))
+                                        : Math.min(screenWidth - moderateScale(210), menuPosition.x + moderateScale(10)),
                                 }
                             ]}
                         >
@@ -796,7 +796,7 @@ export default function AIChatScreen() {
                                 ]}
                                 onPress={handleCopy}
                             >
-                                <HugeiconsIcon icon={Copy01Icon} size={18} color={colors.textPrimary} />
+                                <HugeiconsIcon icon={Copy01Icon} size={moderateScale(18)} color={colors.textPrimary} />
                                 <Typography variant="body">Copy Text</Typography>
                             </Pressable>
 
@@ -809,7 +809,7 @@ export default function AIChatScreen() {
                                 ]}
                                 onPress={() => setIsOptionsVisible(false)}
                             >
-                                <HugeiconsIcon icon={Cancel01Icon} size={18} color={colors.error} />
+                                <HugeiconsIcon icon={Cancel01Icon} size={moderateScale(18)} color={colors.error} />
                                 <Typography variant="body" color={colors.error}>Cancel</Typography>
                             </Pressable>
                         </View>
@@ -825,25 +825,25 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     header: {
-        paddingHorizontal: 14,
+        paddingHorizontal: moderateScale(14),
     },
     conciergeHeader: {
-        minHeight: 76,
+        minHeight: moderateScale(76),
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 10,
+        gap: moderateScale(10),
         borderWidth: 1.5,
-        borderRadius: 22,
-        padding: 10,
+        borderRadius: moderateScale(22),
+        padding: moderateScale(10),
 
         transform: [{ rotate: '-0.3deg' }],
     },
-    headerTape: { position: 'absolute', top: -8, left: '44%', width: 54, height: 15, borderWidth: 1, transform: [{ rotate: '3deg' }] },
-    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.9 },
+    headerTape: { position: 'absolute', top: moderateScale(-8), left: '44%', width: moderateScale(54), height: moderateScale(15), borderWidth: 1, transform: [{ rotate: '3deg' }] },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: moderateScale(0.9) },
     backBtn: {
-        width: 40,
-        height: 40,
-        borderRadius: 13,
+        width: moderateScale(40),
+        height: moderateScale(40),
+        borderRadius: moderateScale(13),
         borderWidth: 1.25,
         justifyContent: 'center',
         alignItems: 'center',
@@ -852,33 +852,33 @@ const styles = StyleSheet.create({
     aiBranding: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
+        gap: moderateScale(12),
         flex: 1,
     },
     statusDot: {
-        width: 6,
-        height: 6,
-        borderRadius: 3,
+        width: moderateScale(6),
+        height: moderateScale(6),
+        borderRadius: moderateScale(3),
         borderWidth: 0.75,
     },
     headerAction: {
-        width: 36,
-        height: 36,
-        borderRadius: 11,
+        width: moderateScale(36),
+        height: moderateScale(36),
+        borderRadius: moderateScale(11),
         borderWidth: 1.25,
         alignItems: 'center',
         justifyContent: 'center',
     },
     aiAvatar: {
-        width: 36,
-        height: 36,
-        borderRadius: 12,
+        width: moderateScale(36),
+        height: moderateScale(36),
+        borderRadius: moderateScale(12),
         borderWidth: 1.25,
         justifyContent: 'center',
         alignItems: 'center',
     },
     messageList: {
-        paddingVertical: 20,
+        paddingVertical: moderateScale(20),
     },
     messageArea: {
         flex: 1,
@@ -886,25 +886,25 @@ const styles = StyleSheet.create({
     inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 14,
-        paddingVertical: 12,
-        gap: 8,
+        paddingHorizontal: moderateScale(14),
+        paddingVertical: moderateScale(12),
+        gap: moderateScale(8),
     },
     inputWrapper: {
         flex: 1,
-        marginRight: 0,
+        marginRight: moderateScale(0),
     },
     input: {
-        height: 48,
-        borderRadius: 17,
+        height: moderateScale(48),
+        borderRadius: moderateScale(17),
         borderWidth: 1.5,
-        paddingHorizontal: 20,
+        paddingHorizontal: moderateScale(20),
         fontSize: moderateScale(16),
     },
     sendBtn: {
-        width: 48,
-        height: 48,
-        borderRadius: 15,
+        width: moderateScale(48),
+        height: moderateScale(48),
+        borderRadius: moderateScale(15),
         borderWidth: 1.5,
         justifyContent: 'center',
         alignItems: 'center',
@@ -918,10 +918,10 @@ const styles = StyleSheet.create({
     gridCardInner: {
         flex: 1,
         alignItems: 'center',
-        padding: 12,
-        borderRadius: 18,
+        padding: moderateScale(12),
+        borderRadius: moderateScale(18),
         borderWidth: 1.5,
-        gap: 8,
+        gap: moderateScale(8),
     },
     gridCardContent: {
         width: '100%',
@@ -929,8 +929,8 @@ const styles = StyleSheet.create({
     },
     gridProductImage: {
         width: '100%',
-        height: 110,
-        borderRadius: 11,
+        height: moderateScale(110),
+        borderRadius: moderateScale(11),
         borderWidth: 1,
         borderColor: '#17151D',
     },
@@ -940,29 +940,29 @@ const styles = StyleSheet.create({
     },
     // Legacy styles kept for safety
     recCard: {
-        width: 160,
-        padding: 8,
-        marginRight: 12,
-        borderRadius: 16,
+        width: moderateScale(160),
+        padding: moderateScale(8),
+        marginRight: moderateScale(12),
+        borderRadius: moderateScale(16),
     },
     recImage: {
         width: '100%',
-        height: 120,
-        borderRadius: 8,
+        height: moderateScale(120),
+        borderRadius: moderateScale(8),
     },
     typingIndicatorContainer: {
-        paddingHorizontal: 16,
-        paddingBottom: 8,
+        paddingHorizontal: moderateScale(16),
+        paddingBottom: moderateScale(8),
         alignItems: 'flex-start',
-        marginTop: 8,
+        marginTop: moderateScale(8),
     },
     typingIndicatorBubble: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        borderRadius: 20,
-        gap: 8,
+        paddingHorizontal: moderateScale(16),
+        paddingVertical: moderateScale(12),
+        borderRadius: moderateScale(20),
+        gap: moderateScale(8),
         borderWidth: 1.5,
     },
     overlay: {
@@ -970,88 +970,88 @@ const styles = StyleSheet.create({
     },
     floatingMenu: {
         position: 'absolute',
-        width: 170,
-        borderRadius: 16,
+        width: moderateScale(170),
+        borderRadius: moderateScale(16),
         borderWidth: 1.5,
-        padding: 4,
+        padding: moderateScale(4),
     },
     menuOption: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 12,
-        borderRadius: 12,
-        gap: 12,
+        padding: moderateScale(12),
+        borderRadius: moderateScale(12),
+        gap: moderateScale(12),
     },
     menuSeparator: {
-        height: 1,
-        marginHorizontal: 12,
+        height: moderateScale(1),
+        marginHorizontal: moderateScale(12),
     },
     suggestionList: {
-        gap: 10,
-        marginTop: 12,
+        gap: moderateScale(10),
+        marginTop: moderateScale(12),
     },
     suggestionCard: {
         borderWidth: 1.5,
-        borderRadius: 17,
-        padding: 14,
-        gap: 7,
+        borderRadius: moderateScale(17),
+        padding: moderateScale(14),
+        gap: moderateScale(7),
     },
     suggestionHeading: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 8,
+        gap: moderateScale(8),
     },
     offPlatformBadge: {
         borderWidth: 1,
-        borderRadius: 9,
-        paddingHorizontal: 7,
-        paddingVertical: 4,
+        borderRadius: moderateScale(9),
+        paddingHorizontal: moderateScale(7),
+        paddingVertical: moderateScale(4),
     },
     requestSuggestionButton: {
-        minHeight: 40,
+        minHeight: moderateScale(40),
         borderWidth: 1.25,
-        borderRadius: 12,
-        paddingHorizontal: 12,
+        borderRadius: moderateScale(12),
+        paddingHorizontal: moderateScale(12),
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        marginTop: 3,
+        marginTop: moderateScale(3),
     },
     createdRequestCard: {
         borderWidth: 1.5,
-        borderRadius: 18,
-        padding: 16,
-        gap: 7,
-        marginBottom: 14,
+        borderRadius: moderateScale(18),
+        padding: moderateScale(16),
+        gap: moderateScale(7),
+        marginBottom: moderateScale(14),
     },
     payRequestButton: {
-        minHeight: 42,
+        minHeight: moderateScale(42),
         borderWidth: 1.25,
-        borderRadius: 13,
+        borderRadius: moderateScale(13),
         alignItems: 'center',
         justifyContent: 'center',
-        marginTop: 5,
+        marginTop: moderateScale(5),
     },
     unavailable: {
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 12,
+        gap: moderateScale(12),
     },
     unavailableIcon: {
-        width: 64,
-        height: 64,
+        width: moderateScale(64),
+        height: moderateScale(64),
         borderWidth: 1.5,
-        borderRadius: 20,
+        borderRadius: moderateScale(20),
         alignItems: 'center',
         justifyContent: 'center',
     },
     unavailableButton: {
-        minWidth: 140,
-        minHeight: 46,
-        borderRadius: 14,
+        minWidth: moderateScale(140),
+        minHeight: moderateScale(46),
+        borderRadius: moderateScale(14),
         alignItems: 'center',
         justifyContent: 'center',
-        marginTop: 6,
+        marginTop: moderateScale(6),
     },
 });

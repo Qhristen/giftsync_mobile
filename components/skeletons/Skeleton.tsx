@@ -1,6 +1,7 @@
 import { useTheme } from '@/hooks/useTheme';
 import React, { ReactNode } from 'react';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { moderateScale } from '@/utils/scaling';
 
 interface SkeletonProps {
     width?: number | string;
@@ -30,7 +31,7 @@ export default function Skeleton({
                 {
                     width: width as any,
                     height: height as any,
-                    borderRadius,
+                    borderRadius: moderateScale(borderRadius),
                     backgroundColor: colors.textMuted + '45',
                     opacity: 0.65,
                 },
@@ -65,6 +66,6 @@ const styles = StyleSheet.create({
     },
     paper: {
         borderWidth: 1.5,
-        borderRadius: 22,
+        borderRadius: moderateScale(22),
     },
 });

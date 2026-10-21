@@ -35,9 +35,9 @@ export default function SavedAddressesScreen() {
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <View style={[styles.header, { paddingHorizontal: spacing.xl, paddingTop: insets.top + 10, paddingBottom: spacing.lg }]}>
+            <View style={[styles.header, { paddingHorizontal: spacing.xl, paddingTop: insets.top + moderateScale(10), paddingBottom: spacing.lg }]}>
                 <Pressable onPress={() => router.back()} style={[styles.backBtn, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                    <HugeiconsIcon icon={ArrowLeft01Icon} size={22} color={colors.ink} />
+                    <HugeiconsIcon icon={ArrowLeft01Icon} size={moderateScale(22)} color={colors.ink} />
                 </Pressable>
                 <View style={styles.headerCopy}>
                     <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>DELIVERY ADDRESS BOOK</Typography>
@@ -46,7 +46,7 @@ export default function SavedAddressesScreen() {
             </View>
 
             {isLoading ? (
-                <View style={{ flex: 1, paddingTop: 20 }}>
+                <View style={{ flex: 1, paddingTop: moderateScale(20) }}>
                     <AddressListSkeleton />
                 </View>
             ) : (
@@ -55,10 +55,10 @@ export default function SavedAddressesScreen() {
                     // estimatedItemSize={85}
                     keyExtractor={(item) => item.id}
                     showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: 120 }}
+                    contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: moderateScale(120) }}
                     ListEmptyComponent={() => (
                         <View style={[styles.empty, { backgroundColor: colors.lemon, borderColor: colors.ink }]}>
-                            <HugeiconsIcon icon={Location01Icon} size={34} color={colors.ink} />
+                            <HugeiconsIcon icon={Location01Icon} size={moderateScale(34)} color={colors.ink} />
                             <Typography variant="h3">No pins on the map.</Typography>
                             <Typography variant="body" color={colors.textSecondary} align="center">Add a doorstep so the next gift knows where to go.</Typography>
                         </View>
@@ -67,10 +67,10 @@ export default function SavedAddressesScreen() {
                         <View>
                             <Card style={[styles.addressCard, { backgroundColor: paper[index % paper.length], borderColor: colors.ink, transform: [{ rotate: index % 2 ? '0.6deg' : '-0.6deg' }] }]}>
                                 <View style={[styles.iconBox, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                                    <HugeiconsIcon icon={Location01Icon} size={23} color={colors.ink} />
+                                    <HugeiconsIcon icon={Location01Icon} size={moderateScale(23)} color={colors.ink} />
                                 </View>
                                 <View style={{ flex: 1 }}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: moderateScale(8) }}>
                                         <Typography variant="bodyBold">{item.recipientName}</Typography>
                                         {item.isDefault && (
                                             <View style={[styles.defaultBadge, { backgroundColor: colors.lime, borderColor: colors.ink }]}>
@@ -78,12 +78,12 @@ export default function SavedAddressesScreen() {
                                             </View>
                                         )}
                                     </View>
-                                    <Typography variant="caption" color={colors.textSecondary} style={{ marginTop: 4 }}>
+                                    <Typography variant="caption" color={colors.textSecondary} style={{ marginTop: moderateScale(4) }}>
                                         {item.line1}, {item.city}, {item.state}
                                     </Typography>
                                 </View>
                                 <Pressable style={[styles.editButton, { backgroundColor: colors.surface, borderColor: colors.ink }]} onPress={handleEdit}>
-                                    <HugeiconsIcon icon={Edit01Icon} size={19} color={colors.ink} />
+                                    <HugeiconsIcon icon={Edit01Icon} size={moderateScale(19)} color={colors.ink} />
                                 </Pressable>
                             </Card>
                         </View>
@@ -91,12 +91,12 @@ export default function SavedAddressesScreen() {
                 />
             )}
 
-            <View style={[styles.footer, { backgroundColor: colors.background, paddingBottom: insets.bottom + 16 }]}>
+            <View style={[styles.footer, { backgroundColor: colors.background, paddingBottom: insets.bottom + moderateScale(16) }]}>
                 <Button
                     title="Pin a new doorstep"
                     variant="primary"
                     onPress={() => addressSheet.open()}
-                    leftIcon={<HugeiconsIcon icon={PlusSignIcon} size={20} color="#17151D" />}
+                    leftIcon={<HugeiconsIcon icon={PlusSignIcon} size={moderateScale(20)} color="#17151D" />}
                 />
             </View>
 
@@ -117,15 +117,15 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 13,
+        gap: moderateScale(13),
     },
     headerCopy: { flex: 1 },
-    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 1 },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: moderateScale(1) },
     backBtn: {
-        width: 44,
-        height: 44,
+        width: moderateScale(44),
+        height: moderateScale(44),
         borderWidth: 1.5,
-        borderRadius: 14,
+        borderRadius: moderateScale(14),
         justifyContent: 'center',
         alignItems: 'center',
         transform: [{ rotate: '-3deg' }],
@@ -133,33 +133,33 @@ const styles = StyleSheet.create({
     addressCard: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 16,
-        marginBottom: 16,
-        gap: 13,
+        padding: moderateScale(16),
+        marginBottom: moderateScale(16),
+        gap: moderateScale(13),
         borderWidth: 1.5,
-        borderRadius: 21,
+        borderRadius: moderateScale(21),
     },
     iconBox: {
-        width: 48,
-        height: 48,
-        borderRadius: 15,
+        width: moderateScale(48),
+        height: moderateScale(48),
+        borderRadius: moderateScale(15),
         borderWidth: 1.5,
         justifyContent: 'center',
         alignItems: 'center',
     },
     defaultBadge: {
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-        borderRadius: 8,
+        paddingHorizontal: moderateScale(6),
+        paddingVertical: moderateScale(2),
+        borderRadius: moderateScale(8),
         borderWidth: 1.25,
     },
-    editButton: { width: 38, height: 38, borderRadius: 12, borderWidth: 1.25, alignItems: 'center', justifyContent: 'center' },
-    empty: { marginTop: 34, padding: 24, borderWidth: 1.5, borderRadius: 24, alignItems: 'center', gap: 8 },
+    editButton: { width: moderateScale(38), height: moderateScale(38), borderRadius: moderateScale(12), borderWidth: 1.25, alignItems: 'center', justifyContent: 'center' },
+    empty: { marginTop: moderateScale(34), padding: moderateScale(24), borderWidth: 1.5, borderRadius: moderateScale(24), alignItems: 'center', gap: moderateScale(8) },
     footer: {
         position: 'absolute',
-        bottom: 0,
+        bottom: moderateScale(0),
         width: '100%',
-        paddingHorizontal: 20,
-        paddingTop: 14,
+        paddingHorizontal: moderateScale(20),
+        paddingTop: moderateScale(14),
     },
 });

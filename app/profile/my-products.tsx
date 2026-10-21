@@ -18,6 +18,7 @@ import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, Switch, View
 import { useSelector } from 'react-redux';
 import { toast } from 'sonner-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { moderateScale } from '@/utils/scaling';
 
 export default function MyProductsScreen() {
     const router = useRouter();
@@ -89,10 +90,10 @@ export default function MyProductsScreen() {
                         <Typography variant="h4" numberOfLines={1} style={{ flex: 1 }}>{item.name}</Typography>
                         {/* <Badge variant={item.isAvailable ? 'success' : 'amber'} label={item.isAvailable ? 'In Stock' : 'Out of Stock'} /> */}
                     </View>
-                    <Typography variant="caption" color={colors.textSecondary} numberOfLines={2} style={{ marginTop: 2 }}>
+                    <Typography variant="caption" color={colors.textSecondary} numberOfLines={2} style={{ marginTop: moderateScale(2) }}>
                         {item.description}
                     </Typography>
-                    <Typography variant="body" color={colors.primary} style={{ marginTop: 6 }}>
+                    <Typography variant="body" color={colors.primary} style={{ marginTop: moderateScale(6) }}>
                         {formatCurrency(item.price, item.currency)} · view orders →
                     </Typography>
                 </View>
@@ -151,21 +152,21 @@ export default function MyProductsScreen() {
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+            <View style={[styles.header, { paddingTop: insets.top + moderateScale(10) }]}>
                 <Pressable onPress={() => router.back()} style={[styles.backButton, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                    <HugeiconsIcon icon={ArrowLeft01Icon} size={22} color={colors.ink} />
+                    <HugeiconsIcon icon={ArrowLeft01Icon} size={moderateScale(22)} color={colors.ink} />
                 </Pressable>
                 <View style={styles.headerCopy}>
                     <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>MAKER&apos;S SHELF</Typography>
                     <Typography variant="h2">Your gift catalogue</Typography>
                 </View>
                 <Pressable onPress={() => router.push('/profile/add-product')} style={[styles.headerAdd, { backgroundColor: colors.lime, borderColor: colors.ink }]}>
-                    <HugeiconsIcon icon={PlusSignIcon} size={19} color={colors.ink} />
+                    <HugeiconsIcon icon={PlusSignIcon} size={moderateScale(19)} color={colors.ink} />
                 </Pressable>
             </View>
 
             {isLoading && page === 1 ? (
-                <View style={{ flex: 1, paddingTop: 20 }}>
+                <View style={{ flex: 1, paddingTop: moderateScale(20) }}>
                     <ProductListSkeleton />
                 </View>
             ) : (
@@ -173,7 +174,7 @@ export default function MyProductsScreen() {
                     data={products}
                     renderItem={renderProductItem}
                     keyExtractor={(item) => item.id}
-                    contentContainerStyle={{ padding: spacing.xl, paddingBottom: 100 }}
+                    contentContainerStyle={{ padding: spacing.xl, paddingBottom: moderateScale(100) }}
                     showsVerticalScrollIndicator={false}
                     onEndReached={() => {
                         if (!isLoading && !isFetching && meta && page < meta.totalPages) {
@@ -189,7 +190,7 @@ export default function MyProductsScreen() {
                     }
                     ListFooterComponent={
                         isFetching && page > 1 ? (
-                            <View style={{ paddingVertical: 20 }}>
+                            <View style={{ paddingVertical: moderateScale(20) }}>
                                 <ActivityIndicator size="small" color={colors.primary} />
                             </View>
                         ) : null
@@ -212,15 +213,15 @@ export default function MyProductsScreen() {
                     {
                         backgroundColor: colors.lime,
                         borderColor: colors.ink,
-                        bottom: insets.bottom + 24,
+                        bottom: insets.bottom + moderateScale(24),
                         flexDirection: 'row',
                         alignItems: 'center',
-                        height: 56,
-                        gap: 8
+                        height: moderateScale(56),
+                        gap: moderateScale(8)
                     }
                 ]}
             >
-                <HugeiconsIcon icon={PlusSignIcon} size={22} color={colors.ink} />
+                <HugeiconsIcon icon={PlusSignIcon} size={moderateScale(22)} color={colors.ink} />
                 <Typography variant="bodyBold">Add a gift</Typography>
             </Pressable>
         </View>
@@ -234,38 +235,38 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
-        paddingBottom: 16,
-        paddingHorizontal: 20,
+        gap: moderateScale(12),
+        paddingBottom: moderateScale(16),
+        paddingHorizontal: moderateScale(20),
     },
     headerCopy: { flex: 1 },
-    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 1 },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: moderateScale(1) },
     backButton: {
-        width: 44,
-        height: 44,
+        width: moderateScale(44),
+        height: moderateScale(44),
         borderWidth: 1.5,
-        borderRadius: 14,
+        borderRadius: moderateScale(14),
         alignItems: 'center',
         justifyContent: 'center',
         transform: [{ rotate: '-3deg' }],
     },
-    headerAdd: { width: 42, height: 42, borderWidth: 1.5, borderRadius: 13, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '3deg' }] },
+    headerAdd: { width: moderateScale(42), height: moderateScale(42), borderWidth: 1.5, borderRadius: moderateScale(13), alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '3deg' }] },
     productCard: {
-        marginBottom: 16,
-        padding: 12,
+        marginBottom: moderateScale(16),
+        padding: moderateScale(12),
         borderWidth: 1.5,
-        borderRadius: 22,
+        borderRadius: moderateScale(22),
     },
-    colorTab: { position: 'absolute', width: 42, height: 13, borderWidth: 1, top: -8, left: 26, transform: [{ rotate: '-4deg' }], zIndex: 2 },
+    colorTab: { position: 'absolute', width: moderateScale(42), height: moderateScale(13), borderWidth: 1, top: moderateScale(-8), left: moderateScale(26), transform: [{ rotate: '-4deg' }], zIndex: 2 },
     productCardContent: {
         flexDirection: 'row',
-        gap: 12,
-        marginBottom: 12,
+        gap: moderateScale(12),
+        marginBottom: moderateScale(12),
     },
     productImage: {
-        width: 80,
-        height: 80,
-        borderRadius: 15,
+        width: moderateScale(80),
+        height: moderateScale(80),
+        borderRadius: moderateScale(15),
         borderWidth: 1,
         borderColor: '#17151D',
     },
@@ -282,29 +283,29 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingVertical: 4,
-        marginBottom: 8,
+        paddingVertical: moderateScale(4),
+        marginBottom: moderateScale(8),
         borderBottomWidth: StyleSheet.hairlineWidth,
         borderBottomColor: '#ffffff15',
     },
     actionRow: {
         flexDirection: 'row',
-        gap: 8,
+        gap: moderateScale(8),
     },
     emptyContainer: {
         alignItems: 'center',
-        marginTop: 60,
-        padding: 24,
+        marginTop: moderateScale(60),
+        padding: moderateScale(24),
         borderWidth: 1.5,
-        borderRadius: 22,
-        gap: 6,
+        borderRadius: moderateScale(22),
+        gap: moderateScale(6),
     },
     floatingButton: {
         position: 'absolute',
-        bottom: 24,
-        right: 24,
-        borderRadius: 17,
+        bottom: moderateScale(24),
+        right: moderateScale(24),
+        borderRadius: moderateScale(17),
         borderWidth: 1.5,
-        paddingHorizontal: 20,
+        paddingHorizontal: moderateScale(20),
     }
 });

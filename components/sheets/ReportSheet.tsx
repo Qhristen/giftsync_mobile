@@ -8,6 +8,7 @@ import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Typography from '../ui/Typography';
+import { moderateScale } from '@/utils/scaling';
 
 interface Props {
     targetId: string;
@@ -79,7 +80,7 @@ const ReportSheet = forwardRef<BottomSheetRef, Props>(
                             onChangeText={setDescription}
                             multiline
                             numberOfLines={4}
-                            style={{ height: 100 }}
+                            style={{ height: moderateScale(100) }}
                             isBottomSheet
                         />
 

@@ -34,6 +34,7 @@ import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { toast } from 'sonner-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { moderateScale } from '@/utils/scaling';
 
 interface SettingItem {
     label: string;
@@ -100,7 +101,7 @@ export default function ProfileScreen() {
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
-            <ScrollView contentContainerStyle={{ paddingTop: insets.top + spacing.sm, paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+            <ScrollView contentContainerStyle={{ paddingTop: insets.top + spacing.sm, paddingBottom: moderateScale(120) }} showsVerticalScrollIndicator={false}>
                 <View style={{ paddingHorizontal: spacing.xl, marginBottom: spacing.lg }}>
                     <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>MY GIFTSYNC</Typography>
                     <Typography variant="h1">Your corner</Typography>
@@ -108,7 +109,7 @@ export default function ProfileScreen() {
                 {/* Profile Hero */}
                 <View style={[styles.hero, { padding: spacing.lg, marginHorizontal: spacing.xl, backgroundColor: colors.lilac, borderColor: colors.ink }]}>
                     <View style={[styles.heroTape, { backgroundColor: colors.lemon, borderColor: colors.ink }]} />
-                    <Avatar name={user?.name || 'User'} uri={user?.avatarUrl} size={78} style={{ borderWidth: 1.5, borderColor: colors.ink }} />
+                    <Avatar name={user?.name || 'User'} uri={user?.avatarUrl} size={moderateScale(78)} style={{ borderWidth: 1.5, borderColor: colors.ink }} />
                     <View style={{ flex: 1 }}>
                         <Typography variant="h2">{user?.name || 'Guest'}</Typography>
                         <Typography variant="body" color={colors.textSecondary} numberOfLines={1}>{user?.email || ''}</Typography>
@@ -138,7 +139,7 @@ export default function ProfileScreen() {
                         <Typography variant="caption" color={colors.textSecondary} style={[styles.overline, { paddingHorizontal: spacing.xl, marginBottom: spacing.sm }]}>
                             {sec.title.toUpperCase()}
                         </Typography>
-                        <Card style={[styles.sectionCard, { marginHorizontal: spacing.xl, padding: 0, backgroundColor: colors.surface, borderColor: colors.ink, transform: [{ rotate: sIdx % 2 ? '0.4deg' : '-0.4deg' }] }]}>
+                        <Card style={[styles.sectionCard, { marginHorizontal: spacing.xl, padding: moderateScale(0), backgroundColor: colors.surface, borderColor: colors.ink, transform: [{ rotate: sIdx % 2 ? '0.4deg' : '-0.4deg' }] }]}>
                             {sec.items.map((item, iIdx) => (
                                 <Pressable
                                     key={iIdx}
@@ -150,15 +151,15 @@ export default function ProfileScreen() {
                                     ]}
                                 >
                                     <View style={[styles.iconBox, { backgroundColor: [colors.mint, colors.peach, colors.lilac][iIdx % 3], borderColor: colors.ink }]}>
-                                        <HugeiconsIcon icon={item.icon} size={20} color={colors.ink} />
+                                        <HugeiconsIcon icon={item.icon} size={moderateScale(20)} color={colors.ink} />
                                     </View>
                                     <Typography variant="body" style={{ flex: 1 }}>{item.label}</Typography>
                                     {item?.extra && (
-                                        <Typography variant="caption" color={colors.textSecondary} style={{ marginRight: 8 }}>
+                                        <Typography variant="caption" color={colors.textSecondary} style={{ marginRight: moderateScale(8) }}>
                                             {item?.extra}
                                         </Typography>
                                     )}
-                                    <HugeiconsIcon icon={ArrowRight01Icon} size={18} color={colors.textMuted} />
+                                    <HugeiconsIcon icon={ArrowRight01Icon} size={moderateScale(18)} color={colors.textMuted} />
                                 </Pressable>
                             ))}
                         </Card>
@@ -179,7 +180,7 @@ export default function ProfileScreen() {
                     <View style={[styles.dangerCard, { backgroundColor: colors.peach, borderColor: colors.ink }]}>
                         <View style={styles.dangerHeading}>
                             <View style={[styles.dangerIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                                <HugeiconsIcon icon={Delete02Icon} size={24} color={colors.error} />
+                                <HugeiconsIcon icon={Delete02Icon} size={moderateScale(24)} color={colors.error} />
                             </View>
                             <View style={{ flex: 1 }}>
                                 <Typography variant="caption" color={colors.error} style={styles.overline}>DANGER ZONE</Typography>
@@ -193,7 +194,7 @@ export default function ProfileScreen() {
                             title="Delete my account"
                             variant="destructive"
                             onPress={() => requestAnimationFrame(() => deleteUserSheet.open())}
-                            leftIcon={<HugeiconsIcon icon={Delete02Icon} size={19} color="#FFFFFF" />}
+                            leftIcon={<HugeiconsIcon icon={Delete02Icon} size={moderateScale(19)} color="#FFFFFF" />}
                             style={styles.deleteButton}
                         />
                     </View>
@@ -265,35 +266,35 @@ const styles = StyleSheet.create({
     hero: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 16,
+        gap: moderateScale(16),
         borderWidth: 1.5,
-        borderRadius: 24,
+        borderRadius: moderateScale(24),
 
-        marginBottom: 20,
+        marginBottom: moderateScale(20),
     },
-    heroTape: { position: 'absolute', top: -9, right: 38, width: 60, height: 18, borderWidth: 1, transform: [{ rotate: '4deg' }] },
+    heroTape: { position: 'absolute', top: moderateScale(-9), right: moderateScale(38), width: moderateScale(60), height: moderateScale(18), borderWidth: 1, transform: [{ rotate: '4deg' }] },
     upgradeCard: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: 24,
-        borderRadius: 24,
+        padding: moderateScale(24),
+        borderRadius: moderateScale(24),
         borderWidth: 1.5,
 
         transform: [{ rotate: '0.5deg' }],
     },
-    walletAction: { borderWidth: 1.25, borderRadius: 14, overflow: 'hidden' },
-    sectionCard: { borderWidth: 1.5, borderRadius: 22, overflow: 'hidden', },
+    walletAction: { borderWidth: 1.25, borderRadius: moderateScale(14), overflow: 'hidden' },
+    sectionCard: { borderWidth: 1.5, borderRadius: moderateScale(22), overflow: 'hidden', },
     settingItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 16,
-        gap: 16,
+        padding: moderateScale(16),
+        gap: moderateScale(16),
     },
     iconBox: {
-        width: 40,
-        height: 40,
-        borderRadius: 12,
+        width: moderateScale(40),
+        height: moderateScale(40),
+        borderRadius: moderateScale(12),
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 1,
@@ -301,26 +302,26 @@ const styles = StyleSheet.create({
     editPill: {
         alignSelf: 'flex-start',
         borderWidth: 1,
-        borderRadius: 10,
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-        marginTop: 8,
+        borderRadius: moderateScale(10),
+        paddingHorizontal: moderateScale(10),
+        paddingVertical: moderateScale(5),
+        marginTop: moderateScale(8),
     },
-    accountActions: { gap: 12 },
+    accountActions: { gap: moderateScale(12) },
     dangerCard: {
-        marginTop: 10,
+        marginTop: moderateScale(10),
         borderWidth: 1.5,
-        borderRadius: 22,
-        padding: 16,
-        gap: 13,
+        borderRadius: moderateScale(22),
+        padding: moderateScale(16),
+        gap: moderateScale(13),
 
         transform: [{ rotate: '-0.35deg' }],
     },
-    dangerHeading: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-    dangerIcon: { width: 48, height: 48, borderWidth: 1.5, borderRadius: 15, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '4deg' }] },
+    dangerHeading: { flexDirection: 'row', alignItems: 'center', gap: moderateScale(12) },
+    dangerIcon: { width: moderateScale(48), height: moderateScale(48), borderWidth: 1.5, borderRadius: moderateScale(15), alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '4deg' }] },
     deleteButton: { width: '100%', borderColor: '#17151D' },
     overline: {
         fontFamily: 'DMSans_700Bold',
-        letterSpacing: 0.9,
+        letterSpacing: moderateScale(0.9),
     },
 });

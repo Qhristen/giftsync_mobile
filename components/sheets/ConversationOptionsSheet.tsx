@@ -9,6 +9,7 @@ import React, { forwardRef } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Typography from '../ui/Typography';
+import { moderateScale } from '@/utils/scaling';
 
 interface Props {
     conversation: Conversation | null;
@@ -73,7 +74,7 @@ const ConversationOptionsSheet = forwardRef<BottomSheetRef, Props>(
                             key={index}
                             style={({ pressed }) => [
                                 styles.option,
-                                { backgroundColor: pressed ? colors.surfaceRaised : 'transparent', borderRadius: 12 }
+                                { backgroundColor: pressed ? colors.surfaceRaised : 'transparent', borderRadius: moderateScale(12) }
                             ]}
                             onPress={() => {
                                 option.onPress?.();
@@ -83,7 +84,7 @@ const ConversationOptionsSheet = forwardRef<BottomSheetRef, Props>(
                             }}
                         >
                             <View style={[styles.iconContainer, { backgroundColor: colors.surfaceRaised }]}>
-                                <HugeiconsIcon icon={option.icon} size={20} color={option.color || colors.textPrimary} />
+                                <HugeiconsIcon icon={option.icon} size={moderateScale(20)} color={option.color || colors.textPrimary} />
                             </View>
                             <Typography variant="bodyBold" color={option.color}>
                                 {option.label}
@@ -103,14 +104,14 @@ const styles = StyleSheet.create({
     option: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 12,
-        gap: 16,
-        marginBottom: 4,
+        padding: moderateScale(12),
+        gap: moderateScale(16),
+        marginBottom: moderateScale(4),
     },
     iconContainer: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
+        width: moderateScale(44),
+        height: moderateScale(44),
+        borderRadius: moderateScale(22),
         justifyContent: 'center',
         alignItems: 'center',
     },

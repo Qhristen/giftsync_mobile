@@ -2,6 +2,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { ArrowDown01Icon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react-native';
 import { Pressable, StyleSheet } from 'react-native';
+import { moderateScale } from '@/utils/scaling';
 
 interface ScrollToBottomButtonProps {
     visible: boolean;
@@ -27,7 +28,7 @@ export default function ScrollToBottomButton({ visible, onPress }: ScrollToBotto
                 },
             ]}
         >
-            <HugeiconsIcon icon={ArrowDown01Icon} size={22} color={colors.primary} />
+            <HugeiconsIcon icon={ArrowDown01Icon} size={moderateScale(22)} color={colors.primary} />
         </Pressable>
     );
 }
@@ -35,19 +36,19 @@ export default function ScrollToBottomButton({ visible, onPress }: ScrollToBotto
 const styles = StyleSheet.create({
     button: {
         position: 'absolute',
-        right: 16,
-        bottom: 12,
+        right: moderateScale(16),
+        bottom: moderateScale(12),
         zIndex: 5,
-        width: 44,
-        height: 44,
-        borderRadius: 15,
+        width: moderateScale(44),
+        height: moderateScale(44),
+        borderRadius: moderateScale(15),
         borderWidth: 1.5,
         alignItems: 'center',
         justifyContent: 'center',
         shadowColor: '#000000',
-        shadowOffset: { width: 0, height: 3 },
+        shadowOffset: { width: moderateScale(0), height: moderateScale(3) },
         shadowOpacity: 0.16,
-        shadowRadius: 5,
+        shadowRadius: moderateScale(5),
         elevation: 4,
     },
 });

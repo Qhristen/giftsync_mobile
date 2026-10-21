@@ -16,6 +16,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { moderateScale } from '@/utils/scaling';
 
 export default function CheckoutEntry() {
     const router = useRouter();
@@ -64,7 +65,7 @@ export default function CheckoutEntry() {
                             <Typography variant="caption" color={colors.textSecondary}>{event?.title || 'A lovely occasion'}</Typography>
                         </View>
                         <View style={[styles.dateStamp, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                            <HugeiconsIcon icon={Calendar01Icon} size={17} color={colors.ink} />
+                            <HugeiconsIcon icon={Calendar01Icon} size={moderateScale(17)} color={colors.ink} />
                             <Typography variant="caption" style={styles.dateStampText}>
                                 {event?.date
                                     ? new Date(event.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }).toUpperCase()
@@ -102,7 +103,7 @@ export default function CheckoutEntry() {
                         <View style={[styles.noteIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
                             <HugeiconsIcon
                                 icon={deliveryStatus.canArriveOnTime ? Time02Icon : AlertCircleIcon}
-                                size={20}
+                                size={moderateScale(20)}
                                 color={colors.ink}
                             />
                         </View>
@@ -137,7 +138,7 @@ export default function CheckoutEntry() {
                 </View>
             </ScrollView>
 
-            <View style={[styles.footer, { backgroundColor: colors.background, paddingBottom: insets.bottom + 16 }]}>
+            <View style={[styles.footer, { backgroundColor: colors.background, paddingBottom: insets.bottom + moderateScale(16) }]}>
                 <Button
                     title="Wrap it & plan delivery  →"
                     onPress={() => router.push({ pathname: '/checkout/delivery', params: { occasionId, productId } })}
@@ -161,73 +162,73 @@ function ReceiptRow({ label, value }: { label: string; value: string }) {
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
-    content: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 130, gap: 20 },
+    content: { paddingHorizontal: moderateScale(20), paddingTop: moderateScale(8), paddingBottom: moderateScale(130), gap: moderateScale(20) },
     briefCard: {
         borderWidth: 1.5,
-        borderRadius: 26,
-        padding: 18,
-        gap: 18,
+        borderRadius: moderateScale(26),
+        padding: moderateScale(18),
+        gap: moderateScale(18),
 
         transform: [{ rotate: '-0.7deg' }],
     },
     tape: {
         position: 'absolute',
-        top: -10,
+        top: moderateScale(-10),
         left: '42%',
-        width: 66,
-        height: 22,
+        width: moderateScale(66),
+        height: moderateScale(22),
         borderWidth: 1,
         opacity: 0.88,
         transform: [{ rotate: '3deg' }],
         zIndex: 2,
     },
-    recipientRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    recipientRow: { flexDirection: 'row', alignItems: 'center', gap: moderateScale(12) },
     recipientCopy: { flex: 1 },
-    overline: { letterSpacing: 1.1, fontWeight: '700' },
+    overline: { letterSpacing: moderateScale(1.1), fontWeight: '700' },
     dateStamp: {
         alignItems: 'center',
-        gap: 2,
+        gap: moderateScale(2),
         borderWidth: 1.5,
-        borderRadius: 12,
-        paddingHorizontal: 9,
-        paddingVertical: 8,
+        borderRadius: moderateScale(12),
+        paddingHorizontal: moderateScale(9),
+        paddingVertical: moderateScale(8),
         transform: [{ rotate: '4deg' }],
     },
     dateStampText: { fontWeight: '800' },
     giftPolaroid: {
         flexDirection: 'row',
-        padding: 9,
-        gap: 13,
+        padding: moderateScale(9),
+        gap: moderateScale(13),
         borderWidth: 1.5,
-        borderRadius: 19,
+        borderRadius: moderateScale(19),
 
         transform: [{ rotate: '1.2deg' }],
     },
-    giftImage: { width: 106, height: 106, borderRadius: 13 },
-    giftCopy: { flex: 1, justifyContent: 'center', gap: 3 },
+    giftImage: { width: moderateScale(106), height: moderateScale(106), borderRadius: moderateScale(13) },
+    giftCopy: { flex: 1, justifyContent: 'center', gap: moderateScale(3) },
     deliveryNote: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
+        gap: moderateScale(12),
         borderWidth: 1.5,
-        borderRadius: 19,
-        padding: 14,
+        borderRadius: moderateScale(19),
+        padding: moderateScale(14),
     },
-    noteIcon: { width: 40, height: 40, borderRadius: 13, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+    noteIcon: { width: moderateScale(40), height: moderateScale(40), borderRadius: moderateScale(13), borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
     noteCopy: { flex: 1 },
     sectionHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     receipt: {
         borderWidth: 1.5,
-        borderRadius: 22,
-        padding: 18,
-        gap: 11,
+        borderRadius: moderateScale(22),
+        padding: moderateScale(18),
+        gap: moderateScale(11),
 
         transform: [{ rotate: '0.6deg' }],
     },
-    receiptRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 16 },
-    dashedLine: { borderTopWidth: 1, borderStyle: 'dashed', marginVertical: 4 },
-    totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', gap: 12 },
+    receiptRow: { flexDirection: 'row', justifyContent: 'space-between', gap: moderateScale(16) },
+    dashedLine: { borderTopWidth: 1, borderStyle: 'dashed', marginVertical: moderateScale(4) },
+    totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', gap: moderateScale(12) },
     totalCopy: { flex: 1 },
-    footer: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 14 },
+    footer: { position: 'absolute', left: moderateScale(0), right: moderateScale(0), bottom: moderateScale(0), paddingHorizontal: moderateScale(20), paddingTop: moderateScale(14) },
     submitButton: { width: '100%' },
 });

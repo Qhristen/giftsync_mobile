@@ -13,6 +13,7 @@ import React, { forwardRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import BottomSheetWrapper, { BottomSheetRef } from '../ui/BottomSheetWrapper';
 import Typography from '../ui/Typography';
+import { moderateScale } from '@/utils/scaling';
 
 interface TransactionDetailSheetProps {
     transaction: WalletTransaction | null;
@@ -83,7 +84,7 @@ const TransactionDetailSheet = forwardRef<BottomSheetRef, TransactionDetailSheet
 
                 <View style={[styles.amountCard, { backgroundColor: isCredit ? colors.mint : colors.peach, borderColor: colors.ink }]}>
                     <View style={[styles.amountIcon, { backgroundColor: colors.surface, borderColor: colors.ink }]}>
-                        <HugeiconsIcon icon={TransactionIcon} size={27} color={colors.ink} />
+                        <HugeiconsIcon icon={TransactionIcon} size={moderateScale(27)} color={colors.ink} />
                     </View>
                     <Typography variant="caption" color={colors.textSecondary} style={styles.overline}>
                         {titleCase(transaction.type)}
@@ -114,7 +115,7 @@ const TransactionDetailSheet = forwardRef<BottomSheetRef, TransactionDetailSheet
                 </View>
 
                 <View style={[styles.note, { backgroundColor: colors.lavender, borderColor: colors.ink }]}>
-                    <HugeiconsIcon icon={Coins02Icon} size={20} color={colors.ink} />
+                    <HugeiconsIcon icon={Coins02Icon} size={moderateScale(20)} color={colors.ink} />
                     <View style={{ flex: 1 }}>
                         <Typography variant="bodyBold">Receipt saved in your ledger</Typography>
                         <Typography variant="caption" color={colors.textSecondary}>Use the reference above if you need help with this transaction.</Typography>
@@ -139,19 +140,19 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-    emptyState: { paddingVertical: 40, alignItems: 'center' },
-    content: { paddingTop: 6, paddingBottom: 28, gap: 18 },
-    headingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: 0.8 },
-    statusStamp: { borderWidth: 1.5, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 7, transform: [{ rotate: '2deg' }] },
-    amountCard: { alignItems: 'center', borderWidth: 1.5, borderRadius: 23, padding: 20, gap: 5, transform: [{ rotate: '-0.4deg' }] },
-    amountIcon: { width: 54, height: 54, borderRadius: 17, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
-    receipt: { borderWidth: 1.5, borderRadius: 20, padding: 17, gap: 3 },
-    detailRow: { minHeight: 38, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 14 },
+    emptyState: { paddingVertical: moderateScale(40), alignItems: 'center' },
+    content: { paddingTop: moderateScale(6), paddingBottom: moderateScale(28), gap: moderateScale(18) },
+    headingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: moderateScale(12) },
+    overline: { fontFamily: 'DMSans_700Bold', letterSpacing: moderateScale(0.8) },
+    statusStamp: { borderWidth: 1.5, borderRadius: moderateScale(10), paddingHorizontal: moderateScale(10), paddingVertical: moderateScale(7), transform: [{ rotate: '2deg' }] },
+    amountCard: { alignItems: 'center', borderWidth: 1.5, borderRadius: moderateScale(23), padding: moderateScale(20), gap: moderateScale(5), transform: [{ rotate: '-0.4deg' }] },
+    amountIcon: { width: moderateScale(54), height: moderateScale(54), borderRadius: moderateScale(17), borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', marginBottom: moderateScale(4) },
+    receipt: { borderWidth: 1.5, borderRadius: moderateScale(20), padding: moderateScale(17), gap: moderateScale(3) },
+    detailRow: { minHeight: moderateScale(38), flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: moderateScale(14) },
     detailLabel: { flex: 0.8 },
     detailValue: { flex: 1.2 },
-    divider: { borderTopWidth: 1, borderStyle: 'dashed', marginVertical: 8 },
-    note: { flexDirection: 'row', alignItems: 'center', gap: 11, borderWidth: 1.5, borderRadius: 17, padding: 14 },
+    divider: { borderTopWidth: 1, borderStyle: 'dashed', marginVertical: moderateScale(8) },
+    note: { flexDirection: 'row', alignItems: 'center', gap: moderateScale(11), borderWidth: 1.5, borderRadius: moderateScale(17), padding: moderateScale(14) },
 });
 
 export default TransactionDetailSheet;
